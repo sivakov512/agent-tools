@@ -1,0 +1,13 @@
+{
+  "name": "sivakov512",
+  "owner": {
+    "name": "Nikita Sivakov"
+  },
+  "plugins": [
+    {
+      "name": "project-tracker",
+      "source": "./project-tracker",
+      "description": "Keep client project plans in Notion up to date from plain chat: progress, slips, issues, status, weekly reports, new projects."
+    }
+  ]
+}
