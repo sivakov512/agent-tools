@@ -9,7 +9,7 @@ The user runs projects for clients. The plan, its progress, slips and open probl
 
 ## The tracker
 
-A root page **Project tracker** with three databases:
+A root page — its name is the user's choice at setup, `Project tracker` by default — with three databases:
 
 - **Projects** — `Name`, `Client`, `Status` (Active / Paused / Done / Removed), `Summary` (one sentence: where we are, what is next — never lateness or "on track", which would go stale), `Target end`, `Repository`, `Source` (link to where the project came from — a platform contract or a shared document; empty for pasted text, email, local files), `Late, days` (computed by Notion: the worst lateness among the project's open milestones), `Milestones` (the reverse of the milestones' `Project`; hidden on the page).
 - **Milestones** — `Name`, `Project`, `Phase`, `Status` (Planned / In progress / Paused / Done / Dropped), `Dates` (the dates agreed with the client; they draw the Gantt), `Finished` (the day it was actually done), `Late, days` (computed). A milestone's page body is its **history**: dated lines `- **Mar 4** — …`, newest at the bottom. That is where the "why" lives. `Project status` and `Open late` are helper columns for the formulas; never write them.
@@ -19,7 +19,7 @@ A root page **Project tracker** with three databases:
 
 `Removed` and `Dropped` are for things the user threw away; views, counts, overviews and reports look only at the other ("live") statuses.
 
-The root page has a config callout (the three data source IDs) and tabs: `Projects` (view `Active` — Active and Paused), `All plans` (Milestones: `Next up`, `Timeline` — Planned, In progress, Paused), `Issues` (`Waiting on` — Open and Waiting; `Recently resolved`). A **project page is the project's row in Projects**: a status callout, then tabs `Plan` (Gantt), `Schedule` (dates, finished, lateness), `Open items`, `Notes`.
+The root page starts with a collapsed gray config toggle (the three data source IDs), then tabs: `Projects` (view `Active` — Active and Paused), `All plans` (Milestones: `Next up`, `Timeline` — Planned, In progress, Paused), `Issues` (`Waiting on` — Open and Waiting; `Recently resolved`). A **project page is the project's row in Projects**: a status callout, then tabs `Plan` (Gantt), `Schedule` (dates, finished, lateness), `Open items`, `Notes`.
 
 ## Rules that protect the data
 
@@ -34,7 +34,11 @@ The root page has a config callout (the three data source IDs) and tabs: `Projec
 
 ## Finding things
 
-The root page is found with `notion-search` for "Project tracker"; its first callout lists `projects`, `milestones`, `open_items` (data source IDs). If you already have them from earlier in the conversation, use them. No such page → the tracker is not set up (see **Other scenarios**).
+**The root page** is recognised by its config block, not by its title — the user may have named or renamed it anything. The block is a toggle at the top whose summary reads `⚙️ **Config** — read by the \`project-tracker\` skill…` and whose lines list `projects`, `milestones`, `open_items` (data source IDs). If you already have the IDs from earlier in the conversation, use them. Otherwise:
+
+- the user named or linked the page → fetch it;
+- else `notion-search` for `read by the project-tracker skill` and keep the pages whose highlight or content shows that line (other tools write similar config blocks; check the skill name). One → use it. Several → ask once which, by title and parent.
+- None → the tracker is not set up (see **Other scenarios**).
 
 A project: query the `Active` view and match by meaning ("the rain gauge" → "Weather station"). A Done project: `notion-search` by name. A Removed one only when the user names it or asks to bring it back. A milestone or issue: the project's `Plan` / `Open items` view, again by meaning. With one candidate there is nothing to ask; with several plausible ones, ask.
 
@@ -50,7 +54,7 @@ Tool names are the Notion MCP tools (`notion-fetch`, `notion-query-data-sources`
 
 **Properties** (`notion-update-page`, `command: "update_properties"`, or on create): date range `"date:Dates:start": "2026-03-02", "date:Dates:end": "2026-03-20"` — always both ends; single dates (`Finished`, `Target end`, `Opened`, `Resolved on`) start only; relation `["<page id>"]`; select as the option name.
 
-**Bodies.** A history line: `insert_content`, `position: {"type": "end"}`. Changing one line or block: `update_content` with `old_str` exactly as fetched. Block tags (`<callout>`, `<tabs>`, `<tab>`, `<database>`, `<page>`) are sent as raw `<` `>` — in JSON only `"`, tabs and newlines are escaped (`\"`, `\t`, `\n`). Lines inside a callout or tab are indented with tabs; without them Notion turns the lines into separate blocks. After any write that contains markup, fetch the page and check: tags that show up as text (`&lt;callout`), blocks out of order, or an `icon=` that Notion added → fix with `update_content`. Pages, databases and tabs carry no icons; only the two callouts have one.
+**Bodies.** A history line: `insert_content`, `position: {"type": "end"}`. Changing one line or block: `update_content` with `old_str` exactly as fetched. Block tags (`<callout>`, `<details>`, `<tabs>`, `<tab>`, `<database>`, `<page>`) are sent as raw `<` `>` — in JSON only `"`, tabs and newlines are escaped (`\"`, `\t`, `\n`). Lines inside a callout, toggle or tab are indented with tabs; without them Notion turns the lines into separate blocks. After any write that contains markup, fetch the page and check: tags that show up as text (`&lt;callout`), blocks out of order, or an `icon=` that Notion added → fix with `update_content`. Pages, databases and tabs carry no icons; only the callouts have one.
 
 **The status callout** holds only what changes when something happens — never lateness or "on track", which depend on today's date and would go stale in a text block (the live number is `Late, days` at the top of the page):
 

@@ -10,7 +10,7 @@ claude plugin eval . --runs 1 --ablation none --scaffold --trust-plugin --judge-
 
 - One case: `--case progress`. By tag: `--tag create` (create, update, dates, issues, notes, state, plan, corrections, read, contracts, commands, setup, negative).
 - `--model sonnet` pins the model under test. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
-- One full run is 29 agent runs, about 20 minutes at `-j 2` and roughly $15 of API usage (`--runs 3` for a stability check triples that). Raise `-j` only on a machine with spare cores and memory — too many parallel runs get killed and show up as harness errors, not as failures.
+- One full run is 30 agent runs, about 20 minutes at `-j 2` and roughly $15 of API usage (`--runs 3` for a stability check triples that). Raise `-j` only on a machine with spare cores and memory — too many parallel runs get killed and show up as harness errors, not as failures.
 - `--scaffold` is needed for `new-from-file` (its `scaffold.sh` writes the estimate file into the sandbox).
 
 What is checked:
@@ -25,7 +25,7 @@ Layout:
 
 ```
 evals/
-├── mocks/notion/          the shared fake workspace (_server.md = two projects with milestones and issues)
+├── mocks/notion/          the shared fake workspace (_server.md = a root page named "Client work", two projects with milestones and issues, and a decoy page with another tool's config callout)
 ├── <case>/prompt.md       what the user says; frontmatter: date, tools, runs
 ├── <case>/graders/*.md    checks
 └── <case>/mocks/…         case-specific fakes (empty and half-built trackers for setup; a moved plan for undo; mail; Upwork)

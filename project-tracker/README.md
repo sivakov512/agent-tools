@@ -6,12 +6,12 @@ The plugin and the skill inside it are both called `project-tracker`.
 
 ## What you get in Notion
 
-A page **Project tracker** with three databases and two kinds of pages.
+A root page — you name it at setup, **Project tracker** by default — with three databases and two kinds of pages.
 
-**Root page** — a config callout, then tabs; each tab is one of the databases with its own views:
+**Root page** — a collapsed config toggle, then tabs; each tab is one of the databases with its own views:
 
 ```
-⚙️ Config
+▸ ⚙️ Config
 [ Projects ] [ All plans ] [ Issues ]
 ```
 
@@ -43,7 +43,7 @@ The callout holds only what changes when something happens (what is in progress,
 
 Click a milestone to see **why**: its page body is a dated history — what was done, when dates were moved with the client and why, what was paused.
 
-Pages, databases and tabs have no icons; only the two callouts do.
+Pages, databases and tabs have no icons.
 
 ### The databases
 
@@ -56,7 +56,7 @@ Pages, databases and tabs have no icons; only the two callouts do.
 
 `Removed` and `Dropped` are for things you threw away: they disappear from every view, overview and report instead of showing up as finished work.
 
-The root page's **Config** callout lists the three database IDs. The skill reads it on every run, so nothing is hardcoded: if you move or recreate the databases, edit that callout.
+The root page's **Config** toggle lists the three database IDs. The skill finds the root page by this toggle and reads it on every run, so nothing is hardcoded: rename or move the page as you like; if you move or recreate the databases, edit the IDs. Keep the toggle's title line — that is what the skill searches for.
 
 ## Install
 
@@ -86,7 +86,7 @@ then authenticate Notion as the Codex docs describe. Any other agent that reads 
 
 ## First run
 
-1. "Set up the project tracker in Notion" (or `/project-tracker set up`). Say where to put the page, or it will ask. Running it again is safe: it finishes an interrupted setup instead of making a second one.
+1. "Set up the project tracker in Notion" (or `/project-tracker set up`). It proposes a name and a place for the page (`Project tracker`, top level) — answer OK or give your own, or say them up front: "set up the tracker as *Client work* under *Freelance*". Running it again is safe: it finishes an interrupted setup instead of making a second one.
 2. Click through the short list setup ends with — the API cannot do these:
    - **full width** for the page (••• → Full width), optional but recommended: without it Notion folds each tab's second view (`Timeline`, `Recently resolved`) into a dropdown;
    - **hide helper properties**, once per database: on a project page `Milestones` → *Always hide*; on a milestone page `Project status` and `Open late` → *Always hide*.

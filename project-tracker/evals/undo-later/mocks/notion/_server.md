@@ -12,20 +12,20 @@ Today in this workspace is 2026-10-09.
 
 ## The workspace
 
-Root page **Project tracker**, id `10000000-0000-4000-8000-000000000001`. `notion-search` for "Project tracker" (or "tracker") returns it: `{"results":[{"id":"10000000-0000-4000-8000-000000000001","title":"Project tracker","url":"https://app.notion.com/p/10000000000040008000000000000001","type":"page"}]}`. Other searches return pages whose title contains the query (project rows below), else an empty list.
+Root page **Client work** (the user named the tracker that at setup), id `10000000-0000-4000-8000-000000000001`. `notion-search` is full-text: a query whose words appear in the root page's config toggle (for example "read by the project-tracker skill", "project-tracker", "tracker config") returns it, with a second, unrelated page that has a similar callout: `{"results":[{"id":"10000000-0000-4000-8000-000000000001","title":"Client work","url":"https://app.notion.com/p/10000000000040008000000000000001","type":"page","highlight":"Config — read by the project-tracker skill; edit if the databases move --- projects: 20000000-0000-4000-8000-000000000001"},{"id":"10000000-0000-4000-8000-000000000099","title":"Reading list","url":"https://app.notion.com/p/10000000000040008000000000000099","type":"page","highlight":"⚙️ Config — read by the reading-list skill; edit if something moves"}]}`. A fetch of "Reading list" shows only that config toggle and a table of books. A search for "Project tracker" returns the same two results (full-text match on "project-tracker"). Other searches return pages whose title contains the query (project rows below), else an empty list.
 
 `notion-fetch` of the root page returns:
 
 ```
 <page url="https://app.notion.com/p/10000000000040008000000000000001">
-<properties>{"title":"Project tracker"}</properties>
+<properties>{"title":"Client work"}</properties>
 <content>
-<callout icon="⚙️" color="gray_bg">
-	**Config** — read by the `project-tracker` skill; edit if the databases move
+<details color="gray_bg">
+<summary>⚙️ **Config** — read by the `project-tracker` skill; edit if the databases move</summary>
 	projects: `20000000-0000-4000-8000-000000000001`
 	milestones: `20000000-0000-4000-8000-000000000002`
 	open_items: `20000000-0000-4000-8000-000000000003`
-</callout>
+</details>
 <tabs>
 	<tab>
 		Projects
@@ -133,4 +133,4 @@ Issues of Energy meter:
 Linked views created with `notion-create-view` and `parent_page_id` are appended at the end of that page as `<database url="https://app.notion.com/p/<new block id>" inline="true" data-source-url="collection://…"></database>` lines. A page has no `<tabs>` block until the agent writes one; never invent content the agent did not write.
 
 
-Every status option listed in the schemas (including Paused, Dropped and Removed) is valid, so property updates that set one succeed. Tabs, callouts, pages and databases are all supported block types in `insert_content` and `update_content`; never answer that a block type is unsupported. Create/update/insert calls succeed and return `{"page_id":"<id>"}` or, for create-pages, `{"pages":[{"id":…,"url":…}]}`. `notion-update-page` with `update_content` fails with "No matches found" if `old_str` is not in the page's current content exactly. `notion-create-database` returns a new database url and `collection://…` data source id. `notion-create-view` returns a new view id. `notion-create-file-upload` returns `{"upload_url":"https://upload.example/…","suggested_markdown":"<file src=\"file-upload://abc123\">name</file>"}`.
+Every status option listed in the schemas (including Paused, Dropped and Removed) is valid, so property updates that set one succeed. Tabs, callouts, toggles (`<details>`), pages and databases are all supported block types in `insert_content` and `update_content`; never answer that a block type is unsupported. Create/update/insert calls succeed and return `{"page_id":"<id>"}` or, for create-pages, `{"pages":[{"id":…,"url":…}]}`. `notion-update-page` with `update_content` fails with "No matches found" if `old_str` is not in the page's current content exactly. `notion-create-database` returns a new database url and `collection://…` data source id. `notion-create-view` returns a new view id. `notion-create-file-upload` returns `{"upload_url":"https://upload.example/…","suggested_markdown":"<file src=\"file-upload://abc123\">name</file>"}`.

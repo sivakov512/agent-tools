@@ -1,9 +1,9 @@
 ---
-max_turns: 80
-timeout_seconds: 1500
+max_turns: 20
+timeout_seconds: 400
 allowed_tools: [Skill, Read, Glob, Grep]
 runs: 3
 tags: [setup]
 append_system_prompt: 'The current date is Friday, 9 October 2026. The date shown elsewhere in the environment is wrong for this session — use 2026-10-09 as today.'
 ---
-Set up the project tracker in Notion as a top-level page called "Client work".
+Set up the project tracker in Notion.

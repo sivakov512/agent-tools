@@ -38,7 +38,7 @@ agent-tools/
 
 ## Configuration
 
-Skills do not hardcode workspace IDs. `project-tracker` looks for a Notion page titled **Project tracker** and reads its database IDs from a config callout there; if the page does not exist, it creates the whole structure on request.
+Skills do not hardcode workspace IDs. `project-tracker` finds its Notion root page by a config callout (the page can have any name) and reads the database IDs from it; if there is none, it creates the whole structure on request, under a name you choose.
 
 ## Updating
 

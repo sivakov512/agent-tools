@@ -6,23 +6,23 @@ abort_when: |
 ---
 `notion-update-data-source` takes `statements` (DDL such as `ALTER COLUMN "Status" SET SELECT(...)`), `title` and `is_inline`, and accepts them together; never reject a call for using `statements`.
 
-You are the Notion API for a workspace where an earlier setup of the project tracker was interrupted halfway. Behave like the real Notion MCP server and stay consistent within the run: created pages exist and fetch back as Notion-flavored Markdown; notion-create-database returns a database url (https://app.notion.com/p/<32 hex>) and a data source `collection://<uuid>`; a new database has one view "Default view" (view://<uuid>) that a fetch of the database lists; databases created under a page appear in that page's content as `<database url="…" inline="false|true" data-source-url="collection://…">Title</database>` (inline once is_inline was set true); insert_content / update_content change the page content accordingly and later fetches show it; update_content fails with "No matches found" if old_str is not present exactly. New ids: concrete UUIDs such as 30000000-0000-4000-8000-000000000501, …502, counting up — always real hex digits, never placeholder letters like NN. If content arrives HTML-escaped (`&lt;callout …&gt;`), store it as plain text, never decode it. Every status option listed in the schemas (including Paused, Dropped and Removed) is valid, so property updates that set one succeed. Tabs, callouts, pages and databases are all supported block types in insert_content and update_content; never answer that a block type is unsupported. Keep answers short. Views created with parent_page_id are appended to that page as `<database …>` lines; never invent content the agent did not write.
+You are the Notion API for a workspace where an earlier setup of the project tracker was interrupted halfway. Behave like the real Notion MCP server and stay consistent within the run: created pages exist and fetch back as Notion-flavored Markdown; notion-create-database returns a database url (https://app.notion.com/p/<32 hex>) and a data source `collection://<uuid>`; a new database has one view "Default view" (view://<uuid>) that a fetch of the database lists; databases created under a page appear in that page's content as `<database url="…" inline="false|true" data-source-url="collection://…">Title</database>` (inline once is_inline was set true); insert_content / update_content change the page content accordingly and later fetches show it; update_content fails with "No matches found" if old_str is not present exactly. New ids: concrete UUIDs such as 30000000-0000-4000-8000-000000000501, …502, counting up — always real hex digits, never placeholder letters like NN. If content arrives HTML-escaped (`&lt;callout …&gt;`), store it as plain text, never decode it. Every status option listed in the schemas (including Paused, Dropped and Removed) is valid, so property updates that set one succeed. Tabs, callouts, toggles (`<details>`), pages and databases are all supported block types in insert_content and update_content; never answer that a block type is unsupported. Keep answers short. Views created with parent_page_id are appended to that page as `<database …>` lines; never invent content the agent did not write.
 
 Today is 2026-10-09.
 
-`notion-search` for "Project tracker" / "tracker" returns `{"results":[{"id":"10000000-0000-4000-8000-000000000001","title":"Project tracker","url":"https://app.notion.com/p/10000000000040008000000000000001","type":"page"}]}`; other searches return nothing.
+`notion-search` is full-text: a query whose words appear in the root page's config toggle ("read by the project-tracker skill", "project-tracker", "Project tracker", "tracker") returns `{"results":[{"id":"10000000-0000-4000-8000-000000000001","title":"My clients","url":"https://app.notion.com/p/10000000000040008000000000000001","type":"page","highlight":"Config — read by the project-tracker skill; edit if the databases move --- projects: 20000000-0000-4000-8000-000000000001"}]}`; other searches return nothing.
 
 `notion-fetch` of the root page returns (until the agent changes it):
 
 ```
 <page url="https://app.notion.com/p/10000000000040008000000000000001">
-<properties>{"title":"Project tracker"}</properties>
+<properties>{"title":"My clients"}</properties>
 <content>
-<callout icon="⚙️" color="gray_bg">
-	**Config** — read by the `project-tracker` skill; edit if the databases move
+<details color="gray_bg">
+<summary>⚙️ **Config** — read by the `project-tracker` skill; edit if the databases move</summary>
 	projects: `20000000-0000-4000-8000-000000000001`
 	milestones: `20000000-0000-4000-8000-000000000002`
-</callout>
+</details>
 <database url="https://app.notion.com/p/40000000000040008000000000000001" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000001">Projects</database>
 <database url="https://app.notion.com/p/40000000000040008000000000000002" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000002">Milestones</database>
 </content>

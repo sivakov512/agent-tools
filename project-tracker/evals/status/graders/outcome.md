@@ -3,7 +3,7 @@ type: 'llm'
 focus: 'last_message'
 ---
 - The current milestone named is Real readings from the CT sensor over Zigbee, with Oct 9.
-- Slip is reported as none / zero.
+- Nothing is reported as late (no slip).
 - CI runner (Marko), RFQ review (Northwind) and Invoice from Acme (Acme) are listed.
 - Next includes Sleep modes and sampling (Nov 6).
 
