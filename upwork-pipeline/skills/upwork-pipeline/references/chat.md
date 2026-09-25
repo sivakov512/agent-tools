@@ -1,0 +1,65 @@
+# In chat
+
+Everything the user does by hand with the pipeline: look at a posting, get an estimate, draft and send a proposal, set a card's status, ask about connects. The user's own rules for content — what to take, how to price, how to write — are in Search rules and Proposal guide; read the one the scenario needs before acting, every time, since the user edits them.
+
+## Looking at a posting — "what about #584350?", a link, "is this worth it?"
+
+Fresh data first (SKILL.md → Finding things): `find_jobs` `get` on the job. Then the link, and an assessment by Search rules with the card structure — what's needed, complexity, risks, to clarify, estimate — as prose, with the fresh numbers: proposals now vs at find time, hired, connects to apply.
+
+If the card does not exist and the verdict is Take or Maybe, offer to create it (hourly card format); do not create it silently.
+
+## Skip and applied — "skip it", "not this one", "already applied"
+
+- "Skip", "pass", "not interested" about a posting → `Status` Skipped on its card, without asking. A Skipped card is never re-assessed or duplicated.
+- "Applied", "sent it", "I responded" → `Status` Applied; no card yet → create one with the posting's data, then set Applied.
+- Undoing: "put it back to new" → `Status` New.
+
+Reply with one line: `#584350 → Skipped`.
+
+## Proposals — "write a proposal", "apply to this", "respond to the invitation"
+
+Read the **Proposal guide** first and follow it for the text, the portfolio selection, attachments, screening answers, rate and boost. Whatever it says wins over this section. What this section fixes is the mechanics and the guard:
+
+1. **Fresh data**: `find_jobs` `get`. Check whether the client has already hired the number sought, whether there are screening questions, and the current connects price.
+2. **Preview, not submission**: gathering the form data (`manage_proposals` create → preview: screening questions, bid statistics, boost) is not a submission and costs nothing; do it as part of this request without asking. An invitation uses `accept_invitation` instead of `create`. If the preview is blocked, build the package from `find_jobs` `get` and mark screening and boost as unavailable.
+3. **One package, one message.** The message starts with the `Fresh data:` line — no greeting, no preamble, no "here's the proposal" — and follows this order with these labels, plain text (no bold on the numbers), because the user reads it on a phone, opens the link to check the posting and says "ok" or "send it"; anything before the package pushes the text they need to read below the fold:
+
+```
+Fresh data: proposals <N> (<M> at find time), hired <N>, <N> connects to apply.
+<link to the posting>
+
+**Proposal text:**
+
+<code block with the full text>
+
+**Rate:** <$N/hr in the form field | fixed $N, and how it is split, if the guide says>
+
+**Screening, drafts:**   ← only if there are questions
+1. *<question as posted>* → <draft answer>
+2. *<question>* → ⚠️ check: <draft + why it needs the user>
+
+**Boost:** <N> connects to apply, balance <N>. <no auction | auction: …>. Recommend: <boost to <slot> | no boost> — <one phrase why>.
+
+**Files:** <which, by the guide's file names | none needed>
+
+```
+
+   Before replying, read the draft reply once as the user will. It starts with `Fresh data:` — anything above it (a verdict, a summary of your work) or between the blocks pushes the text down on a phone; a concern about fit fits into the Fresh data line in a few words. The proposal text breaks none of the guide's "never" lines. Every claim about past work can be pointed to in the guide's portfolio lines or the profile — a client who asks about a detail you added and the user never did will stop trusting the rest; what is missing becomes a question to the client instead. The package around the text is in `language`; only the proposal text and screening answers follow the posting's language.
+
+   Then nothing — wait. Any time you show the full text again (an edit, the final), put the link right above it so the user does not scroll for it.
+4. **Send only on the user's plain "send it"** about this proposal, in this conversation. Right before, name the total once more: connects for the application, boost separately, balance after. Attachments are uploaded only after the package is approved, with the mechanics Field notes describe. If the platform cannot take the shape the guide asks for, say so and hand the user what to paste into the web form.
+5. **After sending**: the card's `Status` → Applied (create the card if there is none), and one line to the user with what was sent and what it cost.
+
+Never guess a fact for a screening answer or the text: profile, portfolio, cards and what the user said in this conversation are the only sources. Where an honest answer depends on something only the user knows, mark the draft ⚠️.
+
+## Connects — "how many connects", "what's my balance"
+
+`get_freelancer_financials` `connects_balance`: balance (free / paid), and the recent history, paged with the cursor while it covers the period asked. Purchases are not spend; refunds are shown separately from spend.
+
+## Rules the user states in chat
+
+"From now on skip anything with X", "always ask about Y", "the rate is Z" — a confirmed rule goes into Search rules or Proposal guide as one line refining the existing item, right away (SKILL.md → Questions and quirks). An unclear case the user did not decide becomes a question row, not a rule.
+
+## What stays off limits here
+
+Sending, boosting, messaging or saving anything on Upwork without the explicit go for that action; moving `PROCESSED_UNTIL`; editing Runs.

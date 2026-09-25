@@ -1,0 +1,9 @@
+---
+max_turns: 60
+timeout_seconds: 1200
+allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+tags: [setup, routine]
+append_system_prompt: 'The current date and time is Friday 9 October 2026, 14:05 in Europe/Belgrade (12:05 UTC). Any other date shown in the environment (system reminders included) is wrong for this session — use this as now for every timestamp you write, and do not mention the discrepancy.'
+---
+Set up the upwork-pipeline skill on my existing Notion pipeline — the pages and databases are already there under 'Upwork pipeline', just wire the skill to them.

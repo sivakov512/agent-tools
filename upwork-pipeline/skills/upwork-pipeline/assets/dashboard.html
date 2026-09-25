@@ -1,0 +1,1334 @@
+<title>Upwork Pulse</title>
+<style>
+  :root {
+    --bg: #f5f6f5; --surface: #ffffff; --surface-2: #f0f2f1; --border: #e3e6e4;
+    --text: #1a1e1f; --text-2: #5b6462; --text-mute: #8d9593;
+    --accent: #0f7f79; --accent-soft: #e2f2f0;
+    --good: #2a8a55; --warn: #8a6c2c; --critical: #b83a2e; --critical-soft: #fbe9e6;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111314; --surface: #171a1b; --surface-2: #1d2123; --border: #262b2d;
+      --text: #e4e7e6; --text-2: #9ca4a2; --text-mute: #6d7674;
+      --accent: #5ec6bc; --accent-soft: #17302e;
+      --good: #6cc592; --warn: #b39a5c; --critical: #ec7b70; --critical-soft: #35191a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111314; --surface: #171a1b; --surface-2: #1d2123; --border: #262b2d;
+    --text: #e4e7e6; --text-2: #9ca4a2; --text-mute: #6d7674;
+    --accent: #5ec6bc; --accent-soft: #17302e;
+    --good: #6cc592; --warn: #b39a5c; --critical: #ec7b70; --critical-soft: #35191a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--sans); font-size: 15px; line-height: 1.45;
+    padding-inline: 24px; padding-block: 24px 40px; max-width: 1180px; margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; }
+  .mono { font-family: var(--mono); }
+  .muted { color: var(--text-mute); }
+
+  header.top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .eyebrow { display: none; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  .status { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-mute); }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); display: inline-block; margin-right: 6px; vertical-align: middle; }
+  .live-dot.on { background: var(--good); }
+  .btn { border: 1px solid var(--border); background: transparent; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12.5px; color: var(--text-2); }
+  .btn:hover { color: var(--text); border-color: var(--text-mute); }
+  .btn:focus-visible, summary:focus-visible, .badge-id:focus-visible, a:focus-visible, .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: var(--accent-soft); color: var(--text); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-weight: 500; }
+  .banner a { color: var(--accent); }
+  .banner.alert { background: var(--critical-soft); }
+  .banner.alert a { color: var(--critical); }
+  .banner .list { display: flex; flex-wrap: wrap; gap: 6px 16px; font-weight: 400; }
+  .lab { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); opacity: .8; margin-right: 4px; }
+  .body .links button { border: 1px solid var(--border); background: transparent; border-radius: 6px; padding: 3px 10px; cursor: pointer; font-size: 13px; color: var(--text-2); }
+  .body .links button:hover { color: var(--critical); border-color: var(--critical); }
+  .body .links button[disabled] { opacity: .5; cursor: default; }
+  .ms-line .due { color: var(--text-mute); }
+  .ms-line .late, .ms-line .stuck { color: var(--critical); font-weight: 500; }
+  .p-state { font-size: 13px; }
+  .p-state.turn { color: var(--critical); font-weight: 500; }
+  .p-state.replied { color: var(--good); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
+  @media (max-width: 860px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .stat { display: block; text-decoration: none; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; min-width: 0; transition: border-color .12s; }
+  a.stat:hover { border-color: var(--text-mute); }
+  .stat .label { font-size: 13px; color: var(--text-2); margin-bottom: 4px; display: flex; justify-content: space-between; gap: 6px; }
+  .stat .label .go { color: var(--text-mute); }
+  .stat .value { font-size: 30px; font-weight: 500; line-height: 1.15; letter-spacing: -.02em; }
+  .stat .value.alert { color: var(--critical); }
+  .stat .sub { margin-top: 2px; font-size: 13px; color: var(--text-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .spark { display: flex; align-items: flex-end; gap: 3px; height: 24px; margin-top: 10px; }
+  .spark .bar { flex: 1; background: var(--accent); opacity: .85; border-radius: 2px 2px 0 0; min-height: 2px; }
+  .spark .bar.none { background: transparent; border-bottom: 1px dashed var(--border); border-radius: 0; opacity: 1; }
+  .spark .bar.zero { background: var(--border); opacity: 1; }
+  .spark-axis { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--text-mute); margin-top: 4px; white-space: nowrap; }
+  .spark-axis span { overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 560px) { .spark-axis span:first-child { display: none; } }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+  .col { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+  @media (min-width: 901px) {
+    .layout { align-items: stretch; }
+    .layout > .col:first-child > #leads { flex: 1; display: flex; flex-direction: column; min-height: 560px; }
+    .layout > .col:first-child > #leads > .card { flex: 1; position: relative; min-height: 0; }
+    .layout > .col:first-child > #leads > .card > .scroll { position: absolute; inset: 0; max-height: none; }
+  }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 15px; font-weight: 600; margin: 0; }
+  .count { font-size: 13px; color: var(--text-mute); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; min-width: 0; }
+  section { min-width: 0; }
+  .empty, .note { padding: 14px 16px; font-size: 14px; color: var(--text-mute); }
+  .err { padding: 12px 16px; font-size: 13px; color: var(--critical); background: var(--critical-soft); }
+
+  .tabs { display: inline-flex; gap: 2px; padding: 2px; background: var(--surface-2); border-radius: 7px; }
+  .tab { border: 0; background: transparent; padding: 4px 11px; border-radius: 5px; cursor: pointer; font-size: 13px; color: var(--text-2); }
+  .tab[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: 0 0 0 1px var(--border); }
+  .tab .mono { font-family: var(--sans); color: var(--text-mute); margin-left: 2px; }
+
+  .scroll { max-height: min(680px, 72vh); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
+  .day { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; background: var(--surface-2); color: var(--text-2); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; padding: 7px 16px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .day:first-child { border-top: 0; }
+  .day.today { color: var(--accent); }
+  .day .n { font-weight: 400; color: var(--text-mute); text-transform: none; letter-spacing: 0; }
+
+  details.older { border-top: 1px solid var(--border); }
+  details.older > summary { list-style: none; cursor: pointer; padding: 10px 16px; font-size: 13px; color: var(--text-mute); background: var(--surface-2); }
+  details.older > summary::-webkit-details-marker { display: none; }
+  details.older > summary:hover { color: var(--text-2); }
+  details.older .day { position: static; }
+  details.item { border-top: 1px solid var(--border); }
+  .day + details.item { border-top: 0; }
+  details.item > summary { list-style: none; cursor: pointer; padding: 11px 16px 11px 13px; border-left: 3px solid transparent; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 12px; align-items: baseline; }
+  details.item > summary::-webkit-details-marker { display: none; }
+  details.item > summary:hover { background: var(--surface-2); }
+  details[open] > summary { background: var(--surface-2); }
+  details.item.old .t-title { color: var(--text-2); }
+  .chev { display: none; }
+  details.item.strong > summary { border-left-color: var(--good); }
+  details.item.strong .t-title { font-weight: 600; }
+  details.item.weak .t-title { color: var(--text-2); font-weight: 400; }
+  details.item.weak .t-grid .money, details.item.weak .t-grid .time { color: var(--text-2); }
+  .body .why { margin: 4px 0 10px; font-size: 13px; color: var(--text-mute); }
+  .body .why b { color: var(--good); font-weight: 500; }
+  .t-title { font-size: 15px; font-weight: 500; line-height: 1.35; overflow-wrap: anywhere; }
+  .t-title a { text-decoration: none; }
+  .t-title a:hover { color: var(--accent); }
+  .t-meta { grid-column: 1 / 3; font-size: 13px; color: var(--text-mute); line-height: 1.5; }
+  .t-meta .sep { margin: 0 6px; opacity: .6; }
+  .t-title { grid-column: 1; }
+  .t-grid { grid-column: 1 / 3; display: grid; grid-template-columns: 3.4em var(--wm, max-content) var(--wt, max-content) minmax(0, 1fr); gap: 1px 14px; font-size: 13px; line-height: 1.5; align-items: baseline; margin-top: 3px; }
+  .t-grid .lab { margin: 0; white-space: nowrap; }
+  .t-grid .c { min-width: 0; }
+  .t-grid .money { color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 12em; }
+  .t-grid .time { color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .t-grid .chips { color: var(--text-mute); overflow-wrap: anywhere; margin-left: 18px; }
+  .t-grid .cn { color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .t-grid .flag { color: var(--warn); }
+  .t-grid .chip.good { color: var(--good); }
+  .t-grid .sep { margin: 0 5px; opacity: .6; }
+  @media (max-width: 700px) {
+    .t-grid { grid-template-columns: 3.4em var(--wm, max-content) minmax(0, 1fr); gap: 1px 12px; }
+    .t-grid .chips { grid-column: 2 / 4; margin-left: 0; margin-top: 1px; }
+    details.item > summary { padding: 10px 14px 10px 11px; }
+  }
+  .t-right { font-size: 12.5px; color: var(--text-mute); white-space: nowrap; padding-top: 2px; }
+  .badge-id { font-family: var(--mono); font-size: 12px; font-weight: 400; color: var(--text-mute); border-radius: 4px; padding: 1px 4px; margin-left: -4px; margin-right: 2px; cursor: copy; white-space: nowrap; }
+  .badge-id:hover { background: var(--accent-soft); color: var(--accent); }
+  .chip { font-size: 13px; color: var(--text-mute); }
+  .chip.warn { color: var(--warn); }
+  .chip.bad { color: var(--critical); font-weight: 500; }
+  .chip.good { color: var(--good); }
+  .chip.accent { color: var(--accent); }
+  .body { padding: 4px 16px 16px; font-size: 14px; color: var(--text-2); line-height: 1.55; background: var(--surface-2); }
+  .body h4 { font-size: 12.5px; font-weight: 600; color: var(--text); margin: 12px 0 2px; }
+  .body h4:first-child { margin-top: 4px; }
+  .body p { margin: 0 0 6px; max-width: 72ch; }
+  .body ul { margin: 0 0 6px; padding-left: 18px; max-width: 72ch; }
+  .body li { margin-bottom: 2px; }
+  .body .cmp { display: grid; grid-template-columns: max-content minmax(0, 1fr) minmax(0, 1fr); gap: 4px 16px; font-size: 13px; margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--border); align-items: baseline; }
+  .body .cmp .k { color: var(--text-mute); }
+  .body .cmp .h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); font-weight: 600; }
+  .body .cmp .v { color: var(--text); overflow-wrap: anywhere; }
+  .body .cmp .v.me { font-weight: 500; }
+  .body .cmp .v.wide { grid-column: 2 / 4; }
+  .body .jobid { margin-top: 10px; font-size: 13px; }
+  .body .jobid .badge-id { margin-left: 0; }
+  .body .facts dt { color: var(--text-mute); }
+  .body .facts dd { margin: 0; }
+  .body .links { margin-top: 10px; font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .body .links a { color: var(--accent); text-decoration: none; }
+  .body .links a:hover { text-decoration: underline; }
+
+  .contract { padding: 14px 16px; border-top: 1px solid var(--border); }
+  .contract:first-child { border-top: 0; }
+  .contract .c-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .contract .c-title { font-weight: 500; text-decoration: none; overflow-wrap: anywhere; }
+  .contract .c-title:hover { color: var(--accent); }
+  .contract .c-head .chip { display: none; }
+  .contract .c-client { font-size: 13px; color: var(--text-mute); margin-top: 1px; }
+  .ms-track { display: flex; gap: 3px; margin: 12px 0 6px; }
+  .ms-seg { flex: 1; height: 4px; border-radius: 2px; background: var(--border); }
+  .ms-seg.paid { background: var(--good); }
+  .ms-seg.active { background: var(--accent); }
+  .ms-seg.sub { background: var(--warn); }
+  .ms-line { font-size: 13px; color: var(--text-mute); }
+  .ms-line b { color: var(--text); font-weight: 500; }
+  .last-msg { margin-top: 12px; font-size: 13.5px; color: var(--text-2); border-left: 2px solid var(--border); padding: 2px 0 2px 10px; }
+  .last-msg:hover { border-left-color: var(--accent); }
+  .last-msg .who { font-size: 12.5px; color: var(--text-mute); display: flex; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
+  .sum { margin-top: 12px; font-size: 13.5px; color: var(--text-2); border-left: 2px solid var(--border); padding: 2px 0 2px 10px; }
+  .sum.turn { border-left-color: var(--critical); }
+  .sum .next { margin-top: 4px; font-weight: 500; color: var(--text); }
+  .sum.turn .next { color: var(--critical); }
+  .sum .meta { margin-top: 4px; font-size: 12.5px; color: var(--text-mute); display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .sum .meta a { color: var(--text-mute); text-decoration: none; }
+  .sum .meta a:hover { color: var(--accent); }
+  .sum .meta button { border: 0; background: transparent; padding: 0; cursor: pointer; font-size: 12.5px; color: var(--text-mute); }
+  .sum .meta button:hover { color: var(--accent); }
+  .clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
+
+  .invite { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; text-decoration: none; padding: 12px 16px; border-top: 1px solid var(--border); border-left: 3px solid var(--good); }
+  .invite .i-top { grid-column: 1; }
+  .invite .i-sub { grid-column: 1; }
+  .invite:first-child { border-top: 0; }
+  .invite:hover { background: var(--surface-2); }
+  .invite .i-top { display: flex; justify-content: space-between; gap: 8px; }
+  .invite .i-title { font-weight: 600; }
+  .invite .i-sub { font-size: 13px; color: var(--text-mute); margin-top: 2px; }
+  .thread { display: block; text-decoration: none; padding: 12px 16px; border-top: 1px solid var(--border); }
+  .thread:first-child { border-top: 0; }
+  .thread:hover { background: var(--surface-2); }
+  .thread .th-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
+  .thread .th-name { font-weight: 500; }
+  .thread .th-top span + span { margin-left: 8px; }
+
+  footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text-mute); }
+  .runs { display: flex; align-items: center; gap: 8px; }
+  #notesLine a { text-decoration: none; }
+  #notesLine a:hover { text-decoration: underline; }
+  .qbox { margin-top: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px 16px; font-size: 14px; color: var(--text-2); line-height: 1.5; }
+  .qbox .q { padding: 8px 0; border-top: 1px solid var(--border); }
+  .qbox .q:first-child { border-top: 0; }
+  .qbox .q a { color: var(--accent); text-decoration: none; }
+  .qbox .q a:hover { text-decoration: underline; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 7px 14px; border-radius: 8px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 10; }
+  .toast.show { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .stat, .toast { transition: none; } }
+</style>
+
+<header class="top">
+  <div>
+    <p class="eyebrow">Upwork</p>
+    <h1>Upwork Pulse</h1>
+  </div>
+  <div class="status">
+    <span id="liveStatus"><span class="live-dot" id="liveDot"></span><span id="liveText">Connecting…</span></span>
+    <button class="btn" id="refreshBtn" type="button">Refresh</button>
+  </div>
+</header>
+
+<div id="replyBanner" hidden></div>
+<div id="banner" hidden></div>
+
+<div class="stats">
+  <a class="stat" id="tileConnects" href="https://www.upwork.com/nx/plans/connects/history/" target="_blank" rel="noopener">
+    <div class="label"><span>Connects</span><span class="go">↗</span></div>
+    <div class="value" id="connectsValue">—</div>
+    <div class="sub" id="connectsSub">loading…</div>
+    <div class="spark" id="connectsSpark" aria-hidden="true"></div>
+    <div class="spark-axis" id="connectsAxis"></div>
+  </a>
+  <a class="stat" id="tileContracts" href="#contracts">
+    <div class="label"><span>Active contracts</span><span class="go" id="contractsGo">↓</span></div>
+    <div class="value" id="contractsValue">—</div>
+    <div class="sub" id="contractsSub">loading…</div>
+  </a>
+  <a class="stat" id="tileBalance" href="https://www.upwork.com/nx/payments/reports/transaction-history" target="_blank" rel="noopener">
+    <div class="label"><span>Balance</span><span class="go">↗</span></div>
+    <div class="value" id="balanceValue">—</div>
+    <div class="sub" id="balanceSub">loading…</div>
+  </a>
+  <a class="stat" href="#leads">
+    <div class="label"><span>Take leads</span><span class="go">↓</span></div>
+    <div class="value" id="leadsValue">—</div>
+    <div class="sub" id="leadsSub">loading…</div>
+  </a>
+</div>
+
+<section id="invites" hidden style="margin-bottom: 24px;">
+  <div class="section-head"><h2>Invitations &amp; offers — need your answer</h2><span class="count" id="invitesCount"></span></div>
+  <div class="card" id="inviteList"></div>
+</section>
+
+<div class="layout">
+  <div class="col">
+    <section id="leads">
+      <div class="section-head">
+        <h2>Leads — not applied yet</h2>
+        <div class="tabs" role="tablist" aria-label="Verdict">
+          <button class="tab" role="tab" id="tabTake" data-v="Take" aria-selected="true" type="button">Take <span class="mono" id="cntTake"></span></button>
+          <button class="tab" role="tab" id="tabMaybe" data-v="Maybe" aria-selected="false" type="button">Maybe <span class="mono" id="cntMaybe"></span></button>
+        </div>
+      </div>
+      <div class="card"><div class="scroll" id="leadList"><div class="note">Loading leads from Notion…</div></div></div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section id="contracts">
+      <div class="section-head"><h2>Active contracts</h2><span class="count" id="contractsCount"></span></div>
+      <div class="card" id="contractList"><div class="note">Loading contracts…</div></div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Threads waiting on you</h2></div>
+      <div class="card" id="threadList"><div class="note">Loading messages…</div></div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Applied</h2>
+        <div class="tabs" role="tablist" aria-label="Proposals">
+          <button class="tab" role="tab" id="tabPActive" data-p="active" aria-selected="true" type="button">Active <span class="mono" id="cntPActive"></span></button>
+          <button class="tab" role="tab" id="tabPStale" data-p="stale" aria-selected="false" type="button">Stale <span class="mono" id="cntPStale"></span></button>
+          <button class="tab" role="tab" id="tabPClosed" data-p="closed" aria-selected="false" type="button">Closed <span class="mono" id="cntPClosed"></span></button>
+        </div>
+      </div>
+      <div class="card"><div class="scroll" id="appliedList" style="max-height: 420px"><div class="note">Loading proposals…</div></div></div>
+    </section>
+  </div>
+</div>
+
+<footer>
+  <span class="runs" id="runs">Job scanner: loading…</span>
+  <span id="notesLine">Click an #id to copy it · click a row for notes</span>
+</footer>
+<div id="questions" class="qbox" hidden></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+  var ORG = "__UPWORK_ORG__";
+  var NOTION = "Notion", UPWORK = "Upwork";
+  var VIEW_INBOX = "__VIEW_INBOX__";
+  var VIEW_APPLIED = "__VIEW_APPLIED__";
+  var VIEW_RUNS = "__VIEW_RUNS__";
+  var VIEW_QUESTIONS = "__VIEW_QUESTIONS__", QUESTIONS_URL = "__QUESTIONS_URL__";
+  var DAY = 86400000, QUIET_DAYS = 14, APPLIED_DAYS = 14, OLD_LEAD_DAYS = 7, LIVE_LEAD_DAYS = 5;
+  var TZ = "__TIMEZONE__";
+  var CACHE = { staleTime: 120000, gcTime: 86400000 };
+  var POLL = 600000;
+
+  var S = {
+    verdict: "Take", leads: null, leadsErr: null, appliedNotion: {}, proposals: null, proposalsErr: null,
+    dash: null, dashErr: null, connects: null, connectsErr: null, rooms: null, roomsErr: null,
+    milestones: {}, runs: null, lastUpdate: 0, balance: null, invites: null, balanceErr: null, ptab: "active", prooms: {},
+    questions: null, questionsErr: null
+  };
+  try { var sp = localStorage.getItem("fp.ptab"); if (/^(active|stale|closed)$/.test(sp)) S.ptab = sp; } catch (e) {}
+  try { var sv = localStorage.getItem("fp.verdict"); if (sv === "Take" || sv === "Maybe") S.verdict = sv; } catch (e) {}
+
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+
+  // ---------- text helpers ----------
+  var parser = new DOMParser();
+  function clean(s) {
+    if (s == null) return "";
+    s = String(s).replace(/<\/?untrusted_participant_content>/g, "").trim();
+    if (/&[#a-z0-9]+;/i.test(s)) s = parser.parseFromString("<!doctype html><body>" + s.replace(/</g, "&lt;"), "text/html").body.textContent;
+    return s;
+  }
+  function unesc(s) { return s == null ? "" : String(s).replace(/\\([$~*_`#\[\]()>|-])/g, "$1"); }
+  function shortId(id) { id = String(id || ""); return "#" + id.slice(-6); }
+  function shortMoney(str) { // "$1,500 fix (Phase 0 only, EVT price separate)" -> "$1,500 fixed"
+    var m = /^\s*(\$?\s*[\d.,]+\s*(?:[kK])?(?:\s*[–\-—]\s*\$?\s*[\d.,]+\s*[kK]?)?)\s*(\/\s*h(?:ou)?r|fixed|fix|per hour|hourly)?/i.exec(str);
+    if (!m) return str;
+    var unit = m[2] ? (/fix/i.test(m[2]) ? " fixed" : "/hr") : "";
+    return m[1].replace(/\s+/g, "") + unit;
+  }
+  function fmtMoney(v) { var n = num(v); return n == null ? String(v) : n.toLocaleString("en-US", { maximumFractionDigits: 0 }); }
+  function num(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
+
+  // ---------- time helpers ----------
+  // Notion "Found"/"Published" come back as real UTC instants ("...Z"); everything below works in the configured timezone wall-clock ms.
+  function wallNow() {
+    var p = {}; new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+      .formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+  }
+  function wallOf(ms) { // real instant -> wall-clock ms in TZ
+    var p = {}; new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+      .formatToParts(new Date(ms)).forEach(function (x) { p[x.type] = x.value; });
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  }
+  var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function dayKey(w) { var d = new Date(w); return d.getUTCFullYear() + "-" + d.getUTCMonth() + "-" + d.getUTCDate(); }
+  function dayLabel(w) {
+    var now = wallNow(), d = new Date(w);
+    if (dayKey(w) === dayKey(now)) return "Today";
+    if (dayKey(w) === dayKey(now - DAY)) return "Yesterday";
+    return MON[d.getUTCMonth()] + " " + d.getUTCDate();
+  }
+  function fmtWall(w, withDay) {
+    var d = new Date(w), t = pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes());
+    return withDay ? dayLabel(w).replace("Today", "today").replace("Yesterday", "yesterday") + " " + t : t;
+  }
+  function ago(ms) { // ms = elapsed
+    if (ms < 3600000) return Math.max(1, Math.round(ms / 60000)) + "m";
+    if (ms < DAY) return Math.round(ms / 3600000) + "h";
+    return Math.floor(ms / DAY) + "d";
+  }
+  function wallFromNotion(s) { if (!s) return null; var t = Date.parse(String(s).replace(" ", "T")); return isNaN(t) ? null : wallOf(t); }
+
+  // ---------- toast / copy ----------
+  var toastTimer;
+  function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove("show"); }, 1600); }
+  function copy(text) {
+    function fallback() {
+      var ta = document.createElement("textarea"); ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand("copy"); } catch (e) {} document.body.removeChild(ta);
+      toast(ok ? "Copied " + text : "Copy blocked — ID is " + text);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast("Copied " + text); }, fallback);
+    else fallback();
+  }
+  function idBadge(id) {
+    var b = el("span", "badge-id", shortId(id));
+    b.setAttribute("role", "button"); b.tabIndex = 0; b.title = "Copy " + shortId(id) + " (Job ID " + id + ")";
+    function go(e) { e.preventDefault(); e.stopPropagation(); copy(shortId(id)); }
+    b.addEventListener("click", go);
+    b.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") go(e); });
+    return b;
+  }
+  function extLink(href, text, cls) { var a = el("a", cls || "", text); a.href = href; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", function (e) { e.stopPropagation(); }); return a; }
+
+  // ---------- error copy ----------
+  function errText(err, server) {
+    var c = err && err.code, s = server || (err && err.server) || "the connector";
+    switch (c) {
+      case "needs_reauth": return "Reconnect " + s + " in claude.ai Settings → Connectors.";
+      case "server_not_connected": case "selection_required": return "Add " + s + " in claude.ai Settings → Connectors, then reload.";
+      case "not_in_manifest": case "consent_required": return s + " isn't allowed for this page. Allow it from the page's connector prompt and reload.";
+      case "blocked_by_policy": case "approval_required": return "Your organization's policy blocks this " + s + " call.";
+      case "server_unavailable": case "rate_limited": return s + " didn't answer. It will retry on the next refresh.";
+      case "tool_error": return s + " reported an error: " + (err.message || "unknown");
+      case "not_granted": case "capability_disabled": case "capability_removed": return "Live data isn't available in this view — open the page in claude.ai.";
+      default: return s + " failed: " + ((err && err.message) || "unknown error");
+    }
+  }
+  function isDenial(err) { return err && /^(needs_reauth|server_not_connected|blocked_by_policy|approval_required|not_in_manifest|consent_required|not_granted|capability_disabled)$/.test(err.code); }
+  function errBox(host, err, server) { clear(host); host.appendChild(el("div", "err", errText(err, server))); }
+
+  function touch(result) {
+    var t = result && result.cache && result.cache.storedAt ? result.cache.storedAt : Date.now();
+    if (t > S.lastUpdate) S.lastUpdate = t;
+    var d = $("liveDot"); d.className = "live-dot on";
+    var w = wallOf(S.lastUpdate);
+    $("liveText").textContent = "Live · updated " + fmtWall(w, dayKey(w) !== dayKey(wallNow()));
+  }
+  function payloadOf(r) {
+    var p = r ? r.payload : null;
+    if (typeof p === "string") { try { p = JSON.parse(p); } catch (e) {} }
+    return p;
+  }
+
+  // ---------- rendering: leads ----------
+  function appliedJobIds() {
+    var set = {};
+    (S.proposals || []).forEach(function (p) { if (p.jobId) set[p.jobId] = true; });
+    return set;
+  }
+  function leadTime(r) { return wallFromNotion(r["date:Published:start"]) || wallFromNotion(r["date:Found:start"]); }
+  function renderLeads() {
+    var host = $("leadList");
+    if (S.leadsErr && !S.leads) return errBox(host, S.leadsErr, NOTION);
+    if (!S.leads) return;
+    var applied = appliedJobIds();
+    var now = wallNow();
+    var everything = S.leads.filter(function (r) { return r.Status === "New" && !applied[r["Job ID"]]; });
+    var isLive = function (r) { var w = leadTime(r); return !w || now - w < LIVE_LEAD_DAYS * DAY; };
+    var open = everything.filter(isLive), older = everything.filter(function (r) { return !isLive(r); });
+    var take = open.filter(function (r) { return r.Verdict === "Take"; });
+    var maybe = open.filter(function (r) { return r.Verdict === "Maybe"; });
+    $("cntTake").textContent = take.length; $("cntMaybe").textContent = maybe.length;
+
+    var today = take.filter(function (r) { var w = leadTime(r); return w && dayKey(w) === dayKey(now); }).length;
+    $("leadsValue").textContent = take.length;
+
+    var list = S.verdict === "Take" ? take : maybe;
+    var titles = {};
+    everything.forEach(function (r) { var t = (r.Title || "").trim().toLowerCase(); titles[t] = (titles[t] || 0) + 1; });
+    everything.forEach(function (r) { scoreLead(r, now, titles); });
+    var strong = take.filter(function (r) { return r._tier === "strong"; }).length;
+    $("leadsSub").textContent = (strong ? strong + " strong · " : "") + "+" + today + " today · " + maybe.length + " maybe";
+    list.sort(function (a, b) {
+      var da = leadTime(a) || 0, db = leadTime(b) || 0;
+      if (dayKey(da) !== dayKey(db)) return db - da;
+      return (b._score - a._score) || (db - da);
+    });
+
+    var scrollTop = host.scrollTop, openIds = {};
+    host.querySelectorAll("details[open]").forEach(function (d) { openIds[d.dataset.id] = true; });
+    clear(host);
+    if (!list.length) host.appendChild(el("div", "empty", "No fresh " + S.verdict + " leads."));
+    var lastDay = null, perDay = {};
+    list.forEach(function (r) { var w = leadTime(r); var k = w ? dayKey(w) : "none"; perDay[k] = (perDay[k] || 0) + 1; });
+    list.forEach(function (r) {
+      var w = leadTime(r);
+      var dk = w ? dayKey(w) : "none";
+      if (dk !== lastDay) {
+        var hd = el("div", "day" + (w && dk === dayKey(now) ? " today" : ""));
+        hd.appendChild(el("span", "", w ? dayLabel(w) : "Unknown date"));
+        hd.appendChild(el("span", "n", perDay[dk] + (perDay[dk] === 1 ? " lead" : " leads")));
+        host.appendChild(hd); lastDay = dk;
+      }
+      host.appendChild(leadItem(r, w, now, titles, openIds));
+    });
+    var oldList = older.filter(function (r) { return r.Verdict === S.verdict; });
+    oldList.sort(function (a, b) { return (leadTime(b) || 0) - (leadTime(a) || 0); });
+    if (oldList.length) {
+      var od = el("details", "older"); if (openIds["__older__"]) od.open = true; od.dataset.id = "__older__";
+      od.appendChild(el("summary", "", "Older — " + oldList.length + " " + S.verdict + " lead" + (oldList.length > 1 ? "s" : "") + " posted more than " + LIVE_LEAD_DAYS + " days ago, most are closed by now"));
+      var ld = null;
+      oldList.forEach(function (r) {
+        var w = leadTime(r); var dk = w ? dayKey(w) : "none";
+        if (dk !== ld) { var h = el("div", "day"); h.appendChild(el("span", "", w ? dayLabel(w) : "Unknown date")); od.appendChild(h); ld = dk; }
+        od.appendChild(leadItem(r, w, now, titles, openIds));
+      });
+      host.appendChild(od);
+    }
+    host.scrollTop = scrollTop;
+    fitColumns(host);
+  }
+  function fitColumns(host) { // equal money/time columns across all rows: measure the widest cell
+    host.style.removeProperty("--wm"); host.style.removeProperty("--wt");
+    var wm = 0, wt = 0;
+    host.querySelectorAll(".t-grid .money").forEach(function (c) { wm = Math.max(wm, c.scrollWidth); });
+    host.querySelectorAll(".t-grid .time").forEach(function (c) { wt = Math.max(wt, c.scrollWidth); });
+    if (wm) host.style.setProperty("--wm", (Math.ceil(wm) + 2) + "px");
+    if (wt) host.style.setProperty("--wt", (Math.ceil(wt) + 2) + "px");
+  }
+
+  function leadItem(r, w, now, titles, openIds) {
+    var id = r["Job ID"] || "";
+    var d = el("details", "item"); d.dataset.id = id; d.dataset.url = r.url || "";
+    var pub = wallFromNotion(r["date:Published:start"]);
+    if (pub && now - pub > OLD_LEAD_DAYS * DAY) d.classList.add("old");
+    if (r._tier) d.classList.add(r._tier);
+    var s = el("summary");
+    var t = el("div", "t-title");
+    t.appendChild(idBadge(id)); t.appendChild(document.createTextNode(" "));
+    t.appendChild(r.Link ? extLink(r.Link, unesc(r.Title)) : document.createTextNode(unesc(r.Title)));
+    s.appendChild(t);
+    var fw = wallFromNotion(r["date:Found:start"]);
+    var tr = el("span", "t-right", w ? fmtWall(w) : "");
+    tr.title = (pub ? "Posted " + fmtWall(pub, true) : "Publication time unknown") + (fw ? " · found " + fmtWall(fw, true) : "");
+    s.appendChild(tr);
+    var CLIENT_FLAGS = /^(no client history|partially hired|timezone lock|mandatory calls|full-time|budget mismatch)$/;
+    var cflags = [], mflags = [];
+    if (r.Connects != null) {
+      var bal = S.connects && S.connects.balance ? num(S.connects.balance.connectsBalance) : null;
+      var low = bal != null && r.Connects > bal;
+      mflags.push([r.Connects + " connects" + (low ? " — over balance" : ""), low ? "warn" : "cn"]);
+    }
+    if (r.Complexity) mflags.push([String(r.Complexity).toLowerCase(), r.Complexity === "High" ? "warn" : r.Complexity === "Low" ? "good" : ""]);
+    flagsOf(r).forEach(function (f) { (CLIENT_FLAGS.test(f) ? cflags : mflags).push([f, "warn"]); });
+    if (titles[(r.Title || "").trim().toLowerCase()] > 1) cflags.push(["duplicate", ""]);
+    var g = el("div", "t-grid");
+    g.appendChild(el("span", "lab", "Client"));
+    var cm = el("span", "c money", r["Client $"] ? shortMoney(unesc(r["Client $"])) : "—"); if (r["Client $"]) cm.title = unesc(r["Client $"]); g.appendChild(cm);
+    g.appendChild(el("span", "c time", r["Client time"] ? shortDur(r["Client time"]) : "—"));
+    g.appendChild(chips(cflags));
+    g.appendChild(el("span", "lab", "Me"));
+    g.appendChild(el("span", "c money", r["My $"] != null ? "$" + fmtMoney(r["My $"]) + (r.Payment === "Hourly" ? "/hr" : " fixed") : "—"));
+    g.appendChild(el("span", "c time", r["My hours"] != null ? "~" + r["My hours"] + "h" : "—"));
+    g.appendChild(chips(mflags));
+    s.appendChild(g);
+    d.appendChild(s);
+    var body = el("div", "body"); body.appendChild(el("div", "muted", "Loading notes…"));
+    d.appendChild(body);
+    d.addEventListener("toggle", function () { if (d.open && !d.dataset.loaded) loadNotes(d, body, r); });
+    if (openIds[id]) { d.open = true; }
+    return d;
+  }
+  var FLAG_COST = { "budget mismatch": 2, "mandatory calls": 2, "timezone lock": 2, "partially hired": 2, "no client history": 1, "unfamiliar tech": 1 }; // any other flag costs 1
+  function scoreLead(r, now, titles) {
+    var pts = 0, why = [], flags = flagsOf(r), c = String(r.Client || "");
+    var hires = /(\d+)\s*(?:hires?|найм)/i.exec(c), rating = /(?:rating|рейтинг)\s*([\d.]+)/i.exec(c), spent = /(?:spent|потрачено)\s*\$?([\d,]+)/i.exec(c);
+    if (hires && +hires[1] > 0) { pts += 2; why.push(hires[1] + " hires"); }
+    else if (flags.indexOf("no client history") < 0 && /verified/i.test(c) && !/0 hires|наймов 0|no hires|без истории/i.test(c)) { pts += 1; why.push("verified client"); }
+    if (rating && +rating[1] >= 4.8) { pts += 1; why.push("rating " + rating[1]); }
+    if (spent && +spent[1].replace(/,/g, "") >= 5000) { pts += 1; why.push("$" + spent[1] + " spent"); }
+    var bids = r.Proposals;
+    if (bids != null) { if (bids < 5) { pts += 2; why.push("only " + bids + " bids"); } else if (bids < 15) { pts += 1; } else if (bids >= 25) { pts -= 1; } }
+    var ask = num(r["My $"]);
+    if (ask != null) {
+      if (r.Payment === "Hourly" && num(r["Rate max"]) != null) { if (num(r["Rate max"]) >= ask) { pts += 1; why.push("range covers ask"); } else pts -= 1; }
+      if (r.Payment === "Fixed" && num(r.Budget) != null) { if (num(r.Budget) >= ask) { pts += 1; why.push("budget covers ask"); } else if (num(r.Budget) < ask * 0.7) pts -= 1; }
+    }
+    if (r.Complexity === "Low") { pts += 1; why.push("low complexity"); }
+    if (r.Complexity === "High") pts -= 1;
+    var pub = wallFromNotion(r["date:Published:start"]);
+    if (pub && now - pub < DAY && (bids == null || bids < 10)) { pts += 1; why.push("fresh"); }
+    if (pub && now - pub > OLD_LEAD_DAYS * DAY) pts -= 2;
+    if (titles[(r.Title || "").trim().toLowerCase()] > 1) pts -= 1;
+    flags.forEach(function (f) { pts -= FLAG_COST[f] != null ? FLAG_COST[f] : 1; });
+    r._score = pts; r._why = why;
+    r._tier = pts >= 4 ? "strong" : pts <= 0 ? "weak" : "";
+    return pts;
+  }
+  function shortDur(t) {
+    t = String(t);
+    if (/less than 1 week/i.test(t)) return "<1 wk";
+    if (/less than 1 month/i.test(t)) return "<1 mo";
+    if (/1 to 3/i.test(t)) return "1–3 mo";
+    if (/3 to 6/i.test(t)) return "3–6 mo";
+    if (/more than 6/i.test(t)) return "6+ mo";
+    return t;
+  }
+  function chips(list) {
+    var c = el("span", "c chips");
+    list.forEach(function (f, i) { if (i) c.appendChild(el("span", "sep", "·")); var sp = el("span", f[1] === "tier" ? "tier" : f[1] === "warn" ? "flag" : f[1] === "good" ? "chip good" : f[1] === "cn" ? "cn" : "", f[0]); if (f[1] === "cn") sp.title = "Connects to apply"; c.appendChild(sp); });
+    return c;
+  }
+  function flagsOf(r) {
+    var f = r.Flags; if (!f) return [];
+    if (typeof f === "string") { try { f = JSON.parse(f); } catch (e) { f = [f]; } }
+    return Array.isArray(f) ? f : [];
+  }
+
+  // ---------- notes (Notion page body, as-is) ----------
+  var notesCache = {};
+  function loadNotes(d, body, r) {
+    d.dataset.loaded = "1";
+    if (!r.url) { renderNotes(body, null, r); return; }
+    if (notesCache[r.url]) { renderNotes(body, notesCache[r.url], r); return; }
+    MCP.callTool(NOTION, "notion-fetch", { id: r.url }, { cache: { staleTime: 300000, gcTime: 86400000 } }).then(function (res) {
+      var p = payloadOf(res);
+      var txt = p && typeof p === "object" ? p.text : (typeof p === "string" ? p : "");
+      var m = /<content>([\s\S]*?)<\/content>/.exec(txt || "");
+      notesCache[r.url] = m ? m[1] : "";
+      renderNotes(body, notesCache[r.url], r);
+    }, function (err) {
+      d.dataset.loaded = "";
+      clear(body); body.appendChild(el("div", "err", errText(err, NOTION)));
+    });
+  }
+  function renderNotes(body, content, r) {
+    clear(body);
+    if (r._why && r._why.length) {
+      var wy = el("p", "why");
+      wy.appendChild(el("b", "", r._tier === "strong" ? "Strong match: " : "Going for it: "));
+      wy.appendChild(document.createTextNode(r._why.join(" · ")));
+      body.appendChild(wy);
+    }
+    var HEAD = /^(что нужно|риски|уточнить|what's needed|needs|risks|clarify|questions)\s*:?$/i;
+    var ul = null;
+    if (content) {
+      content.split("\n").forEach(function (raw) {
+        var line = raw.trim();
+        if (!line) { ul = null; return; }
+        var h = /^#{1,6}\s+(.*)$/.exec(line) || /^\*\*(.+?)\*\*:?$/.exec(line);
+        if (h || HEAD.test(line)) { body.appendChild(el("h4", "", unesc((h ? h[1] : line).replace(/\*\*/g, "")))); ul = null; return; }
+        var li = /^[-*•]\s+(.*)$/.exec(line);
+        if (li) { if (!ul) { ul = el("ul"); body.appendChild(ul); } ul.appendChild(el("li", "", unesc(li[1].replace(/\*\*/g, "")))); return; }
+        ul = null; body.appendChild(el("p", "", unesc(line.replace(/\*\*/g, ""))));
+      });
+    } else {
+      body.appendChild(el("p", "muted", "No notes on this Notion page."));
+    }
+    var pubW = wallFromNotion(r["date:Published:start"]), fndW = wallFromNotion(r["date:Found:start"]);
+    var pay = r.Payment ? String(r.Payment).toLowerCase() : "";
+    var t = el("div", "cmp");
+    function cell(cls, v) { var c = el("div", cls); if (v != null && v !== "") c.textContent = unesc(String(v)); return c; }
+    function row(label, client, me) {
+      if ((client == null || client === "") && (me == null || me === "")) return;
+      t.appendChild(cell("k", label)); t.appendChild(cell("v", client || "—")); t.appendChild(cell("v me", me || "—"));
+    }
+    function wide(label, v) { if (v == null || v === "") return; t.appendChild(cell("k", label)); t.appendChild(cell("v wide", v)); }
+    t.appendChild(cell("k", "")); t.appendChild(cell("h", "Client")); t.appendChild(cell("h", "Me"));
+    row("Price", r["Client $"] ? r["Client $"] + (pay && !/hr|hour|fix/i.test(r["Client $"]) ? " (" + pay + ")" : "") : (pay || ""),
+        r["My $"] != null ? "$" + r["My $"] + (r.Payment === "Hourly" ? "/hr" : " fixed") : "");
+    row("Time", r["Client time"], (r["My hours"] != null ? "~" + r["My hours"] + " h" : "") + (r.Complexity ? (r["My hours"] != null ? " · " : "") + String(r.Complexity).toLowerCase() + " complexity" : ""));
+    row("Competition", (r.Proposals != null ? r.Proposals + " bids" : "") + (r.Competition ? (r.Proposals != null ? " · " : "") + r.Competition : ""),
+        r.Connects != null ? r.Connects + " connects to apply" : "");
+    wide("Client", r.Client);
+    wide("Flags", flagsOf(r).join(", "));
+    wide("Posted", (pubW ? fmtWall(pubW, true) : "unknown") + (fndW ? " · found " + fmtWall(fndW, true) : ""));
+    body.appendChild(t);
+    var idLine = el("div", "jobid"); idLine.appendChild(el("span", "muted", "Job ID "));
+    var idb = el("span", "badge-id", String(r["Job ID"] || "")); idb.setAttribute("role", "button"); idb.tabIndex = 0; idb.title = "Copy the full Job ID";
+    idb.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); copy(String(r["Job ID"] || "")); });
+    idb.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); copy(String(r["Job ID"] || "")); } });
+    idLine.appendChild(idb);
+    idLine.appendChild(document.createTextNode(" · "));
+    var idb2 = idBadge(r["Job ID"]); idLine.appendChild(idb2);
+    body.appendChild(idLine);
+    var links = el("div", "links");
+    if (r.Link) links.appendChild(extLink(r.Link, "Open on Upwork ↗"));
+    if (r.url) links.appendChild(extLink(r.url, "Open in Notion ↗"));
+    if (r.url && r.Status === "New") {
+      var ap = el("button", "", "Applied"); ap.type = "button"; ap.title = "Mark as Applied in Notion (proposal already sent)";
+      ap.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); setLeadStatus(r, ap, "Applied"); });
+      links.appendChild(ap);
+      var sk = el("button", "", "Skip"); sk.type = "button"; sk.title = "Mark as Skipped in Notion";
+      sk.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); setLeadStatus(r, sk, "Skipped"); });
+      links.appendChild(sk);
+    }
+    body.appendChild(links);
+  }
+  function pageIdOf(url) { var m = /([0-9a-f]{32})(?:\?|$)/i.exec(String(url || "")); return m ? m[1] : null; }
+  function setLeadStatus(r, btn, status) {
+    var pid = pageIdOf(r.url); if (!pid || !MCP) return;
+    var label = btn.textContent; btn.disabled = true; btn.textContent = "Saving…";
+    MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { Status: status } }, { cache: false }).then(function () {
+      r.Status = status;
+      S.leads = (S.leads || []).filter(function (x) { return x !== r; });
+      if (status === "Applied") S.appliedNotion[r["Job ID"]] = r;
+      toast(status + " " + shortId(r["Job ID"]));
+      renderLeads();
+      MCP.invalidate(NOTION, "notion-query-data-sources").catch(function () {});
+    }, function (err) {
+      btn.disabled = false; btn.textContent = label;
+      toast("Couldn't save: " + errText(err, NOTION));
+    });
+  }
+
+  // ---------- rendering: stats from Upwork ----------
+  function renderConnects() {
+    if (S.connectsErr && !S.connects) { $("connectsValue").textContent = "—"; $("connectsSub").textContent = errText(S.connectsErr, UPWORK); return; }
+    var p = S.connects; if (!p) return;
+    var b = p.balance || {};
+    $("connectsValue").textContent = b.connectsBalance != null ? b.connectsBalance : "—";
+    var sub = (b.connectsBalanceFree != null ? b.connectsBalanceFree + " free · " + (b.connectsBalancePaid || 0) + " paid" : "");
+    var pc = p.product_credits || {};
+    Object.keys(pc).forEach(function (k) { sub += " · +" + pc[k] + " " + k; });
+    $("connectsSub").textContent = sub;
+    $("tileConnects").title = sub + (b.rolloverBalance ? " · rollover " + b.rolloverBalance : "");
+
+    var tx = ((p.usage_history || {}).transactions || []).filter(function (t) { return t && t.createdDateTime; });
+    var spark = $("connectsSpark"), axis = $("connectsAxis"); clear(spark); clear(axis);
+    if (!tx.length) { axis.appendChild(el("span", "", "no recent spend")); return; }
+    var now = wallNow(), days = [], earliest = Infinity;
+    tx.forEach(function (t) { var w = wallOf(Date.parse(t.createdDateTime)); if (w < earliest) earliest = w; });
+    var complete = (p.usage_history || {}).complete !== false;
+    for (var i = 6; i >= 0; i--) days.push({ key: dayKey(now - i * DAY), w: now - i * DAY, sum: 0, back: 0, items: [] });
+    tx.forEach(function (t) {
+      var w = wallOf(Date.parse(t.createdDateTime)), k = dayKey(w);
+      var raw = num(t.amount && t.amount.rawValue) || 0, type = String(t.transactionType || "");
+      var label = clean(t.reason) + (t.jobPost && t.jobPost.jobTitle ? " — " + clean(t.jobPost.jobTitle) : "");
+      days.forEach(function (d) {
+        if (d.key !== k) return;
+        if (raw < 0) { d.sum += -raw; d.items.push("−" + (-raw) + " · " + label); }
+        else if (raw > 0 && /refund/i.test(type + " " + t.reason)) { d.back += raw; d.items.push("+" + raw + " · " + label); }
+      });
+    });
+    var max = Math.max.apply(null, days.map(function (d) { return d.sum; }).concat([1]));
+    var total = 0, back = 0;
+    days.forEach(function (d) {
+      var covered = complete || dayKey(d.w) === dayKey(earliest) || d.w >= earliest;
+      var bar = el("div", "bar" + (!covered ? " none" : d.sum === 0 ? " zero" : ""));
+      bar.style.height = covered ? Math.max(6, Math.round(d.sum / max * 100)) + "%" : "2px";
+      bar.title = dayLabel(d.w) + ": " + (covered ? d.sum + " spent" + (d.back ? ", " + d.back + " refunded" : "") + (d.items.length ? "\n" + d.items.join("\n") : "") : "no data");
+      spark.appendChild(bar);
+      if (covered) { total += d.sum; back += d.back; }
+    });
+    axis.appendChild(el("span", "", "since " + dayLabel(days[0].w)));
+    var tot = el("span", "", total + " spent"); if (back) tot.title = back + " refunded over the same days";
+    axis.appendChild(tot);
+    $("tileConnects").title = sub + (b.rolloverBalance ? " · rollover " + b.rolloverBalance : "") + " · last 7 days: " + total + " spent" + (back ? ", " + back + " refunded" : "");
+  }
+
+  function listOf(o) {
+    if (!o || typeof o !== "object") return [];
+    if (Array.isArray(o)) return o;
+    var keys = ["edges", "items", "invitations", "offers", "results", "nodes"];
+    for (var i = 0; i < keys.length; i++) if (Array.isArray(o[keys[i]])) return o[keys[i]].map(function (x) { return x && x.node ? x.node : x; });
+    for (var k in o) if (o[k] && typeof o[k] === "object") { var r = listOf(o[k]); if (r.length) return r; }
+    return [];
+  }
+  function pick(o, paths) { for (var i = 0; i < paths.length; i++) { var v = o, ps = paths[i].split("."); for (var j = 0; j < ps.length && v != null; j++) v = v[ps[j]]; if (v != null && v !== "") return v; } return null; }
+  function renderInvites() {
+    var sec = $("invites"), host = $("inviteList");
+    var inv = S.invites || [], off = listOf((S.dash || {}).offers);
+    var rows = [];
+    inv.forEach(function (x) { rows.push({ kind: "Invitation", o: x }); });
+    off.forEach(function (x) { rows.push({ kind: "Offer", o: x }); });
+    if (!rows.length) { sec.hidden = true; return; }
+    sec.hidden = false; $("invitesCount").textContent = rows.length; clear(host);
+    rows.forEach(function (r) {
+      var o = r.o;
+      var title = clean(pick(o, ["jobPosting.content.title", "jobPosting.title", "job.title", "title", "content.title", "name"]) || (r.kind + " (details on Upwork)"));
+      var jobId = pick(o, ["jobPosting.id", "job.id", "jobId", "openingId"]);
+      var client = clean(pick(o, ["client.name", "clientOrganization.name", "organization.name", "clientName", "from"]) || "");
+      var when = pick(o, ["createdDateTime.displayValue", "createdDateTime", "created", "createdAt", "modifiedDateTime.displayValue"]);
+      var t = when ? Date.parse(String(when)) : NaN;
+      var href = r.kind === "Offer" ? "https://www.upwork.com/nx/proposals/offers" : jobId ? "https://www.upwork.com/jobs/~02" + String(jobId) : "https://www.upwork.com/nx/proposals/";
+      var a = el("a", "invite"); a.href = href; a.target = "_blank"; a.rel = "noopener";
+      var top = el("div", "i-top");
+      top.appendChild(el("span", "i-title", title));
+      top.appendChild(el("span", "chip good", r.kind + (isNaN(t) ? "" : " · " + ago(Date.now() - t) + " ago")));
+      a.appendChild(top);
+      var sub = [];
+      if (client) sub.push(client);
+      var amt = pick(o, ["terms.chargeRate.displayValue", "chargeRate.displayValue", "amount.displayValue", "budget"]);
+      if (amt) sub.push(String(amt).replace("USD ", "$"));
+      if (sub.length) a.appendChild(el("div", "i-sub", sub.join(" · ")));
+      host.appendChild(a);
+    });
+  }
+  function renderBanner() {
+    var host = $("banner"), d = S.dash;
+    if (!d) return;
+    var offers = listOf(d.offers).length || (d.offers || {}).count || 0, inv = (S.invites || []).length || (d.invitations || {}).count || 0;
+    renderInvites();
+    host.hidden = true; return;
+    if (!offers && !inv) { host.hidden = true; return; }
+    clear(host); host.className = "banner"; host.hidden = false;
+    var parts = [];
+    if (offers) parts.push(offers + " offer" + (offers > 1 ? "s" : ""));
+    if (inv) parts.push(inv + " invitation" + (inv > 1 ? "s" : ""));
+    host.appendChild(el("span", "", "You have " + parts.join(" and ") + " waiting — see the list on the right."));
+    host.appendChild(extLink("https://www.upwork.com/nx/proposals/", "Open on Upwork ↗"));
+  }
+
+  function roomByContract(id) {
+    var r = null; (S.rooms || []).forEach(function (x) { if (!r && String(x.contractId) === String(id)) r = x; }); return r;
+  }
+  function renderContracts() {
+    var host = $("contractList");
+    if (S.dashErr && !S.dash) { errBox(host, S.dashErr, UPWORK); $("contractsValue").textContent = "—"; $("contractsSub").textContent = "unavailable"; return; }
+    if (!S.dash) return;
+    var ac = S.dash.active_contracts || {}, list = ac.contracts || [];
+    var total = ac.total_count != null ? ac.total_count : list.length;
+    $("contractsValue").textContent = total;
+    $("contractsCount").textContent = total > list.length ? list.length + " of " + total : "";
+    var escrow = 0, next = null;
+    list.forEach(function (c) {
+      var ms = (S.milestones[c.id] || {}).list || [];
+      ms.forEach(function (m) { if (m.state === "Active" || m.state === "Submitted") escrow += (num(m.fundedAmount && m.fundedAmount.rawValue) || 0) - (num(m.paid && m.paid.rawValue) || 0); });
+    });
+    $("contractsSub").textContent = total === 0 ? "none right now" : (escrow ? "$" + Math.round(escrow) + " funded, unpaid" : list.map(function (c) { return clean(c.client); }).join(", "));
+    var tile = $("tileContracts");
+    if (list.length === 1) { tile.href = workroom(list[0].id); tile.target = "_blank"; tile.rel = "noopener"; $("contractsGo").textContent = "↗"; }
+    else { tile.href = "#contracts"; tile.removeAttribute("target"); $("contractsGo").textContent = "↓"; }
+
+    clear(host);
+    if (!list.length) { host.appendChild(el("div", "empty", "No active contracts.")); return; }
+    list.forEach(function (c) { host.appendChild(contractCard(c)); });
+    if (total > list.length) host.appendChild(el("div", "note", (total - list.length) + " more on Upwork — open any contract above and switch from there."));
+  }
+  function workroom(id) { return "https://www.upwork.com/nx/wm/workroom/" + encodeURIComponent(id) + "/overview"; }
+  function contractCard(c) {
+    var box = el("div", "contract");
+    var head = el("div", "c-head");
+    head.appendChild(extLink(workroom(c.id), clean(c.title), "c-title"));
+    head.appendChild(el("span", "chip good", clean(c.status || "ACTIVE").toLowerCase()));
+    box.appendChild(head);
+    var since = c.start_date ? new Date(c.start_date) : null;
+    box.appendChild(el("div", "c-client", clean(c.client) + (since ? " · since " + MON[since.getUTCMonth()] + " " + since.getUTCDate() : "")));
+
+    var msData = S.milestones[c.id];
+    if (msData && msData.list && msData.list.length) {
+      var ms = msData.list.slice().sort(function (a, b) { return (a.sequenceId || 0) - (b.sequenceId || 0); });
+      var track = el("div", "ms-track");
+      var paid = 0, all = 0, cur = null;
+      ms.forEach(function (m) {
+        var cls = m.state === "Paid" ? "paid" : m.state === "Active" ? "active" : m.state === "Submitted" ? "sub" : "";
+        var seg = el("div", "ms-seg " + cls); seg.title = "M" + m.sequenceId + " · " + (m.state_label || m.state) + " · $" + (m.depositAmount ? m.depositAmount.displayValue : "?");
+        track.appendChild(seg);
+        paid += num(m.paid && m.paid.rawValue) || 0; all += num(m.depositAmount && m.depositAmount.rawValue) || 0;
+        if (!cur && m.state !== "Paid") cur = m;
+      });
+      box.appendChild(track);
+      var line = el("div", "ms-line");
+      line.appendChild(el("span", "", "$" + Math.round(paid) + " of $" + Math.round(all) + " paid · "));
+      if (cur) {
+        var name = clean(cur.description).split(":")[0].slice(0, 60);
+        line.appendChild(el("b", "", "M" + cur.sequenceId + " " + name));
+        line.appendChild(el("span", "", " — " + (cur.state_label || cur.state) + (cur.depositAmount ? ", $" + cur.depositAmount.displayValue : "")));
+        var due = cur.dueDateTime ? Date.parse(cur.dueDateTime) : null;
+        if (due) {
+          var left = due - Date.now();
+          line.appendChild(el("span", left < 0 ? "late" : "due", left < 0 ? " · overdue by " + ago(-left) : " · due in " + ago(left)));
+        }
+        if (cur.state === "Submitted") {
+          var sub = cur.modifiedDateTime ? Date.now() - Date.parse(cur.modifiedDateTime) : 0;
+          line.appendChild(el("span", sub > 3 * DAY ? "stuck" : "due", " · awaiting client approval" + (sub ? " for " + ago(sub) : "")));
+        }
+      } else line.appendChild(el("b", "", "all milestones paid"));
+      box.appendChild(line);
+    } else if (msData && msData.err) {
+      box.appendChild(el("div", "ms-line muted", "Milestones: " + errText(msData.err, UPWORK)));
+    } else if (!msData) {
+      box.appendChild(el("div", "ms-line muted", "Loading milestones…"));
+    }
+
+    var room = roomByContract(c.id);
+    if (room && room.latestStory && SAMPLE !== false) {
+      var sm = summaryFor(room);
+      if (sm) { box.appendChild(summaryBlock(room, sm)); return box; }
+      if (SAMPLE || SAMPLE === null) {
+        var wait = el("div", "sum"); wait.appendChild(el("div", "muted", SAMPLE === null ? "Loading…" : "Summarizing the thread…"));
+        box.appendChild(wait); return box;
+      }
+    }
+    if (room && room.latestStory) {
+      var lm = el("a", "last-msg"); lm.href = roomUrl(room.id); lm.target = "_blank"; lm.rel = "noopener"; lm.style.display = "block"; lm.style.textDecoration = "none";
+      var who = el("div", "who");
+      var turn = room.awaiting_reply_from === "you" ? "your turn" : room.awaiting_reply_from === "them" ? "waiting on client" : "last message";
+      who.appendChild(el("span", room.awaiting_reply_from === "you" ? "chip bad" : "", room.awaiting_reply_from === "you" ? "Your turn" : room.awaiting_reply_from === "them" ? "Waiting on client" : "Last message"));
+      var t = Date.parse(room.latestStory.createdDateTime);
+      who.appendChild(el("span", "", t ? ago(Date.now() - t) + " ago" : ""));
+      lm.appendChild(who);
+      lm.appendChild(el("div", "clamp", clean(room.latestStory.message)));
+      box.appendChild(lm);
+    }
+    return box;
+  }
+  function roomUrl(id) { return "https://www.upwork.com/ab/messages/rooms/" + encodeURIComponent(id); }
+
+  // ---------- thread summaries (sample) ----------
+  var SAMPLE = null; // null = unknown yet, false = unavailable, fn = ready
+  var sums = {};
+  function sumKey(room) { return "fp.sum." + room.id; }
+  function summaryFor(room) {
+    var sid = (room.latestStory || {}).id || "";
+    var st = sums[room.id];
+    if (st && st.storyId === sid && st.data) return st.data;
+    if (!st || st.storyId !== sid) {
+      try { var raw = localStorage.getItem(sumKey(room)); if (raw) { var saved = JSON.parse(raw); if (saved && saved.storyId === sid && saved.data) { sums[room.id] = saved; return saved.data; } } } catch (e) {}
+      if (SAMPLE) { sums[room.id] = { storyId: sid, pending: true }; buildSummary(room, sid, false); }
+    }
+    return null;
+  }
+  function buildSummary(room, sid, refresh) {
+    MCP.callTool(UPWORK, "upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: room.id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } })
+      .then(function (res) {
+        var edges = ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []).slice().reverse();
+        var lines = edges.map(function (e) {
+          var n = e.node || {}; var who = n.from_self ? "Me" : clean(n.from) || "Client";
+          var d = n.createdDateTime ? new Date(n.createdDateTime) : null;
+          var when = d ? MON[d.getUTCMonth()] + " " + d.getUTCDate() : "";
+          return "[" + when + "] " + who + ": " + clean(n.message).slice(0, 1200) + ((n.attachments || []).length ? " (attachment)" : "");
+        });
+        if (!lines.length) throw { code: "empty" };
+        var today = new Date(); var todayStr = MON[today.getUTCMonth()] + " " + today.getUTCDate() + ", " + today.getUTCFullYear();
+        var prompt = "You are summarizing an Upwork contract chat for a freelancer (the \"me\" side). Today is " + todayStr + ". Messages, oldest first:\n\n" + lines.join("\n\n") +
+          "\n\nReply with only a JSON object: {\"summary\": string (1-2 plain sentences: where the work stands right now, in English, no greetings), \"next\": \"me\"|\"client\"|\"none\" (who must act next), \"action\": string (the concrete next step, max 12 words, or \"\"), \"deadline\": string|null (ISO date YYYY-MM-DD if someone promised a date, else null), \"promised_by\": \"me\"|\"client\"|null}. Example: {\"summary\":\"Client approved the schematic; layout revision is in progress.\",\"next\":\"me\",\"action\":\"send revised layout\",\"deadline\":\"2026-09-16\",\"promised_by\":\"me\"}";
+        return SAMPLE.json(prompt, { modelTier: "quick", cache: refresh ? { gcTime: 86400000, refresh: true } : { gcTime: 86400000 } });
+      })
+      .then(function (data) {
+        if (!data || typeof data !== "object") throw { code: "invalid_json" };
+        sums[room.id] = { storyId: sid, data: data };
+        try { localStorage.setItem(sumKey(room), JSON.stringify(sums[room.id])); } catch (e) {}
+        renderContracts();
+      }, function (err) {
+        var code = err && err.code;
+        if (/^(not_granted|sampling_disabled|not_declared|capability_disabled|capability_removed)$/.test(code || "")) SAMPLE = false;
+        sums[room.id] = { storyId: sid, err: err };
+        renderContracts();
+      });
+  }
+  function summaryBlock(room, d) {
+    var yours = d.next === "me" || room.awaiting_reply_from === "you";
+    var box = el("div", "sum" + (yours ? " turn" : ""));
+    box.appendChild(el("div", "", String(d.summary || "")));
+    var nextLine = "";
+    if (d.next === "me") nextLine = "Your move" + (d.action ? ": " + d.action : "");
+    else if (d.next === "client") nextLine = "Waiting on client" + (d.action ? ": " + d.action : "");
+    if (d.deadline) {
+      var dl = Date.parse(d.deadline + "T23:59:59"); var days = Math.ceil((dl - Date.now()) / DAY);
+      var dd = new Date(d.deadline + "T12:00:00");
+      var lbl = days < 0 ? "overdue by " + (-days) + "d" : days === 0 ? "due today" : "due " + MON[dd.getMonth()] + " " + dd.getDate() + " (" + days + "d)";
+      nextLine += (nextLine ? " · " : "") + (d.promised_by === "me" ? "you promised, " : d.promised_by === "client" ? "client promised, " : "") + lbl;
+      if (days <= 0 && d.promised_by === "me") box.classList.add("turn");
+    }
+    if (nextLine) box.appendChild(el("div", "next", nextLine));
+    var meta = el("div", "meta");
+    var t = Date.parse((room.latestStory || {}).createdDateTime);
+    meta.appendChild(el("span", "", "last message " + (t ? ago(Date.now() - t) + " ago" : "") + (room.latestStory && room.latestStory.from_self ? " (you)" : " (client)")));
+    meta.appendChild(extLink(roomUrl(room.id), "Open thread ↗"));
+    var rb = el("button", "", "↻ re-summarize"); rb.type = "button";
+    rb.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); if (!SAMPLE) return; var sid = (room.latestStory || {}).id || ""; sums[room.id] = { storyId: sid, pending: true }; renderContracts(); buildSummary(room, sid, true); });
+    meta.appendChild(rb);
+    box.appendChild(meta);
+    return box;
+  }
+
+  function renderThreads() {
+    var host = $("threadList");
+    if (S.roomsErr && !S.rooms) { errBox(host, S.roomsErr, UPWORK); $("replyBanner").hidden = true; return; }
+    if (!S.rooms) return;
+    var now = Date.now();
+    var mine = S.rooms.filter(function (r) {
+      var yours = r.awaiting_reply_from === "you" || (r.awaiting_reply_from == null && r.last_message_from_self === false) || (r.numUnread || 0) > 0;
+      if (!yours) return false;
+      var t = num(r.lastActivity) || Date.parse((r.latestStory || {}).createdDateTime) || 0;
+      var active = String(r.contractStatus || "").toUpperCase() === "ACTIVE";
+      return active || now - t < QUIET_DAYS * DAY;
+    });
+    var rb = $("replyBanner"); clear(rb);
+    if (mine.length) {
+      rb.className = "banner alert"; rb.hidden = false;
+      rb.appendChild(el("span", "", mine.length === 1 ? "1 thread is waiting on you" : mine.length + " threads are waiting on you"));
+      var names = el("span", "list");
+      mine.forEach(function (r) { names.appendChild(extLink(roomUrl(r.id), clean(r.roomName).split(",")[0] + " ↗")); });
+      rb.appendChild(names);
+    } else rb.hidden = true;
+    clear(host);
+    if (!mine.length) { host.appendChild(el("div", "empty", "Nothing waiting on you.")); return; }
+    mine.forEach(function (r) {
+      var a = el("a", "thread"); a.href = roomUrl(r.id); a.target = "_blank"; a.rel = "noopener";
+      var top = el("div", "th-top");
+      top.appendChild(el("span", "th-name", clean(r.roomName)));
+      var t = num(r.lastActivity) || Date.parse((r.latestStory || {}).createdDateTime);
+      var right = el("span", "");
+      if (r.numUnread) right.appendChild(el("span", "chip bad", r.numUnread + " unread"));
+      if (r.contractStatus) right.appendChild(el("span", "chip accent", "contract"));
+      right.appendChild(el("span", "muted", t ? ago(now - t) : ""));
+      top.appendChild(right);
+      a.appendChild(top);
+      if (r.latestStory) a.appendChild(el("div", "clamp muted", clean(r.latestStory.message)));
+      host.appendChild(a);
+    });
+  }
+
+  function proposalRoom(p) { var r = S.prooms[p.id]; return r && r.room ? r.room : null; }
+  function classify(p, now) {
+    if (p.closed) return "closed";
+    var room = proposalRoom(p);
+    var act = room ? (num(room.lastActivity) || Date.parse((room.latestStory || {}).createdDateTime) || 0) : 0;
+    var last = Math.max(p.created || 0, act);
+    return now - last < APPLIED_DAYS * DAY ? "active" : "stale";
+  }
+  function renderApplied() {
+    var host = $("appliedList");
+    if (S.proposalsErr && !S.proposals) return errBox(host, S.proposalsErr, UPWORK);
+    if (!S.proposals) return;
+    var now = Date.now();
+    var groups = { active: [], stale: [], closed: [] };
+    S.proposals.forEach(function (p) { groups[classify(p, now)].push(p); });
+    $("cntPActive").textContent = groups.active.length; $("cntPStale").textContent = groups.stale.length; $("cntPClosed").textContent = groups.closed.length;
+    var list = groups[S.ptab].slice();
+    list.sort(function (a, b) { return lastTouch(b) - lastTouch(a); });
+    var openIds = {}; host.querySelectorAll("details[open]").forEach(function (d) { openIds[d.dataset.id] = true; });
+    clear(host);
+    if (!list.length) {
+      host.appendChild(el("div", "empty", S.ptab === "active" ? "No live proposals." : S.ptab === "stale" ? "Nothing has gone quiet." : "Nothing closed recently."));
+      return;
+    }
+    list.forEach(function (p) {
+      var nr = S.appliedNotion[p.jobId] || S.leadsById[p.jobId];
+      var room = proposalRoom(p);
+      var d = el("details", "item"); d.dataset.id = p.jobId;
+      if (S.ptab !== "active") d.classList.add("weak");
+      var s = el("summary");
+      var t = el("div", "t-title");
+      t.appendChild(idBadge(p.jobId)); t.appendChild(document.createTextNode(" "));
+      t.appendChild(p.url ? extLink(p.url, p.title) : document.createTextNode(p.title));
+      s.appendChild(t);
+      s.appendChild(el("span", "t-right", "sent " + ago(now - p.created) + " ago"));
+      var m = el("div", "t-meta");
+      if (p.closed) { m.appendChild(el("span", "", p.statusLabel + (p.reason ? " · " + p.reason : ""))); }
+      else if (room) {
+        var act = num(room.lastActivity) || Date.parse((room.latestStory || {}).createdDateTime) || 0;
+        var yours = room.awaiting_reply_from === "you";
+        var st = el("a", "p-state " + (yours ? "turn" : "replied"), (yours ? "Client replied — your turn" : "In conversation, waiting on client") + (act ? " · " + ago(now - act) + " ago" : ""));
+        st.href = roomUrl(room.id); st.target = "_blank"; st.rel = "noopener"; st.addEventListener("click", function (e) { e.stopPropagation(); });
+        m.appendChild(st);
+      } else {
+        var rp = S.prooms[p.id];
+        m.appendChild(el("span", "", rp && rp.err ? "Reply status unknown" : rp ? "No reply yet" : "Checking replies…"));
+      }
+      var extra = [];
+      if (p.rate) extra.push(p.rate.replace(/\.0$/, ""));
+      if (p.bid) extra.push("boosted " + p.bid + " cn");
+      if (extra.length) { m.appendChild(el("span", "sep", "·")); m.appendChild(document.createTextNode(extra.join(" · "))); }
+      s.appendChild(m);
+      d.appendChild(s);
+      var body = el("div", "body");
+      d.appendChild(body);
+      d.addEventListener("toggle", function () {
+        if (!d.open || d.dataset.loaded) return;
+        if (nr) loadNotes(d, body, nr);
+        else { d.dataset.loaded = "1"; clear(body); body.appendChild(el("p", "muted", "This job isn't in the Notion digest.")); if (p.url) { var l = el("div", "links"); l.appendChild(extLink(p.url, "Open on Upwork ↗")); body.appendChild(l); } }
+      });
+      if (openIds[p.jobId]) d.open = true;
+      host.appendChild(d);
+    });
+  }
+  function lastTouch(p) { var room = proposalRoom(p); var act = room ? (num(room.lastActivity) || Date.parse((room.latestStory || {}).createdDateTime) || 0) : 0; return Math.max(p.created || 0, act, p.modified || 0); }
+  function setPTab(v) {
+    S.ptab = v; try { localStorage.setItem("fp.ptab", v); } catch (e) {}
+    ["Active", "Stale", "Closed"].forEach(function (k) { $("tabP" + k).setAttribute("aria-selected", k.toLowerCase() === v); });
+    $("appliedList").scrollTop = 0; renderApplied();
+  }
+  $("tabPActive").addEventListener("click", function () { setPTab("active"); });
+  $("tabPStale").addEventListener("click", function () { setPTab("stale"); });
+  $("tabPClosed").addEventListener("click", function () { setPTab("closed"); });
+
+  function renderRuns() {
+    var host = $("runs"); if (!S.runs) return;
+    clear(host);
+    var now = wallNow(), y = new Date(now).getUTCFullYear();
+    var rows = S.runs.map(function (r) {
+      var m = /(\d{1,2})\.(\d{1,2})\s+(\d{1,2}):(\d{2})/.exec(r.Run || "");
+      return { r: r, w: m ? Date.UTC(y, +m[2] - 1, +m[1], +m[3], +m[4]) : 0 };
+    }).sort(function (a, b) { return b.w - a.w; }).slice(0, 24).reverse();
+    var last = rows[rows.length - 1];
+    if (!last) return;
+    var age = now - last.w;
+    var today = rows.filter(function (x) { return dayKey(x.w) === dayKey(now); });
+    var found = today.reduce(function (a, x) { return a + (x.r.Take || 0); }, 0);
+    var what = last.r.Status === "ok" ? "found " + (last.r.Take || 0) + " take, " + (last.r.Maybe || 0) + " maybe" : last.r.Status === "partial" ? "hit its budget, continues next run" : "nothing new";
+    if (age > 3 * 3600000) host.appendChild(el("span", "chip bad", "Job scanner idle for " + ago(age) + " — check the Search Upwork task"));
+    else host.appendChild(el("span", "", "Job scanner ran " + ago(age) + " ago · " + what));
+  }
+
+  function renderQuestions() {
+    var line = $("notesLine"), box = $("questions"); clear(line);
+    var tail = " · Click an #id to copy it · click a row for notes";
+    if (S.questionsErr && !S.questions) { line.appendChild(el("span", "chip bad", "Questions unavailable: " + errText(S.questionsErr, NOTION))); line.appendChild(document.createTextNode(tail)); box.hidden = true; return; }
+    if (!S.questions) return;
+    var n = S.questions.length;
+    if (!n) { line.appendChild(document.createTextNode("0 open questions for the Sunday review" + tail)); box.hidden = true; return; }
+    var a = el("a", "", n + " open question" + (n === 1 ? "" : "s") + " for the Sunday review"); a.href = "#"; a.style.color = "var(--warn)";
+    a.addEventListener("click", function (e) { e.preventDefault(); box.hidden = !box.hidden; });
+    line.appendChild(a); line.appendChild(document.createTextNode(tail));
+    clear(box);
+    S.questions.forEach(function (q) {
+      var row = el("div", "q");
+      row.appendChild(document.createTextNode(String(q.Question || "").trim()));
+      var meta = el("span", "muted", " — seen " + (q.Seen || 1) + "×" + (q["Job IDs"] ? " · " + String(q["Job IDs"]).split(/\s*,\s*/).map(shortId).join(" ") : ""));
+      row.appendChild(meta);
+      if (q.url) { row.appendChild(document.createTextNode(" ")); row.appendChild(extLink(q.url, "Notion ↗")); }
+      box.appendChild(row);
+    });
+    var all = el("div", "q muted"); all.appendChild(extLink(QUESTIONS_URL, "Open the questions database ↗")); box.appendChild(all);
+  }
+
+  function renderAll() { renderBanner(); renderConnects(); renderBalance(); renderContracts(); renderThreads(); renderApplied(); renderLeads(); }
+
+  // ---------- data loading ----------
+  var MCP = null, unsubs = [], milestoneWatch = {};
+  S.leadsById = {};
+
+  function watch(server, tool, input, onData, onErr) {
+    var u = MCP.watchTool(server, tool, input, function (ev) {
+      if (ev.type === "data") { touch(ev.result); onData(payloadOf(ev.result)); }
+      else onErr(ev.error);
+    }, { cache: CACHE, refetchInterval: POLL });
+    unsubs.push(u);
+  }
+
+  function loadNotionView(viewUrl, maxPages) {
+    var rows = [];
+    function page(cursor, n) {
+      var data = { mode: "view", view_url: viewUrl, page_size: 100 };
+      if (cursor) data.start_cursor = cursor;
+      return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: { staleTime: 120000, gcTime: 86400000 } }).then(function (res) {
+        touch(res);
+        var p = payloadOf(res) || {};
+        rows = rows.concat(p.results || []);
+        if (p.has_more && p.next_cursor && n < maxPages) return page(p.next_cursor, n + 1);
+        return rows;
+      });
+    }
+    return page(null, 1);
+  }
+
+  var loading = false;
+  function loadNotion() {
+    if (loading) return; loading = true;
+    loadNotionView(VIEW_INBOX, 10).then(function (rows) {
+      S.leads = rows; S.leadsErr = null;
+      S.leadsById = {}; rows.forEach(function (r) { if (r["Job ID"]) S.leadsById[r["Job ID"]] = r; });
+      renderLeads(); renderApplied();
+    }, function (err) { S.leadsErr = err; if (isDenial(err)) S.leads = null; renderLeads(); })
+    .then(function () { return loadNotionView(VIEW_APPLIED, 3); })
+    .then(function (rows) {
+      if (!rows) return;
+      S.appliedNotion = {}; rows.forEach(function (r) { if (r["Job ID"]) S.appliedNotion[r["Job ID"]] = r; });
+      renderApplied();
+    }, function () {})
+    .then(function () {
+      return MCP.callTool(NOTION, "notion-query-data-sources", { data: { mode: "view", view_url: VIEW_RUNS, page_size: 30 } }, { cache: { staleTime: 120000, gcTime: 86400000 } });
+    })
+    .then(function (res) { if (res) { S.runs = (payloadOf(res) || {}).results || []; renderRuns(); } }, function () {})
+    .then(function () {
+      return MCP.callTool(NOTION, "notion-query-data-sources", { data: { mode: "view", view_url: VIEW_QUESTIONS, page_size: 100 } }, { cache: { staleTime: 120000, gcTime: 86400000 } });
+    })
+    .then(function (res) {
+      var p = payloadOf(res) || {};
+      S.questions = Array.isArray(p.results) ? p.results.filter(function (q) { return q.Status === "Open"; }) : null; S.questionsErr = S.questions ? null : { code: "tool_error", message: "unexpected response" };
+      renderQuestions();
+    }, function (err) { S.questions = null; S.questionsErr = err; renderQuestions(); })
+    .then(function () { loading = false; });
+  }
+
+  var connectsLoading = false;
+  function loadConnects() { // balance + usage history, paged until the 7-day window is covered
+    if (connectsLoading) return; connectsLoading = true;
+    var since = Date.now() - 7 * DAY, all = [], first = null;
+    function page(cursor, n) {
+      var input = { action: "connects_balance", org_uid: ORG };
+      if (cursor) input.params = { cursor: cursor };
+      return MCP.callTool(UPWORK, "upwork__get_freelancer_financials", input, { cache: CACHE }).then(function (res) {
+        touch(res);
+        var p = payloadOf(res) || {};
+        if (!first) first = p;
+        var tx = ((p.usage_history || {}).transactions || []);
+        all = all.concat(tx);
+        var oldest = tx.length ? Date.parse(tx[tx.length - 1].createdDateTime) : 0;
+        var more = p.hasMore && p.next_cursor && n < 8 && oldest > since;
+        return more ? page(p.next_cursor, n + 1) : null;
+      });
+    }
+    page(null, 1).then(function () {
+      first = first || {}; first.usage_history = { transactions: all, complete: all.length ? Date.parse(all[all.length - 1].createdDateTime) <= since : true };
+      S.connects = first; S.connectsErr = null; renderConnects(); renderLeads();
+    }, function (err) { S.connectsErr = err; if (isDenial(err)) S.connects = null; renderConnects(); })
+    .then(function () { connectsLoading = false; });
+  }
+
+  function watchMilestones() {
+    var list = ((S.dash || {}).active_contracts || {}).contracts || [];
+    list.forEach(function (c) {
+      if (milestoneWatch[c.id]) return;
+      milestoneWatch[c.id] = true;
+      watch(UPWORK, "upwork__list_milestones", { action: "list", org_uid: ORG, params: { contract_id: String(c.id) } },
+        function (p) { S.milestones[c.id] = { list: (p && p.milestones) || [] }; renderContracts(); },
+        function (err) { if (!S.milestones[c.id] || isDenial(err)) S.milestones[c.id] = { err: err }; renderContracts(); });
+    });
+  }
+
+  function startUpwork() {
+    watch(UPWORK, "upwork__get_freelancer_dashboard", { action: "check", org_uid: ORG },
+      function (p) { S.dash = (p && p.data) || p || {}; S.dashErr = null; renderBanner(); renderContracts(); watchMilestones(); },
+      function (err) { S.dashErr = err; if (isDenial(err)) S.dash = null; renderContracts(); });
+    loadConnects();
+    watch(UPWORK, "upwork__get_messages", { action: "list_rooms", org_uid: ORG, params: { limit: 40 } },
+      function (p) { S.rooms = ((p && p.data) || {}).rooms || []; S.roomsErr = null; renderThreads(); renderContracts(); },
+      function (err) { S.roomsErr = err; if (isDenial(err)) S.rooms = null; renderThreads(); });
+    watchProposals();
+    watch(UPWORK, "upwork__list_freelancer_proposals", { action: "invitations", org_uid: ORG, params: { status: "pending", limit: 10 } },
+      function (p) { S.invites = listOf((p && p.data) || p); renderBanner(); },
+      function (err) { if (isDenial(err)) S.invites = null; });
+    watch(UPWORK, "upwork__get_freelancer_financials", { action: "available_balance", org_uid: ORG },
+      function (p) { S.balance = p || {}; S.balanceErr = null; renderBalance(); },
+      function (err) { S.balanceErr = err; if (isDenial(err)) S.balance = null; renderBalance(); });
+  }
+
+  function mapProposal(n, closed) {
+    var jp = n.marketplaceJobPosting || {}, terms = n.terms || {}, st = n.status || {};
+    return {
+      id: String(n.id || ""), jobId: String(jp.id || ""), title: clean((jp.content || {}).title || "Untitled"),
+      url: jp.url ? String(jp.url).split("?")[0] : null,
+      created: num(((n.auditDetails || {}).createdDateTime || {}).rawValue) || Date.parse(((n.auditDetails || {}).createdDateTime || {}).displayValue) || 0,
+      modified: num(((n.auditDetails || {}).modifiedDateTime || {}).rawValue) || 0,
+      rate: terms.chargeRate ? String(terms.chargeRate.displayValue || "").replace("USD ", "$") : "",
+      bid: n.boosted ? terms.connectsBid : null,
+      status: st.status, statusLabel: st.status_label || st.status, reason: st.reason ? clean(st.reason.reason) : "",
+      closed: closed || /^(Archived|Declined|Withdrawn)$/.test(st.status || "")
+    };
+  }
+  var propParts = {};
+  function watchProposals() {
+    ["Accepted", "Archived", "Declined"].forEach(function (status) {
+      watch(UPWORK, "upwork__list_freelancer_proposals", { action: "list", org_uid: ORG, params: { status: status, limit: 10 } },
+        function (p) {
+          var edges = (((p && p.data) || {}).vendorProposals || {}).edges || [];
+          propParts[status] = edges.map(function (e) { return mapProposal(e.node || {}, status !== "Accepted" && status !== "Activated"); });
+          mergeProposals();
+        },
+        function (err) { if (status === "Accepted") { S.proposalsErr = err; if (isDenial(err)) S.proposals = null; renderApplied(); } });
+    });
+  }
+  function mergeProposals() {
+    var seen = {}, all = [];
+    ["Accepted", "Archived", "Declined"].forEach(function (k) { (propParts[k] || []).forEach(function (p) { if (!seen[p.id]) { seen[p.id] = true; all.push(p); } }); });
+    var cutoff = Date.now() - 45 * DAY;
+    S.proposals = all.filter(function (p) { return !p.closed || p.modified > cutoff || p.created > cutoff; });
+    S.proposalsErr = null;
+    S.proposals.forEach(function (p) { if (!p.closed && !S.prooms[p.id]) fetchProposalRoom(p); });
+    renderApplied(); renderLeads();
+  }
+  function fetchProposalRoom(p) {
+    S.prooms[p.id] = { pending: true };
+    MCP.callTool(UPWORK, "upwork__get_messages", { action: "find_room", org_uid: ORG, params: { context_type: "proposal", context_id: p.id } }, { cache: { staleTime: 300000, gcTime: 86400000 } })
+      .then(function (res) { var pl = payloadOf(res) || {}; S.prooms[p.id] = { room: ((pl.data || {}).proposalRoom) || null }; renderApplied(); },
+            function (err) { S.prooms[p.id] = err && err.code === "tool_error" ? { room: null } : { err: err }; renderApplied(); });
+  }
+  function renderBalance() {
+    if (S.balanceErr && !S.balance) { $("balanceValue").textContent = "—"; $("balanceSub").textContent = errText(S.balanceErr, UPWORK); return; }
+    var b = S.balance; if (!b) return;
+    var av = num((b.available_now || {}).rawValue), pend = num((b.pending_balance || {}).rawValue), cred = num((b.pending_credit || {}).rawValue);
+    $("balanceValue").textContent = av != null ? "$" + (av >= 100 ? Math.round(av) : av.toFixed(2)) : "—";
+    var parts = [];
+    if (pend) parts.push("$" + Math.round(pend) + " pending");
+    if (cred) parts.push("$" + Math.round(cred) + " in review");
+    if (b.withdrawal_allowed === false) parts.push("withdrawal blocked");
+    $("balanceSub").textContent = parts.length ? parts.join(" · ") : "available to withdraw";
+  }
+
+  // ---------- UI wiring ----------
+  function setVerdict(v) {
+    S.verdict = v;
+    try { localStorage.setItem("fp.verdict", v); } catch (e) {}
+    $("tabTake").setAttribute("aria-selected", v === "Take");
+    $("tabMaybe").setAttribute("aria-selected", v === "Maybe");
+    $("leadList").scrollTop = 0;
+    renderLeads();
+  }
+  $("tabTake").addEventListener("click", function () { setVerdict("Take"); });
+  $("tabMaybe").addEventListener("click", function () { setVerdict("Maybe"); });
+  setVerdict(S.verdict);
+  setPTab(S.ptab);
+
+  $("refreshBtn").addEventListener("click", function () {
+    if (!MCP) return;
+    $("liveText").textContent = "Refreshing…";
+    var p = MCP.invalidate ? MCP.invalidate() : Promise.resolve();
+    p.catch(function () {}).then(function () { S.prooms = {}; loadNotion(); loadConnects(); mergeProposals(); });
+  });
+  setInterval(function () { if (MCP && !document.hidden) { loadNotion(); loadConnects(); } }, POLL);
+
+  function noLive(msg) {
+    $("liveText").textContent = msg;
+    ["leadList", "contractList", "threadList", "appliedList"].forEach(function (id) { clear($(id)); $(id).appendChild(el("div", "note", msg)); });
+    ["connectsSub", "contractsSub", "balanceSub", "leadsSub"].forEach(function (id) { $(id).textContent = "unavailable"; });
+    $("refreshBtn").hidden = true;
+  }
+
+  if (!window.claude || typeof window.claude.use !== "function") { noLive("Open this page in claude.ai to see live data."); return; }
+  window.claude.use("mcp").then(function (mcp) {
+    if (!mcp) { noLive("Live data isn't available in this view — open the page in claude.ai."); return; }
+    MCP = mcp;
+    $("liveText").textContent = "Loading…";
+    window.claude.use("sample").then(function (fn) { SAMPLE = fn || false; renderContracts(); }, function () { SAMPLE = false; renderContracts(); });
+    startUpwork();
+    loadNotion();
+  }, function () { noLive("Live data isn't available in this view."); });
+})();
+</script>
