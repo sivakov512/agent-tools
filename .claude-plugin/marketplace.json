@@ -10,8 +10,8 @@
       "description": "Keep client project plans in Notion up to date from plain chat: progress, slips, issues, status, weekly reports, new projects."
     },
     {
-      "name": "upwork-pipeline",
-      "source": "./upwork-pipeline",
+      "name": "upwork-pulse",
+      "source": "./upwork-pulse",
       "description": "Upwork job search run by scheduled agents with rules and data in Notion: hourly search and assessment, digests, weekly rule review, a live dashboard, proposals drafted in chat and sent on your go."
     }
   ]

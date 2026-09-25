@@ -5,7 +5,7 @@ Tools for AI agents, one folder per plugin. Skills use the open [Agent Skills](h
 | Plugin | Skill | What it does | Needs |
 |---|---|---|---|
 | [`project-tracker`](project-tracker/README.md) | `project-tracker` | Keeps client project plans in Notion up to date from plain conversation: progress, slips, issues, status, weekly reports, notes, undo; new projects from emails, documents or Upwork contracts. Creates the Notion structure itself. | Notion MCP (Upwork MCP for contracts) |
-| [`upwork-pipeline`](upwork-pipeline/README.md) | `upwork-pipeline` | Runs an Upwork job search with Notion as the source of truth: hourly search and assessment by your rules, digests, a weekly review that turns open questions into rules, a live dashboard, proposals drafted in chat and sent only on your go. Creates the Notion structure, the dashboard and the scheduled tasks itself. | Notion MCP, Upwork MCP |
+| [`upwork-pulse`](upwork-pulse/README.md) | `upwork-pulse` | Runs an Upwork job search with Notion as the source of truth: hourly search and assessment by your rules, digests, a weekly review that turns open questions into rules, a live dashboard, proposals drafted in chat and sent only on your go. Creates the Notion structure, the dashboard and the scheduled tasks itself. | Notion MCP, Upwork MCP |
 
 ## Install
 
