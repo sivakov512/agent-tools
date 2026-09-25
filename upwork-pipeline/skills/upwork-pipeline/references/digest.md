@@ -30,7 +30,7 @@ Cards N · take M · maybe K · connects L
 …
 ```
 
-`<short id>` is the last six digits of `Job ID`. Numbering runs across both sections; an empty section is left out; within a section sort by `My $` descending; a card is exactly two lines, no rules between them. The last line of the message, exactly: `Write "details N" and I will expand the card.`
+`<short id>` is the last six digits of `Job ID`. Numbering runs across both sections; an empty section is left out; within a section sort by `Score` descending, then `My $` descending; a card is exactly two lines, no rules between them. The last line of the message, exactly: `Write "details N" and I will expand the card.`
 
 ## 4. After the digest — live chat
 

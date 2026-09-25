@@ -24,6 +24,7 @@ The rules pages are written from the user's profile. Gather it before writing an
 8. **Language and timezone** — the language the user wants to read everything in (`language`: messages, analyses, the text of the rules pages and cards) and the timezone. Titles, columns and section headings stay English; proposals follow the posting's language.
 9. **Upwork org_uid** — from `list_accounts`.
 10. **Model for the scheduled runs** — Sonnet unless the user says otherwise (only when tasks are created here).
+11. **When the digests and the weekly review come** — two digest times and a weekly slot, to the minute; 11:00, 22:00 and Sunday 20:00 unless the user says otherwise.
 
 Anything the user does not know yet is left as a marked placeholder (`_to fill_`) in the page, not invented.
 
@@ -35,7 +36,7 @@ When adopting or finishing an existing pipeline, most of this is already written
 
 Create the missing ones as children of the root page (`notion-create-pages`, `parent: {page_id: <root>}`), — the text in `language`, the section headings exactly as below, in English. Fill them from the profile; keep the section structure below because the modes refer to it by name.
 
-**Search rules** — sections: `## 1. Search` (the queries, one per code block; sort by recency; no platform filters), `## 2. Filtering` with `### In scope` (the kinds of deliverable the user takes — the hourly run treats anything on neither this list nor the reject lists as an open question), `### Reject on sight` (stage-1 items), `### Reject on full text` and `### Flag, do not reject`, `## 3. Assessment` (verdict Take vs Maybe, how hours are estimated, how price follows from hours and the rate, the floor, what counts as complexity Low / Medium / High, what the client's average spend tells), `## 4. Card conventions` (anything the user wants on cards beyond the skill's defaults — leave "defaults" if nothing), `## 5. Message formats` ("skill defaults" — a format from an older page is not carried over unless the user asks to keep it).
+**Search rules** — sections: `## 1. Search` (the queries, one per code block; sort by recency; no platform filters), `## 2. Filtering` with `### In scope` (the kinds of deliverable the user takes — the hourly run treats anything on neither this list nor the reject lists as an open question), `### Reject on sight` (stage-1 items), `### Reject on full text` and `### Flag, do not reject`, `## 3. Assessment` (verdict Take vs Maybe, how hours are estimated, how price follows from hours and the rate, the floor, what counts as complexity Low / Medium / High, what the client's average spend tells), `## 4. Card conventions` (anything the user wants on cards beyond the skill's defaults — leave "defaults" if nothing), `## 5. Message formats` ("skill defaults" — a format from an older page is not carried over unless the user asks to keep it), `## 6. Ranking` — criteria with points; the hourly run sums the ones that hold into the card's `Score`, and a card at or above `match_score` is a strong match. Unless the user has their own, write this starting set (in `language`): the client has hires +2, or is verified without hires +1; client rating 4.8 or higher +1; client spent $5,000 or more +1; fewer than 5 proposals +2, 5–14 proposals +1, 25 or more −1; the client's rate range or budget covers My $ +1, falls below it −1 (a fixed budget under 70% of My $: −1); complexity Low +1, High −1; each flag −1, except budget mismatch, mandatory calls, timezone lock and partially hired −2. Only criteria that hold when the card is written belong here — the score is not recomputed later.
 
 **Proposal guide** — `## 1. Before writing` (anything the user checks before a proposal, beyond the fresh data the skill always takes), `## 2. Text` (voice, structure, what never to say), `## 3. Portfolio` (the projects: line to quote, status, file names, restrictions; how to pick 2–4 per posting), `## 4. Rate and amounts`, `## 5. Attachments and highlights`, `## 6. After sending` (Status Applied; a confirmed rule goes into this guide or the rules).
 
@@ -65,6 +66,7 @@ CREATE TABLE ("Title" TITLE, "Job ID" RICH_TEXT COMMENT 'Numeric Upwork id; dupl
   "Complexity" SELECT('Low':green, 'Medium':yellow, 'High':red),
   "Flags" MULTI_SELECT('no client history':gray, 'unfamiliar tech':gray, 'budget mismatch':gray, 'mandatory calls':gray, 'timezone lock':gray, 'partially hired':gray, 'full-time':gray),
   "Client" RICH_TEXT, "Proposals" NUMBER, "Connects" NUMBER COMMENT 'Cost to apply', "Competition" RICH_TEXT,
+  "Score" NUMBER COMMENT 'Sum of the Ranking points', "Score why" RICH_TEXT,
   "Run" RELATION('<runs>'))
 
 -- Questions
@@ -109,6 +111,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 	guide: `<page id>`
 	notes: `<page id>`
 	state: `<page id>`
+	match_score: `4`
 	upwork_org: `<org_uid>`
 	dashboard: `<url, once published>`
 </details>
@@ -122,7 +125,7 @@ The dashboard is a single HTML page (`assets/dashboard.html`) that reads Notion 
 
 To publish or update it:
 
-1. Copy `assets/dashboard.html` to a working file and replace every placeholder: `__UPWORK_ORG__`, `__VIEW_INBOX__`, `__VIEW_APPLIED__`, `__VIEW_RUNS__`, `__VIEW_QUESTIONS__` (the view URLs from the config), `__QUESTIONS_URL__` (the Questions database page URL), `__TIMEZONE__`. Nothing else in the file needs editing. Where a shell with Node is available, check the page's script still parses before publishing (`node --check` on the contents of the last `<script>` block) — a page whose script fails shows "Connecting…" forever and no error.
+1. Copy `assets/dashboard.html` to a working file and replace every placeholder: `__ROOT_PAGE__` (the root page id — the page reads `match_score` from the config there on every load), `__UPWORK_ORG__`, `__VIEW_INBOX__`, `__VIEW_APPLIED__`, `__VIEW_RUNS__`, `__VIEW_QUESTIONS__` (the view URLs from the config), `__QUESTIONS_URL__` (the Questions database page URL), `__TIMEZONE__`. Nothing else in the file needs editing. Where a shell with Node is available, check the page's script still parses before publishing (`node --check` on the contents of the last `<script>` block) — a page whose script fails shows "Connecting…" forever and no error.
 2. Publish it with the artifact tool of the surface (on claude.ai / Cowork: the Artifact tool with the capabilities above; load the artifact-capabilities skill first if the surface has it). Republishing to the same URL keeps the link.
 3. Write the URL into the config as `dashboard`.
 
@@ -139,7 +142,7 @@ Four tasks, each a fresh session, each with the Notion and Upwork connectors. Th
 | Upwork digest — evening | e.g. 22:00 | `Use the upwork-pipeline skill in digest mode on <root>, window from <morning hour> today to now. This is a scheduled run: automatic mode until I write — your final reply goes to my phone as is, so it is the message or nothing.` |
 | Upwork questions — weekly | e.g. Sunday 20:00 | `Use the upwork-pipeline skill in weekly review mode on <root>. This is a scheduled run: automatic mode until I answer — your final reply goes to my phone as is, so it is the message or nothing.` |
 
-Each digest's window starts at the other digest's hour, so the two cover the day without gaps; put the user's real hours into both prompts.
+Each digest's window starts at the other digest's time, so the two cover the day without gaps; put the user's times into both prompts. Schedule the digests and the weekly review at exactly the minute the user gave — no shifting of the minute to spread load, even where the scheduling tool suggests it: a digest that runs at 10:48 while the next one's window starts at 11:00 loses whatever was found in between. Only the hourly search may run at any minute.
 
 Where the surface has a task-creation tool (Cowork: `create_trigger`), create the four tasks yourself — this is the user's request, so `initiation` is `human_request`; cron in UTC per the tool's rules. The tool takes no model and no approval mode, so two things follow it:
 - **Model**: the runs are written for Sonnet. Ask which model once, in the setup questions (default Sonnet), and set it with `update_trigger` `model` — that is the user's explicit choice, which the tool requires.

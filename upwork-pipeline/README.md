@@ -16,11 +16,11 @@ Jobs · Runs · Questions
 
 | | Holds | Written by |
 |---|---|---|
-| Search rules | your queries, what is in scope, what to reject, what to flag, how to set the verdict, hours and price | you; the agent adds a rule you confirm |
+| Search rules | your queries, what is in scope, what to reject, what to flag, how to set the verdict, hours and price, how to rank (criteria with points) | you; the agent adds a rule you confirm |
 | Proposal guide | your voice, what never to say, portfolio lines and files, rate | you; the agent adds a rule you confirm |
 | Field notes | what the Upwork API and tools do and do not do — nothing else | the agent, when it meets something new |
 | Run state | `PROCESSED_UNTIL`, the hourly search's watermark | the hourly run |
-| Jobs | one card per Take / Maybe posting: the client's numbers against your estimate, flags, a five-section write-up; `Status` New → Applied / Skipped | the hourly run; the status by you, in chat or on the dashboard |
+| Jobs | one card per Take / Maybe posting: the client's numbers against your estimate, flags, a score by your ranking with the reasons, a five-section write-up; `Status` New → Applied / Skipped | the hourly run; the status by you, in chat or on the dashboard |
 | Runs | one log row per run (per 2-hour chunk when catching up on a backlog): what was checked, what was rejected and why | the hourly run |
 | Questions | cases your rules did not settle, with a counter of how often they came up | the hourly run; closed by the weekly review |
 
@@ -28,7 +28,7 @@ Views: Jobs — Inbox (New), Applied, All; Runs — Latest; Questions — Open. 
 
 **Language.** Everything the agent writes — messages, analyses, cards, questions, rule lines — is in the `language` from the config. The structure stays English: page and database titles, columns, card section headings, the dashboard. Proposals are written in the posting's language.
 
-**Config.** The toggle holds the database IDs, view URLs, page IDs, `language`, `timezone`, your Upwork account and the dashboard link. The skill finds the root page by the toggle's title line — keep it — and reads the rest on every run, so the page can have any name and several pipelines can live side by side (each scheduled task names its root page). Move a database, edit the config.
+**Config.** The toggle holds the database IDs, view URLs, page IDs, `language`, `timezone`, `match_score` (the score from which a job counts as a strong match), your Upwork account and the dashboard link. The skill finds the root page by the toggle's title line — keep it — and reads the rest on every run, so the page can have any name and several pipelines can live side by side (each scheduled task names its root page). Move a database, edit the config.
 
 ## Install
 
@@ -51,7 +51,7 @@ The claude.ai Notion and Upwork connectors are picked up if you are logged in wi
 
 ## First run
 
-1. **"Set up the Upwork pipeline."** The agent proposes a page **Upwork pipeline** at the top level and asks for your profile in one message: field and stack, rate, what to reject and flag, search queries, proposal voice, portfolio, language, timezone, the model for scheduled runs. Instead of answering you can point it at your Upwork profile, a Notion page, a CV or an email — it takes your decisions from there (not someone else's formats) and shows what it found. Unknowns stay as `_to fill_`; nothing is invented.
+1. **"Set up the Upwork pipeline."** The agent proposes a page **Upwork pipeline** at the top level and asks for your profile in one message: field and stack, rate, what to reject and flag, search queries, proposal voice, portfolio, language, timezone, when the digests and the weekly review should come, the model for scheduled runs. Instead of answering you can point it at your Upwork profile, a Notion page, a CV or an email — it takes your decisions from there (not someone else's formats) and shows what it found. Unknowns stay as `_to fill_`; nothing is invented.
 2. **It builds everything**: the four pages, the three databases with views, the config, the dashboard (published as a claude.ai artifact), and on Cowork the four scheduled tasks — hourly search, morning and evening digest, weekly review. It then fires the hourly task once and checks that a run was logged; if not, it says why (plugin not installed for tasks, connector missing, approval pending). Elsewhere it hands you the table of schedules and prompts.
 3. **Fill the placeholders** in Search rules and Proposal guide. Both are read on every run, so edits apply from the next one.
 4. **"Run the hourly search now"** in chat — the first live check.
@@ -88,7 +88,7 @@ If a message does not trigger the skill, mention Upwork or the job's id, or star
 
 ### The dashboard
 
-`skills/upwork-pipeline/assets/dashboard.html` — one page that reads Notion and Upwork through the viewer's own connectors (no server, no stored tokens). Setup fills in your view URLs, account and timezone and publishes it; the link goes into the config. Leads with the client's numbers against your estimate, Skip / Applied buttons, active contracts with thread summaries, proposals by state, connects spend, open questions.
+`skills/upwork-pipeline/assets/dashboard.html` — one page that reads Notion and Upwork through the viewer's own connectors (no server, no stored tokens). Setup fills in your view URLs, account and timezone and publishes it; the link goes into the config. Leads with the client's numbers against your estimate — highlighted green when the card's score reaches `match_score` from the config (the page reads it on every load, so a change applies at once) — Skip / Applied buttons, active contracts with thread summaries, proposals by state, connects spend, open questions.
 
 ## Model
 

@@ -20,19 +20,20 @@ A **root page** — its name is the user's choice ("Upwork pipeline" by default)
 | `rules`, `guide`, `notes`, `state` | page IDs of Search rules, Proposal guide, Field notes, Run state |
 | `language` | the user's language (e.g. `Russian`): everything you write is in it; the structure stays English |
 | `timezone` | IANA zone of the user's wall clock (e.g. `Europe/Belgrade`); all times in messages and windows are in it |
+| `match_score` | the Score from which a card counts as a strong match; the dashboard highlights those (default 4) |
 | `upwork_org` | the Upwork org_uid to pass to every Upwork call |
 | `dashboard` | URL of the published dashboard page, if any |
 
 **Pages** — the user's rules, written by the user and by you on the user's confirmation:
 
-- **Search rules** — what to search (queries), what is in scope, what to reject outright, what to flag, how to set verdict, hours and price, the user's rate. Read at the start of every run.
+- **Search rules** — what to search (queries), what is in scope, what to reject outright, what to flag, how to set verdict, hours and price, the user's rate, and how to rank a card (Ranking: criteria with points). Read at the start of every run.
 - **Proposal guide** — how the user writes proposals: voice, structure, what never to say, the portfolio (projects with the exact line to quote and the file names to attach), rate rules, what to do after sending.
 - **Field notes** — environment quirks only: facts about the Upwork API and tools that a run should know (fields that lag the site, calls that get blocked). No rules, no questions. Read every run; append one line when you discover a new quirk.
 - **Run state** — one line `PROCESSED_UNTIL: <ISO time with offset>`, the hourly search's watermark.
 
 **Databases:**
 
-- **Jobs** — one card per Take or Maybe posting. `Title`, `Job ID` (the numeric id; the duplicate key), `Link`, `Published`, `Found`, `Verdict` (Take / Maybe), `Status` (New / Applied / Skipped), `Payment` (Fixed / Hourly), `Client $` (as stated, text), `Budget` (number, fixed only), `Rate min` / `Rate max` (hourly only), `My $` (hourly: the rate to ask per hour; fixed: the total), `My hours`, `Client time`, `Complexity` (Low / Medium / High), `Flags` (multi-select), `Client` (one line: country, verification, hires, spent, average = spent / paid hires, rating), `Proposals`, `Connects` (cost to apply), `Competition` (one line: invites sent, hired if more than zero, the range of competitors' bids — the proposal count has its own column), `Run` (relation to Runs). The page body has exactly five sections: **What's needed**, **Complexity**, **Risks**, **To clarify**, **Estimate** (`references/hourly.md`).
+- **Jobs** — one card per Take or Maybe posting. `Title`, `Job ID` (the numeric id; the duplicate key), `Link`, `Published`, `Found`, `Verdict` (Take / Maybe), `Status` (New / Applied / Skipped), `Payment` (Fixed / Hourly), `Client $` (as stated, text), `Budget` (number, fixed only), `Rate min` / `Rate max` (hourly only), `My $` (hourly: the rate to ask per hour; fixed: the total), `My hours`, `Client time`, `Complexity` (Low / Medium / High), `Flags` (multi-select), `Client` (one line: country, verification, hires, spent, average = spent / paid hires, rating), `Proposals`, `Connects` (cost to apply), `Competition` (one line: invites sent, hired if more than zero, the range of competitors' bids — the proposal count has its own column), `Score` (number, by the rules' Ranking section) and `Score why` (one line: the criteria that scored), `Run` (relation to Runs). The page body has exactly five sections: **What's needed**, **Complexity**, **Risks**, **To clarify**, **Estimate** (`references/hourly.md`).
 - **Runs** — one row per hourly run (per 2-hour chunk when a run catches up on a backlog), always, even empty: `Run` (title, `DD.MM HH:MM`), `Status` (ok / empty / partial), `Scanned`, `Title pass`, `Detailed`, `Take`, `Maybe`, `Budget hit` (checkbox), `Tool calls`, `Window`; the body lists what stage 2 rejected and why.
 - **Questions** — cases the rules do not settle: `Question` (title, one sentence), `Job IDs`, `Seen` (number), `Status` (Open / Resolved), `First seen`, `Decision`.
 

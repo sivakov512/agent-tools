@@ -34,6 +34,7 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 	state: `10000000-0000-4000-8000-000000000005`
 	language: `English`
 	timezone: `Europe/Belgrade`
+	match_score: `4`
 	upwork_org: `99001`
 	dashboard: `https://claude.ai/artifact/mockdash`
 </callout>
@@ -83,6 +84,13 @@ Client average = spent / hires.
 Skill defaults.
 ## 5. Message formats
 Skill defaults.
+## 6. Ranking
+- The client has hires +2, or is verified without hires +1
+- Client rating 4.8 or higher +1; client spent $5,000 or more +1
+- Fewer than 5 proposals +2; 5–14 proposals +1; 25 or more −1
+- The client's rate range or budget covers My $ +1; falls below it −1
+- Complexity Low +1, High −1
+- Each flag −1; budget mismatch, mandatory calls, timezone lock, partially hired −2
 ```
 
 **Proposal guide** (`1000…0003`) content:
@@ -125,7 +133,7 @@ Fetching a database URL lists its data source with the schema and its views as `
 - Questions `4000…0003` — data source `2000…0003`; view `…0005` "Open" (Status = Open).
 
 Schemas:
-- Jobs: Title (title), Job ID (text), Link (url), Published (date), Found (date), Verdict (Take / Maybe), Status (New / Applied / Skipped), Payment (Fixed / Hourly), Client $ (text), Budget, Rate min, Rate max, My $, My hours (numbers), Client time (text), Complexity (Low / Medium / High), Flags (multi-select: no client history, unfamiliar chip, budget mismatch, mandatory calls, timezone lock, partially hired, full-time), Client (text), Proposals, Connects (numbers), Competition (text), Run (relation → Runs).
+- Jobs: Title (title), Job ID (text), Link (url), Published (date), Found (date), Verdict (Take / Maybe), Status (New / Applied / Skipped), Payment (Fixed / Hourly), Client $ (text), Budget, Rate min, Rate max, My $, My hours (numbers), Client time (text), Complexity (Low / Medium / High), Flags (multi-select: no client history, unfamiliar chip, budget mismatch, mandatory calls, timezone lock, partially hired, full-time), Client (text), Proposals, Connects (numbers), Competition (text), Score (number), Score why (text), Run (relation → Runs).
 - Runs: Run (title), Status (ok / empty / partial), Scanned, Title pass, Detailed, Take, Maybe (numbers), Budget hit (checkbox), Tool calls (number), Window (text).
 - Questions: Question (title), Job IDs (text), Seen (number), Status (Open / Resolved), First seen (date), Decision (text).
 

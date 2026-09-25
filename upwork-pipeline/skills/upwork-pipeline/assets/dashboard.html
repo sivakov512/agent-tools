@@ -327,6 +327,7 @@
   "use strict";
   var ORG = "__UPWORK_ORG__";
   var NOTION = "Notion", UPWORK = "Upwork";
+  var ROOT_PAGE = "__ROOT_PAGE__";
   var VIEW_INBOX = "__VIEW_INBOX__";
   var VIEW_APPLIED = "__VIEW_APPLIED__";
   var VIEW_RUNS = "__VIEW_RUNS__";
@@ -478,7 +479,7 @@
     var list = S.verdict === "Take" ? take : maybe;
     var titles = {};
     everything.forEach(function (r) { var t = (r.Title || "").trim().toLowerCase(); titles[t] = (titles[t] || 0) + 1; });
-    everything.forEach(function (r) { scoreLead(r, now, titles); });
+    everything.forEach(function (r) { scoreLead(r); });
     var strong = take.filter(function (r) { return r._tier === "strong"; }).length;
     $("leadsSub").textContent = (strong ? strong + " strong · " : "") + "+" + today + " today · " + maybe.length + " maybe";
     list.sort(function (a, b) {
@@ -571,31 +572,14 @@
     if (openIds[id]) { d.open = true; }
     return d;
   }
-  var FLAG_COST = { "budget mismatch": 2, "mandatory calls": 2, "timezone lock": 2, "partially hired": 2, "no client history": 1, "unfamiliar tech": 1 }; // any other flag costs 1
-  function scoreLead(r, now, titles) {
-    var pts = 0, why = [], flags = flagsOf(r), c = String(r.Client || "");
-    var hires = /(\d+)\s*(?:hires?|найм)/i.exec(c), rating = /(?:rating|рейтинг)\s*([\d.]+)/i.exec(c), spent = /(?:spent|потрачено)\s*\$?([\d,]+)/i.exec(c);
-    if (hires && +hires[1] > 0) { pts += 2; why.push(hires[1] + " hires"); }
-    else if (flags.indexOf("no client history") < 0 && /verified/i.test(c) && !/0 hires|наймов 0|no hires|без истории/i.test(c)) { pts += 1; why.push("verified client"); }
-    if (rating && +rating[1] >= 4.8) { pts += 1; why.push("rating " + rating[1]); }
-    if (spent && +spent[1].replace(/,/g, "") >= 5000) { pts += 1; why.push("$" + spent[1] + " spent"); }
-    var bids = r.Proposals;
-    if (bids != null) { if (bids < 5) { pts += 2; why.push("only " + bids + " bids"); } else if (bids < 15) { pts += 1; } else if (bids >= 25) { pts -= 1; } }
-    var ask = num(r["My $"]);
-    if (ask != null) {
-      if (r.Payment === "Hourly" && num(r["Rate max"]) != null) { if (num(r["Rate max"]) >= ask) { pts += 1; why.push("range covers ask"); } else pts -= 1; }
-      if (r.Payment === "Fixed" && num(r.Budget) != null) { if (num(r.Budget) >= ask) { pts += 1; why.push("budget covers ask"); } else if (num(r.Budget) < ask * 0.7) pts -= 1; }
-    }
-    if (r.Complexity === "Low") { pts += 1; why.push("low complexity"); }
-    if (r.Complexity === "High") pts -= 1;
-    var pub = wallFromNotion(r["date:Published:start"]);
-    if (pub && now - pub < DAY && (bids == null || bids < 10)) { pts += 1; why.push("fresh"); }
-    if (pub && now - pub > OLD_LEAD_DAYS * DAY) pts -= 2;
-    if (titles[(r.Title || "").trim().toLowerCase()] > 1) pts -= 1;
-    flags.forEach(function (f) { pts -= FLAG_COST[f] != null ? FLAG_COST[f] : 1; });
-    r._score = pts; r._why = why;
-    r._tier = pts >= 4 ? "strong" : pts <= 0 ? "weak" : "";
-    return pts;
+  // Ranking is done by the hourly agent by the user's rules (Search rules → Ranking) and written to the card
+  // as Score / Score why; the page only compares Score with match_score from the root page's config.
+  function scoreLead(r) {
+    var sc = num(r.Score);
+    r._score = sc == null ? -Infinity : sc;
+    r._why = r["Score why"] ? [unesc(r["Score why"])] : [];
+    r._tier = sc != null && S.matchScore != null && sc >= S.matchScore ? "strong" : "";
+    return r._score;
   }
   function shortDur(t) {
     t = String(t);
@@ -638,7 +622,7 @@
     clear(body);
     if (r._why && r._why.length) {
       var wy = el("p", "why");
-      wy.appendChild(el("b", "", r._tier === "strong" ? "Strong match: " : "Going for it: "));
+      wy.appendChild(el("b", "", (r._tier === "strong" ? "Strong match" : "Score") + " " + r._score + ": "));
       wy.appendChild(document.createTextNode(r._why.join(" · ")));
       body.appendChild(wy);
     }
@@ -1159,9 +1143,16 @@
   }
 
   var loading = false;
+  function loadConfig() { // match_score lives in the root page's config toggle; read it on every load so edits apply at once
+    return MCP.callTool(NOTION, "notion-fetch", { id: ROOT_PAGE }, { cache: { staleTime: 300000, gcTime: 86400000 } }).then(function (res) {
+      var p = payloadOf(res), txt = p && typeof p === "object" ? p.text : (typeof p === "string" ? p : "");
+      var m = /match_score:\s*`?\s*(-?\d+(?:\.\d+)?)/.exec(txt || "");
+      S.matchScore = m ? +m[1] : null;
+    }, function () { S.matchScore = null; });
+  }
   function loadNotion() {
     if (loading) return; loading = true;
-    loadNotionView(VIEW_INBOX, 10).then(function (rows) {
+    loadConfig().then(function () { return loadNotionView(VIEW_INBOX, 10); }).then(function (rows) {
       S.leads = rows; S.leadsErr = null;
       S.leadsById = {}; rows.forEach(function (r) { if (r["Job ID"]) S.leadsById[r["Job ID"]] = r; });
       renderLeads(); renderApplied();
