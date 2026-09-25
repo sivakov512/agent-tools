@@ -50,8 +50,8 @@ Create only the missing ones, titled exactly `Jobs`, `Runs`, `Questions`, `notio
 
 ```sql
 -- Runs
-CREATE TABLE ("Run" TITLE COMMENT 'DD.MM HH:MM',
-  "Status" SELECT('ok':green, 'empty':gray, 'partial':yellow),
+CREATE TABLE ("Run" TITLE COMMENT 'DD.MM HH:MM, a label only',
+  "Created" CREATED_TIME, "Status" SELECT('ok':green, 'empty':gray, 'partial':yellow),
   "Scanned" NUMBER, "Title pass" NUMBER, "Detailed" NUMBER, "Take" NUMBER, "Maybe" NUMBER,
   "Budget hit" CHECKBOX, "Tool calls" NUMBER, "Window" RICH_TEXT)
 
@@ -84,11 +84,13 @@ Views live on the databases (fetch each database for its default view; rename it
 Jobs       Inbox     (default)  FILTER "Status" = "New";   SORT BY "Found" DESC; SHOW "Title", "Verdict", "Client $", "My $", "My hours", "Complexity", "Connects", "Found"
            Applied   table      FILTER "Status" = "Applied"; SORT BY "Found" DESC
            All       table      SORT BY "Found" DESC
-Runs       Latest    (default)  SORT BY "Run" DESC; SHOW "Run", "Status", "Scanned", "Detailed", "Take", "Maybe", "Window"
+Runs       Latest    (default)  SORT BY "Created" DESC; SHOW "Run", "Status", "Scanned", "Detailed", "Take", "Maybe", "Window"
 Questions  Open      (default)  FILTER "Status" = "Open"; SORT BY "First seen" ASC
 ```
 
 A view URL is `https://www.notion.so/<database id without dashes>?v=<view id without dashes>`.
+
+Runs are ordered by `Created`, never by the `Run` title: `DD.MM HH:MM` as text puts `01.10` below `30.09` and January below December. An adopted Runs database without `Created` gets the column, and its view's sort is switched to it.
 
 ## 6. Config
 
