@@ -58,11 +58,11 @@ The claude.ai Notion and Upwork connectors are picked up if you are logged in wi
 
 Running setup again is safe: every step checks first and adds only what is missing. Pages and databases from a hand-built pipeline are adopted — mapped, missing columns added, nothing renamed or deleted.
 
-On Cowork: leave the tasks' notifications at their default (a push only when a run has something worth reporting) and set them to **Automatically approve** if a run asks for approval — they write to Notion unattended.
+On Cowork: set the tasks to **Automatically approve** if a run asks for approval — they write to Notion unattended. The task prompts only name the mode, the root page and the window; how a run reports lives in the skill, so updating the plugin changes every task.
 
 ## How to use it
 
-The scheduled tasks need nothing from you. A message arrives only when there is something to read:
+The scheduled tasks need nothing from you. A run pushes one line to your phone only when there is something to read; the full message is in the task's chat:
 
 | Task | Sends |
 |---|---|

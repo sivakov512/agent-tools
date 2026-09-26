@@ -63,7 +63,7 @@ Always, including empty runs: one row in `runs` per chunk, written when the chun
 
 ## 8. The message
 
-The message is the "respond fast" signal. Send it once per run and **only if this run wrote at least one Take card**. Maybe cards go into it too, but on their own they do not earn a message: Maybe only, or nothing written → send nothing at all — no empty message, no "nothing found", no report. Finish silently. The user sees Maybe cards in the digest and on the dashboard. Questions never go into the message.
+The message is the "respond fast" signal. Send it once per run and **only if this run wrote at least one Take card**. Maybe cards go into it too, but on their own they do not earn a message: Maybe only, or nothing written → send nothing at all — no push, no empty message, no "nothing found", no report. Finish silently. The user sees Maybe cards in the digest and on the dashboard. Questions never go into the message.
 
 Format, in `language` (labels translated, structure kept), only these blocks, nothing before or after:
 
@@ -100,4 +100,8 @@ Estimate **<My hours> h** · ask **<My $>** — <the Estimate sentence>
 
 `<short id>` is the last six digits of `Job ID`, as on the dashboard, so the user can refer to an item by its number in this message or by its id. Numbering runs across both sections; an empty section is left out; a horizontal rule between cards; `Client:` and `Competition:` labels not bold. `connects L` in the header is the sum over the listed cards.
 
-Forbidden in the message: describing your own actions, anything outside the format, draft proposal text. Before the final reply, re-read SKILL.md → automatic mode: all writes done, then the message alone — or an empty reply.
+Forbidden in the message: describing your own actions, anything outside the format, draft proposal text.
+
+**Push line** (SKILL.md → automatic mode), in `language`, plain text: `Upwork: <M> take[, <K> maybe] · #<short id> <title> · <Client $>` for the first Take card, with ` +<n>` after the title when there are more Take cards; cut the title so the line stays under 200 characters.
+
+Last steps, in this order, once all writes are done: load `PushNotification` and push the line; then the final reply — the message alone. No Take card → neither: no push, empty reply.

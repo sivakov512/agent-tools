@@ -12,7 +12,7 @@ Query `jobs_inbox` (it is already `Status` New, newest first; page while `has_mo
 
 Applied and Skipped cards are never in a digest, even inside the window: the user has already decided on them. Reading `Status` on every card is the filter, not decoration — if a card in the view is not New, it does not go in.
 
-Nothing left → the final reply is empty (SKILL.md → automatic mode): not a word about the window or what you checked.
+Nothing left → no push, and the final reply is empty (SKILL.md → automatic mode): not a word about the window or what you checked.
 
 ## 3. The message
 
@@ -31,6 +31,8 @@ Cards N · take M · maybe K · connects L
 ```
 
 `<short id>` is the last six digits of `Job ID`. Numbering runs across both sections; an empty section is left out; within a section sort by `Score` descending, then `My $` descending; a card is exactly two lines, no rules between them. The last line of the message, exactly: `Write "details N" and I will expand the card.`
+
+**Push line**, in `language`, plain text: `Upwork digest: <M> take, <K> maybe` (a zero part left out). Last steps: load `PushNotification` and push the line; then the final reply — the message alone.
 
 ## 4. After the digest — live chat
 

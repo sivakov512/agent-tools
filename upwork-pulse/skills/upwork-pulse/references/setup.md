@@ -135,20 +135,20 @@ If the surface has no artifact tool, still do step 1: write the filled file into
 
 ## 8. Scheduled tasks
 
-Four tasks, each a fresh session, each with the Notion and Upwork connectors. The prompts are short because the skill carries the logic; each names the mode, says plainly that the final reply is the notification (the one rule a run must not forget, so it lives in the prompt too), the root page URL (so a run never has to choose between two pipelines) and the parameters the mode needs. `<root>` below is the root page URL — put the real URL into every row, never leave `<root>` in a prompt. Times are in the user's timezone; when the surface schedules in UTC, convert with the offset in effect and tell the user to move the crons when daylight-saving changes.
+Four tasks, each a fresh session, each with the Notion and Upwork connectors. The prompts are short because the skill carries the logic; each names the mode, the root page URL (so a run never has to choose between two pipelines), the parameters the mode needs, and says the run is scheduled — that is what switches the skill to automatic mode. Nothing else goes into a prompt: how a run reports, when it pushes and when it stays silent live in the skill, so updating the skill updates every task without touching the prompts. `<root>` below is the root page URL — put the real URL into every row, never leave `<root>` in a prompt. Times are in the user's timezone; when the surface schedules in UTC, convert with the offset in effect and tell the user to move the crons when daylight-saving changes.
 
 | Task | When | Prompt |
 |---|---|---|
-| Upwork search — hourly | every hour | `Use the upwork-pulse skill in hourly search mode on <root>. This is a scheduled run: automatic mode until I write — your final reply goes to my phone as is, so it is the message or nothing.` |
-| Upwork digest — morning | e.g. 11:00 | `Use the upwork-pulse skill in digest mode on <root>, window from <evening hour> yesterday to now. This is a scheduled run: automatic mode until I write — your final reply goes to my phone as is, so it is the message or nothing.` |
-| Upwork digest — evening | e.g. 22:00 | `Use the upwork-pulse skill in digest mode on <root>, window from <morning hour> today to now. This is a scheduled run: automatic mode until I write — your final reply goes to my phone as is, so it is the message or nothing.` |
-| Upwork questions — weekly | e.g. Sunday 20:00 | `Use the upwork-pulse skill in weekly review mode on <root>. This is a scheduled run: automatic mode until I answer — your final reply goes to my phone as is, so it is the message or nothing.` |
+| Upwork search — hourly | every hour | `Use the upwork-pulse skill in hourly search mode on <root>. Scheduled run.` |
+| Upwork digest — morning | e.g. 11:00 | `Use the upwork-pulse skill in digest mode on <root>, window from <evening hour> yesterday to now. Scheduled run.` |
+| Upwork digest — evening | e.g. 22:00 | `Use the upwork-pulse skill in digest mode on <root>, window from <morning hour> today to now. Scheduled run.` |
+| Upwork questions — weekly | e.g. Sunday 20:00 | `Use the upwork-pulse skill in weekly review mode on <root>. Scheduled run.` |
 
 Each digest's window starts at the other digest's time, so the two cover the day without gaps; put the user's times into both prompts. Schedule the digests and the weekly review at exactly the minute the user gave — no shifting of the minute to spread load, even where the scheduling tool suggests it: a digest that runs at 10:48 while the next one's window starts at 11:00 loses whatever was found in between. Only the hourly search may run at any minute.
 
 Where the surface has a task-creation tool (Cowork: `create_trigger`), create the four tasks yourself — this is the user's request, so `initiation` is `human_request`; cron in UTC per the tool's rules. The tool takes no model and no approval mode, so two things follow it:
 - **Model**: the runs are written for Sonnet. Ask which model once, in the setup questions (default Sonnet), and set it with `update_trigger` `model` — that is the user's explicit choice, which the tool requires.
-- **Notifications**: leave the task's notification setting at its default — push only when a run finishes with something worth reporting. That platform filter is what keeps a stray line from a silent run off the phone; a reply that is the run message gets through.
+- **Notifications**: the push comes from the run itself (the `PushNotification` tool, SKILL.md → automatic mode), not from the task's notification setting; the task's final reply is not pushed. Leave that setting as it is.
 - **Approval**: the runs write to Notion unattended. If a created task reports that its runs will ask for approval, tell the user to switch it to "Automatically approve" in its settings.
 
 The task sessions must have this plugin and the Notion and Upwork connectors. A task cannot check that from inside, so step 9 fires the hourly task once and looks for its Runs row.

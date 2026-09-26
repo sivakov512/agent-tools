@@ -4,7 +4,7 @@ Once a week the open questions — the cases the rules did not settle — are pu
 
 ## 1. Automatic part
 
-Query `questions_open`. No open rows → change nothing, and the final reply is empty (SKILL.md → automatic mode).
+Query `questions_open`. No open rows → change nothing, no push, and the final reply is empty (SKILL.md → automatic mode).
 
 Otherwise fetch **Search rules** and **Proposal guide** (the recommendations must point at the item they would refine) and send exactly one message:
 
@@ -21,6 +21,8 @@ Reply by number — "1 yes, 2 no, 3 as recommended" — and I will apply it and 
 ```
 
 No description of your work, nothing outside the format, no Notion changes before the user answers.
+
+**Push line**, in `language`, plain text: `Upwork: <N> open questions for the weekly review`. Last steps: load `PushNotification` and push the line; then the final reply — the message alone.
 
 ## 2. After the user answers
 

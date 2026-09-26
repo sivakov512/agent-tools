@@ -36,10 +36,14 @@ A grader file with no frontmatter is skipped without a word, so a case can pass 
 
 ## Silent runs
 
-Sonnet cannot reliably end a run with an empty reply, and when the reply is empty the harness shows the run's last progress note instead. On Cowork this is harmless — task notifications are pushed only when a run has something worth reporting. So silent cases have no "silent" judge; they check with regexes that no run report, digest header or card leaked into the reply.
+Sonnet cannot reliably end a run with an empty reply, and when the reply is empty the harness shows the run's last progress note instead. On Cowork this is harmless — the push comes only from an explicit `PushNotification` call, never from the reply. So silent cases have no "silent" judge: they check that the push tool was not loaded and, with regexes, that no run report, digest header or card leaked into the reply.
 
 ## Reading failures
 
 The agent, the mocks and the judge are all models; one run can fail for reasons unrelated to the skill. Read the trace first, re-run the case (`--case <name> --runs 3`), and change the skill only for failures that repeat or that would damage data — with a general rule and its reason, not a patch for the one example. The LLM judge itself misfires: `setup-adopt` and `chat-proposal` have failed on replies that meet every claim when re-judged by hand; check the reply against the rubric before touching the skill.
 
 Known unstable on Sonnet, one run in two or three: `question-repeat` (the case is decided without recording a question, or a second row instead of bumping `Seen`); `setup-adopt` (a `<root>` placeholder left in the hand-made task table); `setup-empty` (the watermark takes the machine date instead of the case's date). The LLM judge on `setup-adopt` and `chat-proposal` fails replies that pass every claim when re-judged by hand.
+
+## Pushes
+
+The eval harness disallows `PushNotification`, so a case cannot see the push itself. Cases with a message check that the run loads the tool (`ToolSearch` for `PushNotification`); silent cases check that it does not. Whether the push reaches the phone is checked live.
