@@ -1,7 +1,7 @@
 {
   "name": "project-tracker",
-  "version": "0.2.1",
-  "description": "Keep client project plans in Notion up to date from plain chat: progress, slips, issues, status, weekly reports, new projects.",
+  "version": "0.3.0",
+  "description": "Keep client project plans in Notion up to date from plain chat: progress, slips, issues, status, weekly reports, new projects, a live dashboard.",
   "author": {
     "name": "Nikita Sivakov"
   }

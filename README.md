@@ -4,7 +4,7 @@ Tools for AI agents, one folder per plugin. Skills use the open [Agent Skills](h
 
 | Plugin | Skill | What it does | Needs |
 |---|---|---|---|
-| [`project-tracker`](project-tracker/README.md) | `project-tracker` | Keeps client project plans in Notion up to date from plain conversation: progress, slips, issues, status, weekly reports, notes, undo; new projects from emails, documents or Upwork contracts. Creates the Notion structure itself. | Notion MCP (Upwork MCP for contracts) |
+| [`project-tracker`](project-tracker/README.md) | `project-tracker` | Keeps client project plans in Notion up to date from plain conversation: progress, slips, issues, status, weekly reports, notes, undo; new projects from emails, documents or Upwork contracts. Creates the Notion structure and a live dashboard itself. | Notion MCP (Upwork MCP for contracts) |
 | [`upwork-pulse`](upwork-pulse/README.md) | `upwork-pulse` | Runs an Upwork job search with Notion as the source of truth: hourly search and assessment by your rules, digests, a weekly review that turns open questions into rules, a live dashboard, proposals drafted in chat and sent only on your go. Creates the Notion structure, the dashboard and the scheduled tasks itself. | Notion MCP, Upwork MCP |
 
 ## Install
@@ -44,6 +44,8 @@ Skills do not hardcode workspace IDs. Each skill finds its Notion root page by a
 ## Updating
 
 Edit the skill, bump `version` in the plugin's `plugin.json` (semver), push. Claude Code and Cowork pick it up on `/plugin update`; chat needs a re-upload; a Codex symlink picks it up on `git pull`.
+
+Dashboards: each `assets/dashboard.html` starts with `<!-- dashboard-version: N -->`. When a change to the page is worth republishing, bump N and add a line to the skill's Versions list; the skill then offers the update to everyone whose published dashboard is older, in their next conversation with it. The two dashboards share one look — change the shared parts in both.
 
 ## Adding a plugin
 

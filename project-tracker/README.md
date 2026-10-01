@@ -56,7 +56,21 @@ Pages, databases and tabs have no icons.
 
 `Removed` and `Dropped` are for things you threw away: they disappear from every view, overview and report instead of showing up as finished work.
 
-The root page's **Config** toggle lists the three database IDs. The skill finds the root page by this toggle and reads it on every run, so nothing is hardcoded: rename or move the page as you like; if you move or recreate the databases, edit the IDs. Keep the toggle's title line — that is what the skill searches for.
+The root page's **Config** toggle lists the three database IDs. The skill finds the root page by this toggle and reads it on every run, so nothing is hardcoded: rename or move the page as you like; if you move or recreate the databases, edit the IDs. Keep the toggle's title line — that is what the skill searches for. Setup also adds a `dashboard` line with the dashboard's link and `dashboard_version` with the version it was published from.
+
+## Dashboard
+
+A live, read-only page over the tracker for you alone, published by setup as a claude.ai artifact that reads Notion with your Notion connector:
+
+- **pills** in the header — blocked, overdue, due soon — always there, coloured only when not zero;
+- **timeline** — every project on one axis with today, 3 months / 6 months / all, drag to move in time;
+- **projects** — a card per project: state, the milestone in focus with its timing, a blocker if any, a strip of milestones;
+- **your move** (blocked, overdue, due soon, on you, needs agreed dates), **waiting on others** grouped by who, oldest first, **recently completed**;
+- a click on anything opens the project as a page sliding in from the right: status note, where it stands, open items, milestones with their history, notes; ↑ / ↓ steps between projects.
+
+Lateness is computed in the page by the same rule as the Notion formula. Nothing on the page writes to Notion: changes go through the chat, where the rules live. The first time it asks to allow the Notion connector for the page. It looks like the upwork-pulse dashboard on purpose. What it is for and how it is republished: [references/dashboard.md](skills/project-tracker/references/dashboard.md). Ask "publish the dashboard" if the tracker was set up before the dashboard existed.
+
+**Updates.** The page carries a version on its first line and the config remembers which version you published. When the skill ships a newer one, the next time you talk to the skill it says what is new and asks whether to update; yes republishes to the same link, no means that version is not offered again.
 
 ## Install
 
@@ -149,12 +163,14 @@ project-tracker/
 ├── evals/                        claude plugin eval suite (mocked Notion)
 └── skills/project-tracker/
     ├── SKILL.md                  loaded on every use: the model, data rules, Notion calls, everyday scenarios
+    ├── assets/dashboard.html     the dashboard page; setup fills in the root page ID and publishes it
     └── references/               loaded only when the scenario needs them
         ├── setup.md              create or finish the Notion structure
         ├── new-project.md        extracting a plan; building a project page
         ├── contracts.md          platform contracts (Upwork): mapping and resync
         ├── plan-changes.md       adding / dropping milestones, pulling in, removing
-        └── report.md             weekly report
+        ├── report.md             weekly report
+        └── dashboard.md          what the dashboard is for; publishing and updating it
 ```
 
 To change behaviour, edit `SKILL.md` or the reference for that scenario, bump `version` in `plugin.json`, push.

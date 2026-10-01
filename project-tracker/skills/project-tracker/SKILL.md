@@ -143,6 +143,12 @@ From the root views `Next up`, `Waiting on`, `Recently resolved`, and the `Plan`
 - On you: open issues with empty `Waiting on`.
 - Closed this week: issues resolved and milestones done in the last 7 days, today included — when there are any.
 
+If the config has a `dashboard` line, end with its link: the same picture, live.
+
+## Dashboard updates
+
+The first line of `assets/dashboard.html` is `<!-- dashboard-version: N -->`. The config's `dashboard_version` is the version the user's dashboard was last published from (no line = 1). In a conversation with the user — never in a scheduled or unattended run — when the config has a `dashboard` link and its version is below N and `dashboard_skip` is not N: answer what was asked first, then end with one short line in the user's language — the dashboard has an update, what is new (the line for each newer version in `references/dashboard.md` → Versions, in a few words), and whether to update it now. Offer once per conversation. Yes → update it as `references/dashboard.md` → Publish says (same link, `dashboard_version` set to N). No → add `dashboard_skip: N` to the config, so this version is not offered again; a later one is. For the check read only the asset's first line, not the whole file.
+
 ## Other scenarios — read the file first
 
 | When | Read |
@@ -153,5 +159,6 @@ From the root views `Next up`, `Waiting on`, `Recently resolved`, and the `Plan`
 | Resync a project with its contract | `references/contracts.md` |
 | Add, drop, rename, split or merge milestones; finish early and pull the plan in; remove or restore a project or item | `references/plan-changes.md` |
 | Weekly report or client update | `references/report.md` |
+| Publish, update or change the dashboard | `references/dashboard.md` |
 
 If something does not fit the model (say, a second client on one project), ask once rather than inventing a field.

@@ -116,9 +116,13 @@ Unless the page already has its `<tabs>` block: fetch the root page and `update_
 
 Fetch the root page: the config toggle with its three IDs first, then one `<tabs>` block with three tabs — Projects, All plans, Issues — each holding exactly one inline database, no `icon=` on tabs, nothing after it. Notion sometimes puts a rewritten block above the toggle; if the order is wrong, one `update_content` over both blocks puts them back. Fetch each database: the columns and views above exist with those names.
 
-## 7. Tell the user
+## 7. Dashboard
 
-What was created or added (or that everything was already in place), and the page's name — the user can rename or move it freely, it is found by the config toggle, which stays collapsed; open it only to fix the IDs. Then the things the API cannot do, as a short checklist to click through once:
+Unless the config already has a `dashboard` line: publish the dashboard as `references/dashboard.md` says and add the line.
+
+## 8. Tell the user
+
+What was created or added (or that everything was already in place), the dashboard (its link, or where the file is), and the page's name — the user can rename or move it freely, it is found by the config toggle, which stays collapsed; open it only to fix the IDs. Then the things the API cannot do, as a short checklist to click through once:
 
 - **Full width** on the tracker page (••• → Full width) — without it Notion folds each tab's second view (`Timeline`, `Recently resolved`) into a dropdown. Optional, recommended.
 - **Hide helper properties**, once for the whole database: on any project page, click the `Milestones` property → *Always hide*; on any milestone page, the same for `Project status` and `Open late`. They exist only to compute lateness.
