@@ -71,7 +71,12 @@ A job can be named by short id (`#584350`, the last six digits of `Job ID`), by 
 
 ## Dashboard updates
 
-The first line of `assets/dashboard.html` is `<!-- dashboard-version: N -->`. The config's `dashboard_version` is the version the user's dashboard was last published from (no line = 1). In a conversation with the user — never in a scheduled or unattended run — when the config has a `dashboard` link and its version is below N and `dashboard_skip` is not N: answer what was asked first, then end with one short line in `language` — the dashboard has an update, what is new (the line for each newer version in `references/setup.md` → 7. Dashboard → Versions, in a few words), and whether to update it now. Offer once per conversation. Yes → update it as `references/setup.md` → 7. Dashboard says (same link, `dashboard_version` set to N). No → add `dashboard_skip: N` to the config, so this version is not offered again; a later one is. For the check read only the asset's first line, not the whole file.
+The first line of `assets/dashboard.html` is `<!-- dashboard-version: N -->`. The config's `dashboard_version` is the version the user's dashboard was last published from (no line = 1). In a conversation with the user — never in a scheduled or unattended run — answer what was asked first; then, once per conversation and only if `dashboard_skip` is not N, end with one short line in `language`:
+
+- **The config has no `dashboard` line** (set up before the dashboard existed, or the user removed it): what the dashboard is, in a few words, and whether to publish it now. Yes → publish it as `references/setup.md` → 7. Dashboard says.
+- **Its `dashboard_version` is below N**: the dashboard has an update — what is new (the line for each newer version in `references/setup.md` → 7. Dashboard → Versions, in a few words) — and whether to update it now. Yes → update it as `references/setup.md` → 7. Dashboard says (same link, `dashboard_version` set to N).
+
+No to either → add `dashboard_skip: N` to the config, so it is not offered again until a newer version. For the check read only the asset's first line, not the whole file.
 
 ## Modes — read the file for the mode you are in
 

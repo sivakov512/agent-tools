@@ -1,6 +1,6 @@
 {
   "name": "upwork-pulse",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Upwork job search, assessment and proposals run by scheduled agents with the rules and data in Notion: hourly search, digests, weekly review, a live dashboard, and proposal drafting in chat.",
   "author": {
     "name": "Nikita Sivakov"
