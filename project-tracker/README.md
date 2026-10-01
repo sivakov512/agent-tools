@@ -68,9 +68,9 @@ A live, read-only page over the tracker for you alone, published by setup as a c
 - **your move** (blocked, overdue, due soon, on you, needs agreed dates), **waiting on others** grouped by who, oldest first, **recently completed**;
 - a click on anything opens the project as a page sliding in from the right: status note, where it stands, open items, milestones with their history, notes; ↑ / ↓ steps between projects.
 
-Lateness is computed in the page by the same rule as the Notion formula. Nothing on the page writes to Notion: changes go through the chat, where the rules live. The first time it asks to allow the Notion connector for the page. It looks like the upwork-pulse dashboard on purpose. What it is for and how it is republished: [references/dashboard.md](skills/project-tracker/references/dashboard.md). Ask "publish the dashboard" if the tracker was set up before the dashboard existed.
+Lateness is computed in the page by the same rule as the Notion formula. Nothing on the page writes to Notion: changes go through the chat, where the rules live. The first time it asks to allow the Notion connector for the page. It looks like the upwork-pulse dashboard on purpose. What it is for and how it is republished: [references/dashboard.md](skills/project-tracker/references/dashboard.md). If the tracker was set up before the dashboard existed (or you removed its link from the config), the skill offers to publish it, once; or ask "publish the dashboard".
 
-**Updates.** The page carries a version on its first line and the config remembers which version you published. When the skill ships a newer one, the next time you talk to the skill it says what is new and asks whether to update; yes republishes to the same link, no means that version is not offered again.
+**Updates.** The page carries a version on its first line and the config remembers which version you published. When the skill ships a newer one, the next time you talk to the skill it says what is new and asks whether to update; yes republishes to the same link, no means that version is not offered again. With no dashboard in the config at all, it offers to publish one the same way.
 
 ## Install
 
