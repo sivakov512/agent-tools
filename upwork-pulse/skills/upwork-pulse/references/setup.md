@@ -116,6 +116,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 	match_score: `4`
 	upwork_org: `<org_uid>`
 	dashboard: `<url, once published>`
+	dashboard_version: `<N from the asset's first line, once published>`
 </details>
 ```
 
@@ -123,15 +124,33 @@ Lines inside the toggle are indented with a tab (unindented lines fall outside i
 
 ## 7. Dashboard
 
-The dashboard is a single HTML page (`assets/dashboard.html`) that reads Notion and Upwork with the viewer's own connectors: leads from `Inbox` with a comparison of the client's numbers against the user's estimate, Skip / Applied buttons, active contracts with thread summaries, proposals, connects spend, open questions. It has no server side: it runs only where a page can call the user's connectors — on claude.ai it is published as an artifact with the `mcp` capability (Notion: `notion-query-data-sources`, `notion-fetch`, `notion-update-page`; Upwork: dashboard, financials, messages, proposals, milestones) and `sample` for the summaries.
+The dashboard is a single HTML page (`assets/dashboard.html`) that reads Notion and Upwork with the viewer's own connectors. It has no server side: it runs only where a page can call the user's connectors — on claude.ai it is published as an artifact with the `mcp` capability (Notion: `notion-query-data-sources`, `notion-fetch`, `notion-update-page`; Upwork: `upwork__get_freelancer_dashboard`, `upwork__get_freelancer_financials`, `upwork__get_messages`, `upwork__list_freelancer_proposals`, `upwork__list_milestones`) and `sample` for the thread summaries.
+
+What is on it, 1180px wide, one screen on a laptop:
+
+- **Header**: name, three pills — `replies` · `overdue` · `invitations` — always shown, coloured only when not zero, a click scrolls to Your move; `Live · updated hh:mm`, Refresh.
+- **Leads** (left): `New` cards from `Inbox` minus jobs already applied to, Take / Maybe tabs, grouped by day, posting time on the right, the client's numbers against the user's estimate in a Client / Me grid, flags on each side; a green mark for a score at or above `match_score`.
+- **Connects** and **Balance** tiles (right, top).
+- **Your move**: everything that waits on the user, each thing once — contracts that need a reply or have an overdue milestone (the whole contract card), other chats where the next message is the user's, invitations and offers. Each chat and contract carries Claude's summary of the thread and the next step (`Your move: …`), made with `sample` from the last 12 messages and redone when a new message arrives.
+- **Contracts**: the active contracts that need nothing now — summary, milestone strip, the current milestone.
+- **Proposals**: Sent / In talks (the client's turn) / Closed; a chat where it is the user's turn is in Your move instead.
+- **Rows**: the title opens the item on Upwork (the job, the thread for a reply, the workroom, the invitation); the rest of the row opens the **drawer** from the right — the lead's notes and Client vs me with Applied / Skip, a contract's summary, milestones and conversation, a proposal's chat and terms — with the main Upwork action as a button, foldable sections and ↑ / ↓ through the list. Applied / Skip write `Status` to Notion; nothing else writes.
+- Same look as the project-tracker dashboard (tokens, pills, rows, drawer); change the shared parts in both together.
 
 To publish or update it:
 
-1. Copy `assets/dashboard.html` to a working file and replace every placeholder: `__ROOT_PAGE__` (the root page id — the page reads `match_score` from the config there on every load), `__UPWORK_ORG__`, `__VIEW_INBOX__`, `__VIEW_APPLIED__`, `__VIEW_RUNS__`, `__VIEW_QUESTIONS__` (the view URLs from the config), `__QUESTIONS_URL__` (the Questions database page URL), `__TIMEZONE__`. Nothing else in the file needs editing. Where a shell with Node is available, check the page's script still parses before publishing (`node --check` on the contents of the last `<script>` block) — a page whose script fails shows "Connecting…" forever and no error.
-2. Publish it with the artifact tool of the surface (on claude.ai / Cowork: the Artifact tool with the capabilities above; load the artifact-capabilities skill first if the surface has it). Republishing to the same URL keeps the link.
-3. Write the URL into the config as `dashboard`.
+1. Copy `assets/dashboard.html` to a working file and replace every placeholder: `__ROOT_PAGE__` (the root page id — the page reads `match_score` from the config there on every load), `__UPWORK_ORG__`, `__VIEW_INBOX__`, `__VIEW_APPLIED__`, `__VIEW_RUNS__`, `__VIEW_QUESTIONS__` (the view URLs from the config), `__QUESTIONS_URL__` (the Questions database page URL), `__TIMEZONE__`. Nothing else in the file needs editing; keep the first line, `<!-- dashboard-version: N -->`. Where a shell with Node is available, check the page's script still parses before publishing (`node --check` on the contents of the last `<script>` block) — a page whose script fails shows "Connecting…" forever and no error.
+2. Publish it with the artifact tool of the surface (on claude.ai / Cowork: the Artifact tool with the capabilities above; load the artifact-capabilities skill first if the surface has it). **Updating** an existing dashboard: read the artifact first (`action: "read"` with the `dashboard` URL — the surface refuses a publish over an artifact this conversation has not read), then publish to that URL; the link stays the same. A new artifact for an existing dashboard asks the user to allow the connectors again — avoid it.
+3. Write the URL into the config as `dashboard` and the asset's N as `dashboard_version` (add the line if it is missing).
 
 If the surface has no artifact tool, still do step 1: write the filled file into the working directory (`upwork-dashboard.html`), tell the user where it is and that a claude.ai artifact with the `mcp` capability (or any page that can call their Notion and Upwork connectors) can host it. The dashboard is part of setup; do not leave it for the user to request.
+
+### Versions
+
+The asset's first line carries its version; SKILL.md (*Dashboard updates*) compares it with the config's `dashboard_version` and offers the user an update. Bump N whenever the asset changes in a way the user would notice, and add a line here — the offer quotes it.
+
+- **1** — the first dashboard: banner and tiles, leads, contracts, threads waiting on you, Applied tabs.
+- **2** — one Your move list with Claude's summary on every chat and contract, header pills instead of banners, each contract shown once, a details drawer for every row (titles open Upwork), the same look as the project-tracker dashboard.
 
 ## 8. Scheduled tasks
 

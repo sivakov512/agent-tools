@@ -88,7 +88,15 @@ If a message does not trigger the skill, mention Upwork or the job's id, or star
 
 ### The dashboard
 
-`skills/upwork-pulse/assets/dashboard.html` — one page that reads Notion and Upwork through the viewer's own connectors (no server, no stored tokens). Setup fills in your view URLs, account and timezone and publishes it; the link goes into the config. Leads with the client's numbers against your estimate — highlighted green when the card's score reaches `match_score` from the config (the page reads it on every load, so a change applies at once) — Skip / Applied buttons, active contracts with thread summaries, proposals (Waiting — no reply yet; Discussing — the client replied, your turn first; Closed — anything quiet for 14 days drops off), connects spend, open questions. An ⓘ next to each section says how its list is built.
+`skills/upwork-pulse/assets/dashboard.html` — one page that reads Notion and Upwork through the viewer's own connectors (no server, no stored tokens). Setup fills in your view URLs, account and timezone and publishes it; the link goes into the config.
+
+- **Pills** in the header — replies, overdue, invitations — always there, red or green only when not zero.
+- **Leads** with the client's numbers against your estimate, grouped by day; a green mark when the card's score reaches `match_score` from the config (read on every load, so a change applies at once).
+- **Your move** — everything that waits on you, each thing once: contracts that need a reply or have an overdue milestone, other chats where it is your turn, invitations and offers. Every chat and contract shows Claude's summary of the thread and the next step.
+- **Contracts** that need nothing now, **Proposals** (Sent / In talks / Closed), Connects spend and Balance.
+- A row's **title opens it on Upwork**; the rest of the row opens a drawer with the details — the lead's notes with Skip / Applied, a contract's milestones and conversation, a proposal's chat — and ↑ / ↓ to walk the list. An ⓘ next to a section says how its list is built.
+
+**Updates.** The page carries a version on its first line and the config remembers which version you published. When the skill ships a newer one, the next time you talk to the skill it says what is new and asks whether to update; yes republishes to the same link, no means that version is not offered again.
 
 ## Model
 

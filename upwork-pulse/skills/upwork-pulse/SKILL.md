@@ -23,6 +23,8 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 | `match_score` | the Score from which a card counts as a strong match; the dashboard highlights those (default 4) |
 | `upwork_org` | the Upwork org_uid to pass to every Upwork call |
 | `dashboard` | URL of the published dashboard page, if any |
+| `dashboard_version` | the dashboard version that page was published from (see *Dashboard updates*) |
+| `dashboard_skip` | a dashboard version the user declined; not offered again |
 
 **Pages** — the user's rules, written by the user and by you on the user's confirmation:
 
@@ -66,6 +68,10 @@ A job can be named by short id (`#584350`, the last six digits of `Job ID`), by 
 - **A question** is a situation the rules do not cover (a posting type nobody decided on, a rule that contradicts another). Query `questions_open` and compare by meaning, not wording: if an open question would be settled by the same decision as this case — an open row about "feasibility studies where the PCB is optional" covers a new optical-sensor study with an optional board — it is the same question; append the job id to `Job IDs` and add one to `Seen`. Only a case no open row would settle gets a new row: `Question` one sentence without retelling the posting, `Job IDs`, `Seen` = 1, `Status` Open, `First seen` today. Questions never appear in run messages or digests — the weekly review presents them (`references/weekly.md`).
 - **A rule the user confirms in chat** goes straight into the Search rules or the Proposal guide as one line refining the existing item (`update_content`), and the question, if there was one, gets `Status` Resolved with the answer in `Decision`. Rows are never deleted.
 - **A quirk** (a field that lags the site, a call the classifier blocks) is one line appended to Field notes; it is not a question.
+
+## Dashboard updates
+
+The first line of `assets/dashboard.html` is `<!-- dashboard-version: N -->`. The config's `dashboard_version` is the version the user's dashboard was last published from (no line = 1). In a conversation with the user — never in a scheduled or unattended run — when the config has a `dashboard` link and its version is below N and `dashboard_skip` is not N: answer what was asked first, then end with one short line in `language` — the dashboard has an update, what is new (the line for each newer version in `references/setup.md` → 7. Dashboard → Versions, in a few words), and whether to update it now. Offer once per conversation. Yes → update it as `references/setup.md` → 7. Dashboard says (same link, `dashboard_version` set to N). No → add `dashboard_skip: N` to the config, so this version is not offered again; a later one is. For the check read only the asset's first line, not the whole file.
 
 ## Modes — read the file for the mode you are in
 

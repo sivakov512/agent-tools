@@ -1,32 +1,34 @@
+<!-- dashboard-version: 2 -->
 <title>Upwork Pulse</title>
 <style>
   :root {
-    --bg: #f5f6f5; --surface: #ffffff; --surface-2: #f0f2f1; --border: #e3e6e4;
+    --bg: #f5f6f5; --surface: #ffffff; --surface-2: #f0f2f1; --sunken: #e9ecea; --border: #e3e6e4;
     --text: #1a1e1f; --text-2: #5b6462; --text-mute: #8d9593;
     --accent: #0f7f79; --accent-soft: #e2f2f0;
     --good: #2a8a55; --warn: #8a6c2c; --critical: #b83a2e; --critical-soft: #fbe9e6;
+    --scrim: rgba(18, 22, 22, .28); --good-soft: #e3f3e9;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     font-variant-numeric: tabular-nums;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #111314; --surface: #171a1b; --surface-2: #1d2123; --border: #262b2d;
+      --bg: #111314; --surface: #171a1b; --surface-2: #1d2123; --sunken: #141718; --border: #262b2d;
       --text: #e4e7e6; --text-2: #9ca4a2; --text-mute: #6d7674;
       --accent: #5ec6bc; --accent-soft: #17302e;
-      --good: #6cc592; --warn: #b39a5c; --critical: #ec7b70; --critical-soft: #35191a;
+      --good: #6cc592; --warn: #b39a5c; --critical: #ec7b70; --critical-soft: #35191a; --scrim: rgba(0, 0, 0, .5); --good-soft: #16291e;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #111314; --surface: #171a1b; --surface-2: #1d2123; --border: #262b2d;
+    --bg: #111314; --surface: #171a1b; --surface-2: #1d2123; --sunken: #141718; --border: #262b2d;
     --text: #e4e7e6; --text-2: #9ca4a2; --text-mute: #6d7674;
     --accent: #5ec6bc; --accent-soft: #17302e;
-    --good: #6cc592; --warn: #b39a5c; --critical: #ec7b70; --critical-soft: #35191a;
+    --good: #6cc592; --warn: #b39a5c; --critical: #ec7b70; --critical-soft: #35191a; --scrim: rgba(0, 0, 0, .5); --good-soft: #16291e;
   }
   * { box-sizing: border-box; }
   body {
     background: var(--bg); color: var(--text);
-    font-family: var(--sans); font-size: 15px; line-height: 1.45;
+    font-family: var(--sans); font-size: 14px; line-height: 1.5;
     padding-inline: 24px; padding-block: 24px 40px; max-width: 1180px; margin: 0 auto;
     -webkit-font-smoothing: antialiased;
   }
@@ -35,7 +37,17 @@
   .mono { font-family: var(--mono); }
   .muted { color: var(--text-mute); }
 
-  header.top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
+  header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-bottom: 18px; }
+  header.top .sp { flex: 1; }
+  header.top .status { margin-left: auto; }
+  /* the header pills: the counts that matter, at a glance (same as Project Tracker) */
+  .pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pl { display: inline-flex; align-items: baseline; gap: 5px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; color: var(--text-2); white-space: nowrap; cursor: pointer; font-family: inherit; }
+  .pl b { font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+  .pl:hover { border-color: var(--text-mute); }
+  .pl.crit { background: var(--critical-soft); border-color: transparent; color: var(--critical); } .pl.crit b { color: var(--critical); }
+  .pl.good { background: var(--good-soft); border-color: transparent; color: var(--good); } .pl.good b { color: var(--good); }
+  .pl.crit:hover, .pl.good:hover { border-color: currentColor; }
   .eyebrow { display: none; }
   h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
   .status { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-mute); }
@@ -43,7 +55,7 @@
   .live-dot.on { background: var(--good); }
   .btn { border: 1px solid var(--border); background: transparent; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12.5px; color: var(--text-2); }
   .btn:hover { color: var(--text); border-color: var(--text-mute); }
-  .btn:focus-visible, summary:focus-visible, .badge-id:focus-visible, a:focus-visible, .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
   .banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: var(--accent-soft); color: var(--text); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-weight: 500; }
   .banner a { color: var(--accent); }
@@ -78,6 +90,137 @@
   .spark-axis span { overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 560px) { .spark-axis span:first-child { display: none; } }
 
+  .col > .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
+  @media (max-width: 900px) {
+    /* one column: what waits on me first, then leads, contracts, proposals */
+    .layout > .col { display: contents; }
+    #move { order: 1; } #leads { order: 2; } #money { order: 3; } #contracts { order: 4; } #proposals { order: 5; }
+  }
+  .section-head { min-height: 34px; align-items: center; }
+
+  /* Your move rows: same row anatomy as leads, coloured bar says why it is here */
+  .kind { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; color: var(--text-mute); }
+  .t-meta .kind + .sep { margin-left: 8px; }
+  .move-ok { padding: 14px 16px; font-size: 14px; color: var(--text-mute); }
+  .move-ok b { color: var(--good); font-weight: 500; }
+  /* the title text opens the item on Upwork; the rest of the row opens the drawer */
+  .tl { text-decoration: none; color: inherit; }
+  .tl:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+  .tl::after { content: " ↗"; font-size: .85em; color: var(--accent); opacity: 0; }
+  .tl:hover::after, .tl:focus-visible::after { opacity: 1; }
+  .dr-acts a.pbtn { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 12px; color: var(--text); font-size: 13px; }
+  .dr-acts a.pbtn:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+  .t-right { display: flex; align-items: baseline; gap: 10px; }
+  /* rows with a meta line: the button and the time stack on the right, the title gets the width */
+  /* Claude's summary on a card or a row: plain text, the next step labelled, nothing that looks like a link */
+  .sm { grid-column: 1 / 3; margin-top: 8px; font-size: 13.5px; line-height: 1.5; color: var(--text-2); }
+  .sm .tx { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .sm .nx { margin-top: 3px; color: var(--text); }
+  .nx .who { font-weight: 600; color: var(--text); }
+  .nx .who.them { color: var(--text-mute); font-weight: 500; }
+  .nx .dl { color: var(--text-mute); } .nx .dl.late { color: var(--critical); }
+  .contract .c-head { align-items: flex-start; }
+  .contract .c-why { font-size: 13px; color: var(--text-mute); margin-top: 1px; }
+  .contract .c-why .kind { margin-right: 6px; }
+
+  /* rows open the drawer; the whole row is the target */
+  .contract { cursor: pointer; }
+  .contract:hover { background: var(--surface-2); }
+  .contract.sel { background: var(--accent-soft); }
+  .contract .c-title { text-decoration: none; }
+  .ms-line .turn { color: var(--critical); font-weight: 500; }
+
+  /* ---------- drawer: details for any row, sliding in from the right ---------- */
+  .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(680px, 100vw); background: var(--surface); box-shadow: -20px 0 48px rgba(0, 0, 0, .14); display: flex; flex-direction: column; transform: translateX(104%); transition: transform .24s cubic-bezier(.2, .7, .2, 1); visibility: hidden; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .drawer.on { transform: none; visibility: visible; }
+  @media (prefers-reduced-motion: reduce) { .drawer, .scrim, .to-top { transition: none; } }
+  .dr-bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px 12px 20px; border-bottom: 1px solid var(--border); flex: none; }
+  .dr-bar .ttl { flex: 1; min-width: 0; font-size: 13px; color: var(--text-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .icon-btn { border: 0; background: none; border-radius: 6px; width: 30px; height: 30px; display: grid; place-items: center; cursor: pointer; color: var(--text-mute); padding: 0; }
+  .icon-btn:hover { color: var(--text); background: var(--sunken); }
+  .icon-btn[disabled] { opacity: .35; cursor: default; background: none; }
+  .icon-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .dr-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+  .dr-head { padding: 26px 36px 24px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+  .dr-who { font-size: 13.5px; color: var(--text-mute); display: flex; flex-wrap: wrap; gap: 4px 0; align-items: baseline; }
+  .dr-who .sep { margin: 0 7px; opacity: .6; }
+  .dr-head h1 { margin: 4px 0 0; font-size: 26px; line-height: 1.2; font-weight: 600; letter-spacing: -.015em; text-wrap: balance; overflow-wrap: anywhere; }
+  .dr-head h1 .badge-id { font-size: 13px; vertical-align: 3px; margin-right: 6px; }
+  .dr-acts { display: flex; flex-wrap: wrap; gap: 6px 20px; align-items: center; margin-top: 14px; font-size: 13.5px; }
+  .dr-acts a { color: var(--accent); text-decoration: none; }
+  .dr-acts a:hover { text-decoration: underline; }
+  .dr-acts button { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 13px; color: var(--text-2); }
+  .dr-acts button.ok:hover { color: var(--accent); border-color: var(--accent); }
+  .dr-acts button.no:hover { color: var(--critical); border-color: var(--critical); }
+  .dr-acts button[disabled] { opacity: .5; cursor: default; }
+  .dr-in { padding: 4px 36px 56px; }
+  .ico { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .dsec { margin-top: 32px; }
+  .dsec-h { display: flex; align-items: center; gap: 9px; width: 100%; margin-bottom: 10px; padding: 4px 4px 4px 0; border: 0; background: none; text-align: left; cursor: pointer; color: var(--text-2); border-radius: 8px; font: inherit; }
+  .dsec-h:hover h3 { color: var(--accent); }
+  .dsec-h .ico { width: 17px; height: 17px; }
+  .dsec-h h3 { margin: 0; font-size: 17px; font-weight: 600; color: var(--text); }
+  .dsec-h .r { margin-left: auto; font-size: 13px; color: var(--text-mute); }
+  .dsec-h > .chev { display: block; width: 14px; height: 14px; margin-left: auto; transform: rotate(90deg); transition: transform .15s; }
+  .dsec-h .r + .chev { margin-left: 8px; }
+  .dsec.folded .dsec-h > .chev { transform: none; }
+  .dsec.folded .dsec-h { margin-bottom: 0; }
+  .dsec-b { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .dsec .dsec-b > .cmp, .dsec-b > .facts, .dsec-b > .msgs, .dsec-b > .mss { border: 0; border-radius: 0; }
+  .dsec-b > .prose, .dsec-b > .dr-empty { padding: 14px 16px; }
+  .dsec .dsec-b > .cmp, .dsec-b > .facts { padding: 13px 16px; }
+  .dsec .prose { font-size: 14px; line-height: 1.6; color: var(--text); max-width: 68ch; }
+  .dsec .prose h4 { font-size: 14px; font-weight: 600; margin: 16px 0 4px; }
+  .dsec .prose h4:first-child { margin-top: 0; }
+  .dsec .prose p { margin: 0 0 8px; }
+  .dsec .prose ul { margin: 0 0 8px; padding-left: 20px; }
+  .dsec .prose li { margin-bottom: 3px; }
+  .dsec .cmp { display: grid; grid-template-columns: max-content minmax(0, 1fr) minmax(0, 1fr); gap: 6px 16px; font-size: 13.5px; align-items: baseline; border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+  .dsec .cmp .k { color: var(--text-mute); }
+  .dsec .cmp .h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); font-weight: 600; }
+  .dsec .cmp .v { color: var(--text); overflow-wrap: anywhere; }
+  .dsec .cmp .v.me { font-weight: 500; }
+  .dsec .cmp .v.wide { grid-column: 2 / 4; }
+  .callout { margin-top: 20px; padding: 13px 16px 14px; border-radius: 10px; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); font-size: 14px; line-height: 1.5; color: var(--text); }
+  .callout.turn { background: var(--critical-soft); border-color: color-mix(in srgb, var(--critical) 30%, transparent); }
+  .callout.good { background: var(--good-soft); border-color: color-mix(in srgb, var(--good) 30%, transparent); }
+  .callout .ch { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; font-size: 12.5px; font-weight: 600; color: var(--accent); }
+  .callout.turn .ch { color: var(--critical); } .callout.good .ch { color: var(--good); }
+  .callout .ch .ico { width: 15px; height: 15px; }
+  .callout .ch button { margin-left: auto; border: 0; background: none; padding: 0; cursor: pointer; font-size: 12.5px; font-weight: 400; color: var(--text-2); }
+  .callout .ch button:hover { color: var(--text); text-decoration: underline; }
+  .callout .next { margin-top: 6px; }
+  .msgs { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .msg { padding: 11px 16px; border-top: 1px solid var(--border); font-size: 14px; line-height: 1.5; }
+  .msg:first-child { border-top: 0; }
+  .msg.me { background: var(--surface-2); }
+  .msg .mh { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--text-mute); margin-bottom: 2px; }
+  .msg .mh b { color: var(--text-2); font-weight: 600; }
+  .msg .mt { white-space: pre-line; overflow-wrap: anywhere; color: var(--text); }
+  .msg .mt.cut { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+  .mss { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .ms { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 2px 12px; padding: 11px 16px; border-top: 1px solid var(--border); font-size: 14px; align-items: baseline; }
+  .ms:first-child { border-top: 0; }
+  .ms .n { font-family: var(--mono); font-size: 12.5px; color: var(--text-mute); }
+  .ms .d { overflow-wrap: anywhere; }
+  .ms .a { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ms .s { grid-column: 2 / 4; font-size: 13px; color: var(--text-mute); }
+  .ms .s .paid { color: var(--good); } .ms .s .active { color: var(--accent); } .ms .s .sub { color: var(--warn); } .ms .s .late { color: var(--critical); font-weight: 500; }
+  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; font-size: 13.5px; border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+  .facts .k { color: var(--text-mute); }
+  .dr-empty { font-size: 14px; color: var(--text-mute); }
+  .to-top { position: absolute; right: 22px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 2; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); box-shadow: 0 6px 18px rgba(0, 0, 0, .14); display: grid; place-items: center; cursor: pointer; opacity: 0; pointer-events: none; transform: translateY(6px); transition: opacity .18s, transform .18s; }
+  .to-top.on { opacity: 1; pointer-events: auto; transform: none; }
+  .to-top svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .kbd-hint { font-size: 12px; color: var(--text-mute); }
+  @media (max-width: 560px) {
+    .dr-head { padding: 18px 18px 16px; } .dr-in { padding: 4px 18px 48px; }
+    .dr-head h1 { font-size: 20px; }
+    .kbd-hint { display: none; }
+  }
+
   .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 24px; align-items: start; }
   @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
   .col { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
@@ -87,9 +230,10 @@
     .layout > .col:first-child > #leads > .card { flex: 1; position: relative; min-height: 0; }
     .layout > .col:first-child > #leads > .card > .scroll { position: absolute; inset: 0; max-height: none; }
   }
-  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .section-head { display: flex; align-items: center; gap: 6px 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .section-head > .tabs { margin-left: auto; }
   .section-head h2 { font-size: 15px; font-weight: 600; margin: 0; }
-  .count { font-size: 13px; color: var(--text-mute); }
+  .count { font-size: 13.5px; color: var(--text-mute); }
   .section-head { position: relative; }
   .info { border: 0; background: transparent; padding: 2px; margin-left: 4px; cursor: pointer; color: var(--text-mute); line-height: 0; vertical-align: -2px; border-radius: 50%; }
   .info:hover, .info[aria-expanded="true"] { color: var(--accent); }
@@ -100,8 +244,8 @@
   .info-pop b { color: var(--text); font-weight: 600; }
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; min-width: 0; }
   section { min-width: 0; }
-  .empty, .note { padding: 14px 16px; font-size: 14px; color: var(--text-mute); }
-  .err { padding: 12px 16px; font-size: 13px; color: var(--critical); background: var(--critical-soft); }
+  .empty, .note { padding: 12px 16px; font-size: 13.5px; color: var(--text-mute); }
+  .err { margin: 10px 12px; padding: 10px 12px; border-radius: 6px; font-size: 13px; color: var(--critical); background: var(--critical-soft); overflow-wrap: anywhere; }
 
   .tabs { display: inline-flex; gap: 2px; padding: 2px; background: var(--surface-2); border-radius: 7px; }
   .tab { border: 0; background: transparent; padding: 4px 11px; border-radius: 5px; cursor: pointer; font-size: 13px; color: var(--text-2); }
@@ -122,22 +266,23 @@
   details.older > summary::-webkit-details-marker { display: none; }
   details.older > summary:hover { color: var(--text-2); }
   details.older .day { position: static; }
-  details.item { border-top: 1px solid var(--border); }
-  .day + details.item { border-top: 0; }
-  details.item > summary { list-style: none; cursor: pointer; padding: 11px 16px 11px 13px; border-left: 3px solid transparent; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 12px; align-items: baseline; }
-  details.item > summary::-webkit-details-marker { display: none; }
-  details.item > summary:hover { background: var(--surface-2); }
-  details[open] > summary { background: var(--surface-2); }
-  details.item.old .t-title { color: var(--text-2); }
+  .item { border-top: 1px solid var(--border); }
+  .day + .item { border-top: 0; }
+  .item > .row { position: relative; cursor: pointer; outline-offset: -2px; padding: 11px 16px 11px 22px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 12px; align-items: baseline; }
+    .item > .row:hover { background: var(--surface-2); }
+  .item.sel > .row { background: var(--accent-soft); }
+  details.older[open] > summary { color: var(--text-2); }
+  .item.old .t-title { color: var(--text-2); }
   .chev { display: none; }
-  details.item.strong > summary { border-left-color: var(--good); }
-  details.item.turn > summary { border-left-color: var(--critical); }
-  details.item.strong .t-title { font-weight: 600; }
-  details.item.weak .t-title { color: var(--text-2); font-weight: 400; }
-  details.item.weak .t-grid .money, details.item.weak .t-grid .time { color: var(--text-2); }
+  .item > .row::before, .contract::before { content: ""; position: absolute; left: 10px; top: 13px; bottom: 13px; width: 3px; border-radius: 2px; background: transparent; }
+  .item.strong > .row::before, .item.inv > .row::before { background: var(--good); }
+  .item.turn > .row::before, .contract.turn::before { background: var(--critical); }
+  .item.strong .t-title { font-weight: 600; }
+  .item.weak .t-title { color: var(--text-2); font-weight: 400; }
+  .item.weak .t-grid .money, .item.weak .t-grid .time { color: var(--text-2); }
   .body .why { margin: 4px 0 10px; font-size: 13px; color: var(--text-mute); }
   .body .why b { color: var(--good); font-weight: 500; }
-  .t-title { font-size: 15px; font-weight: 500; line-height: 1.35; overflow-wrap: anywhere; }
+  .t-title { font-size: 14.5px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
   .t-title a { text-decoration: none; }
   .t-title a:hover { color: var(--accent); }
   .t-meta { grid-column: 1 / 3; font-size: 13px; color: var(--text-mute); line-height: 1.5; }
@@ -156,9 +301,10 @@
   @media (max-width: 700px) {
     .t-grid { grid-template-columns: 3.4em var(--wm, max-content) minmax(0, 1fr); gap: 1px 12px; }
     .t-grid .chips { grid-column: 2 / 4; margin-left: 0; margin-top: 1px; }
-    details.item > summary { padding: 10px 14px 10px 11px; }
+    .item > .row { padding: 10px 14px 10px 20px; }
+    .item > .row::before, .contract::before { left: 8px; }
   }
-  .t-right { font-size: 12.5px; color: var(--text-mute); white-space: nowrap; padding-top: 2px; }
+  .t-right { font-size: 13px; color: var(--text-mute); white-space: nowrap; padding-top: 2px; }
   .badge-id { font-family: var(--mono); font-size: 12px; font-weight: 400; color: var(--text-mute); border-radius: 4px; padding: 1px 4px; margin-left: -4px; margin-right: 2px; cursor: copy; white-space: nowrap; }
   .badge-id:hover { background: var(--accent-soft); color: var(--accent); }
   .chip { font-size: 13px; color: var(--text-mute); }
@@ -186,16 +332,16 @@
   .body .links a { color: var(--accent); text-decoration: none; }
   .body .links a:hover { text-decoration: underline; }
 
-  .contract { padding: 14px 16px; border-top: 1px solid var(--border); }
+  .contract { position: relative; padding: 14px 16px 14px 22px; border-top: 1px solid var(--border); }
   .contract:first-child { border-top: 0; }
   .contract .c-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
   .contract .c-title { font-weight: 500; text-decoration: none; overflow-wrap: anywhere; }
   .contract .c-title:hover { color: var(--accent); }
   .contract .c-head .chip { display: none; }
   .contract .c-client { font-size: 13px; color: var(--text-mute); margin-top: 1px; }
-  .ms-track { display: flex; gap: 3px; margin: 12px 0 6px; }
+  .ms-track { display: flex; gap: 2px; margin: 12px 0 6px; }
   .ms-seg { flex: 1; height: 4px; border-radius: 2px; background: var(--border); }
-  .ms-seg.paid { background: var(--good); }
+  .ms-seg.paid { background: var(--good); opacity: .6; }
   .ms-seg.active { background: var(--accent); }
   .ms-seg.sub { background: var(--warn); }
   .ms-line { font-size: 13px; color: var(--text-mute); }
@@ -239,54 +385,20 @@
   .qbox .q a { color: var(--accent); text-decoration: none; }
   .qbox .q a:hover { text-decoration: underline; }
 
-  .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 7px 14px; border-radius: 8px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 10; }
+  .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 7px 14px; border-radius: 8px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 60; }
   .toast.show { opacity: 1; }
   @media (prefers-reduced-motion: reduce) { .stat, .toast { transition: none; } }
 </style>
 
 <header class="top">
-  <div>
-    <p class="eyebrow">Upwork</p>
-    <h1>Upwork Pulse</h1>
-  </div>
+  <h1>Upwork Pulse</h1>
+  <div class="pills" id="pills"></div>
+  <span class="sp"></span>
   <div class="status">
     <span id="liveStatus"><span class="live-dot" id="liveDot"></span><span id="liveText">Connecting…</span></span>
     <button class="btn" id="refreshBtn" type="button">Refresh</button>
   </div>
 </header>
-
-<div id="replyBanner" hidden></div>
-<div id="banner" hidden></div>
-
-<div class="stats">
-  <a class="stat" id="tileConnects" href="https://www.upwork.com/nx/plans/connects/history/" target="_blank" rel="noopener">
-    <div class="label"><span>Connects</span><span class="go">↗</span></div>
-    <div class="value" id="connectsValue">—</div>
-    <div class="sub" id="connectsSub">loading…</div>
-    <div class="spark" id="connectsSpark" aria-hidden="true"></div>
-    <div class="spark-axis" id="connectsAxis"></div>
-  </a>
-  <a class="stat" id="tileContracts" href="#contracts">
-    <div class="label"><span>Active contracts</span><span class="go" id="contractsGo">↓</span></div>
-    <div class="value" id="contractsValue">—</div>
-    <div class="sub" id="contractsSub">loading…</div>
-  </a>
-  <a class="stat" id="tileBalance" href="https://www.upwork.com/nx/payments/reports/transaction-history" target="_blank" rel="noopener">
-    <div class="label"><span>Balance</span><span class="go">↗</span></div>
-    <div class="value" id="balanceValue">—</div>
-    <div class="sub" id="balanceSub">loading…</div>
-  </a>
-  <a class="stat" href="#leads">
-    <div class="label"><span>Take leads</span><span class="go">↓</span></div>
-    <div class="value" id="leadsValue">—</div>
-    <div class="sub" id="leadsSub">loading…</div>
-  </a>
-</div>
-
-<section id="invites" hidden style="margin-bottom: 24px;">
-  <div class="section-head"><h2>Invitations &amp; offers — need your answer</h2><span class="count" id="invitesCount"></span></div>
-  <div class="card" id="inviteList"></div>
-</section>
 
 <div class="layout">
   <div class="col">
@@ -303,22 +415,37 @@
   </div>
 
   <div class="col">
+    <div class="stats" id="money">
+      <a class="stat" id="tileConnects" href="https://www.upwork.com/nx/plans/connects/history/" target="_blank" rel="noopener">
+        <div class="label"><span>Connects</span><span class="go">↗</span></div>
+        <div class="value" id="connectsValue">—</div>
+        <div class="sub" id="connectsSub">loading…</div>
+        <div class="spark" id="connectsSpark" aria-hidden="true"></div>
+        <div class="spark-axis" id="connectsAxis"></div>
+      </a>
+      <a class="stat" id="tileBalance" href="https://www.upwork.com/nx/payments/reports/transaction-history" target="_blank" rel="noopener">
+        <div class="label"><span>Balance</span><span class="go">↗</span></div>
+        <div class="value" id="balanceValue">—</div>
+        <div class="sub" id="balanceSub">loading…</div>
+      </a>
+    </div>
+
+    <section id="move">
+      <div class="section-head"><h2 id="hMove">Your move</h2><span class="count" id="moveCount"></span></div>
+      <div class="card" id="moveList"><div class="note">Loading messages…</div></div>
+    </section>
+
     <section id="contracts">
-      <div class="section-head"><h2 id="hContracts">Active contracts</h2><span class="count" id="contractsCount"></span></div>
+      <div class="section-head"><h2 id="hContracts">Contracts</h2><span class="count" id="contractsCount"></span></div>
       <div class="card" id="contractList"><div class="note">Loading contracts…</div></div>
     </section>
 
-    <section>
-      <div class="section-head"><h2>Threads waiting on you</h2></div>
-      <div class="card" id="threadList"><div class="note">Loading messages…</div></div>
-    </section>
-
-    <section>
+    <section id="proposals">
       <div class="section-head">
-        <h2 id="hApplied">Applied</h2>
+        <h2 id="hApplied">Proposals</h2>
         <div class="tabs" role="tablist" aria-label="Proposals">
-          <button class="tab" role="tab" id="tabPWaiting" data-p="waiting" aria-selected="true" type="button">Waiting <span class="mono" id="cntPWaiting"></span></button>
-          <button class="tab" role="tab" id="tabPDiscussing" data-p="discussing" aria-selected="false" type="button">Discussing <span class="mono" id="cntPDiscussing"></span></button>
+          <button class="tab" role="tab" id="tabPWaiting" data-p="waiting" aria-selected="true" type="button">Sent <span class="mono" id="cntPWaiting"></span></button>
+          <button class="tab" role="tab" id="tabPDiscussing" data-p="discussing" aria-selected="false" type="button">In talks <span class="mono" id="cntPDiscussing"></span></button>
           <button class="tab" role="tab" id="tabPClosed" data-p="closed" aria-selected="false" type="button">Closed <span class="mono" id="cntPClosed"></span></button>
         </div>
       </div>
@@ -329,9 +456,22 @@
 
 <footer>
   <span class="runs" id="runs">Job scanner: loading…</span>
-  <span id="notesLine">Click an #id to copy it · click a row for notes</span>
+  <span id="notesLine">Title opens Upwork · rest of the row opens details · click an #id to copy it</span>
 </footer>
 <div id="questions" class="qbox" hidden></div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Details" aria-hidden="true">
+  <div class="dr-bar">
+    <span class="ttl" id="drTitle"></span>
+    <span class="kbd-hint">↑ ↓ to move</span>
+    <button class="icon-btn" id="drPrev" type="button" aria-label="Previous" title="Previous (↑)"><svg viewBox="0 0 16 16"><path d="M3.5 10 8 5.5 12.5 10"/></svg></button>
+    <button class="icon-btn" id="drNext" type="button" aria-label="Next" title="Next (↓)"><svg viewBox="0 0 16 16"><path d="M3.5 6 8 10.5 12.5 6"/></svg></button>
+    <button class="icon-btn" id="drClose" type="button" aria-label="Close" title="Close (Esc)"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+  </div>
+  <div class="dr-body" id="drBody"></div>
+  <button class="to-top" id="drTop" type="button" aria-label="Back to top" title="Back to top"><svg viewBox="0 0 16 16"><path d="M8 13V3.5M3.5 8 8 3.5 12.5 8"/></svg></button>
+</aside>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -467,6 +607,154 @@
     return p;
   }
 
+  // ---------- drawer: one place for the details of any row ----------
+  // Rows don't expand in place; a click opens the drawer. ↑/↓ walk the list the row came from.
+  var DR = null, lastFocus = null;
+  function rowEl(id, cls, open) {
+    var d = el("div", "item" + (cls ? " " + cls : "")); d.dataset.id = id;
+    var s = el("div", "row"); s.tabIndex = 0; s.setAttribute("role", "button");
+    s.addEventListener("click", function (e) { if (e.target.closest("a, .badge-id")) return; e.preventDefault(); open(); });
+    s.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    d.appendChild(s); d._open = open;
+    if (DR && DR.key === id) d.classList.add("sel");
+    return { d: d, s: s };
+  }
+  function openDrawer(key, hostId, label, render) {
+    var same = DR && DR.key === key;
+    if (!DR) lastFocus = document.activeElement;
+    DR = { key: key, host: hostId, label: label, render: render };
+    markSel(); drawDrawer(!same);
+    $("drawer").classList.add("on"); $("drawer").setAttribute("aria-hidden", "false"); $("scrim").classList.add("on");
+    document.documentElement.style.overflow = "hidden";
+    if (!same) $("drClose").focus({ preventScroll: true });
+  }
+  function drawDrawer(reset) {
+    if (!DR) return;
+    var body = $("drBody"), y = body.scrollTop;
+    clear(body); DR.render(body);
+    var list = navList(), i = navIndex(list);
+    $("drTitle").textContent = DR.label + (i >= 0 && list.length > 1 ? " · " + (i + 1) + " of " + list.length : "");
+    $("drPrev").disabled = i <= 0; $("drNext").disabled = i < 0 || i >= list.length - 1;
+    body.scrollTop = reset ? 0 : y;
+    if (reset) $("drTop").classList.remove("on");
+  }
+  function refreshDrawer() { if (DR) drawDrawer(false); }
+  function closeDrawer() {
+    if (!DR) return;
+    DR = null; markSel();
+    $("drawer").classList.remove("on"); $("drawer").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("on");
+    document.documentElement.style.overflow = "";
+    if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+  }
+  function navList() {
+    var h = DR && $(DR.host); if (!h) return [];
+    return [].filter.call(h.querySelectorAll(".item, .contract"), function (x) { return x._open && x.offsetParent !== null; });
+  }
+  function navIndex(list) { for (var i = 0; i < list.length; i++) if (list[i].dataset.id === DR.key) return i; return -1; }
+  function step(dir) {
+    var list = navList(), i = navIndex(list), t = list[i + dir];
+    if (!t) return;
+    t._open(); t.scrollIntoView({ block: "nearest" });
+  }
+  function markSel() {
+    document.querySelectorAll(".item.sel, .contract.sel").forEach(function (x) { x.classList.remove("sel"); });
+    if (!DR) return;
+    var h = $(DR.host); if (!h) return;
+    [].forEach.call(h.querySelectorAll(".item, .contract"), function (x) { if (x.dataset.id === DR.key) x.classList.add("sel"); });
+  }
+  // after a list re-renders: keep the open row highlighted and the position counter right
+  function afterList(hostId) { if (DR && DR.host === hostId) { markSel(); var list = navList(), i = navIndex(list); $("drTitle").textContent = DR.label + (i >= 0 && list.length > 1 ? " · " + (i + 1) + " of " + list.length : ""); $("drPrev").disabled = i <= 0; $("drNext").disabled = i < 0 || i >= list.length - 1; } }
+  $("drClose").addEventListener("click", closeDrawer);
+  $("scrim").addEventListener("click", closeDrawer);
+  $("drPrev").addEventListener("click", function () { step(-1); });
+  $("drNext").addEventListener("click", function () { step(1); });
+  $("drTop").addEventListener("click", function () { $("drBody").scrollTo({ top: 0, behavior: "smooth" }); });
+  $("drBody").addEventListener("scroll", function () { $("drTop").classList.toggle("on", $("drBody").scrollTop > 360); }, { passive: true });
+  document.addEventListener("keydown", function (e) {
+    if (!DR || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "Escape") { e.preventDefault(); closeDrawer(); }
+    else if (e.key === "ArrowDown" || e.key === "j") { e.preventDefault(); step(1); }
+    else if (e.key === "ArrowUp" || e.key === "k") { e.preventDefault(); step(-1); }
+  });
+
+  // drawer building blocks
+  function drHead(body, who, title, badgeId) {
+    var h = el("div", "dr-head");
+    var w = el("div", "dr-who");
+    who.filter(Boolean).forEach(function (x, i) { if (i) w.appendChild(el("span", "sep", "·")); w.appendChild(typeof x === "string" ? el("span", "", x) : x); });
+    h.appendChild(w);
+    var h1 = el("h1");
+    if (badgeId) h1.appendChild(idBadge(badgeId));
+    h1.appendChild(document.createTextNode(title));
+    h.appendChild(h1);
+    var acts = el("div", "dr-acts"); h.appendChild(acts);
+    body.appendChild(h);
+    var inner = el("div", "dr-in"); body.appendChild(inner);
+    return { head: h, acts: acts, inner: inner };
+  }
+  var SICO = {
+    "Client vs me": '<path d="M2.5 4h11M2.5 8h11M2.5 12h11M7 2.5v11"/>',
+    "Notes": '<path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 8h4M6 10.5h4"/>',
+    "Facts": '<circle cx="8" cy="8" r="5.5"/><path d="M8 7.3v3.4M8 5.4v.1"/>',
+    "Milestones": '<path d="M2.5 4h6M5 8h8.5M3.5 12h5"/>',
+    "Conversation": '<path d="M2.5 3.5h11v7.5H7l-3 2.5V11H2.5z"/>',
+    "Proposal": '<path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 7h4M6 9.5h4M6 12h2"/>',
+    "Terms": '<path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 8h4M6 10.5h4"/>'
+  };
+  var CHEV = '<svg class="ico chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+  var folded = {}; // sections folded in this visit; every new visit starts with all of them open
+  function dsec(host, title, right) { // a section of the drawer; its header folds it, open by default
+    var s = el("section", "dsec" + (folded[title] ? " folded" : ""));
+    var hh = el("button", "dsec-h"); hh.type = "button"; hh.setAttribute("aria-expanded", String(!folded[title]));
+    hh.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true">' + (SICO[title] || SICO.Facts) + "</svg>";
+    hh.appendChild(el("h3", "", title));
+    if (right) hh.appendChild(el("span", "r", right));
+    hh.insertAdjacentHTML("beforeend", CHEV);
+    var b = el("div", "dsec-b"); b.hidden = !!folded[title];
+    hh.addEventListener("click", function () {
+      var f = !s.classList.contains("folded");
+      if (f) folded[title] = 1; else delete folded[title];
+      s.classList.toggle("folded", f); hh.setAttribute("aria-expanded", String(!f)); b.hidden = f;
+    });
+    s.appendChild(hh); s.appendChild(b); host.appendChild(s); return b;
+  }
+  function noteHead(text) { // the header line of a plaque in the drawer
+    var h = el("div", "ch"); h.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></svg>';
+    h.appendChild(el("span", "", text)); return h;
+  }
+  function factsBox(rows) {
+    var f = el("div", "facts");
+    rows.forEach(function (r) { if (r[1] == null || r[1] === "") return; f.appendChild(el("div", "k", r[0])); var v = el("div", "v"); if (typeof r[1] === "string") v.textContent = r[1]; else v.appendChild(r[1]); f.appendChild(v); });
+    return f;
+  }
+  function turnChip(room) {
+    if (!room || !room.latestStory) return null;
+    var yours = myTurn(room);
+    return el("span", yours ? "chip bad" : "chip good", yours ? "Your turn" : "Waiting on client");
+  }
+
+  // the conversation, newest first, read from Upwork when the drawer opens
+  function messagesInto(host, room) {
+    var box = el("div", "msgs"); box.appendChild(el("div", "msg muted", "Loading messages…")); host.appendChild(box);
+    MCP.callTool(UPWORK, "upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: room.id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } })
+      .then(function (res) {
+        var edges = ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []);
+        clear(box);
+        if (!edges.length) { box.appendChild(el("div", "msg muted", "No messages.")); return; }
+        edges.forEach(function (e) {
+          var n = e.node || {}; var text = clean(n.message);
+          if (!text && !(n.attachments || []).length) return;
+          var m = el("div", "msg" + (n.from_self ? " me" : ""));
+          var mh = el("div", "mh"); mh.appendChild(el("b", "", n.from_self ? "You" : clean(n.from) || clientOf(room) || "Client"));
+          var t = Date.parse(n.createdDateTime); mh.appendChild(el("span", "", t ? fmtWall(wallOf(t), true) : ""));
+          m.appendChild(mh);
+          var mt = el("div", "mt", text + ((n.attachments || []).length ? (text ? "\n" : "") + "[" + n.attachments.length + " attachment" + (n.attachments.length > 1 ? "s" : "") + "]" : ""));
+          if (text.length > 420) { mt.classList.add("cut"); mt.title = "Click to show all"; mt.style.cursor = "pointer"; mt.addEventListener("click", function () { mt.classList.toggle("cut"); }); }
+          m.appendChild(mt); box.appendChild(m);
+        });
+      }, function (err) { clear(box); box.appendChild(el("div", "err", errText(err, UPWORK))); });
+  }
+
   // ---------- rendering: leads ----------
   function appliedJobIds() {
     var set = {};
@@ -488,14 +776,14 @@
     $("cntTake").textContent = take.length; $("cntMaybe").textContent = maybe.length;
 
     var today = take.filter(function (r) { var w = leadTime(r); return w && dayKey(w) === dayKey(now); }).length;
-    $("leadsValue").textContent = take.length;
 
     var list = S.verdict === "Take" ? take : maybe;
     var titles = {};
     everything.forEach(function (r) { var t = (r.Title || "").trim().toLowerCase(); titles[t] = (titles[t] || 0) + 1; });
     everything.forEach(function (r) { scoreLead(r); });
     var strong = take.filter(function (r) { return r._tier === "strong"; }).length;
-    $("leadsSub").textContent = (strong ? strong + " strong · " : "") + "+" + today + " today · " + maybe.length + " maybe";
+    S.leadStats = { take: take.length, strong: strong, today: today, maybe: maybe.length };
+    renderSoon();
     list.sort(function (a, b) {
       var da = leadTime(a) || 0, db = leadTime(b) || 0;
       if (dayKey(da) !== dayKey(db)) return db - da;
@@ -534,6 +822,7 @@
     }
     host.scrollTop = scrollTop;
     fitColumns(host);
+    afterList("leadList");
   }
   function fitColumns(host) { // equal money/time columns across all rows: measure the widest cell
     host.style.removeProperty("--wm"); host.style.removeProperty("--wt");
@@ -546,14 +835,12 @@
 
   function leadItem(r, w, now, titles, openIds) {
     var id = r["Job ID"] || "";
-    var d = el("details", "item"); d.dataset.id = id; d.dataset.url = r.url || "";
     var pub = wallFromNotion(r["date:Published:start"]);
-    if (pub && now - pub > OLD_LEAD_DAYS * DAY) d.classList.add("old");
-    if (r._tier) d.classList.add(r._tier);
-    var s = el("summary");
+    var cls = (pub && now - pub > OLD_LEAD_DAYS * DAY ? "old " : "") + (r._tier || "");
+    var row = rowEl(id, cls.trim(), function () { openDrawer(id, "leadList", "Lead", leadDrawer(r)); });
+    var d = row.d, s = row.s;
     var t = el("div", "t-title");
-    t.appendChild(idBadge(id)); t.appendChild(document.createTextNode(" "));
-    t.appendChild(r.Link ? extLink(r.Link, unesc(r.Title)) : document.createTextNode(unesc(r.Title)));
+    t.appendChild(idBadge(id)); t.appendChild(document.createTextNode(" ")); t.appendChild(titleLink(r.Link, unesc(r.Title), "Open the job on Upwork"));
     s.appendChild(t);
     var fw = wallFromNotion(r["date:Found:start"]);
     var tr = el("span", "t-right", w ? fmtWall(w) : "");
@@ -579,11 +866,6 @@
     g.appendChild(el("span", "c time", r["My hours"] != null ? "~" + r["My hours"] + "h" : "—"));
     g.appendChild(chips(mflags));
     s.appendChild(g);
-    d.appendChild(s);
-    var body = el("div", "body"); body.appendChild(el("div", "muted", "Loading notes…"));
-    d.appendChild(body);
-    d.addEventListener("toggle", function () { if (d.open && !d.dataset.loaded) loadNotes(d, body, r); });
-    if (openIds[id]) { d.open = true; }
     return d;
   }
   // Ranking is done by the hourly agent by the user's rules (Search rules → Ranking) and written to the card
@@ -617,46 +899,36 @@
 
   // ---------- notes (Notion page body, as-is) ----------
   var notesCache = {};
-  function loadNotesInto(d, box, r) { loadNotes({ dataset: {} }, box, r); }
-  function loadNotes(d, body, r) {
-    d.dataset.loaded = "1";
-    if (!r.url) { renderNotes(body, null, r); return; }
-    if (notesCache[r.url]) { renderNotes(body, notesCache[r.url], r); return; }
+  function notesInto(host, r) { // the card's page body, fetched once and kept
+    var box = el("div", "prose");
+    host.appendChild(box);
+    if (!r.url) { box.appendChild(el("p", "dr-empty", "No Notion card for this job.")); return; }
+    if (notesCache[r.url] != null) { fillNotes(box, notesCache[r.url]); return; }
+    box.appendChild(el("p", "dr-empty", "Loading notes…"));
     MCP.callTool(NOTION, "notion-fetch", { id: r.url }, { cache: { staleTime: 300000, gcTime: 86400000 } }).then(function (res) {
       var p = payloadOf(res);
       var txt = p && typeof p === "object" ? p.text : (typeof p === "string" ? p : "");
       var m = /<content>([\s\S]*?)<\/content>/.exec(txt || "");
       notesCache[r.url] = m ? m[1] : "";
-      renderNotes(body, notesCache[r.url], r);
-    }, function (err) {
-      d.dataset.loaded = "";
-      clear(body); body.appendChild(el("div", "err", errText(err, NOTION)));
-    });
+      fillNotes(box, notesCache[r.url]);
+    }, function (err) { clear(box); box.appendChild(el("div", "err", errText(err, NOTION))); });
   }
-  function renderNotes(body, content, r) {
-    clear(body);
-    if (r._why && r._why.length) {
-      var wy = el("p", "why");
-      wy.appendChild(el("b", "", (r._tier === "strong" ? "Strong match" : "Score") + " " + r._score + ": "));
-      wy.appendChild(document.createTextNode(r._why.join(" · ")));
-      body.appendChild(wy);
-    }
+  function fillNotes(box, content) {
+    clear(box);
     var HEAD = /^(что нужно|риски|уточнить|what's needed|needs|risks|clarify|questions)\s*:?$/i;
     var ul = null;
-    if (content) {
-      content.split("\n").forEach(function (raw) {
-        var line = raw.trim();
-        if (!line) { ul = null; return; }
-        var h = /^#{1,6}\s+(.*)$/.exec(line) || /^\*\*(.+?)\*\*:?$/.exec(line);
-        if (h || HEAD.test(line)) { body.appendChild(el("h4", "", unesc((h ? h[1] : line).replace(/\*\*/g, "")))); ul = null; return; }
-        var li = /^[-*•]\s+(.*)$/.exec(line);
-        if (li) { if (!ul) { ul = el("ul"); body.appendChild(ul); } ul.appendChild(el("li", "", unesc(li[1].replace(/\*\*/g, "")))); return; }
-        ul = null; body.appendChild(el("p", "", unesc(line.replace(/\*\*/g, ""))));
-      });
-    } else {
-      body.appendChild(el("p", "muted", "No notes on this Notion page."));
-    }
-    var pubW = wallFromNotion(r["date:Published:start"]), fndW = wallFromNotion(r["date:Found:start"]);
+    if (!content || !content.trim()) { box.appendChild(el("p", "dr-empty", "No notes on this Notion card.")); return; }
+    content.split("\n").forEach(function (raw) {
+      var line = raw.trim();
+      if (!line) { ul = null; return; }
+      var h = /^#{1,6}\s+(.*)$/.exec(line) || /^\*\*(.+?)\*\*:?$/.exec(line);
+      if (h || HEAD.test(line)) { box.appendChild(el("h4", "", unesc((h ? h[1] : line).replace(/\*\*/g, "")))); ul = null; return; }
+      var li = /^[-*•]\s+(.*)$/.exec(line);
+      if (li) { if (!ul) { ul = el("ul"); box.appendChild(ul); } ul.appendChild(el("li", "", unesc(li[1].replace(/\*\*/g, "")))); return; }
+      ul = null; box.appendChild(el("p", "", unesc(line.replace(/\*\*/g, ""))));
+    });
+  }
+  function cmpTable(r) { // Client vs Me, row by row
     var pay = r.Payment ? String(r.Payment).toLowerCase() : "";
     var t = el("div", "cmp");
     function cell(cls, v) { var c = el("div", cls); if (v != null && v !== "") c.textContent = unesc(String(v)); return c; }
@@ -673,46 +945,65 @@
         r.Connects != null ? r.Connects + " connects to apply" : "");
     wide("Client", r.Client);
     wide("Flags", flagsOf(r).join(", "));
-    wide("Posted", (pubW ? fmtWall(pubW, true) : "unknown") + (fndW ? " · found " + fmtWall(fndW, true) : ""));
-    body.appendChild(t);
-    var idLine = el("div", "jobid"); idLine.appendChild(el("span", "muted", "Job ID "));
-    var idb = el("span", "badge-id", String(r["Job ID"] || "")); idb.setAttribute("role", "button"); idb.tabIndex = 0; idb.title = "Copy the full Job ID";
-    idb.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); copy(String(r["Job ID"] || "")); });
-    idb.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); copy(String(r["Job ID"] || "")); } });
-    idLine.appendChild(idb);
-    idLine.appendChild(document.createTextNode(" · "));
-    var idb2 = idBadge(r["Job ID"]); idLine.appendChild(idb2);
-    body.appendChild(idLine);
-    var links = el("div", "links");
-    if (r.Link) links.appendChild(extLink(r.Link, "Open on Upwork ↗"));
-    if (r.url) links.appendChild(extLink(r.url, "Open in Notion ↗"));
-    if (r.url && r.Status === "New") {
-      var ap = el("button", "ok", "Applied"); ap.type = "button"; ap.title = "Mark as Applied in Notion (proposal already sent)";
-      ap.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); setLeadStatus(r, ap, "Applied"); });
-      links.appendChild(ap);
-      var sk = el("button", "", "Skip"); sk.type = "button"; sk.title = "Mark as Skipped in Notion";
-      sk.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); setLeadStatus(r, sk, "Skipped"); });
-      links.appendChild(sk);
-    }
-    body.appendChild(links);
+    return t;
+  }
+  function fullIdBadge(id) {
+    var b = el("span", "badge-id", String(id || "")); b.setAttribute("role", "button"); b.tabIndex = 0; b.title = "Copy the full Job ID";
+    function go(e) { e.preventDefault(); e.stopPropagation(); copy(String(id || "")); }
+    b.addEventListener("click", go); b.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") go(e); });
+    return b;
+  }
+  function leadDrawer(r) {
+    return function (body) {
+      var pub = wallFromNotion(r["date:Published:start"]), fnd = wallFromNotion(r["date:Found:start"]);
+      var verdict = el("span", r._tier === "strong" ? "chip good" : "", r.Verdict + (r._tier === "strong" ? " · strong match" : ""));
+      var x = drHead(body, [verdict, r._score > -Infinity ? "score " + r._score : "", pub ? "posted " + fmtWall(pub, true) : ""], unesc(r.Title), r["Job ID"]);
+      if (r.Link) x.acts.appendChild(extLink(r.Link, "Open on Upwork ↗", "pbtn"));
+      if (r.url) x.acts.appendChild(extLink(r.url, "Open in Notion ↗"));
+      if (r.url && r.Status === "New") {
+        var ap = el("button", "ok", "Applied"); ap.type = "button"; ap.title = "Mark as Applied in Notion (proposal already sent)";
+        ap.addEventListener("click", function () { setLeadStatus(r, ap, "Applied"); });
+        var sk = el("button", "no", "Skip"); sk.type = "button"; sk.title = "Mark as Skipped in Notion";
+        sk.addEventListener("click", function () { setLeadStatus(r, sk, "Skipped"); });
+        x.acts.appendChild(ap); x.acts.appendChild(sk);
+      } else if (r.Status && r.Status !== "New") x.acts.appendChild(el("span", "muted", "Marked " + r.Status));
+      if (r._why && r._why.length) {
+        var c = el("div", "callout" + (r._tier === "strong" ? " good" : ""));
+        c.appendChild(noteHead("Why score " + r._score));
+        c.appendChild(el("div", "", r._why.join(" · ")));
+        x.inner.appendChild(c);
+      }
+      dsec(x.inner, "Client vs me").appendChild(cmpTable(r));
+      notesInto(dsec(x.inner, "Notes", "from the Notion card"), r);
+      dsec(x.inner, "Facts").appendChild(factsBox([
+        ["Job ID", fullIdBadge(r["Job ID"])],
+        ["Posted", pub ? fmtWall(pub, true) : "unknown"],
+        ["Found", fnd ? fmtWall(fnd, true) : ""]
+      ]));
+    };
   }
   function pageIdOf(url) { var m = /([0-9a-f]{32})(?:\?|$)/i.exec(String(url || "")); return m ? m[1] : null; }
   function setLeadStatus(r, btn, status) {
     var pid = pageIdOf(r.url); if (!pid || !MCP) return;
     var label = btn.textContent; btn.disabled = true; btn.textContent = "Saving…";
     MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { Status: status } }, { cache: false }).then(function () {
+      var id = r["Job ID"], here = DR && DR.key === id, nextId = null;
+      if (here) { var list = navList(), i = navIndex(list), n = list[i + 1] || list[i - 1]; nextId = n ? n.dataset.id : null; }
       r.Status = status;
       S.leads = (S.leads || []).filter(function (x) { return x !== r; });
-      if (status === "Applied") S.appliedNotion[r["Job ID"]] = r;
-      toast(status + " " + shortId(r["Job ID"]));
+      if (status === "Applied") S.appliedNotion[id] = r;
+      toast(status + " " + shortId(id));
       renderLeads();
+      if (here) { // triage flow: the drawer moves on to the next lead
+        var nx = nextId && [].filter.call($("leadList").querySelectorAll(".item"), function (x) { return x.dataset.id === nextId; })[0];
+        if (nx) { nx._open(); nx.scrollIntoView({ block: "nearest" }); } else closeDrawer();
+      }
       MCP.invalidate(NOTION, "notion-query-data-sources").catch(function () {});
     }, function (err) {
       btn.disabled = false; btn.textContent = label;
       toast("Couldn't save: " + errText(err, NOTION));
     });
   }
-
   // ---------- rendering: stats from Upwork ----------
   function renderConnects() {
     if (S.connectsErr && !S.connects) { $("connectsValue").textContent = "—"; $("connectsSub").textContent = errText(S.connectsErr, UPWORK); return; }
@@ -767,90 +1058,86 @@
     return [];
   }
   function pick(o, paths) { for (var i = 0; i < paths.length; i++) { var v = o, ps = paths[i].split("."); for (var j = 0; j < ps.length && v != null; j++) v = v[ps[j]]; if (v != null && v !== "") return v; } return null; }
-  function renderInvites() {
-    var sec = $("invites"), host = $("inviteList");
-    var inv = S.invites || [], off = listOf((S.dash || {}).offers);
+  // Invitations and offers, normalised: the API shapes differ, so read them defensively.
+  function inviteRows() {
     var rows = [];
-    inv.forEach(function (x) { rows.push({ kind: "Invitation", o: x }); });
-    off.forEach(function (x) { rows.push({ kind: "Offer", o: x }); });
-    if (!rows.length) { sec.hidden = true; return; }
-    sec.hidden = false; $("invitesCount").textContent = rows.length; clear(host);
-    rows.forEach(function (r) {
+    (S.invites || []).forEach(function (x) { rows.push({ kind: "Invitation", o: x }); });
+    listOf((S.dash || {}).offers).forEach(function (x) { rows.push({ kind: "Offer", o: x }); });
+    return rows.map(function (r) {
       var o = r.o;
-      var title = clean(pick(o, ["jobPosting.content.title", "jobPosting.title", "job.title", "title", "content.title", "name"]) || (r.kind + " (details on Upwork)"));
       var jobId = pick(o, ["jobPosting.id", "job.id", "jobId", "openingId"]);
-      var client = clean(pick(o, ["client.name", "clientOrganization.name", "organization.name", "clientName", "from"]) || "");
       var when = pick(o, ["createdDateTime.displayValue", "createdDateTime", "created", "createdAt", "modifiedDateTime.displayValue"]);
       var t = when ? Date.parse(String(when)) : NaN;
-      var href = r.kind === "Offer" ? "https://www.upwork.com/nx/proposals/offers" : jobId ? "https://www.upwork.com/jobs/~02" + String(jobId) : "https://www.upwork.com/nx/proposals/";
-      var a = el("a", "invite"); a.href = href; a.target = "_blank"; a.rel = "noopener";
-      var top = el("div", "i-top");
-      top.appendChild(el("span", "i-title", title));
-      top.appendChild(el("span", "chip good", r.kind + (isNaN(t) ? "" : " · " + ago(Date.now() - t) + " ago")));
-      a.appendChild(top);
-      var sub = [];
-      if (client) sub.push(client);
       var amt = pick(o, ["terms.chargeRate.displayValue", "chargeRate.displayValue", "amount.displayValue", "budget"]);
-      if (amt) sub.push(String(amt).replace("USD ", "$"));
-      if (sub.length) a.appendChild(el("div", "i-sub", sub.join(" · ")));
-      host.appendChild(a);
+      return {
+        kind: r.kind, id: String(pick(o, ["id", "invitationId", "offerId"]) || jobId || r.kind + Math.random()),
+        title: clean(pick(o, ["jobPosting.content.title", "jobPosting.title", "job.title", "title", "content.title", "name"]) || (r.kind + " (details on Upwork)")),
+        client: clean(pick(o, ["client.name", "clientOrganization.name", "organization.name", "clientName", "from"]) || ""),
+        amount: amt ? String(amt).replace("USD ", "$") : "",
+        t: isNaN(t) ? 0 : t,
+        href: r.kind === "Offer" ? "https://www.upwork.com/nx/proposals/offers" : jobId ? "https://www.upwork.com/jobs/~02" + String(jobId) : "https://www.upwork.com/nx/proposals/"
+      };
     });
-  }
-  function renderBanner() {
-    var host = $("banner"), d = S.dash;
-    if (!d) return;
-    var offers = listOf(d.offers).length || (d.offers || {}).count || 0, inv = (S.invites || []).length || (d.invitations || {}).count || 0;
-    renderInvites();
-    host.hidden = true; return;
-    if (!offers && !inv) { host.hidden = true; return; }
-    clear(host); host.className = "banner"; host.hidden = false;
-    var parts = [];
-    if (offers) parts.push(offers + " offer" + (offers > 1 ? "s" : ""));
-    if (inv) parts.push(inv + " invitation" + (inv > 1 ? "s" : ""));
-    host.appendChild(el("span", "", "You have " + parts.join(" and ") + " waiting — see the list on the right."));
-    host.appendChild(extLink("https://www.upwork.com/nx/proposals/", "Open on Upwork ↗"));
   }
 
   function roomByContract(id) {
     var r = null; (S.rooms || []).forEach(function (x) { if (!r && String(x.contractId) === String(id)) r = x; }); return r;
   }
+  function needsMe(c) { // why a contract is on me right now
+    var room = roomByContract(c.id), now = Date.now();
+    var late = ((S.milestones[c.id] || {}).list || []).filter(function (m) { var due = m.dueDateTime ? Date.parse(m.dueDateTime) : null; return m.state === "Active" && due && due < now; });
+    var reply = !!room && (myTurn(room) || (room.numUnread || 0) > 0);
+    return reply || late.length ? { reply: reply, late: late, room: room } : null;
+  }
   function renderContracts() {
     var host = $("contractList");
-    if (S.dashErr && !S.dash) { errBox(host, S.dashErr, UPWORK); $("contractsValue").textContent = "—"; $("contractsSub").textContent = "unavailable"; return; }
+    renderSoon();
+    if (S.dashErr && !S.dash) { errBox(host, S.dashErr, UPWORK); return; }
     if (!S.dash) return;
     var ac = S.dash.active_contracts || {}, list = ac.contracts || [];
     var total = ac.total_count != null ? ac.total_count : list.length;
-    $("contractsValue").textContent = total;
-    $("contractsCount").textContent = total > list.length ? list.length + " of " + total : "";
-    var escrow = 0, next = null;
+    var escrow = 0;
     list.forEach(function (c) {
       var ms = (S.milestones[c.id] || {}).list || [];
       ms.forEach(function (m) { if (m.state === "Active" || m.state === "Submitted") escrow += (num(m.fundedAmount && m.fundedAmount.rawValue) || 0) - (num(m.paid && m.paid.rawValue) || 0); });
     });
-    $("contractsSub").textContent = total === 0 ? "none right now" : (escrow ? "$" + Math.round(escrow) + " funded, unpaid" : list.map(function (c) { return clean(c.client); }).join(", "));
-    var tile = $("tileContracts");
-    if (list.length === 1) { tile.href = workroom(list[0].id); tile.target = "_blank"; tile.rel = "noopener"; $("contractsGo").textContent = "↗"; }
-    else { tile.href = "#contracts"; tile.removeAttribute("target"); $("contractsGo").textContent = "↓"; }
+    S.contractStats = { total: total, escrow: escrow };
+    $("contractsCount").textContent = total > list.length ? list.length + " of " + total : escrow ? "$" + Math.round(escrow) + " funded, unpaid" : "";
 
     clear(host);
     if (!list.length) { host.appendChild(el("div", "empty", "No active contracts.")); return; }
-    list.forEach(function (c) { host.appendChild(contractCard(c)); });
+    var calm = list.filter(function (c) { return !needsMe(c); }), moved = list.length - calm.length;
+    calm.forEach(function (c) { host.appendChild(contractCard(c, "contractList")); });
+    if (moved) host.appendChild(el("div", "note", calm.length ? "+ " + plural(moved, "contract") + " in Your move above." : (moved === 1 ? "Your active contract needs you" : "All " + moved + " contracts need you") + " — see Your move above."));
+    afterList("contractList");
     if (total > list.length) host.appendChild(el("div", "note", (total - list.length) + " more on Upwork — open any contract above and switch from there."));
   }
   function workroom(id) { return "https://www.upwork.com/nx/wm/workroom/" + encodeURIComponent(id) + "/overview"; }
-  function contractCard(c) {
-    var box = el("div", "contract");
+  function msSorted(c) { var d = S.milestones[c.id]; return d && d.list ? d.list.slice().sort(function (a, b) { return (a.sequenceId || 0) - (b.sequenceId || 0); }) : null; }
+  function msName(m) { return "M" + m.sequenceId + " " + clean(m.description).split(":")[0].slice(0, 60); }
+  // Card: what the contract is, Claude's summary of its thread, where its milestones stand. Click for the drawer.
+  function contractCard(c, hostId) {
+    var why = needsMe(c), room = roomByContract(c.id);
+    var box = el("div", "contract" + (why ? " turn" : "")); box.dataset.id = "c-" + c.id;
+    box.tabIndex = 0; box.setAttribute("role", "button");
+    box._open = function () { openDrawer("c-" + c.id, hostId, "Contract", contractDrawer(c)); };
+    box.addEventListener("click", function (e) { if (e.target.closest("a")) return; box._open(); });
+    box.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); box._open(); } });
+    if (DR && DR.key === "c-" + c.id) box.classList.add("sel");
     var head = el("div", "c-head");
-    head.appendChild(extLink(workroom(c.id), clean(c.title), "c-title"));
-    head.appendChild(el("span", "chip good", clean(c.status || "ACTIVE").toLowerCase()));
+    var ct = el("span", "c-title"); ct.appendChild(why && why.reply && room ? titleLink(roomUrl(room.id), clean(c.title), "Open the thread on Upwork to reply") : titleLink(workroom(c.id), clean(c.title), "Open the workroom on Upwork")); head.appendChild(ct);
+    if (why && why.reply && roomAct(room)) head.appendChild(el("span", "t-right", "waiting " + ago(Date.now() - roomAct(room))));
     box.appendChild(head);
     var since = c.start_date ? new Date(c.start_date) : null;
-    box.appendChild(el("div", "c-client", clean(c.client) + (since ? " · since " + MON[since.getUTCMonth()] + " " + since.getUTCDate() : "")));
+    var sub = el("div", why ? "c-why" : "c-client");
+    if (why) sub.appendChild(el("span", "kind", why.reply && why.late.length ? "Reply · milestone overdue" : why.reply ? "Reply · contract" : "Milestone overdue"));
+    sub.appendChild(document.createTextNode(clean(c.client) + (since ? " · since " + MON[since.getUTCMonth()] + " " + since.getUTCDate() : "") + ""));
+    box.appendChild(sub);
+    var smr = summaryInline(room); if (smr) box.appendChild(smr);
 
-    var msData = S.milestones[c.id];
-    if (msData && msData.list && msData.list.length) {
-      var ms = msData.list.slice().sort(function (a, b) { return (a.sequenceId || 0) - (b.sequenceId || 0); });
-      var track = el("div", "ms-track");
+    var msData = S.milestones[c.id], ms = msSorted(c);
+    if (ms && ms.length) {
+      var track = el("div", "ms-track"); if (smr) track.style.marginTop = "14px";
       var paid = 0, all = 0, cur = null;
       ms.forEach(function (m) {
         var cls = m.state === "Paid" ? "paid" : m.state === "Active" ? "active" : m.state === "Submitted" ? "sub" : "";
@@ -863,14 +1150,10 @@
       var line = el("div", "ms-line");
       line.appendChild(el("span", "", "$" + Math.round(paid) + " of $" + Math.round(all) + " paid · "));
       if (cur) {
-        var name = clean(cur.description).split(":")[0].slice(0, 60);
-        line.appendChild(el("b", "", "M" + cur.sequenceId + " " + name));
-        line.appendChild(el("span", "", " — " + (cur.state_label || cur.state) + (cur.depositAmount ? ", $" + cur.depositAmount.displayValue : "")));
+        line.appendChild(el("b", "", msName(cur)));
+        line.appendChild(el("span", "", " — " + (cur.state_label || cur.state)));
         var due = cur.dueDateTime ? Date.parse(cur.dueDateTime) : null;
-        if (due) {
-          var left = due - Date.now();
-          line.appendChild(el("span", left < 0 ? "late" : "due", left < 0 ? " · overdue by " + ago(-left) : " · due in " + ago(left)));
-        }
+        if (due && cur.state !== "Submitted") { var left = due - Date.now(); line.appendChild(el("span", left < 0 ? "late" : "due", left < 0 ? " · overdue by " + ago(-left) : " · due in " + ago(left))); }
         if (cur.state === "Submitted") {
           var sub = cur.modifiedDateTime ? Date.now() - Date.parse(cur.modifiedDateTime) : 0;
           line.appendChild(el("span", sub > 3 * DAY ? "stuck" : "due", " · awaiting client approval" + (sub ? " for " + ago(sub) : "")));
@@ -882,28 +1165,39 @@
     } else if (!msData) {
       box.appendChild(el("div", "ms-line muted", "Loading milestones…"));
     }
-
-    var room = roomByContract(c.id);
-    if (room && room.latestStory && SAMPLE !== false) {
-      var sm = summaryFor(room);
-      if (sm) { box.appendChild(summaryBlock(room, sm)); return box; }
-      if (SAMPLE || SAMPLE === null) {
-        var wait = el("div", "sum"); wait.appendChild(el("div", "muted", SAMPLE === null ? "Loading…" : "Summarizing the thread…"));
-        box.appendChild(wait); return box;
-      }
-    }
-    if (room && room.latestStory) {
-      var lm = el("a", "last-msg"); lm.href = roomUrl(room.id); lm.target = "_blank"; lm.rel = "noopener"; lm.style.display = "block"; lm.style.textDecoration = "none";
-      var who = el("div", "who");
-      var turn = room.awaiting_reply_from === "you" ? "your turn" : room.awaiting_reply_from === "them" ? "waiting on client" : "last message";
-      who.appendChild(el("span", room.awaiting_reply_from === "you" ? "chip bad" : "", room.awaiting_reply_from === "you" ? "Your turn" : room.awaiting_reply_from === "them" ? "Waiting on client" : "Last message"));
-      var t = Date.parse(room.latestStory.createdDateTime);
-      who.appendChild(el("span", "", t ? ago(Date.now() - t) + " ago" : ""));
-      lm.appendChild(who);
-      lm.appendChild(el("div", "clamp", clean(room.latestStory.message)));
-      box.appendChild(lm);
-    }
     return box;
+  }
+  function contractDrawer(c) {
+    return function (body) {
+      var room = roomByContract(c.id);
+      var since = c.start_date ? new Date(c.start_date) : null;
+      var x = drHead(body, ["Contract", clean(c.client), since ? "since " + MON[since.getUTCMonth()] + " " + since.getUTCDate() + ", " + since.getUTCFullYear() : "", turnChip(room)], clean(c.title));
+      var owe = needsMe(c);
+      if (room && owe && owe.reply) { x.acts.appendChild(extLink(roomUrl(room.id), "Reply on Upwork ↗", "pbtn")); x.acts.appendChild(extLink(workroom(c.id), "Open the workroom ↗")); }
+      else { x.acts.appendChild(extLink(workroom(c.id), "Open the workroom ↗", "pbtn")); if (room) x.acts.appendChild(extLink(roomUrl(room.id), "Open thread ↗")); }
+      if (room && room.latestStory) x.inner.appendChild(summaryCallout(room));
+      var ms = msSorted(c), msData = S.milestones[c.id];
+      var sec = dsec(x.inner, "Milestones", ms && ms.length ? ms.filter(function (m) { return m.state === "Paid"; }).length + " of " + ms.length + " paid" : "");
+      if (ms && ms.length) {
+        var list = el("div", "mss");
+        ms.forEach(function (m) {
+          var row = el("div", "ms");
+          row.appendChild(el("span", "n", "M" + m.sequenceId));
+          row.appendChild(el("span", "d", clean(m.description) || "—"));
+          row.appendChild(el("span", "a", m.depositAmount ? "$" + m.depositAmount.displayValue.replace(/\.00$/, "") : ""));
+          var s = el("div", "s");
+          var cls = m.state === "Paid" ? "paid" : m.state === "Active" ? "active" : m.state === "Submitted" ? "sub" : "";
+          s.appendChild(el("span", cls, m.state_label || String(m.state || "").replace(/([a-z])([A-Z])/g, function (_, x, y) { return x + " " + y.toLowerCase(); })));
+          var due = m.dueDateTime ? Date.parse(m.dueDateTime) : null;
+          if (due && m.state === "Active") s.appendChild(el("span", due < Date.now() ? "late" : "", " · " + (due < Date.now() ? "overdue by " + ago(Date.now() - due) : "due " + fmtWall(wallOf(due), true))));
+          if (m.state === "Submitted" && m.modifiedDateTime) s.appendChild(el("span", "", " · submitted " + ago(Date.now() - Date.parse(m.modifiedDateTime)) + " ago"));
+          row.appendChild(s);
+          list.appendChild(row);
+        });
+        sec.appendChild(list);
+      } else sec.appendChild(el("div", "dr-empty", msData && msData.err ? errText(msData.err, UPWORK) : msData ? "No milestones (hourly or not set up)." : "Loading milestones…"));
+      if (room) messagesInto(dsec(x.inner, "Conversation", "latest first"), room);
+    };
   }
   function roomUrl(id) { return "https://www.upwork.com/ab/messages/rooms/" + encodeURIComponent(id); }
 
@@ -933,7 +1227,7 @@
         });
         if (!lines.length) throw { code: "empty" };
         var today = new Date(); var todayStr = MON[today.getUTCMonth()] + " " + today.getUTCDate() + ", " + today.getUTCFullYear();
-        var prompt = "You are summarizing an Upwork contract chat for a freelancer (the \"me\" side). Today is " + todayStr + ". Messages, oldest first:\n\n" + lines.join("\n\n") +
+        var prompt = "You are summarizing an Upwork chat (a contract, a job proposal or a direct message) for a freelancer (the \"me\" side). Today is " + todayStr + ". Messages, oldest first:\n\n" + lines.join("\n\n") +
           "\n\nReply with only a JSON object: {\"summary\": string (1-2 plain sentences: where the work stands right now, in English, no greetings), \"next\": \"me\"|\"client\"|\"none\" (who must act next), \"action\": string (the concrete next step, max 12 words, or \"\"), \"deadline\": string|null (ISO date YYYY-MM-DD if someone promised a date, else null), \"promised_by\": \"me\"|\"client\"|null}. Example: {\"summary\":\"Client approved the schematic; layout revision is in progress.\",\"next\":\"me\",\"action\":\"send revised layout\",\"deadline\":\"2026-09-16\",\"promised_by\":\"me\"}";
         return SAMPLE.json(prompt, { modelTier: "quick", cache: refresh ? { gcTime: 86400000, refresh: true } : { gcTime: 86400000 } });
       })
@@ -941,76 +1235,199 @@
         if (!data || typeof data !== "object") throw { code: "invalid_json" };
         sums[room.id] = { storyId: sid, data: data };
         try { localStorage.setItem(sumKey(room), JSON.stringify(sums[room.id])); } catch (e) {}
-        renderContracts();
+        renderContracts(); refreshDrawer();
       }, function (err) {
         var code = err && err.code;
         if (/^(not_granted|sampling_disabled|not_declared|capability_disabled|capability_removed)$/.test(code || "")) SAMPLE = false;
         sums[room.id] = { storyId: sid, err: err };
-        renderContracts();
+        renderContracts(); refreshDrawer();
       });
   }
-  function summaryBlock(room, d) {
-    var yours = d.next === "me" || room.awaiting_reply_from === "you";
-    var box = el("div", "sum" + (yours ? " turn" : ""));
-    box.appendChild(el("div", "", String(d.summary || "")));
-    var nextLine = "";
-    if (d.next === "me") nextLine = "Your move" + (d.action ? ": " + d.action : "");
-    else if (d.next === "client") nextLine = "Waiting on client" + (d.action ? ": " + d.action : "");
+  function nextLine(d) { // "Your move: send the layout · you promised, due Oct 3"
+    var n = el("div", "nx");
+    if (d.next === "me") n.appendChild(el("span", "who", "Your move" + (d.action ? ": " : "")));
+    else if (d.next === "client") n.appendChild(el("span", "who them", "Waiting on client" + (d.action ? ": " : "")));
+    if (d.action && d.next !== "none") n.appendChild(document.createTextNode(d.action));
     if (d.deadline) {
-      var dl = Date.parse(d.deadline + "T23:59:59"); var days = Math.ceil((dl - Date.now()) / DAY);
-      var dd = new Date(d.deadline + "T12:00:00");
-      var lbl = days < 0 ? "overdue by " + (-days) + "d" : days === 0 ? "due today" : "due " + MON[dd.getMonth()] + " " + dd.getDate() + " (" + days + "d)";
-      nextLine += (nextLine ? " · " : "") + (d.promised_by === "me" ? "you promised, " : d.promised_by === "client" ? "client promised, " : "") + lbl;
-      if (days <= 0 && d.promised_by === "me") box.classList.add("turn");
+      var dl = Date.parse(d.deadline + "T23:59:59"), days = Math.ceil((dl - Date.now()) / DAY), dd = new Date(d.deadline + "T12:00:00");
+      var lbl = days < 0 ? "overdue by " + (-days) + "d" : days === 0 ? "due today" : "due " + MON[dd.getMonth()] + " " + dd.getDate();
+      n.appendChild(el("span", "dl" + (days <= 0 ? " late" : ""), (n.childNodes.length ? " · " : "") + (d.promised_by === "me" ? "you promised, " : d.promised_by === "client" ? "client promised, " : "") + lbl));
     }
-    if (nextLine) box.appendChild(el("div", "next", nextLine));
-    var meta = el("div", "meta");
-    var t = Date.parse((room.latestStory || {}).createdDateTime);
-    meta.appendChild(el("span", "", "last message " + (t ? ago(Date.now() - t) + " ago" : "") + (room.latestStory && room.latestStory.from_self ? " (you)" : " (client)")));
-    meta.appendChild(extLink(roomUrl(room.id), "Open thread ↗"));
+    return n.childNodes.length ? n : null;
+  }
+  function summaryInline(room) { // on a card or a row; falls back to the last message
+    var box = el("div", "sm");
+    if (!room || !room.latestStory) return null;
+    var d = SAMPLE === false ? null : summaryFor(room), st = sums[room.id];
+    if (d) { box.appendChild(el("div", "tx", String(d.summary || ""))); var n = nextLine(d); if (n) box.appendChild(n); return box; }
+    if (SAMPLE !== false && !(st && st.err)) { box.appendChild(el("div", "tx muted", "Summarizing the thread…")); return box; }
+    var t = clean(room.latestStory.message).replace(/^(You|[^:\n]{1,40}):\s*/, "");
+    box.appendChild(el("div", "tx", (myTurn(room) ? (clientOf(room) || "Client") + ": " : "You: ") + t));
+    return box;
+  }
+  function summaryCallout(room) {
+    var box = el("div", "callout");
+    var ch = noteHead("Claude's summary of the thread");
+    box.appendChild(ch);
+    if (SAMPLE === false) { box.appendChild(el("div", "muted", "Summaries aren't available in this view.")); return box; }
+    var d = summaryFor(room), st = sums[room.id];
+    if (!d) {
+      box.appendChild(el("div", "muted", st && st.err ? "Couldn't summarize: " + errText(st.err, "Claude") : "Summarizing the last messages…"));
+      return box;
+    }
+    var yours = d.next === "me" || myTurn(room);
+    if (yours) box.classList.add("turn");
+    box.appendChild(el("div", "", String(d.summary || "")));
+    var nl = nextLine(d); if (nl) { nl.classList.add("next"); box.appendChild(nl); }
     var rb = el("button", "", "↻ re-summarize"); rb.type = "button";
-    rb.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); if (!SAMPLE) return; var sid = (room.latestStory || {}).id || ""; sums[room.id] = { storyId: sid, pending: true }; renderContracts(); buildSummary(room, sid, true); });
-    meta.appendChild(rb);
-    box.appendChild(meta);
+    rb.addEventListener("click", function () { if (!SAMPLE) return; var sid = (room.latestStory || {}).id || ""; sums[room.id] = { storyId: sid, pending: true }; refreshDrawer(); buildSummary(room, sid, true); });
+    ch.appendChild(rb);
     return box;
   }
 
-  function renderThreads() {
-    var host = $("threadList");
-    if (S.roomsErr && !S.rooms) { errBox(host, S.roomsErr, UPWORK); $("replyBanner").hidden = true; return; }
-    if (!S.rooms) return;
-    var now = Date.now();
-    var mine = S.rooms.filter(function (r) {
-      var yours = r.awaiting_reply_from === "you" || (r.awaiting_reply_from == null && r.last_message_from_self === false) || (r.numUnread || 0) > 0;
-      if (!yours) return false;
-      var t = num(r.lastActivity) || Date.parse((r.latestStory || {}).createdDateTime) || 0;
+  // ---------- Your move: everything that waits on me, one list ----------
+  // Sources: chats where it's my turn (contract, proposal or plain), invitations and offers, overdue milestones.
+  // A proposal chat listed here is left out of Proposals → In talks, so nothing shows twice.
+  function contractById(id) { var r = null; (((S.dash || {}).active_contracts || {}).contracts || []).forEach(function (c) { if (!r && String(c.id) === String(id)) r = c; }); return r; }
+  function proposalByRoom() {
+    var m = {}; (S.proposals || []).forEach(function (p) { var r = proposalRoom(p); if (r) m[r.id] = p; }); return m;
+  }
+  function owedRooms() {
+    var now = Date.now(), seen = {}, out = [];
+    (S.rooms || []).forEach(function (r) {
+      var yours = myTurn(r) || (r.numUnread || 0) > 0;
+      if (!yours) return;
       var active = String(r.contractStatus || "").toUpperCase() === "ACTIVE";
-      return active || now - t < QUIET_DAYS * DAY;
+      if (!active && now - roomAct(r) >= QUIET_DAYS * DAY) return;
+      seen[r.id] = true; out.push(r);
     });
-    var rb = $("replyBanner"); clear(rb);
-    if (mine.length) {
-      rb.className = "banner alert"; rb.hidden = false;
-      rb.appendChild(el("span", "", mine.length === 1 ? "1 thread is waiting on you" : mine.length + " threads are waiting on you"));
-      var names = el("span", "list");
-      mine.forEach(function (r) { names.appendChild(extLink(roomUrl(r.id), clean(r.roomName).split(",")[0] + " ↗")); });
-      rb.appendChild(names);
-    } else rb.hidden = true;
+    (S.proposals || []).forEach(function (p) {
+      var r = proposalRoom(p);
+      if (r && !seen[r.id] && !p.closed && hasChat(r) && myTurn(r) && now - roomAct(r) < LIVE_DAYS * DAY) { seen[r.id] = true; out.push(r); }
+    });
+    return out;
+  }
+  function moveItems() {
+    var now = Date.now(), items = [], byRoom = proposalByRoom(), inContract = {};
+    (((S.dash || {}).active_contracts || {}).contracts || []).forEach(function (c) {
+      var w = needsMe(c); if (!w) return;
+      if (w.room) inContract[w.room.id] = true;
+      items.push({ type: "contract", contract: c, why: w, rank: w.late.length ? 1 : 2, t: w.reply ? roomAct(w.room) : Date.parse(w.late[0].dueDateTime) });
+    });
+    owedRooms().forEach(function (r) { if (!inContract[r.id]) items.push({ type: "chat", room: r, proposal: byRoom[r.id] || null, rank: 2, t: roomAct(r) }); });
+    inviteRows().forEach(function (x) { items.push({ type: x.kind === "Offer" ? "offer" : "invite", inv: x, rank: x.kind === "Offer" ? 0 : 3, t: x.t }); });
+    // offers, then contracts with overdue work, then chats and contracts waiting longest, then invitations (newest first)
+    items.sort(function (a, b) { return (a.rank - b.rank) || (a.rank === 3 ? b.t - a.t : a.t - b.t); });
+    return items;
+  }
+  function renderMove() {
+    var host = $("moveList");
+    if (S.roomsErr && !S.rooms) { errBox(host, S.roomsErr, UPWORK); return; }
+    if (!S.rooms && !S.dash) return;
+    var now = Date.now(), items = moveItems();
+    S.moveStats = { chats: 0, invites: 0, offers: 0, late: 0 };
+    items.forEach(function (x) {
+      if (x.type === "contract") { if (x.why.reply) S.moveStats.chats++; S.moveStats.late += x.why.late.length; }
+      else S.moveStats[{ chat: "chats", invite: "invites", offer: "offers" }[x.type]]++;
+    });
+    $("moveCount").textContent = items.length ? items.length : "";
+    var openIds = {}; host.querySelectorAll("details[open]").forEach(function (d) { openIds[d.dataset.id] = true; });
     clear(host);
-    if (!mine.length) { host.appendChild(el("div", "empty", "Nothing waiting on you.")); return; }
-    mine.forEach(function (r) {
-      var a = el("a", "thread"); a.href = roomUrl(r.id); a.target = "_blank"; a.rel = "noopener";
-      var top = el("div", "th-top");
-      top.appendChild(el("span", "th-name", clean(r.roomName)));
-      var t = num(r.lastActivity) || Date.parse((r.latestStory || {}).createdDateTime);
-      var right = el("span", "");
-      if (r.numUnread) right.appendChild(el("span", "chip bad", r.numUnread + " unread"));
-      if (r.contractStatus) right.appendChild(el("span", "chip accent", "contract"));
-      right.appendChild(el("span", "muted", t ? ago(now - t) : ""));
-      top.appendChild(right);
-      a.appendChild(top);
-      if (r.latestStory) a.appendChild(el("div", "clamp muted", clean(r.latestStory.message)));
-      host.appendChild(a);
+    if (!items.length) {
+      var ok = el("div", "move-ok"); ok.appendChild(el("b", "", "Nothing waits on you. "));
+      ok.appendChild(document.createTextNode("Replies, invitations and overdue milestones show up here."));
+      host.appendChild(ok); return;
+    }
+    items.forEach(function (x) {
+      host.appendChild(x.type === "contract" ? contractCard(x.contract, "moveList") : x.type === "chat" ? moveChat(x, now) : moveInvite(x, now));
     });
+    afterList("moveList");
+  }
+  function moveRow(id, cls, titleNode, right, metaParts, open, btn, extra) {
+    var row = rowEl(id, cls, open), s = row.s;
+    var t = el("div", "t-title"); t.appendChild(titleNode); s.appendChild(t);
+    s.appendChild(el("span", "t-right", right || ""));
+    var m = el("div", "t-meta");
+    metaParts.forEach(function (p, i) { if (i) m.appendChild(el("span", "sep", "·")); m.appendChild(typeof p === "string" ? document.createTextNode(p) : p); });
+    s.appendChild(m);
+    if (extra) s.appendChild(extra);
+    return row.d;
+  }
+  function titleLink(href, text, tip) { // the title text opens Upwork; a click anywhere else on the row opens the drawer
+    if (!href) return document.createTextNode(text);
+    var a = extLink(href, text, "tl"); a.title = tip || "Open on Upwork"; return a;
+  }
+  function titleWithId(jobId, title, href, tip) {
+    var f = document.createDocumentFragment();
+    if (jobId) { f.appendChild(idBadge(jobId)); f.appendChild(document.createTextNode(" ")); }
+    f.appendChild(titleLink(href, title, tip)); return f;
+  }
+  function moveChat(x, now) {
+    var r = x.room, p = x.proposal;
+    var title = p ? p.title : clientOf(r) || clean(r.roomName) || "Chat";
+    var meta = [el("span", "kind", p ? "Reply · proposal" : "Reply")];
+    var who = clientOf(r);
+    if (who && who !== title) meta.push(who);
+    if (r.numUnread) meta.push(r.numUnread + " unread");
+    if (p && p.rate) meta.push(p.rate.replace(/\.0$/, ""));
+    var key = "room-" + r.id;
+    var open = function () { openDrawer(key, "moveList", p ? "Proposal" : "Chat", chatDrawer(r, p)); };
+    return moveRow(key, "turn", titleWithId(p && p.jobId, title, roomUrl(r.id), "Open the thread on Upwork to reply"), roomAct(r) ? "waiting " + ago(now - roomAct(r)) : "", meta, open, null, summaryInline(r));
+  }
+  function moveInvite(x, now) {
+    var v = x.inv;
+    var meta = [el("span", "kind", v.kind)];
+    if (v.client) meta.push(v.client);
+    if (v.amount) meta.push(v.amount);
+    var key = "inv-" + v.id;
+    return moveRow(key, "inv", titleLink(v.href, v.title, "Open the " + v.kind.toLowerCase() + " on Upwork to answer"), v.t ? ago(now - v.t) + " ago" : "", meta, function () { openDrawer(key, "moveList", v.kind, inviteDrawer(v)); });
+  }
+  function inviteDrawer(v) {
+    return function (body) {
+      var x = drHead(body, [el("span", "chip good", v.kind), v.client, v.t ? "received " + ago(Date.now() - v.t) + " ago" : ""], v.title);
+      x.acts.appendChild(extLink(v.href, "Answer on Upwork ↗", "pbtn"));
+      var c = el("div", "callout good");
+      c.appendChild(noteHead(v.kind === "Offer" ? "Offer" : "Invitation"));
+      c.appendChild(el("div", "", v.kind === "Offer" ? "The client sent you an offer. Accept or decline it on Upwork." : "The client invited you to this job. Reply on Upwork to accept or decline."));
+      x.inner.appendChild(c);
+      if (v.amount) dsec(x.inner, "Terms").appendChild(factsBox([["Rate", v.amount], ["Client", v.client]]));
+    };
+  }
+  // A proposal or plain chat: the conversation first, then the proposal and its Notion card.
+  function chatDrawer(room, p) {
+    return function (body) {
+      var nr = p && (S.appliedNotion[p.jobId] || S.leadsById[p.jobId]);
+      var title = p ? p.title : clientOf(room) || clean(room.roomName) || "Chat";
+      var t = roomAct(room);
+      var x = drHead(body, [p ? "Proposal" : "Chat", clientOf(room) !== title ? clientOf(room) : "", turnChip(room), t ? "last message " + ago(Date.now() - t) + " ago" : ""], title, p && p.jobId);
+      x.acts.appendChild(extLink(roomUrl(room.id), myTurn(room) ? "Reply on Upwork ↗" : "Open thread ↗", "pbtn"));
+      if (p && p.url) x.acts.appendChild(extLink(p.url, "Open the job ↗"));
+      if (nr && nr.url) x.acts.appendChild(extLink(nr.url, "Open in Notion ↗"));
+      messagesInto(dsec(x.inner, "Conversation", "latest first"), room);
+      if (p) proposalSections(x.inner, p, nr);
+    };
+  }
+
+  // ---------- the header pills ----------
+  function plural(n, one, many) { return n + " " + (n === 1 ? one : (many || one + "s")); }
+  function goTo(id) { var t = $(id); if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }
+  function renderPills() { // a fixed set, always visible: what waits on me. Zero is grey, never hidden.
+    var host = $("pills"), mv = S.moveStats;
+    clear(host);
+    [[mv && mv.chats, "replies", "crit", "Client chats where the next message is yours"],
+     [mv && mv.late, "overdue", "crit", "Milestones past their due date"],
+     [mv && mv.invites + mv.offers, "invitations", "good", "Invitations and offers to answer"]].forEach(function (c) {
+      var b = el("button", "pl" + (c[0] ? " " + c[2] : "")); b.type = "button";
+      b.appendChild(el("b", "", mv ? String(c[0]) : "–")); b.appendChild(document.createTextNode(c[0] === 1 ? c[1].replace(/ies$/, "y").replace(/s$/, "") : c[1]));
+      b.title = c[3];
+      b.addEventListener("click", function () { goTo("move"); });
+      host.appendChild(b);
+    });
+  }
+  var soonTimer = null;
+  function renderSoon() { // several loaders finish close together; draw the summary once
+    if (soonTimer) return;
+    soonTimer = setTimeout(function () { soonTimer = null; renderMove(); renderPills(); }, 0);
   }
 
   function proposalRoom(p) { var r = S.prooms[p.id]; return r && r.room ? r.room : null; }
@@ -1031,17 +1448,19 @@
     if (!S.proposals) return;
     var now = Date.now();
     var groups = { waiting: [], discussing: [], closed: [] };
-    S.proposals.forEach(function (p) { var g = classify(p, now); if (g) groups[g].push(p); });
+    // Chats where it's my turn live in Your move; In talks keeps only the ones waiting on the client.
+    var owedP = 0;
+    S.proposals.forEach(function (p) { var g = classify(p, now); if (g === "discussing" && myTurn(proposalRoom(p))) { owedP++; return; } if (g) groups[g].push(p); });
     // A proposal chat whose proposal is not in the list (sent before the window): still a live discussion.
     var known = {};
     S.proposals.forEach(function (p) { var r = proposalRoom(p); if (r) known[r.id] = true; });
     var loose = (S.rooms || []).filter(function (r) {
-      return r.roomType === "INTERVIEW" && !r.contractId && !known[r.id] && hasChat(r) && now - roomAct(r) < LIVE_DAYS * DAY;
+      return r.roomType === "INTERVIEW" && !r.contractId && !known[r.id] && hasChat(r) && !myTurn(r) && !(r.numUnread > 0) && now - roomAct(r) < LIVE_DAYS * DAY;
     });
     $("cntPDiscussing").textContent = groups.discussing.length + loose.length;
     $("cntPWaiting").textContent = groups.waiting.length; $("cntPClosed").textContent = groups.closed.length;
-    var owed = groups.discussing.concat(loose).filter(function (x) { return myTurn(x.roomType ? x : proposalRoom(x)); }).length;
-    $("cntPDiscussing").className = "mono" + (owed ? " owed" : ""); $("cntPDiscussing").title = owed ? owed + " waiting on your reply" : "";
+    S.propStats = { sent: groups.waiting.length + groups.discussing.length + owedP, talks: groups.discussing.length + loose.length };
+    renderSoon();
     var list = groups[S.ptab].slice();
     if (S.ptab === "discussing") list = list.concat(loose.map(function (r) { return { _room: r }; }));
     var key = function (x) { return S.ptab === "discussing" ? roomAct(x._room || proposalRoom(x)) : S.ptab === "closed" ? (x.modified || x.created) : x.created; };
@@ -1050,10 +1469,11 @@
     var openIds = {}; host.querySelectorAll("details[open]").forEach(function (d) { openIds[d.dataset.id] = true; });
     clear(host);
     if (!list.length) {
-      host.appendChild(el("div", "empty", S.ptab === "discussing" ? "No chats in the last " + LIVE_DAYS + " days." : S.ptab === "waiting" ? "No proposals sent in the last " + LIVE_DAYS + " days without a reply." : "Nothing closed in the last " + LIVE_DAYS + " days."));
+      host.appendChild(el("div", "empty", S.ptab === "discussing" ? "No chats waiting on a client reply." :S.ptab === "waiting" ? "No proposals sent in the last " + LIVE_DAYS + " days without a reply." : "Nothing closed in the last " + LIVE_DAYS + " days."));
       return;
     }
-    list.forEach(function (x) { host.appendChild(x._room ? chatItem(x._room, now, openIds) : proposalItem(x, now, openIds)); });
+    list.forEach(function (x) { host.appendChild(x._room ? chatItem(x._room, now) : proposalItem(x, now)); });
+    afterList("appliedList");
   }
   function clientOf(room) { return room && room.roomName ? clean(room.roomName).split(",")[0].trim() : ""; }
   function turnSpan(room) {
@@ -1062,77 +1482,62 @@
   }
   function metaSep(m) { if (m.childNodes.length) m.appendChild(el("span", "sep", "·")); }
   // Row: #id title ........ when   /   client · state · terms
-  function proposalItem(p, now, openIds) {
-    var nr = S.appliedNotion[p.jobId] || S.leadsById[p.jobId];
-    var room = proposalRoom(p), tab = S.ptab;
-    var d = el("details", "item"); d.dataset.id = p.jobId;
-    if (tab === "closed") d.classList.add("weak");
-    if (tab === "discussing" && myTurn(room)) d.classList.add("turn");
-    var s = el("summary");
-    var t = el("div", "t-title");
-    t.appendChild(idBadge(p.jobId)); t.appendChild(document.createTextNode(" "));
-    t.appendChild(p.url ? extLink(p.url, p.title) : document.createTextNode(p.title));
-    s.appendChild(t);
+  function proposalItem(p, now) {
+    var room = proposalRoom(p), tab = S.ptab, chat = room && room.latestStory;
+    var key = "p-" + p.id;
+    var row = rowEl(key, tab === "closed" ? "weak" : "", function () { openDrawer(key, "appliedList", "Proposal", chat ? chatDrawer(room, p) : proposalDrawer(p)); });
+    var s = row.s;
+    var t = el("div", "t-title"); t.appendChild(titleWithId(p.jobId, p.title, p.url, "Open the job on Upwork")); s.appendChild(t);
     var right = tab === "discussing" && room ? "last message " + ago(now - roomAct(room)) + " ago"
       : tab === "closed" ? "closed " + ago(now - (p.modified || p.created)) + " ago"
       : "sent " + ago(now - p.created) + " ago";
-    var tr = el("span", "t-right", right); tr.title = "Sent " + new Date(p.created).toLocaleDateString("en-GB", { day: "numeric", month: "short" }); s.appendChild(tr);
+    var tr = el("span", "t-right", right); tr.title = "Sent " + new Date(p.created).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    s.appendChild(tr);
     var m = el("div", "t-meta");
     if (room && clientOf(room)) m.appendChild(el("span", "", clientOf(room)));
     if (p.closed) { metaSep(m); m.appendChild(el("span", "", p.statusLabel + (p.reason ? " — " + p.reason : ""))); }
-    else if (room && room.latestStory) { metaSep(m); var st = turnSpan(room); m.appendChild(st); }
+    else if (chat) { metaSep(m); m.appendChild(turnSpan(room)); }
     else { var rp = S.prooms[p.id]; if (rp && rp.err) { metaSep(m); m.appendChild(el("span", "", "Reply status unknown")); } else if (!rp) { metaSep(m); m.appendChild(el("span", "", "Checking replies…")); } }
     var extra = [];
     if (p.rate) extra.push(p.rate.replace(/\.0$/, ""));
     if (p.bid) extra.push("boosted " + p.bid + " cn");
     if (extra.length) { metaSep(m); m.appendChild(document.createTextNode(extra.join(" · "))); }
     s.appendChild(m);
-    d.appendChild(s);
-    var body = el("div", "body");
-    d.appendChild(body);
-    d.addEventListener("toggle", function () {
-      if (!d.open || d.dataset.loaded) return;
-      d.dataset.loaded = "1"; clear(body);
-      if (room && room.latestStory) body.appendChild(lastMessageBlock(room, now));
-      if (nr) { var notes = el("div"); body.appendChild(notes); loadNotesInto(d, notes, nr); }
-      else {
-        var nn = el("p", "muted", "This job has no card in Notion."); nn.style.marginTop = "10px"; body.appendChild(nn);
-        var l = el("div", "links"); if (p.url) l.appendChild(extLink(p.url, "Open on Upwork ↗")); body.appendChild(l);
-      }
-    });
-    if (openIds[p.jobId]) d.open = true;
-    return d;
+    return row.d;
   }
   // A proposal chat whose proposal is older than the window: the chat is what we have.
-  function chatItem(room, now, openIds) {
-    var d = el("details", "item"); d.dataset.id = room.id;
-    if (myTurn(room)) d.classList.add("turn");
-    var s = el("summary");
-    var t = el("div", "t-title");
-    t.appendChild(extLink(roomUrl(room.id), clientOf(room) || "Client chat"));
-    s.appendChild(t);
+  function chatItem(room, now) {
+    var key = "room-" + room.id;
+    var row = rowEl(key, "", function () { openDrawer(key, "appliedList", "Chat", chatDrawer(room, null)); }), s = row.s;
+    var t = el("div", "t-title"); t.appendChild(titleLink(roomUrl(room.id), clientOf(room) || "Client chat", "Open the thread on Upwork")); s.appendChild(t);
     s.appendChild(el("span", "t-right", "last message " + ago(now - roomAct(room)) + " ago"));
-    var m = el("div", "t-meta");
-    m.appendChild(turnSpan(room));
-    s.appendChild(m);
-    d.appendChild(s);
-    var body = el("div", "body");
-    body.appendChild(lastMessageBlock(room, now));
-    d.appendChild(body);
-    if (openIds[room.id]) d.open = true;
-    return d;
+    var m = el("div", "t-meta"); m.appendChild(turnSpan(room)); s.appendChild(m);
+    return row.d;
   }
-  function lastMessageBlock(room, now) {
-    var box = el("div", "last-msg");
-    var who = el("div", "who");
-    var text = clean(room.latestStory.message);
-    var mine = /^You:/.test(text) || room.last_message_from_self === true || room.awaiting_reply_from === "them";
-    who.appendChild(el("span", "", mine ? "You wrote" : (clientOf(room) || "Client") + " wrote"));
-    who.appendChild(el("span", "", ago(now - roomAct(room)) + " ago"));
-    box.appendChild(who);
-    box.appendChild(el("div", "clamp", text.replace(/^(You|[^:\n]{1,40}):\s*/, "")));
-    var l = el("div", "links"); l.style.marginTop = "6px"; l.appendChild(extLink(roomUrl(room.id), "Open thread ↗")); box.appendChild(l);
-    return box;
+  function proposalSections(host, p, nr) {
+    dsec(host, "Proposal").appendChild(factsBox([
+      ["Status", p.closed ? p.statusLabel + (p.reason ? " — " + p.reason : "") : "Open"],
+      ["Sent", p.created ? fmtWall(wallOf(p.created), true) + " (" + ago(Date.now() - p.created) + " ago)" : ""],
+      ["My rate", p.rate ? p.rate.replace(/\.0$/, "") : ""],
+      ["Boost", p.bid ? p.bid + " connects" : ""],
+      ["Job ID", p.jobId ? fullIdBadge(p.jobId) : ""]
+    ]));
+    if (nr) {
+      dsec(host, "Client vs me").appendChild(cmpTable(nr));
+      notesInto(dsec(host, "Notes", "from the Notion card"), nr);
+    } else dsec(host, "Notes").appendChild(el("div", "dr-empty", "This job has no card in Notion."));
+  }
+  function proposalDrawer(p) {
+    return function (body) {
+      var nr = S.appliedNotion[p.jobId] || S.leadsById[p.jobId];
+      var rp = S.prooms[p.id];
+      var state = p.closed ? el("span", "chip", p.statusLabel) : el("span", "chip", rp && rp.err ? "reply status unknown" : "no reply yet");
+      var x = drHead(body, ["Proposal", state, "sent " + ago(Date.now() - p.created) + " ago"], p.title, p.jobId);
+      if (p.url) x.acts.appendChild(extLink(p.url, "Open the job ↗", "pbtn"));
+      if (nr && nr.url) x.acts.appendChild(extLink(nr.url, "Open in Notion ↗"));
+      x.acts.appendChild(extLink("https://www.upwork.com/nx/proposals/" + encodeURIComponent(p.id), "Open the proposal ↗"));
+      proposalSections(x.inner, p, nr);
+    };
   }
   function setPTab(v) {
     S.ptab = v;
@@ -1143,7 +1548,7 @@
   $("tabPWaiting").addEventListener("click", function () { setPTab("waiting"); });
   // one-line rule on each tab, from the same constants the grouping uses
   $("tabPWaiting").title = "Sent in the last " + LIVE_DAYS + " days, no reply yet";
-  $("tabPDiscussing").title = "The client replied; a message in the last " + LIVE_DAYS + " days";
+  $("tabPDiscussing").title = "The client replied and the ball is on their side; a message in the last " + LIVE_DAYS + " days";
   $("tabPClosed").title = "Declined, archived or withdrawn in the last " + LIVE_DAYS + " days";
   $("tabPClosed").addEventListener("click", function () { setPTab("closed"); });
 
@@ -1173,7 +1578,7 @@
 
   function renderQuestions() {
     var line = $("notesLine"), box = $("questions"); clear(line);
-    var tail = " · Click an #id to copy it · click a row for notes";
+    var tail = " · Title opens Upwork · rest of the row opens details · click an #id to copy it";
     if (S.questionsErr && !S.questions) { line.appendChild(el("span", "chip bad", "Questions unavailable: " + errText(S.questionsErr, NOTION))); line.appendChild(document.createTextNode(tail)); box.hidden = true; return; }
     if (!S.questions) return;
     var n = S.questions.length;
@@ -1193,7 +1598,7 @@
     var all = el("div", "q muted"); all.appendChild(extLink(QUESTIONS_URL, "Open the questions database ↗")); box.appendChild(all);
   }
 
-  function renderAll() { renderBanner(); renderConnects(); renderBalance(); renderContracts(); renderThreads(); renderApplied(); renderLeads(); }
+  function renderAll() { renderConnects(); renderBalance(); renderContracts(); renderApplied(); renderLeads(); renderSoon(); }
 
   // ---------- data loading ----------
   var MCP = null, unsubs = [], milestoneWatch = {};
@@ -1297,16 +1702,16 @@
 
   function startUpwork() {
     watch(UPWORK, "upwork__get_freelancer_dashboard", { action: "check", org_uid: ORG },
-      function (p) { S.dash = (p && p.data) || p || {}; S.dashErr = null; renderBanner(); renderContracts(); watchMilestones(); },
+      function (p) { S.dash = (p && p.data) || p || {}; S.dashErr = null; renderContracts(); watchMilestones(); },
       function (err) { S.dashErr = err; if (isDenial(err)) S.dash = null; renderContracts(); });
     loadConnects();
     watch(UPWORK, "upwork__get_messages", { action: "list_rooms", org_uid: ORG, params: { limit: 40 } },
-      function (p) { S.rooms = ((p && p.data) || {}).rooms || []; S.roomsErr = null; renderThreads(); renderContracts(); renderApplied(); },
-      function (err) { S.roomsErr = err; if (isDenial(err)) S.rooms = null; renderThreads(); });
+      function (p) { S.rooms = ((p && p.data) || {}).rooms || []; S.roomsErr = null; renderContracts(); renderApplied(); },
+      function (err) { S.roomsErr = err; if (isDenial(err)) S.rooms = null; renderSoon(); });
     loadProposals();
     watch(UPWORK, "upwork__list_freelancer_proposals", { action: "invitations", org_uid: ORG, params: { status: "pending", limit: 10 } },
-      function (p) { S.invites = listOf((p && p.data) || p); renderBanner(); },
-      function (err) { if (isDenial(err)) S.invites = null; });
+      function (p) { S.invites = listOf((p && p.data) || p); renderSoon(); },
+      function (err) { if (isDenial(err)) S.invites = null; renderSoon(); });
     watch(UPWORK, "upwork__get_freelancer_financials", { action: "available_balance", org_uid: ORG },
       function (p) { S.balance = p || {}; S.balanceErr = null; renderBalance(); },
       function (err) { S.balanceErr = err; if (isDenial(err)) S.balance = null; renderBalance(); });
@@ -1426,22 +1831,31 @@
       ["List", "jobs posted in the last " + LIVE_LEAD_DAYS + " days, grouped by day, highest score first within a day."],
       ["Older", "jobs posted more than " + LIVE_LEAD_DAYS + " days ago, folded at the bottom; most are closed by now. Past " + OLD_LEAD_DAYS + " days the title is dimmed."],
       ["Green bar", "the card's score is at or above match_score from the Notion config" + (S.matchScore != null ? " (now " + S.matchScore + ")" : "") + "."],
-      ["", "Applied and Skip on a card change its status in Notion, and it leaves this list."]
+      ["", "Click a row for the details. Applied and Skip in the drawer change the card's status in Notion; the lead leaves this list and the drawer moves on to the next one."]
     ];
   });
   addInfo("hApplied", function () {
     return [
       ["", "Your proposals from Upwork. A proposal stays here while something happens on it; after " + LIVE_DAYS + " quiet days it drops off."],
-      ["Waiting", "sent, no reply from the client yet."],
-      ["Discussing", "the client replied. Chats where it's your turn go first, with a red bar."],
+      ["Sent", "sent, no reply from the client yet."],
+      ["In talks", "the client replied and the next message is theirs. When it's your turn the chat moves up to Your move."],
       ["Closed", "declined, archived or withdrawn."]
+    ];
+  });
+  addInfo("hMove", function () {
+    return [
+      ["", "Everything that waits on you, in one list. A proposal chat listed here is not repeated under Proposals."],
+      ["Red bar", "a client chat where the last message is theirs or unread (contract chats always, other chats for " + QUIET_DAYS + " days), or a contract with a milestone past its due date. A contract that needs you moves here from Contracts, card and all."],
+      ["Summary", "Claude reads the last 12 messages of each chat here and of each contract and writes where it stands and whose move it is; it is redone when a new message arrives."],
+      ["Green bar", "invitations and offers you haven't answered."],
+      ["Order", "offers, overdue milestones, chats waiting longest, then invitations."]
     ];
   });
   addInfo("hContracts", function () {
     return [
       ["", "Contracts Upwork lists as active on your freelancer dashboard."],
       ["Bar", "the milestones: green paid, teal in progress, amber submitted and waiting for the client's approval."],
-      ["Note", "Claude's summary of the last 12 messages in the contract's thread, redone when a new message arrives; ↻ re-summarize redoes it now."]
+      ["Drawer", "click a contract for its milestones, the conversation and Claude's summary of the last 12 messages (made when you open it, redone after a new message; ↻ re-summarize redoes it now)."]
     ];
   });
 
@@ -1469,8 +1883,9 @@
 
   function noLive(msg) {
     $("liveText").textContent = msg;
-    ["leadList", "contractList", "threadList", "appliedList"].forEach(function (id) { clear($(id)); $(id).appendChild(el("div", "note", msg)); });
-    ["connectsSub", "contractsSub", "balanceSub", "leadsSub"].forEach(function (id) { $(id).textContent = "unavailable"; });
+    ["leadList", "contractList", "moveList", "appliedList"].forEach(function (id) { clear($(id)); $(id).appendChild(el("div", "note", msg)); });
+    ["connectsSub", "balanceSub"].forEach(function (id) { $(id).textContent = "unavailable"; });
+
     $("refreshBtn").hidden = true;
   }
 
@@ -1479,7 +1894,7 @@
     if (!mcp) { noLive("Live data isn't available in this view — open the page in claude.ai."); return; }
     MCP = mcp;
     $("liveText").textContent = "Loading…";
-    window.claude.use("sample").then(function (fn) { SAMPLE = fn || false; renderContracts(); }, function () { SAMPLE = false; renderContracts(); });
+    window.claude.use("sample").then(function (fn) { SAMPLE = fn || false; renderContracts(); refreshDrawer(); }, function () { SAMPLE = false; renderContracts(); refreshDrawer(); });
     startUpwork();
     loadNotion();
   }, function () { noLive("Live data isn't available in this view."); });
