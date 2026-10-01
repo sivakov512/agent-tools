@@ -88,7 +88,7 @@ If a message does not trigger the skill, mention Upwork or the job's id, or star
 
 ### The dashboard
 
-`skills/upwork-pulse/assets/dashboard.html` — one page that reads Notion and Upwork through the viewer's own connectors (no server, no stored tokens). Setup fills in your view URLs, account and timezone and publishes it; the link goes into the config. Leads with the client's numbers against your estimate — highlighted green when the card's score reaches `match_score` from the config (the page reads it on every load, so a change applies at once) — Skip / Applied buttons, active contracts with thread summaries, proposals by state, connects spend, open questions.
+`skills/upwork-pulse/assets/dashboard.html` — one page that reads Notion and Upwork through the viewer's own connectors (no server, no stored tokens). Setup fills in your view URLs, account and timezone and publishes it; the link goes into the config. Leads with the client's numbers against your estimate — highlighted green when the card's score reaches `match_score` from the config (the page reads it on every load, so a change applies at once) — Skip / Applied buttons, active contracts with thread summaries, proposals (Waiting — no reply yet; Discussing — the client replied, your turn first; Closed — anything quiet for 14 days drops off), connects spend, open questions. An ⓘ next to each section says how its list is built.
 
 ## Model
 
