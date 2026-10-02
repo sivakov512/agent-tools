@@ -136,7 +136,7 @@ upwork-pulse/
     └── assets/dashboard.html     the dashboard template
 ```
 
-To change behaviour, edit `SKILL.md` or the reference for that mode, bump `version` in `plugin.json`, push.
+To change behaviour, edit `SKILL.md` or the reference for that mode, push; release-please bumps `version` in `plugin.json`.
 
 ## Limits
 

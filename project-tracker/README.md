@@ -173,7 +173,7 @@ project-tracker/
         └── dashboard.md          what the dashboard is for; publishing and updating it
 ```
 
-To change behaviour, edit `SKILL.md` or the reference for that scenario, bump `version` in `plugin.json`, push.
+To change behaviour, edit `SKILL.md` or the reference for that scenario, push; release-please bumps `version` in `plugin.json`.
 
 ## Limits
 
