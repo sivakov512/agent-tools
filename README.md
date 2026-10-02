@@ -43,10 +43,12 @@ Skills do not hardcode workspace IDs. Each skill finds its Notion root page by a
 
 ## Updating
 
-Edit the skill, bump `version` in the plugin's `plugin.json` (semver), push. Claude Code and Cowork pick it up on `/plugin update`; chat needs a re-upload; a Codex symlink picks it up on `git pull`.
+Edit the skill and push with a conventional commit; the version is not bumped by hand. Claude Code and Cowork pick a release up on `/plugin update`; chat needs a re-upload; a Codex symlink picks it up on `git pull`.
+
+Releases are cut by [release-please](https://github.com/googleapis/release-please), one independent version per plugin. Every push to `master` updates a standing release PR for each plugin that changed, with the next version and changelog; merging it bumps `version` in that plugin's `plugin.json`, writes its `CHANGELOG.md` and tags `<plugin>-vX.Y.Z`. A commit counts for the plugin whose files it touches, whatever its scope. The subject is `type: short imperative subject` (`feat: offer the dashboard when there is none`): `feat` bumps minor, `fix` bumps patch (while the version is below 1.0, a breaking `!` bumps minor too), and `docs`, `test`, `ci`, `chore` stay out of the version math. Config lives in `.release-please/`.
 
 Dashboards: each `assets/dashboard.html` starts with `<!-- dashboard-version: N -->`. When a change to the page is worth republishing, bump N and add a line to the skill's Versions list; the skill then offers the update to everyone whose published dashboard is older, in their next conversation with it. The two dashboards share one look — change the shared parts in both.
 
 ## Adding a plugin
 
-New folder `<plugin>/` with `README.md`, `.claude-plugin/plugin.json` and `skills/<skill>/SKILL.md` (optionally `commands/`, `.mcp.json`, `agents/`); add it to `marketplace.json` and to the table above.
+New folder `<plugin>/` with `README.md`, `.claude-plugin/plugin.json` and `skills/<skill>/SKILL.md` (optionally `commands/`, `.mcp.json`, `agents/`); add it to `marketplace.json` and to the table above, and to `packages` in `.release-please/config.json` and `.release-please/manifest.json` (same shape as the existing entries, starting at `0.0.0`).
