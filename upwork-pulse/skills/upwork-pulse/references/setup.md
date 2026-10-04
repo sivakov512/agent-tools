@@ -151,7 +151,7 @@ Lines inside the toggle are indented with a tab (unindented lines fall outside i
 
 ## 7. Dashboard
 
-The dashboard is a single HTML page (`assets/dashboard.html`) that reads Notion and Upwork with the viewer's own connectors. It has no server side: it runs only where a page can call the user's connectors — on claude.ai it is published as an artifact with the `mcp` capability (Notion: `notion-query-data-sources`, `notion-fetch`, `notion-update-page`; Upwork: `upwork__get_freelancer_dashboard`, `upwork__get_freelancer_financials`, `upwork__get_messages`, `upwork__list_freelancer_proposals`, `upwork__list_milestones`; Claude Code Remote: `fire_trigger`, for the Rewrite button that starts the drafts task) and `sample` for the thread summaries.
+The dashboard is a single HTML page (`assets/dashboard.html`) that reads Notion and Upwork with the viewer's own connectors. It has no server side: it runs only where a page can call the user's connectors — on claude.ai it is published as an artifact with the `mcp` capability (Notion: `notion-query-data-sources`, `notion-fetch`, `notion-update-page`, `notion-create-pages` — the Write a proposal button records the request as a Proposals row; Upwork: `upwork__get_freelancer_dashboard`, `upwork__get_freelancer_financials`, `upwork__get_messages`, `upwork__list_freelancer_proposals`, `upwork__list_milestones`; Claude Code Remote: `fire_trigger`, for the Rewrite button that starts the drafts task) and `sample` for the thread summaries.
 
 What is on it, 1180px wide, one screen on a laptop:
 
@@ -180,6 +180,7 @@ The asset's first line carries its version; SKILL.md (*Dashboard updates*) compa
 - **2** — one Your move list with Claude's summary on every chat and contract, header pills instead of banners, each contract shown once, a details drawer for every row (titles open Upwork), the same look as the project-tracker dashboard.
 - **3** — proposal drafts: Claude's advice and a ready-to-paste draft in the lead's drawer (copy icon on every value, Rewrite), a "Proposal ready" mark and an "Only drafts" filter, a Skipped tab with who skipped and why and Restore, Settings with the auto drafts / auto skip switches.
 - **4** — built on the Proposals database: every number on a lead comes from its own column, the proposal is a Proposals row (rate and connects as columns, the text in fixed sections), a proposal's drawer shows its job and what was sent, with Notion links; a skip needs no reason; Facts show when the proposal was written and sent and when the job was decided; a proposal whose writing stopped shows as Not written instead of Writing… forever. Needs `schema: 3`.
+- **5** — Write a proposal / Rewrite records the request in Proposals (the job's row set to Writing, created if needed), so the drafts task always knows which job to write; needs `notion-create-pages` in the page's Notion tools.
 
 ## 8. Scheduled tasks
 
