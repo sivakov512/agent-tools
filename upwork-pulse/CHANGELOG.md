@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.4.0...upwork-pulse-v0.5.0) (2026-10-04)
+
+
+### Features
+
+* **upwork-pulse:** show sent proposals at once ([4dfaa1c](https://github.com/sivakov512/agent-tools/commit/4dfaa1c1e689ca7392cb0e24324b02b61133f8f3))
+
 ## [0.4.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.3.1...upwork-pulse-v0.4.0) (2026-10-04)
 
 
