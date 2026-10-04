@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.3.0...upwork-pulse-v0.3.1) (2026-10-04)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** take the job from the task payload ([0569fe6](https://github.com/sivakov512/agent-tools/commit/0569fe69996dba98d4945c99abcce8ba9e299a0c))
+
 ## [0.3.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.2.2...upwork-pulse-v0.3.0) (2026-10-04)
 
 
