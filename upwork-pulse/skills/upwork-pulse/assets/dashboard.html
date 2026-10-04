@@ -1686,7 +1686,7 @@
 
   // ---------- Your move: everything that waits on me, one list ----------
   // Sources: chats where it's my turn (contract, proposal or plain), invitations and offers, overdue milestones.
-  // A proposal chat listed here is left out of Proposals → In talks, so nothing shows twice.
+  // A proposal chat listed here also stays in Proposals → In talks, marked Your turn.
   function proposalByRoom() {
     var m = {}; (S.proposals || []).forEach(function (p) { var r = proposalRoom(p); if (r) m[r.id] = p; }); return m;
   }
@@ -1848,14 +1848,13 @@
     if (!S.proposals) return;
     var now = Date.now();
     var groups = { waiting: [], discussing: [], closed: [] };
-    // Chats where it's my turn live in Your move; In talks keeps only the ones waiting on the client.
-    var owedP = 0;
-    S.proposals.forEach(function (p) { var g = classify(p, now); if (g === "discussing" && myTurn(proposalRoom(p))) { owedP++; return; } if (g) groups[g].push(p); });
+    // In talks: every proposal with a live chat, newest message first; whose turn it is shows on the row (Your move is where attention goes)
+    S.proposals.forEach(function (p) { var g = classify(p, now); if (g) groups[g].push(p); });
     // A proposal chat whose proposal is not in the list (sent before the window): still a live discussion.
     var known = {};
     S.proposals.forEach(function (p) { var r = proposalRoom(p); if (r) known[r.id] = true; });
     var loose = (S.rooms || []).filter(function (r) {
-      return r.roomType === "INTERVIEW" && !r.contractId && !known[r.id] && hasChat(r) && !myTurn(r) && !(r.numUnread > 0) && now - roomAct(r) < LIVE_DAYS * DAY;
+      return r.roomType === "INTERVIEW" && !r.contractId && !known[r.id] && hasChat(r) && now - roomAct(r) < LIVE_DAYS * DAY;
     });
     $("cntPDiscussing").textContent = groups.discussing.length + loose.length;
     $("cntPWaiting").textContent = groups.waiting.length; $("cntPClosed").textContent = groups.closed.length;
@@ -1863,11 +1862,10 @@
     var list = groups[S.ptab].slice();
     if (S.ptab === "discussing") list = list.concat(loose.map(function (r) { return { _room: r }; }));
     var key = function (x) { return S.ptab === "discussing" ? roomAct(x._room || proposalRoom(x)) : S.ptab === "closed" ? (x.modified || x.created) : x.created; };
-    var owes = function (x) { return S.ptab === "discussing" && myTurn(x._room || proposalRoom(x)) ? 1 : 0; };
-    list.sort(function (a, b) { return (owes(b) - owes(a)) || (key(b) - key(a)); });
+    list.sort(function (a, b) { return key(b) - key(a); });
     clear(host);
     if (!list.length) {
-      host.appendChild(el("div", "empty", S.ptab === "discussing" ? "No chats waiting on a client reply." :S.ptab === "waiting" ? "No proposals sent in the last " + LIVE_DAYS + " days without a reply." : "Nothing closed in the last " + LIVE_DAYS + " days."));
+      host.appendChild(el("div", "empty", S.ptab === "discussing" ? "No proposal chats in the last " + LIVE_DAYS + " days." :S.ptab === "waiting" ? "No proposals sent in the last " + LIVE_DAYS + " days without a reply." : "Nothing closed in the last " + LIVE_DAYS + " days."));
       return;
     }
     list.forEach(function (x) { host.appendChild(x._room ? chatItem(x._room, now) : proposalItem(x, now)); });
@@ -1925,11 +1923,34 @@
     var fs = el("div", "dfs"), sw = sr ? wallFromNotion(sr["date:Sent on:start"]) : null;
     dsec(host, "What you sent", sr ? (sw ? "sent " + fmtWall(sw, true) : "") : "").appendChild(fs);
     if (sr) proposalInto(fs, sr, true);
-    else fs.appendChild(el("div", "dr-empty", S.cfg.schema >= SCHEMA ? "Not in Proposals yet — the next digest syncs it, or ask Claude to \u201csync proposals\u201d." : "Proposals are kept in Notion after the pipeline update."));
+    else upworkSentInto(fs, p);
     if (nr) {
       var cv = dsec(host, "Client vs me"); cv.appendChild(cmpTable(nr));
       notesInto(dsec(host, "About the job"), nr);
     } else dsec(host, "About the job").appendChild(el("div", "dr-empty", "This job has no card in Notion yet; the proposals sync adds one."));
+  }
+  // What was sent, read from Upwork while Notion has no copy yet: the same blocks as a Proposals row, minus milestones (Upwork does not return them)
+  function upworkSentInto(fs, p) {
+    fs.appendChild(el("div", "dr-empty", "Loading what you sent from Upwork…"));
+    MCP.callTool(UPWORK, "upwork__list_freelancer_proposals", { action: "get", org_uid: ORG, params: { proposal_id: p.id } }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
+      var pl = payloadOf(res) || {}, vp = (pl.data || {}).vendorProposal || {}, t = vp.terms || {};
+      clear(fs);
+      fs.appendChild(el("div", "dr-empty", S.cfg.schema >= SCHEMA ? "From Upwork \u2014 saved to Notion with the next digest." : "From Upwork."));
+      var rate = num((t.chargeRate || {}).rawValue);
+      if (rate != null) { var d = el("div", "df"); d.appendChild(el("div", "k", "Rate sent")); var b = el("div", "v big-v", p.rate ? p.rate.replace(/\.0$/, "") : usd(rate)); b.appendChild(cpIcon(String(rate), "the rate")); d.appendChild(b); fs.appendChild(d); }
+      var cl = clean(vp.proposalCoverLetter);
+      if (cl) { var c = el("div", "df"), k = el("div", "k", "Cover letter"); k.appendChild(cpIcon(cl, "the cover letter")); c.appendChild(k); c.appendChild(el("div", "letter", cl)); fs.appendChild(c); }
+      var qa = vp.questionsAnswers || [];
+      if (qa.length) {
+        var q = el("div", "df"); q.appendChild(el("div", "k", "Screening questions")); var qb = el("div", "qa");
+        qa.forEach(function (x, i) { var it = el("div"), ans = clean(x.answer); it.appendChild(el("div", "q", (i + 1) + ". " + clean(x.question))); var a = el("div", "a", ans); a.appendChild(cpIcon(ans, "answer " + (i + 1))); it.appendChild(a); qb.appendChild(it); });
+        q.appendChild(qb); fs.appendChild(q);
+      }
+      var files = (pl.attachments || []).map(function (f) { return f && f.fileName; }).filter(Boolean);
+      if (files.length) { var f = el("div", "df"); f.appendChild(el("div", "k", "Attach")); var ul = el("ul"); files.forEach(function (n) { ul.appendChild(el("li", "", n)); }); var pv = el("div", "plain-v"); pv.appendChild(ul); f.appendChild(pv); fs.appendChild(f); }
+      if (vp.boosted && t.connectsBid) { var bo = el("div", "df"); bo.appendChild(el("div", "k", "Boost")); var bp = el("div", "plain-v"); bp.appendChild(el("p", "", t.connectsBid + " connects")); bo.appendChild(bp); fs.appendChild(bo); }
+      if (!cl && !qa.length && !files.length) fs.appendChild(el("div", "dr-empty", "Upwork returned no text for this proposal."));
+    }, function (err) { clear(fs); fs.appendChild(el("div", "err", errText(err, UPWORK))); });
   }
   function proposalLinks(x, p, nr, sr) {
     if (p.url) x.acts.appendChild(navLink(p.url, "Upwork job"));
@@ -1956,7 +1977,7 @@
   $("tabPWaiting").addEventListener("click", function () { setPTab("waiting"); });
   // one-line rule on each tab, from the same constants the grouping uses
   $("tabPWaiting").title = "Sent in the last " + LIVE_DAYS + " days, no reply yet";
-  $("tabPDiscussing").title = "The client replied and the ball is on their side; a message in the last " + LIVE_DAYS + " days";
+  $("tabPDiscussing").title = "The client replied; a message in the last " + LIVE_DAYS + " days, newest first";
   $("tabPClosed").title = "Declined, archived or withdrawn in the last " + LIVE_DAYS + " days";
   $("tabPClosed").addEventListener("click", function () { setPTab("closed"); });
 
@@ -2300,14 +2321,14 @@
     return [
       ["", "Your proposals from Upwork. A proposal stays here while something happens on it; after " + LIVE_DAYS + " quiet days it drops off."],
       ["Sent", "sent, no reply from the client yet."],
-      ["In talks", "the client replied and the next message is theirs. When it's your turn the chat moves up to Your move."],
+      ["In talks", "the client replied; newest message first. A chat where the next message is yours is marked Your turn and is in Your move as well."],
       ["Closed", "declined, archived or withdrawn."],
       ["Drawer", "the proposal's terms, What you sent — the copy kept in Notion's Proposals, synced from Upwork by the digests — and the job it was for."]
     ];
   });
   addInfo("hMove", function () {
     return [
-      ["", "Everything that waits on you, in one list. A proposal chat listed here is not repeated under Proposals."],
+      ["", "Everything that waits on you, in one list. A proposal chat listed here is also under Proposals → In talks."],
       ["Red bar", "a client chat where the last message is theirs or unread (contract chats always, other chats for " + QUIET_DAYS + " days), or a contract with a milestone past its due date. A contract that needs you moves here from Contracts, card and all."],
       ["Summary", "Claude reads the last 12 messages of each chat here and of each contract and writes where it stands and whose move it is; it is redone when a new message arrives."],
       ["Green bar", "invitations and offers you haven't answered."],
