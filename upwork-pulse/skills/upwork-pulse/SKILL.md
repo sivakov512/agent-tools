@@ -54,6 +54,12 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 
 Card `Status` is written by several actors: the hourly run creates cards as New; the proposals sync (digests, or on command) sets Applied when a proposal for the job shows up on Upwork, and writes what was sent into Proposals; the user, the dashboard and chat set Applied, Skipped or back to New; drafts mode sets Skipped only as the hourly run's subagent with `auto_skip: on`. Digests and the dashboard's lead lists show only New. A Skipped card is never re-evaluated or duplicated when the same job turns up again.
 
+**One fact, one place, the latest read.** The card is the job as last seen and your latest estimate of it; the Proposals row is your offer. So:
+- **The job's facts** (terms, competition, client — the columns above) live on the card. A mode that reads the job fresh (`find_jobs` `get`: drafts, a chat look or proposal) writes what changed back to those columns in one `update_properties` — the dashboard and the digests then show today's numbers, not the ones from the hour it was found.
+- **Your estimate** (`Complexity`, `My hours`, `My $`, and the body's **Estimate** section, which says the same in words) lives on the card. A mode that estimates again (drafts mode, a chat proposal) writes its numbers there too — columns, and `update_content` on the Estimate section only.
+- **The offer** — `Rate`, `Connects` paid, `Boost` — lives on the Proposals row only. It usually equals the estimate; when it differs (the user changed the price), the row is what goes out, and the dashboard shows the row's `Rate` as your price.
+- `Verdict`, `Score` and `Score why` stay as written when the card was made: the ranking is a record of how the job looked when found, not a live number. `Title`, `Job ID`, `Link` and `Payment` on a Proposals row are its labels (a sent proposal may have no card), never edited apart from the card.
+
 **Every status change carries when, every skip who**: Applied or Skipped sets `Decided on` (now; the sync uses the proposal's send time). A skip also gets `Skipped by` — manual: the user did it, by a button or by asking in chat; auto: drafts mode did it with nobody involved — and `Skip reason`, one line in `language`: an auto skip always has one (the advice); a manual one has the user's reason when they gave one, else stays empty — the user may skip just because. Putting a card back to New clears all three.
 
 ## Rules that protect the user
