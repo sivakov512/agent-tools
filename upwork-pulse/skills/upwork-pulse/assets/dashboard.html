@@ -1,4 +1,4 @@
-<!-- dashboard-version: 4 -->
+<!-- dashboard-version: 5 -->
 <title>Upwork Pulse</title>
 <style>
   :root {
@@ -1223,7 +1223,7 @@
   }
 
   // ---------- proposals: a row in Proposals per job, every value copyable ----------
-  function canDraft() { return S.cfg.schema >= SCHEMA && !!S.cfg.drafts_task; }
+  function canDraft() { return S.cfg.schema >= SCHEMA && !!S.cfg.drafts_task && !!S.cfg.proposals; }
   // Notion turns file names like "clip.mp4" into links and returns escaped markdown; a draft is plain text.
   function plain(s) { return unesc(String(s == null ? "" : s).replace(/<br\s*\/?>/gi, "\n")).replace(/\\([\\"<{}.!+])/g, "$1").replace(/\[([^\]]+)\]\((?:https?:)?\/\/[^)\s]+\)/g, "$1").trim(); }
   // A proposal's page has fixed sections (references/drafts.md §4); the dashboard shows them as written and only
@@ -1328,7 +1328,11 @@
     if (!MCP || !canDraft()) return;
     var id = r["Job ID"], pr = openProp(r), pid = pr ? pageIdOf(pr.url) : null;
     var label = btn.textContent, prev = pr ? pr.State : null; btn.disabled = true; btn.textContent = "Starting…";
-    var mark = pid ? MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { State: "Writing", "date:Written:start": new Date().toISOString(), "date:Written:is_datetime": 1 } }, { cache: false }) : Promise.resolve();
+    // the request lives in Notion: the task reads Writing rows from Proposals (references/drafts.md §1), so a job without a row gets one
+    var now = new Date().toISOString(), made = null;
+    var mark = pid ? MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { State: "Writing", "date:Written:start": now, "date:Written:is_datetime": 1 } }, { cache: false })
+      : MCP.callTool(NOTION, "notion-create-pages", { parent: { data_source_id: S.cfg.proposals }, pages: [{ properties: { Title: r.Title || shortId(id), Job: [r.url], "Job ID": id, Link: r.Link || null, State: "Writing", "date:Written:start": now, "date:Written:is_datetime": 1 } }], allow_async: false }, { cache: false })
+          .then(function (res) { var pg = res && res.payload && res.payload.pages && res.payload.pages[0]; made = pg ? pg.id : null; });
     mark.then(function () { return MCP.callTool(REMOTE, "fire_trigger", { trigger_id: S.cfg.drafts_task, text: "jobs: " + id }, { cache: false }); })
       .then(function () {
         if (pr) { pr.State = "Writing"; pr["date:Written:start"] = new Date().toISOString(); } S.writing[id] = Date.now();
@@ -1337,6 +1341,7 @@
       }, function (err) {
         btn.disabled = false; btn.textContent = label;
         if (pid) MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { State: prev, "date:Written:start": pr["date:Written:start"] || null } }, { cache: false }).catch(function () {});
+        if (made) MCP.callTool(NOTION, "notion-update-page", { page_id: made, command: "update_properties", properties: { State: null } }, { cache: false }).catch(function () {});
         toast("Couldn't start writing: " + errText(err, REMOTE));
       });
   }
@@ -2037,7 +2042,7 @@
       S.matchScore = m ? +m[1] : null;
       var key = function (k) { var x = new RegExp("\\b" + k + ":\\s*`([^`]*)`").exec(txt || ""); return x ? x[1].trim() : null; };
       S.cfgText = txt || "";
-      S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide") };
+      S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide"), proposals: key("proposals") };
       renderSettings(); checkGuide();
     }, function () { S.matchScore = null; renderSettings(); });
   }
