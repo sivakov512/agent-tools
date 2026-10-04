@@ -94,7 +94,7 @@ After the log and the watermark, so a failure here never loses a card or a windo
 
 Only with `auto_drafts: on`, and only when this run wrote at least one card or `jobs_inbox` shows a New card posted in the last 5 days without `Advice` (left by an earlier run, or found while drafts were off) — one read of `jobs_inbox` tells. Start a subagent with the Agent tool, `model: "opus"`, and this task: "Use the upwork-pulse skill in drafts mode on <root URL> for the cards <card URLs written by this run, if any>. You are the hourly run's subagent: write to Notion, no message, no push; return one line per card." Wait for it. Its lines tell you which cards got Apply and which were auto-skipped. If the Agent tool is missing or the subagent fails, leave the cards as they are and go on: drafts mode also picks up New cards left without advice by an earlier run, up to 5 per run.
 
-**Dashboard check**, every run, last before the message: `dashboard_version` in the config below N on the first line of `assets/dashboard.html`, and an Artifact tool in this session → republish the dashboard as SKILL.md → *Dashboard updates* says. It adds nothing to the message; a failed publish is left for the next run.
+**Dashboard check**, every run, last before the message: a `dashboard` line in the config, its `dashboard_version` below N on the first line of `assets/dashboard.html`, and an Artifact tool in this session → republish the dashboard as SKILL.md → *Dashboard updates* says. It adds nothing to the message; a failed publish is left for the next run.
 
 ## 9. The message
 
