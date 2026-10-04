@@ -8,4 +8,8 @@ append_system_prompt: 'The current date and time is Friday 9 October 2026, 14:05
 ---
 Use the upwork-pulse skill in drafts mode on https://app.notion.com/p/10000000000040008000000000000001. Scheduled run; the jobs come with the run.
 
+<routine-fire-payload>
+```
 jobs: 2101000000000000105
+```
+</routine-fire-payload>
