@@ -44,7 +44,7 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 	auto_drafts: `on`
 	auto_skip: `on`
 	drafts_task: `trig_01MockDraftsTask0000001`
-	schema: `4`
+	schema: `5`
 	dashboard_version: `4`
 </callout>
 <page url="https://app.notion.com/p/10000000000040008000000000000002">Search rules</page>
@@ -144,7 +144,7 @@ Fetching a database URL lists its data source with the schema and its views as `
 - Questions `4000…0003` — data source `2000…0003`; view `…0005` "Open" (Status = Open).
 
 Schemas:
-- Jobs: Title (title), Job ID (text), Link (url), Published (date), Found (date), Run (relation → Runs), Payment (Fixed / Hourly), Budget, Rate min, Rate max (numbers, dollars), Duration (select: Less than 1 week / Less than 1 month / 1 to 3 months / 3 to 6 months / More than 6 months), Connects, Proposals, Invites, Interviewing, Bid low, Bid high (numbers), Country (text), Verified (checkbox), Hires, Spent, Rating (numbers), Verdict (Take / Maybe), Score (number), Score why (text), Complexity (Low / Medium / High), My hours, My $ (numbers), Flags (multi-select: no client history, unfamiliar chip, budget mismatch, mandatory calls, timezone lock, partially hired, full-time), Advice (Apply / Skip), Advice why (text), Advised on (date), Status (New / Applied / Skipped), Decided on (date), Skipped by (manual / auto), Skip reason (text), Proposal (relation → Proposals, the other side of Proposals' Job).
+- Jobs: Title (title), Job ID (text), Link (url), Published (date), Found (date), Run (relation → Runs), Payment (Fixed / Hourly), Budget, Rate min, Rate max (numbers, dollars), Duration (select: Less than 1 week / Less than 1 month / 1 to 3 months / 3 to 6 months / More than 6 months), Connects, Proposals, Invites, Interviewing, Bid low, Bid high (numbers), Country (text), Verified (checkbox), Hires, Spent, Rating (numbers), Verdict (Take / Maybe), Score (number), Score why (text), Complexity (Low / Medium / High), My hours, My $ (numbers), Flags (multi-select: no client history, unfamiliar chip, budget mismatch, mandatory calls, timezone lock, partially hired, full-time), Advice (Apply / Skip), Advice why (text), Advised on (date), Status (New / Applied / Skipped), Decided on (date), Skipped by (manual / auto), Skip reason (text), Proposal (relation → Proposals, the other side of Proposals' Job), Chat (url).
 - Proposals: Title (title), Job (relation → Jobs), Job ID (text), State (Writing / Ready; empty once sent), Written (date), Proposal ID (text; set once sent), Boost (number). No price, connects or send date: those are the Jobs card's (`My $`, `Connects`, `Decided on`).
 - Runs: Run (title), Status (ok / empty / partial), Scanned, Title pass, Detailed, Take, Maybe (numbers), Budget hit (checkbox), Tool calls (number), Window (text).
 - Questions: Question (title), Job IDs (text), Seen (number), Status (Open / Resolved), First seen (date), Decision (text).

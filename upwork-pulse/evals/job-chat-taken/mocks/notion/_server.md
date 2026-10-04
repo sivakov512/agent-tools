@@ -41,8 +41,8 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 	upwork_org: `99001`
 	dashboard: `https://claude.ai/artifact/mockdash`
 	jobs_skipped: `https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000006`
-	auto_drafts: `on`
-	auto_skip: `on`
+	auto_drafts: `off`
+	auto_skip: `off`
 	drafts_task: `trig_01MockDraftsTask0000001`
 	schema: `5`
 	dashboard_version: `4`
@@ -154,7 +154,7 @@ A view is queried with `data: {mode: "view", view_url: "…"}` and returns `{"re
 ## Rows
 
 Jobs:
-- `30000000-0000-4000-8000-000000000101` — Title "Custom ESP32 sensor board — schematic and layout"; Job ID `2101000000000000101`; Link https://www.upwork.com/jobs/~022101000000000000101; Published 2026-10-09T06:50:00Z; Found 2026-10-09T07:30:00Z; Verdict Take; Status New; Payment Hourly; Rate min 40; Rate max 60; Duration "1 to 3 months"; Connects 16; Proposals 5; Invites 0; Interviewing 0; Bid low 30; Bid high 55; Country "USA"; Verified yes; Hires 6; Spent 8200; Rating 4.9; My $ 50; My hours 40; Complexity Medium; Flags []; Score 6; Score why "6 hires +2 · rating 4.9 +1 · spent $8,200 +1 · 5 proposals +1 · range covers ask +1". Body:
+- `30000000-0000-4000-8000-000000000101` — Title "Custom ESP32 sensor board — schematic and layout"; Job ID `2101000000000000101`; Link https://www.upwork.com/jobs/~022101000000000000101; Published 2026-10-09T06:50:00Z; Found 2026-10-09T07:30:00Z; Verdict Take; Status New; Payment Hourly; Rate min 40; Rate max 60; Duration "1 to 3 months"; Connects 16; Proposals 5; Invites 0; Interviewing 0; Bid low 30; Bid high 55; Country "USA"; Verified yes; Hires 6; Spent 8200; Rating 4.9; My $ 50; My hours 40; Complexity Medium; Flags []; Score 6; Score why "6 hires +2 · rating 4.9 +1 · spent $8,200 +1 · 5 proposals +1 · range covers ask +1"; Chat "https://claude.ai/code/session_01OtherJobChat". Body:
   ```
   ## What's needed
   A four-layer sensor board around an ESP32-WROOM with a BME280 and a LiPo charger; the client has a working breadboard and wants a fab-ready design. The difficulty is the battery life target of six months.
@@ -169,7 +169,6 @@ Jobs:
   ```
 - `3000…0102` — "Firmware for a BLE beacon"; Job ID `2101000000000000102`; Found 2026-10-09T08:15:00Z; Verdict Take; Status Applied; Decided on 2026-10-09T08:30:00Z; Hourly; Rate min 45; Rate max 45; My $ 50; My hours 12; Complexity Low; Connects 10; Proposals 8; Proposal → `3000…0402`.
 - `3000…0103` — "STM32 motor controller review"; Job ID `2101000000000000103`; Found 2026-10-09T08:40:00Z; Verdict Maybe; Status Skipped; Fixed; Budget 300; My $ 400; My hours 8; Complexity Medium; Flags ["unfamiliar chip"]; Connects 8; Proposals 15; Skipped by manual; Skip reason "STM32 is outside my stack and $300 is below the work"; Decided on 2026-10-09T09:00:00Z.
-- `3000…0105` — "Zephyr firmware for a smart lock (nRF52840)"; Job ID `2101000000000000105`; Link https://www.upwork.com/jobs/~022101000000000000105; Found 2026-10-09T10:20:00Z; Verdict Take; Status New; Hourly; Rate min 45; Rate max 65; My $ 50; My hours 30; Complexity Medium; Flags []; Country "Canada"; Verified yes; Hires 3; Spent 2100; Proposals 2; Connects 12. Body: the five headings with one line each.
 - `3000…0104` — "LoRa gateway PCB (rigid-flex)"; Job ID `2101000000000000104`; Found 2026-10-08T21:10:00Z; Verdict Maybe; Status New; Fixed; Budget 1500; Duration "1 to 3 months"; My $ 1600; My hours 32; Complexity High; Flags ["no client history"]; Country "Germany"; Verified yes; Hires 0; Proposals 3; Connects 14; Invites 0. Body: the same five headings with one line each.
 
 Proposals: `3000…0402` — Title "Firmware for a BLE beacon"; Job → `3000…0102`; Job ID `2101000000000000102`; State empty; Written 2026-10-09T08:30:00Z; Proposal ID `pr-7690`. Body: `## Cover letter` and the letter as sent.
@@ -180,9 +179,9 @@ Questions: `3000…0301` — Question "Feasibility study with analog or optical 
 
 ## What each read returns (strict)
 
-- Jobs "Inbox" (view …0001): cards 0105, 0101 and 0104 (Status New), in that order.
-- Jobs "Applied" (…0002): 0102 only. Jobs "All" (…0003): 0105, 0101, 0102, 0103, 0104. Jobs "Skipped" (…0006): 0103 only.
-- Cards 0105, 0101 and 0104 have Advice and the skip columns empty, and no Proposal.
+- Jobs "Inbox" (view …0001): cards 0101 and 0104 only (Status New), 0101 first.
+- Jobs "Applied" (…0002): 0102 only. Jobs "All" (…0003): 0101, 0102, 0103, 0104. Jobs "Skipped" (…0006): 0103 only.
+- Cards 0101 and 0104 have Advice and the skip columns empty, and no Proposal.
 - Proposals "Open" (…0007): empty. Proposals "Sent" (…0008): 0402 only.
 - Runs "Latest" (…0004): 0201.
 - Questions "Open" (…0005): 0301.
