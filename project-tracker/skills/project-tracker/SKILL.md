@@ -147,10 +147,10 @@ If the config has a `dashboard` line, end with its link: the same picture, live.
 
 ## Dashboard updates
 
-The first line of `assets/dashboard.html` is `<!-- dashboard-version: N -->`. The config's `dashboard_version` is the version the user's dashboard was last published from (no line = 1). In a conversation with the user — never in a scheduled or unattended run — answer what was asked first; then, once per conversation and only if `dashboard_skip` is not N, end with one short line in the user's language:
+The first line of `assets/dashboard.html` is `<!-- dashboard-version: N -->`, where N is the plugin's version (`x.y.z`) — the release stamps it on every release, so N is never edited by hand. The config's `dashboard_version` is the version the user's dashboard was last published from (no line = 1; a whole number, from before versions followed the plugin, is older than any `x.y.z`). In a conversation with the user — never in a scheduled or unattended run — answer what was asked first; then, once per conversation and only if `dashboard_skip` is not N, end with one short line in the user's language:
 
 - **The config has no `dashboard` line** (set up before the dashboard existed, or the user removed it): what the dashboard is, in a few words, and whether to publish it now. Yes → publish it as `references/dashboard.md` → Publish says.
-- **Its `dashboard_version` is below N**: the dashboard has an update — what is new (the line for each newer version in `references/dashboard.md` → Versions, in a few words) — and whether to update it now. Yes → update it as `references/dashboard.md` → Publish says (same link, `dashboard_version` set to N).
+- **Its `dashboard_version` is below N**: the dashboard has an update to N — what is new, in a few words, from the plugin's `CHANGELOG.md` (at the plugin root, next to `skills/`) between the two versions, the entries about the dashboard; no such entries or no file → just the version — and whether to update it now. Yes → update it as `references/dashboard.md` → Publish says (same link, `dashboard_version` set to N).
 
 No to either → add `dashboard_skip: N` to the config, so it is not offered again until a newer version. For the check read only the asset's first line, not the whole file.
 
