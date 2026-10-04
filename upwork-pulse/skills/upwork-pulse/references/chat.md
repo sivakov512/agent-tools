@@ -8,6 +8,20 @@ Fresh data first (SKILL.md → Finding things): `find_jobs` `get` on the job. Th
 
 If the card does not exist and the verdict is Take or Maybe, offer to create it (hourly card format); do not create it silently.
 
+## A job's chat — opened from the dashboard
+
+The dashboard's Claude chat link starts a Cowork chat with one message: `<title> — Upwork Pulse, job #<short id> (Job ID <id>)[, contract <id>]. Load everything about it: …`, or, for a conversation with no job, `<client> — Upwork Pulse, Upwork room <id>. Load the conversation …`. Every later click on that job — its lead, proposal, contract or conversation — opens this same chat, through the card's `Chat`. So the chat is the job's thread: keep it about this job, and answer whatever the user asks in it as usual.
+
+1. **Claim the card first** — right after the config check (SKILL.md → Finding things), before loading anything — so a second click lands here. This session's own link is `https://claude.ai/code/session_<id>` — the session id is in the session's context (Cowork gives it, e.g. in the line it asks to end commits with); never guess it. Find the card by Job ID (SKILL.md → Finding things).
+   - `Chat` empty → write this link to it (`update_properties`, `Chat`).
+   - `Chat` already holds another session's link → this job has its chat: one line with that link ("this job already has a chat — continue there: <link>") and stop; write nothing. Only when the user says in this chat that it should be the job's chat from now on (the old one is deleted or lost) → write this link over it.
+   - No card (a contract from before the pipeline, a job found elsewhere) → create it from `find_jobs` `get` with the columns of `references/hourly.md` §5 and `Chat` = this link; `Status` New, unless a proposal was sent — then write it as the sync does (`references/sync.md` §2: the card Applied with the price sent, and the Proposals row).
+   - No link of its own in the session's context → load and answer anyway, and say in one line that the dashboard will not reopen this chat.
+   - A conversation with no job: there is no card; nothing to claim.
+   - An update holds the pipeline (`updating` in the config, SKILL.md → Pipeline update): no writes now — load and answer, and say in one line that the chat could not be kept on the card yet; a later click on the job starts another chat.
+2. **Load everything**, in as few turns as the calls allow: the card (properties and body) and its Proposals row; the posting fresh (`find_jobs` `get`; what changed goes back to the card as *One fact, one place* says); the proposal on Upwork (`list_freelancer_proposals` `get`) when there is one; the contract (`list_contracts` `get` by the id given, or found by the job) with its milestones; the conversation — the room given, the contract's room, or the proposal's (`get_messages` `find_room`) — its latest messages (`list_messages`).
+3. **Reply** in `language`, short: what the job is, what was proposed and at what price, the contract and its milestones if any, the last messages and whose turn it is. Nothing more: what to do next is the user's to say in this chat. Sending anything to Upwork follows the rules as everywhere (SKILL.md → Rules that protect the user).
+
 ## Skip and applied — "skip it", "not this one", "already applied"
 
 - "Skip", "pass", "not interested" about a posting → `Status` Skipped on its card, without asking, with `Skipped by` manual, `Decided on` now, and `Skip reason` only when the user gave one or one came up in this conversation — never a question just to get one.

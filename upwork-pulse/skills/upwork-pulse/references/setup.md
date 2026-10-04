@@ -74,7 +74,8 @@ CREATE TABLE ("Title" TITLE, "Job ID" RICH_TEXT COMMENT 'Numeric Upwork id; the 
   "Advice" SELECT('Apply':green, 'Skip':gray), "Advice why" RICH_TEXT, "Advised on" DATE COMMENT 'When Advice was last written',
   "Status" SELECT('New':blue, 'Applied':green, 'Skipped':gray),
   "Decided on" DATE COMMENT 'When Status last became Applied or Skipped',
-  "Skipped by" SELECT('manual':default, 'auto':purple), "Skip reason" RICH_TEXT)
+  "Skipped by" SELECT('manual':default, 'auto':purple), "Skip reason" RICH_TEXT,
+  "Chat" URL COMMENT 'Cowork chat with Claude for this job')
 
 -- Proposals (adds "Proposal" to Jobs as the other side of the relation); the text only — price, time and dates are the card's
 CREATE TABLE ("Title" TITLE COMMENT 'The job title', "Job" RELATION('<jobs>', DUAL 'Proposal'),
@@ -142,7 +143,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 	auto_drafts: `off`
 	auto_skip: `off`
 	drafts_task: `<trigger id of the Upwork drafts task>`
-	schema: `4`
+	schema: `5`
 </details>
 ```
 
@@ -150,7 +151,7 @@ Lines inside the toggle are indented with a tab (unindented lines fall outside i
 
 ## 7. Dashboard
 
-The dashboard is a single HTML page (`assets/dashboard.html`) that reads Notion and Upwork with the viewer's own connectors. It has no server side: it runs only where a page can call the user's connectors — on claude.ai it is published as an artifact with the `mcp` capability (Notion: `notion-query-data-sources`, `notion-fetch`, `notion-update-page`, `notion-create-pages` — the Write a proposal button records the request as a Proposals row; Upwork: `upwork__get_freelancer_dashboard`, `upwork__get_freelancer_financials`, `upwork__get_messages`, `upwork__list_freelancer_proposals`, `upwork__list_milestones`; Claude Code Remote: `fire_trigger`, for the Rewrite button that starts the drafts task) and `sample` for the thread summaries.
+The dashboard is a single HTML page (`assets/dashboard.html`) that reads Notion and Upwork with the viewer's own connectors. It has no server side: it runs only where a page can call the user's connectors — on claude.ai it is published as an artifact with the `mcp` capability (Notion: `notion-query-data-sources`, `notion-fetch`, `notion-update-page`, `notion-create-pages` — the Write a proposal button records the request as a Proposals row; Upwork: `upwork__get_freelancer_dashboard`, `upwork__get_freelancer_financials`, `upwork__get_messages`, `upwork__list_freelancer_proposals`, `upwork__list_milestones`, `upwork__list_contracts` — a contract's job id, so the contract opens its job's chat; Claude Code Remote: `fire_trigger`, for the Rewrite button that starts the drafts task) and `sample` for the thread summaries.
 
 What is on it, 1180px wide, one screen on a laptop:
 
@@ -161,6 +162,7 @@ What is on it, 1180px wide, one screen on a laptop:
 - **Contracts**: the active contracts that need nothing now — summary, milestone strip, the current milestone.
 - **Proposals**: Sent / In talks / Closed, live from Upwork; In talks lists every proposal chat, newest message first, each marked whose turn it is (the user's-turn ones are in Your move too). A proposal's drawer shows its job (the Jobs card: Client vs me, About the job) and **What you sent** — the row in Proposals `Sent`, or, until the next digest syncs it, the proposal as Upwork returns it (same blocks, no milestones, marked as from Upwork) — with links to both in Notion.
 - **Rows**: the title opens the item on Upwork (the job, the thread for a reply, the workroom, the invitation); the rest of the row opens the **drawer** from the right — the lead's advice line, Client vs me, About the job and then the proposal from Proposals with a copy icon on every value, with Mark applied / Skip (a reason if you want one) / Write a proposal or Rewrite / Restore in a sticky bar, a contract's summary, milestones and conversation, a proposal's chat and terms — with the main Upwork action as a button, foldable sections and ↑ / ↓ through the list. Mark applied / Skip / Restore write `Status`, `Decided on` and the skip fields to the card, the switches write the config, Rewrite sets the proposal's `State` to Writing and starts the drafts task; nothing else writes.
+- **Claude chat**, in the drawer's top bar for a lead, a proposal, a contract or a conversation: the job's one Cowork chat. The link is the card's `Chat` — on a phone `https://claude.ai/cowork/cse_<id>`, elsewhere `claude://claude.ai/code/session_<id>` (artifacts let `claude://` out in the desktop app; iOS keeps claude.ai links in the browser). No `Chat` yet → a new Cowork with the job named first and its ids — `claude://cowork/new?q=…`, on a phone `https://claude.ai/new?mode=cowork&surface=cowork&q=…` — and that chat writes its own link to the card (`references/chat.md` → *A job's chat*). A contract finds its job through `list_contracts` `get` (`job.id`), its conversation through the contract; a conversation with no proposal or contract gets a chat that is not kept.
 - Same look as the project-tracker dashboard (tokens, pills, rows, drawer); change the shared parts in both together.
 
 To publish or update it:
@@ -256,3 +258,10 @@ Price, time and the send date move to the job card, so each lives in one place; 
 7. **Config**: `schema: 4` as *When it ends* says.
 8. **Report** in `language`: rows converted, cards created or changed (price taken from what was sent: by short id), Proposal IDs found or marked `unknown`, columns removed and left in place.
 
+
+### To 5 (from 4)
+
+Each job gets one Cowork chat with Claude, opened from the dashboard's Claude chat link wherever the job shows up (`references/chat.md` → *A job's chat*).
+
+1. **Jobs**: `ADD COLUMN "Chat" URL COMMENT 'Cowork chat with Claude for this job'` when missing.
+2. **Report** in `language`: the dashboard's Claude chat link — the first chat opened from a job is kept on its card and every later click on that job opens the same one.
