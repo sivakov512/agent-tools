@@ -13,6 +13,10 @@
           "type": "json",
           "path": ".claude-plugin/plugin.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "generic",
+          "path": "skills/project-tracker/assets/dashboard.html"
         }
       ]
     },

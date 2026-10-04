@@ -56,8 +56,6 @@ Rules the page keeps:
 
 ## Versions
 
-The asset's first line carries its version; SKILL.md (*Dashboard updates*) compares it with the config's `dashboard_version` and offers the user an update. Bump N whenever the asset changes in a way the user would notice, and add a line here — the offer quotes it.
-
-- **1** — first version: pills (blocked · overdue · due soon), timeline above the project cards, Your move / Waiting on others / Recently completed, the project page sliding in from the right with foldable sections and ↑ / ↓ between projects.
+The asset's first line carries the plugin's version, stamped by the release on every release (the line is marked `x-release-please-version`); SKILL.md (*Dashboard updates*) compares it with the config's `dashboard_version` and offers the user an update. No hand edits: a release that did not change the page still offers it, and updating then republishes the same page.
 
 The page shows only what the tracker holds. If the user wants a new section, first check it against the table above: which moment it serves, and whether the data is already in Notion.
