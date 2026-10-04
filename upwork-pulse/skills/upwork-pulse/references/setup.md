@@ -70,7 +70,7 @@ CREATE TABLE ("Title" TITLE, "Job ID" RICH_TEXT COMMENT 'Numeric Upwork id; the 
   "Score" NUMBER COMMENT 'Sum of the Ranking points', "Score why" RICH_TEXT,
   "Complexity" SELECT('Low':green, 'Medium':yellow, 'High':red),
   "My hours" NUMBER, "My $" NUMBER FORMAT 'dollar' COMMENT 'Hourly: the rate; fixed: the total',
-  "Flags" MULTI_SELECT('no client history':gray, 'unfamiliar tech':gray, 'budget mismatch':gray, 'mandatory calls':gray, 'timezone lock':gray, 'partially hired':gray, 'full-time':gray),
+  "Flags" MULTI_SELECT('no client history':gray, 'unfamiliar tech':gray, 'budget mismatch':gray, 'mandatory calls':gray, 'timezone lock':gray, 'partially hired':gray, 'full-time':gray, 'invited':blue),
   "Advice" SELECT('Apply':green, 'Skip':gray), "Advice why" RICH_TEXT, "Advised on" DATE COMMENT 'When Advice was last written',
   "Status" SELECT('New':blue, 'Applied':green, 'Skipped':gray),
   "Decided on" DATE COMMENT 'When Status last became Applied or Skipped',
@@ -158,7 +158,7 @@ What is on it, 1180px wide, one screen on a laptop:
 - **Header**: name, three pills — `replies` · `overdue` · `invitations` — always shown, coloured only when not zero, a click scrolls to Your move; `Live · updated hh:mm`, Refresh, **Settings** (a popover with the `auto_drafts` / `auto_skip` switches, written to the config).
 - **Leads** (left): `New` cards from `Inbox` minus jobs already applied to, Take / Maybe / Skipped tabs (Skipped: the last 2 days, more on request, Auto / Manual on the right), an "Only ready" switch, a "Proposal ready" / "Writing…" mark on the right of a row from the job's row in Proposals `Open`, grouped by day, posting time on the right, the client's numbers against the user's estimate in a Client / Me grid, flags on each side; a green mark for a score at or above `match_score`. Every value is a column shown as stored — the page never parses text.
 - **Connects** and **Balance** tiles (right, top).
-- **Your move**: everything that waits on the user, each thing once — contracts that need a reply or have an overdue milestone (the whole contract card), other chats where the next message is the user's, invitations and offers. Each chat and contract carries Claude's summary of the thread and the next step (`Your move: …`), made with `sample` from the last 12 messages and redone when a new message arrives.
+- **Your move**: everything that waits on the user, each thing once — contracts that need a reply or have an overdue milestone (the whole contract card), other chats where the next message is the user's, invitations and offers. Each chat and contract carries Claude's summary of the thread and the next step (`Your move: …`), made with `sample` from the last 12 messages and redone when a new message arrives; a chat's or contract's drawer opens with the same summary, the thread folded below it. An invitation shows its job card's advice (the hourly run gives every pending invitation a card) and opens that card's lead drawer — Write a proposal, Skip, Claude chat; until the card exists it says the next hourly run assesses it.
 - **Contracts**: the active contracts that need nothing now — summary, milestone strip, the current milestone.
 - **Proposals**: Sent / In talks / Closed, live from Upwork; In talks lists every proposal chat, newest message first, each marked whose turn it is (the user's-turn ones are in Your move too). A proposal's drawer shows its job (the Jobs card: Client vs me, About the job) and **What you sent** — the row in Proposals `Sent`, or, until the next digest syncs it, the proposal as Upwork returns it (same blocks, no milestones, marked as from Upwork) — with links to both in Notion.
 - **Rows**: the title opens the item on Upwork (the job, the thread for a reply, the workroom, the invitation); the rest of the row opens the **drawer** from the right — the lead's advice line, Client vs me, About the job and then the proposal from Proposals with a copy icon on every value, with Mark applied / Skip (a reason if you want one) / Write a proposal or Rewrite / Restore in a sticky bar, a contract's summary, milestones and conversation, a proposal's chat and terms — with the main Upwork action as a button, foldable sections and ↑ / ↓ through the list. Mark applied / Skip / Restore write `Status`, `Decided on` and the skip fields to the card, the switches write the config, Rewrite sets the proposal's `State` to Writing and starts the drafts task; nothing else writes.
@@ -258,10 +258,9 @@ Price, time and the send date move to the job card, so each lives in one place; 
 7. **Config**: `schema: 4` as *When it ends* says.
 8. **Report** in `language`: rows converted, cards created or changed (price taken from what was sent: by short id), Proposal IDs found or marked `unknown`, columns removed and left in place.
 
-
 ### To 5 (from 4)
 
-Each job gets one Cowork chat with Claude, opened from the dashboard's Claude chat link wherever the job shows up (`references/chat.md` → *A job's chat*).
+Each job gets one Cowork chat with Claude, opened from the dashboard's Claude chat link wherever the job shows up (`references/chat.md` → *A job's chat*); a pending invitation gets a card with advice and, with auto proposals, a proposal (`references/hourly.md` §3).
 
-1. **Jobs**: `ADD COLUMN "Chat" URL COMMENT 'Cowork chat with Claude for this job'` when missing.
-2. **Report** in `language`: the dashboard's Claude chat link — the first chat opened from a job is kept on its card and every later click on that job opens the same one.
+1. **Jobs**: `ADD COLUMN "Chat" URL COMMENT 'Cowork chat with Claude for this job'` when missing. The `invited` flag needs no step: Notion adds the option the first time a card gets it.
+2. **Report** in `language`: the dashboard's Claude chat link — the first chat opened from a job is kept on its card and every later click on that job opens the same one; invitations now get a card and advice like found jobs.

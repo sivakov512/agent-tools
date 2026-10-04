@@ -1010,7 +1010,7 @@
       mflags.push([r.Connects + " connects" + (low ? " — over balance" : ""), low ? "warn" : "cn"]);
     }
     if (r.Complexity) mflags.push([String(r.Complexity).toLowerCase(), r.Complexity === "High" ? "warn" : r.Complexity === "Low" ? "good" : ""]);
-    flagsOf(r).forEach(function (f) { (CLIENT_FLAGS.test(f) ? cflags : mflags).push([f, "warn"]); });
+    flagsOf(r).forEach(function (f) { if (f === "invited") mflags.unshift([f, "good"]); else (CLIENT_FLAGS.test(f) ? cflags : mflags).push([f, "warn"]); });
     if (titles[(r.Title || "").trim().toLowerCase()] > 1) cflags.push(["duplicate", ""]);
     var g = el("div", "t-grid");
     g.appendChild(el("span", "lab", "Client"));
@@ -1524,9 +1524,9 @@
       var t = when ? Date.parse(String(when)) : NaN;
       var amt = pick(o, ["terms.chargeRate.displayValue", "chargeRate.displayValue", "amount.displayValue", "budget"]);
       return {
-        kind: r.kind, id: String(pick(o, ["id", "invitationId", "offerId"]) || jobId || r.kind + Math.random()),
+        kind: r.kind, id: String(pick(o, ["id", "invitationId", "offerId"]) || jobId || r.kind + Math.random()), jobId: jobId ? String(jobId) : null,
         title: clean(pick(o, ["jobPosting.content.title", "jobPosting.title", "job.title", "title", "content.title", "name"]) || (r.kind + " (details on Upwork)")),
-        client: clean(pick(o, ["client.name", "clientOrganization.name", "organization.name", "clientName", "from"]) || ""),
+        client: clean(pick(o, ["client.name", "client.user.name", "client.parentOrganization.name", "clientOrganization.name", "organization.name", "clientName", "from"]) || ""),
         amount: amt ? String(amt).replace("USD ", "$") : "",
         t: isNaN(t) ? 0 : t,
         href: r.kind === "Offer" ? "https://www.upwork.com/nx/proposals/offers" : jobId ? "https://www.upwork.com/jobs/~02" + String(jobId) : "https://www.upwork.com/nx/proposals/"
@@ -1827,13 +1827,24 @@
     var open = function () { openDrawer(key, "moveList", p ? "Proposal" : "Chat", chatDrawer(r, p)); };
     return moveRow(key, "turn", titleWithId(p && p.jobId, title, roomUrl(r.id), "Open the thread on Upwork to reply"), roomAct(r) ? "waiting " + ago(now - roomAct(r)) : "", meta, open, null, summaryInline(r));
   }
-  function moveInvite(x, now) {
-    var v = x.inv;
+  function moveInvite(x, now) { // an invitation's job gets a card in the hourly run; with it, the row carries its advice and opens the lead's drawer
+    var v = x.inv, card = v.kind === "Invitation" ? cardFor(v.jobId) : null;
     var meta = [el("span", "kind", v.kind)];
     if (v.client) meta.push(v.client);
-    if (v.amount) meta.push(v.amount);
-    var key = "inv-" + v.id;
-    return moveRow(key, "inv", titleLink(v.href, v.title, "Open the " + v.kind.toLowerCase() + " on Upwork to answer"), v.t ? ago(now - v.t) + " ago" : "", meta, function () { openDrawer(key, "moveList", v.kind, inviteDrawer(v)); });
+    if (card && clientPrice(card)) meta.push(clientPrice(card));
+    else if (v.amount) meta.push(v.amount);
+    var key = "inv-" + v.id, extra = el("div", "sm");
+    if (card) {
+      var sid = card.Advice === "Apply" || card.Advice === "Skip";
+      extra.appendChild(el("div", "tx", sid ? card.Advice + " — " + plain(card["Advice why"]) : card.Verdict ? card.Verdict + (card["Score why"] ? " — " + plain(card["Score why"]) : "") : ""));
+      if (!extra.firstChild.textContent) extra = null;
+    } else if (v.kind === "Invitation") extra.appendChild(el("div", "tx muted", "Claude assesses it in the next hourly run."));
+    else extra = null;
+    var right = card ? draftPill(card) : null, rt = v.t ? ago(now - v.t) + " ago" : "";
+    var open = card ? function () { openDrawer(key, "moveList", "Invitation", leadDrawer(card)); } : function () { openDrawer(key, "moveList", v.kind, inviteDrawer(v)); };
+    var row = moveRow(key, "inv", titleWithId(card && v.jobId, v.title, v.href, "Open the " + v.kind.toLowerCase() + " on Upwork to answer"), rt, meta, open, null, extra);
+    if (right) { var tr = row.querySelector(".t-right"); if (tr) tr.insertBefore(right, tr.firstChild); }
+    return row;
   }
   function inviteDrawer(v) {
     return function (body) {
