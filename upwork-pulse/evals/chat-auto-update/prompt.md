@@ -1,6 +1,6 @@
 ---
-max_turns: 40
-timeout_seconds: 900
+max_turns: 90
+timeout_seconds: 1800
 allowed_tools: [Skill, Read, Glob, Grep]
 runs: 1
 tags: [chat, routine]

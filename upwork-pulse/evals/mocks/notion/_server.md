@@ -44,7 +44,7 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 	auto_drafts: `off`
 	auto_skip: `off`
 	drafts_task: `trig_01MockDraftsTask0000001`
-	schema: `3`
+	schema: `4`
 	dashboard_version: `4`
 </callout>
 <page url="https://app.notion.com/p/10000000000040008000000000000002">Search rules</page>
@@ -139,13 +139,13 @@ Environment quirks only — facts about the API and tools. Rules live in Search 
 Fetching a database URL lists its data source with the schema and its views as `<view url="view://<id>">{"name":…}</view>`; **never rows**.
 
 - Jobs `4000…0001` — data source `2000…0001`; views `50000000-0000-4000-8000-000000000001` "Inbox" (Status = New, Found desc), `…0002` "Applied" (Status = Applied), `…0003` "All", `…0006` "Skipped" (Status = Skipped, Decided on desc).
-- Proposals `4000…0004` — data source `2000…0004`; views `…0007` "Open" (State is not Sent, Written desc), `…0008` "Sent" (State = Sent, Sent on desc).
+- Proposals `4000…0004` — data source `2000…0004`; views `…0007` "Open" (Proposal ID is empty, Written desc), `…0008` "Sent" (Proposal ID is set, Written desc).
 - Runs `4000…0002` — data source `2000…0002`; view `…0004` "Latest" (Created desc).
 - Questions `4000…0003` — data source `2000…0003`; view `…0005` "Open" (Status = Open).
 
 Schemas:
 - Jobs: Title (title), Job ID (text), Link (url), Published (date), Found (date), Run (relation → Runs), Payment (Fixed / Hourly), Budget, Rate min, Rate max (numbers, dollars), Duration (select: Less than 1 week / Less than 1 month / 1 to 3 months / 3 to 6 months / More than 6 months), Connects, Proposals, Invites, Interviewing, Bid low, Bid high (numbers), Country (text), Verified (checkbox), Hires, Spent, Rating (numbers), Verdict (Take / Maybe), Score (number), Score why (text), Complexity (Low / Medium / High), My hours, My $ (numbers), Flags (multi-select: no client history, unfamiliar chip, budget mismatch, mandatory calls, timezone lock, partially hired, full-time), Advice (Apply / Skip), Advice why (text), Advised on (date), Status (New / Applied / Skipped), Decided on (date), Skipped by (manual / auto), Skip reason (text), Proposal (relation → Proposals, the other side of Proposals' Job).
-- Proposals: Title (title), Job (relation → Jobs), Job ID (text), Link (url), State (Writing / Ready / Sent), Written (date), Payment (Fixed / Hourly), Rate, Connects, Boost (numbers), Sent on (date), Proposal ID (text).
+- Proposals: Title (title), Job (relation → Jobs), Job ID (text), State (Writing / Ready; empty once sent), Written (date), Proposal ID (text; set once sent), Boost (number). No price, connects or send date: those are the Jobs card's (`My $`, `Connects`, `Decided on`).
 - Runs: Run (title), Status (ok / empty / partial), Scanned, Title pass, Detailed, Take, Maybe (numbers), Budget hit (checkbox), Tool calls (number), Window (text).
 - Questions: Question (title), Job IDs (text), Seen (number), Status (Open / Resolved), First seen (date), Decision (text).
 
@@ -167,11 +167,11 @@ Jobs:
   ## Estimate
   About 40 hours including footprints, fab files and one review round.
   ```
-- `3000…0102` — "Firmware for a BLE beacon"; Job ID `2101000000000000102`; Found 2026-10-09T08:15:00Z; Verdict Take; Status Applied; Hourly; Rate min 45; Rate max 45; My $ 50; My hours 12; Complexity Low; Connects 10; Proposals 8; Proposal → `3000…0402`.
+- `3000…0102` — "Firmware for a BLE beacon"; Job ID `2101000000000000102`; Found 2026-10-09T08:15:00Z; Verdict Take; Status Applied; Decided on 2026-10-09T08:30:00Z; Hourly; Rate min 45; Rate max 45; My $ 50; My hours 12; Complexity Low; Connects 10; Proposals 8; Proposal → `3000…0402`.
 - `3000…0103` — "STM32 motor controller review"; Job ID `2101000000000000103`; Found 2026-10-09T08:40:00Z; Verdict Maybe; Status Skipped; Fixed; Budget 300; My $ 400; My hours 8; Complexity Medium; Flags ["unfamiliar chip"]; Connects 8; Proposals 15; Skipped by manual; Skip reason "STM32 is outside my stack and $300 is below the work"; Decided on 2026-10-09T09:00:00Z.
 - `3000…0104` — "LoRa gateway PCB (rigid-flex)"; Job ID `2101000000000000104`; Found 2026-10-08T21:10:00Z; Verdict Maybe; Status New; Fixed; Budget 1500; Duration "1 to 3 months"; My $ 1600; My hours 32; Complexity High; Flags ["no client history"]; Country "Germany"; Verified yes; Hires 0; Proposals 3; Connects 14; Invites 0. Body: the same five headings with one line each.
 
-Proposals: `3000…0402` — Title "Firmware for a BLE beacon"; Job → `3000…0102`; Job ID `2101000000000000102`; State Sent; Payment Hourly; Rate 50; Connects 10; Sent on 2026-10-09T08:30:00Z; Proposal ID `pr-7690`. Body: `## Cover letter` and the letter as sent.
+Proposals: `3000…0402` — Title "Firmware for a BLE beacon"; Job → `3000…0102`; Job ID `2101000000000000102`; State empty; Written 2026-10-09T08:30:00Z; Proposal ID `pr-7690`. Body: `## Cover letter` and the letter as sent.
 
 Runs: `3000…0201` — Run "09.10 13:05"; Status ok; Scanned 14; Title pass 6; Detailed 4; Take 1; Maybe 0; Budget hit unchecked; Tool calls 22; Window "12:50–13:00".
 
