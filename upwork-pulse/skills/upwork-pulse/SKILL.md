@@ -41,12 +41,12 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 
 **Databases:**
 
-- **Jobs** — one card per Take or Maybe posting (and one per job the user applied to outside the pipeline). Every fact is its own column, as the API gives it — no column holds a sentence made of several facts:
+- **Jobs** — one card per Take or Maybe posting (and one per job the user is invited to or applied to outside the pipeline). Every fact is its own column, as the API gives it — no column holds a sentence made of several facts:
   - the posting: `Title`, `Job ID` (the numeric id; the duplicate key), `Link`, `Published`, `Found`, `Run` (relation to Runs);
   - the client's terms: `Payment` (Fixed / Hourly), `Budget` (fixed), `Rate min` / `Rate max` (hourly), `Duration` (the API's duration, one of its five values), `Connects` (cost to apply);
   - competition: `Proposals`, `Invites`, `Interviewing`, `Bid low` / `Bid high` (the range of competitors' bids);
   - the client: `Country`, `Verified` (checkbox), `Hires`, `Spent`, `Rating`;
-  - the assessment: `Verdict` (Take / Maybe), `Score` (by the rules' Ranking) and `Score why` (one line: the criteria that scored), `Complexity` (Low / Medium / High), `My hours` (how long the work takes), `My $` (the price — what the work earns, and what goes into the proposal form: hourly the rate, fixed the total), `Flags` (multi-select);
+  - the assessment: `Verdict` (Take / Maybe), `Score` (by the rules' Ranking) and `Score why` (one line: the criteria that scored), `Complexity` (Low / Medium / High), `My hours` (how long the work takes), `My $` (the price — what the work earns, and what goes into the proposal form: hourly the rate, fixed the total), `Flags` (multi-select; `invited` marks a job the client invited the user to — every pending invitation gets a card, `references/hourly.md` §3);
   - the decision: `Advice` (Apply / Skip), `Advice why` and `Advised on` (when the advice was last written); `Status` (New / Applied / Skipped) and `Decided on` (when it last became Applied or Skipped); for skips `Skipped by` (manual / auto) and `Skip reason`; `Proposal` (relation to Proposals);
   - `Chat`: the link of the job's Cowork chat with Claude (`https://claude.ai/code/session_…`) — one chat per job, whatever it was opened from (`references/chat.md` → *A job's chat*).
 

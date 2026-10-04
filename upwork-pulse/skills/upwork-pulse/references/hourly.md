@@ -4,7 +4,7 @@ One run: read the rules, take the queue of postings published since the watermar
 
 ## 1. Read first
 
-Fetch **Search rules** (id from the config). **Field notes** and `jobs_all` are read only once the search (§3) returns postings inside the queue — an empty hour needs neither: it searches, writes its `empty` log row, moves the watermark and goes to the dashboard check (end of §8). If Search rules cannot be fetched, or its content is not a search specification: do not improvise from memory — write a Runs row with `Status` empty and `Window` = `rules read failed`, send nothing, stop.
+Fetch **Search rules** (id from the config). **Field notes** and `jobs_all` are read only once the search (§3) returns postings inside the queue or there is a pending invitation — an empty hour needs neither: it searches, writes its `empty` log row, moves the watermark and goes to the dashboard check (end of §8). If Search rules cannot be fetched, or its content is not a search specification: do not improvise from memory — write a Runs row with `Status` empty and `Window` = `rules read failed`, send nothing, stop.
 
 ## 2. The queue
 
@@ -21,6 +21,13 @@ Longer: work in 2-hour chunks, oldest first (search results arrive newest first 
 ## 3. Search
 
 Run each query from Search rules as its own `find_jobs` search (`action: search`), sorted by recency, paginating until published dates leave the queue window. Merge results by job id. No budget, level, duration or payment-verified filters unless the rules say so.
+
+**Invitations**, every run, whatever the queue: `list_freelancer_proposals` `invitations` with `status: pending`, in the same turn as the searches. A client who invites the user is waiting for an answer, so every pending invitation's job gets a card and advice, like a found posting — the dashboard shows it under Your move with that advice and the proposal. Per invitation, by its job id:
+- A card in `jobs_all` → it lacks the flag `invited` → add it (`update_properties`, the card's flags plus `invited`). Nothing else.
+- No card → `find_jobs` `get` and stage 2 (§4), but it always gets a card: the user decides on an invitation, not the filter. A posting the rules would reject becomes Maybe, with the reject reason as the first line under Risks. Its flags include `invited`. It joins this run's cards: written with them (§5), counted in the log (§7), handed to drafts (§8), and it is news (§9).
+- `get` says gone → no card; the invitation is the client's to withdraw.
+
+No pending invitations → nothing about them anywhere, the message included.
 
 ## 4. Two-stage filter
 
@@ -91,7 +98,7 @@ Only with `auto_drafts: on`, and only when this run wrote at least one card or `
 
 ## 9. The message
 
-The message is the "respond fast" signal. A card from this run is **news** when it is still New and is either a Take or has Apply advice (its proposal is ready to paste); a card auto-skipped by drafts mode is not. Send the message once per run and only if at least one card is news; other Maybe cards go into it too, but never earn one on their own. No news → send nothing at all — no push, no empty message, no "nothing found", no report. Finish silently. The user sees Maybe cards in the digest and on the dashboard. Questions never go into the message.
+The message is the "respond fast" signal. A card from this run is **news** when it is still New and is either a Take, has Apply advice (its proposal is ready to paste) or comes from an invitation (its title line ends with ` · invited`); a card auto-skipped by drafts mode is not. Send the message once per run and only if at least one card is news; other Maybe cards go into it too, but never earn one on their own. No news → send nothing at all — no push, no empty message, no "nothing found", no report. Finish silently. The user sees Maybe cards in the digest and on the dashboard. Questions never go into the message.
 
 Format, in `language` (labels translated, structure kept), only these blocks, nothing before or after:
 
