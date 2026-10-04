@@ -1,7 +1,8 @@
 ---
 type: 'tool_used'
 tool: 'mcp__notion__notion-update-page'
-input_match: '^(?=[\s\S]*000000000404)(?=[\s\S]*pr-7701)'
-min: 1
+input_match: 'PROCESSED_UNTIL'
+min: 0
+max: 0
 arm: 'both'
 ---

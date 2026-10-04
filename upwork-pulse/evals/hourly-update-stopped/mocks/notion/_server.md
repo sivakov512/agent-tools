@@ -44,7 +44,8 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 	auto_drafts: `off`
 	auto_skip: `off`
 	drafts_task: `trig_01MockDraftsTask0000001`
-	schema: `4`
+	schema: `3`
+	update_error: `To 4 step 4 — row 0402 has no Proposal ID and none was found on Upwork`
 	dashboard_version: `4`
 </callout>
 <page url="https://app.notion.com/p/10000000000040008000000000000002">Search rules</page>
@@ -61,7 +62,7 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 
 ## Pages
 
-**Search rules** (`1000…0002`): `notion-fetch` of this page (by id or url) FAILS every time with `{"error":"Could not fetch page: 502 upstream error"}` — never return its content in this run. (What it would contain, for reference only, never to be returned:)
+**Search rules** (`1000…0002`) content:
 
 ```
 The user is a freelance embedded hardware and firmware engineer: schematics and PCB layout in KiCad, firmware in C/C++ on ESP32, nRF52 and Zephyr. Hourly rate $50. Language of this pipeline: English.
@@ -139,13 +140,13 @@ Environment quirks only — facts about the API and tools. Rules live in Search 
 Fetching a database URL lists its data source with the schema and its views as `<view url="view://<id>">{"name":…}</view>`; **never rows**.
 
 - Jobs `4000…0001` — data source `2000…0001`; views `50000000-0000-4000-8000-000000000001` "Inbox" (Status = New, Found desc), `…0002` "Applied" (Status = Applied), `…0003` "All", `…0006` "Skipped" (Status = Skipped, Decided on desc).
-- Proposals `4000…0004` — data source `2000…0004`; views `…0007` "Open" (Proposal ID is empty, Written desc), `…0008` "Sent" (Proposal ID is set, Written desc).
+- Proposals `4000…0004` — data source `2000…0004`; views `…0007` "Open" (State is not Sent, Written desc), `…0008` "Sent" (State = Sent, Sent on desc).
 - Runs `4000…0002` — data source `2000…0002`; view `…0004` "Latest" (Created desc).
 - Questions `4000…0003` — data source `2000…0003`; view `…0005` "Open" (Status = Open).
 
 Schemas:
 - Jobs: Title (title), Job ID (text), Link (url), Published (date), Found (date), Run (relation → Runs), Payment (Fixed / Hourly), Budget, Rate min, Rate max (numbers, dollars), Duration (select: Less than 1 week / Less than 1 month / 1 to 3 months / 3 to 6 months / More than 6 months), Connects, Proposals, Invites, Interviewing, Bid low, Bid high (numbers), Country (text), Verified (checkbox), Hires, Spent, Rating (numbers), Verdict (Take / Maybe), Score (number), Score why (text), Complexity (Low / Medium / High), My hours, My $ (numbers), Flags (multi-select: no client history, unfamiliar chip, budget mismatch, mandatory calls, timezone lock, partially hired, full-time), Advice (Apply / Skip), Advice why (text), Advised on (date), Status (New / Applied / Skipped), Decided on (date), Skipped by (manual / auto), Skip reason (text), Proposal (relation → Proposals, the other side of Proposals' Job).
-- Proposals: Title (title), Job (relation → Jobs), Job ID (text), State (Writing / Ready; empty once sent), Written (date), Proposal ID (text; set once sent), Boost (number). No price, connects or send date: those are the Jobs card's (`My $`, `Connects`, `Decided on`).
+- Proposals: Title (title), Job (relation → Jobs), Job ID (text), Link (url), State (Writing / Ready / Sent), Written (date), Payment (Fixed / Hourly), Rate, Connects, Boost (numbers), Sent on (date), Proposal ID (text).
 - Runs: Run (title), Status (ok / empty / partial), Scanned, Title pass, Detailed, Take, Maybe (numbers), Budget hit (checkbox), Tool calls (number), Window (text).
 - Questions: Question (title), Job IDs (text), Seen (number), Status (Open / Resolved), First seen (date), Decision (text).
 
@@ -167,11 +168,12 @@ Jobs:
   ## Estimate
   About 40 hours including footprints, fab files and one review round.
   ```
-- `3000…0102` — "Firmware for a BLE beacon"; Job ID `2101000000000000102`; Found 2026-10-09T08:15:00Z; Verdict Take; Status Applied; Decided on 2026-10-09T08:30:00Z; Hourly; Rate min 45; Rate max 45; My $ 50; My hours 12; Complexity Low; Connects 10; Proposals 8; Proposal → `3000…0402`.
+- `3000…0102` — "Firmware for a BLE beacon"; Job ID `2101000000000000102`; Found 2026-10-09T08:15:00Z; Verdict Take; Status Applied; Hourly; Rate min 45; Rate max 45; My $ 50; My hours 12; Complexity Low; Connects 10; Proposals 8; Proposal → `3000…0402`.
 - `3000…0103` — "STM32 motor controller review"; Job ID `2101000000000000103`; Found 2026-10-09T08:40:00Z; Verdict Maybe; Status Skipped; Fixed; Budget 300; My $ 400; My hours 8; Complexity Medium; Flags ["unfamiliar chip"]; Connects 8; Proposals 15; Skipped by manual; Skip reason "STM32 is outside my stack and $300 is below the work"; Decided on 2026-10-09T09:00:00Z.
 - `3000…0104` — "LoRa gateway PCB (rigid-flex)"; Job ID `2101000000000000104`; Found 2026-10-08T21:10:00Z; Verdict Maybe; Status New; Fixed; Budget 1500; Duration "1 to 3 months"; My $ 1600; My hours 32; Complexity High; Flags ["no client history"]; Country "Germany"; Verified yes; Hires 0; Proposals 3; Connects 14; Invites 0. Body: the same five headings with one line each.
 
-Proposals: `3000…0402` — Title "Firmware for a BLE beacon"; Job → `3000…0102`; Job ID `2101000000000000102`; State empty; Written 2026-10-09T08:30:00Z; Proposal ID `pr-7690`. Body: `## Cover letter` and the letter as sent.
+Proposals: `3000…0404` — Title "LoRa gateway PCB (rigid-flex)"; Job → `3000…0104`; Job ID `2101000000000000104`; State Ready; Written 2026-10-09T09:00:00Z; Payment Fixed; Rate 1600; Connects 14. Body: Confirm before sending, Milestones (### Schematic / $600 / 5 days; ### Layout / $1,000 / 10 days), Cover letter, Attach.
+- `3000…0402` — Title "Firmware for a BLE beacon"; Job → `3000…0102`; Job ID `2101000000000000102`; State Sent; Payment Hourly; Rate 55; Connects 10; Sent on 2026-10-09T08:30:00Z; Proposal ID `pr-7690`. Body: `## Cover letter` and the letter as sent.
 
 Runs: `3000…0201` — Run "09.10 13:05"; Status ok; Scanned 14; Title pass 6; Detailed 4; Take 1; Maybe 0; Budget hit unchecked; Tool calls 22; Window "12:50–13:00".
 
@@ -182,7 +184,7 @@ Questions: `3000…0301` — Question "Feasibility study with analog or optical 
 - Jobs "Inbox" (view …0001): cards 0101 and 0104 only (Status New), 0101 first.
 - Jobs "Applied" (…0002): 0102 only. Jobs "All" (…0003): 0101, 0102, 0103, 0104. Jobs "Skipped" (…0006): 0103 only.
 - Cards 0101 and 0104 have Advice and the skip columns empty, and no Proposal.
-- Proposals "Open" (…0007): empty. Proposals "Sent" (…0008): 0402 only.
+- Proposals "Open" (…0007): 0404 only. Card 0104's `Proposal` relation points to 0404. Proposals "Sent" (…0008): 0402 only.
 - Runs "Latest" (…0004): 0201.
 - Questions "Open" (…0005): 0301.
 - `notion-fetch` of a row id returns that card's properties and body.
