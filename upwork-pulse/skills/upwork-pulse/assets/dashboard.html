@@ -1357,10 +1357,22 @@
   // ---------- settings and notices from the config ----------
   function renderLeadNotice() {
     var host = $("leadNotice"); clear(host);
+    if (S.cfg.loaded && S.cfg.update_error) {
+      var e = el("div", "banner alert");
+      e.appendChild(el("span", "", "The pipeline update stopped: " + S.cfg.update_error + ". The scheduled runs are paused until it is finished \u2014 open a chat with Claude and say \u201cupdate the pipeline\u201d."));
+      host.appendChild(e); return;
+    }
     if (S.cfg.loaded && !(S.cfg.schema >= SCHEMA)) {
       var n = el("div", "banner alert");
-      n.appendChild(el("span", "", "This dashboard needs the pipeline update (a Proposals database, jobs as plain columns); until then leads show without numbers. Ask Claude to \u201cupdate the pipeline\u201d."));
+      n.appendChild(el("span", "", S.cfg.updating
+        ? "The pipeline is being updated to the new version. Leads show without numbers until it is done; refresh in a few minutes."
+        : "The pipeline is about to be updated to the new version: the next hourly run (or your next chat with Claude) does it. Leads show without numbers until then."));
       host.appendChild(n); return;
+    }
+    if (S.cfg.loaded && S.cfg.schema > SCHEMA) {
+      var o = el("div", "banner alert");
+      o.appendChild(el("span", "", "This dashboard is older than the pipeline and may show some values wrong. The next hourly run republishes it; a chat with Claude does it at once."));
+      host.appendChild(o); return;
     }
     if (S.cfg.auto_drafts === "on" && S.guideIssue) {
       var w = el("div", "banner alert");
@@ -2063,7 +2075,7 @@
       S.matchScore = m ? +m[1] : null;
       var key = function (k) { var x = new RegExp("\\b" + k + ":\\s*`([^`]*)`").exec(txt || ""); return x ? x[1].trim() : null; };
       S.cfgText = txt || "";
-      S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide"), proposals: key("proposals") };
+      S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide"), proposals: key("proposals"), updating: key("updating"), update_error: key("update_error") };
       renderSettings(); checkGuide();
     }, function () { S.matchScore = null; renderSettings(); });
   }

@@ -86,7 +86,7 @@ Every job in a message has a number and a short id — `2. #584350 …` — the 
 | "From now on skip anything with X" | writes the rule into Search rules as one line |
 | "How many connects?" | balance and recent spend |
 | "Sync proposals" / "sync proposals for the last 3 months" | puts what you sent on Upwork into Proposals now (the digests do it twice a day anyway); with a period it also pulls in older proposals, each with its job |
-| "Update the pipeline" | after a plugin update that changes the structure (see [Pipeline updates](#pipeline-updates)) |
+| "Update the pipeline" | finishes a structure update that stopped (normally it runs by itself, see [Pipeline updates](#pipeline-updates)) |
 
 A number ("the second one") works only in the conversation that showed the list; elsewhere use the id. The agent never sends, boosts, messages or saves anything on Upwork without your explicit go for that action, and scheduled runs never write to Upwork — the drafts agent only builds proposal previews, which submit nothing.
 
@@ -103,11 +103,11 @@ If a message does not trigger the skill, mention Upwork or the job's id, or star
 - **Contracts** that need nothing now, **Proposals** (Sent / In talks / Closed, live from Upwork — a proposal's drawer shows its job and what you sent, with Notion links), Connects spend and Balance.
 - A row's **title opens it on Upwork**; the rest of the row opens a drawer with the details — the lead's notes with Skip / Applied, a contract's milestones and conversation, a proposal's chat — and ↑ / ↓ to walk the list. An ⓘ next to a section says how its list is built.
 
-**Dashboard updates.** The page carries a version on its first line and the config remembers which version you published. When the skill ships a newer one, the next time you talk to the skill it says what is new and asks whether to update; yes republishes to the same link, no means that version is not offered again. With no dashboard in the config at all, it offers to publish one the same way.
+**Dashboard updates.** The page carries the plugin's version on its first line and the config remembers which version you published. When the plugin ships a newer one, the next hourly run republishes it to the same link — or your next chat with the skill, if that comes first, saying what is new. With no dashboard in the config at all, a chat offers to publish one.
 
 ### Pipeline updates
 
-The config's `schema` is the structure the pipeline was built with. When a plugin update needs a newer one, the skill says so at the end of the next chat reply; until you say "update the pipeline", the scheduled runs pause (they write nothing; a digest sends one line asking for the update) and their watermarks stay put, so nothing is lost. The update works in place — same page, databases, cards, links and tasks: it tells you what will change, waits for your go, converts the cards, removes old columns only after checking their values moved, never removes a column you added, writes `schema` last, and can be run again if it stops halfway. Several versions behind, it takes them in order (3 brought Proposals and the card's facts as columns; 4 keeps price, time and the send date only on the job card, the proposal just its text). Take a copy of the page in Notion first if you want a backup.
+The config's `schema` is the structure the pipeline was built with. When a plugin update needs a newer one, the skill updates the pipeline by itself: the next hourly run does it instead of searching and pushes one line when it is done, or your next chat does it first if you get there before the hourly run. The update works in place — same page, databases, cards, links and tasks: it republishes the dashboard first, converts the cards, removes old columns only after checking their values moved, never removes a column you added, writes `schema` last, and can be run again if it stops halfway. Until it is done the other scheduled runs pause and their watermarks stay put, so nothing is lost; the dashboard shows that the update is running. If it stops (a check fails), it says why in a push, on the dashboard and in the digests, and the scheduled runs stay paused until you say "update the pipeline" in a chat. Several versions behind, it takes them in order (3 brought Proposals and the card's facts as columns; 4 keeps price, time and the send date only on the job card, the proposal just its text). Take a copy of the page in Notion first if you want a backup.
 
 ## Model
 
