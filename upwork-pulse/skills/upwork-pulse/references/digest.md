@@ -1,16 +1,14 @@
 # Digest
 
-A recap of what the hourly search found in a window, for the user to read at a fixed time. It reads Jobs only: no Upwork search, no writes anywhere, no Notion changes — automatic mode.
+A recap of what the hourly search found in a window, for the user to read at a fixed time. It reads Jobs, after the proposals sync; no Upwork search, no other writes — automatic mode.
 
-## 1. Read first
+## 1. Sync first
 
-Fetch **Search rules** (for the assessment vocabulary and any format the user defined) and **Field notes**. Rules unreadable → send nothing, stop.
+Run the proposals sync (`references/sync.md`) before anything else, whether or not the digest has anything to send, so a card the user has just applied to is not listed as a lead. A sync failure is not a reason to skip the digest. The digest reads no rules page.
 
 ## 2. Select
 
-Query `jobs_inbox` (it is already `Status` New, newest first; page while `has_more`). Keep the cards whose `Found` falls in the window, in the config timezone. The window comes from the task prompt: the morning digest covers from the evening digest's hour yesterday to now; the evening one from the morning's hour today to now. `Found` comes back as a UTC instant — convert before comparing.
-
-Applied and Skipped cards are never in a digest, even inside the window: the user has already decided on them. Reading `Status` on every card is the filter, not decoration — if a card in the view is not New, it does not go in.
+Query `jobs_inbox` (`Status` New, newest `Found` first); take the next page only while the last row is still inside the window. Keep the cards whose `Found` falls in the window, in the config timezone. The window comes from the task prompt: the morning digest covers from the evening digest's hour yesterday to now; the evening one from the morning's hour today to now. `Found` comes back as a UTC instant — convert before comparing.
 
 Nothing left → no push, and the final reply is empty (SKILL.md → automatic mode): not a word about the window or what you checked.
 
@@ -38,5 +36,4 @@ Cards N · take M · maybe K · connects L
 
 As soon as the user writes in this session, automatic mode ends: answer normally, the format is no longer required, and `references/chat.md` applies. Two things follow directly from the digest:
 
-- **"details N"** or **"details #584350"** → the full card of that item in the hourly message format (`references/hourly.md` §8, one card, no number), from the card's properties and body.
-- **A conversation about a specific posting starts from fresh data**: `find_jobs` `get` first, then talk. The card is a snapshot; proposals, hires and the connects price have moved since.
+- **"details N"** or **"details #584350"** → the full card of that item in the hourly message format (`references/hourly.md` §9, one card, no number), from the card's properties and body.
