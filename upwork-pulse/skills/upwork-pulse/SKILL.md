@@ -24,11 +24,13 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 | `upwork_org` | the Upwork org_uid to pass to every Upwork call |
 | `dashboard` | URL of the published dashboard page, if any |
 | `dashboard_version` | the dashboard version that page was published from (see *Dashboard updates*) |
-| `dashboard_skip` | a dashboard version the user declined; not offered again |
+| `dashboard_skip` | `none` when the user declined a dashboard (see *Dashboard updates*) |
 | `auto_drafts` | `on` / `off` — after an hourly run finds cards, Opus writes advice and a proposal draft for each (`references/drafts.md`) |
 | `auto_skip` | `on` / `off` — with `auto_drafts` on, a Skip advice from those automatic drafts also sets the card Skipped |
 | `drafts_task` | id of the "Upwork drafts" task the dashboard starts to write or redo a proposal |
 | `schema` | version of the pipeline's structure; this skill writes `4`. No key means 1 |
+| `updating` | only while a pipeline update runs: when it started (ISO time) |
+| `update_error` | only after an update stopped: the step and why, one line; automatic runs wait for a conversation to finish it |
 
 **Pages** — the user's rules, written by the user and by you on the user's confirmation:
 
@@ -80,7 +82,7 @@ The root page, in this order:
 3. `notion-search` for `read by the upwork-pulse skill` (the config marker) → keep only the results whose page actually holds the config (fetch to check; a text match on other Upwork pages does not count). One → use it. Several (a sandbox and a live pipeline, say) → ask which, by name; in automatic mode, with no page named, send one line — "Several pipelines found (<names>) and the task names none; add the page URL to the task prompt" — and stop.
 4. None → the pipeline is not set up; offer `references/setup.md`.
 
-Fetch the root and read the config.
+Fetch the root and read the config. **Then check `schema` before anything else**: below 4 → *Pipeline update* (under Modes) decides what this session does first — in a conversation that is the update itself, whatever the user asked.
 
 A job can be named by short id (`#584350`, the last six digits of `Job ID`), by title, by link, or by its number in a list this conversation already holds ("the second one" after a digest or a run message). A number means nothing outside the conversation that showed the list — with no such list here, ask which job. To find the card: query `jobs_inbox` (New cards) and match; not there → `jobs_all` (Applied and Skipped cards too). "No card" is said only after `jobs_all`. **Talking about a job starts from fresh data.** Before you assess, estimate or answer anything about a specific posting in a conversation, fetch it from Upwork (`find_jobs`, action `get`), then give its link and talk. The card is a snapshot from the moment it was found; proposals, hires and the connects price move, and advice on stale numbers is wrong advice. This holds for every conversation about a job, whatever the rules pages say; scheduled runs and digests read the cards only.
 
@@ -92,14 +94,11 @@ A job can be named by short id (`#584350`, the last six digits of `Job ID`), by 
 
 ## Dashboard updates
 
-The first line of `assets/dashboard.html` is `<!-- dashboard-version: N -->`, where N is the plugin's version (`x.y.z`) — the release stamps it on every release, so N is never edited by hand. The config's `dashboard_version` is the version the user's dashboard was last published from (no line = 1; a whole number, from before versions followed the plugin, is older than any `x.y.z`). In a conversation with the user — never in a scheduled or unattended run — answer what was asked first; then, once per conversation and only if `dashboard_skip` is not N, end with one short line in `language`:
+The first line of `assets/dashboard.html` is `<!-- dashboard-version: N -->`, where N is the plugin's version (`x.y.z`) — the release stamps it on every release, so N is never edited by hand. The config's `dashboard_version` is the version the user's dashboard was last published from (no line = 1; a whole number, from before versions followed the plugin, is older than any `x.y.z`). For the check read only the asset's first line, not the whole file.
 
-- **The config has no `dashboard` line** (set up before the dashboard existed, or the user removed it): what the dashboard is, in a few words, and whether to publish it now. Yes → publish it as `references/setup.md` → 7. Dashboard says.
-- **Its `dashboard_version` is below N**: the dashboard has an update to N — what is new, in a few words, from the plugin's `CHANGELOG.md` (at the plugin root, next to `skills/`) between the two versions, the entries about the dashboard; no such entries or no file → just the version — and whether to update it now. Yes → update it as `references/setup.md` → 7. Dashboard says (same link, `dashboard_version` set to N).
+**Below N → republished without asking**, as `references/setup.md` → 7. Dashboard says (same link, `dashboard_version` set to N): a newer plugin's dashboard is part of the update the user installed, and an old page can misread data the new skill writes. The hourly run does it after its work and before its message — no message of its own; a conversation that gets there first does it after answering, with one line saying the dashboard was updated and, from the plugin's `CHANGELOG.md` (at the plugin root, next to `skills/`) between the two versions, what is new on it in a few words. A session that cannot publish (no Artifact tool) leaves it to the next one that can; a publish that fails is not retried in the same run.
 
-No to either → add `dashboard_skip: N` to the config, so it is not offered again until a newer version. For the check read only the asset's first line, not the whole file.
-
-While the **pipeline update** below is due, offer that instead of this line: it republishes the dashboard too.
+**No `dashboard` line** (set up before the dashboard existed, or the user removed it): in a conversation only, once per conversation and unless `dashboard_skip` is `none`, end with one short line in `language` — what the dashboard is and whether to publish it now. Yes → `references/setup.md` → 7; no → `dashboard_skip: none`. Automatic runs never publish a dashboard the config has none of.
 
 ## Modes — read the file for the mode you are in
 
@@ -112,11 +111,12 @@ While the **pipeline update** below is due, offer that instead of this line: it 
 | A prompt says "drafts mode", an hourly run hands cards to a subagent, or the user's short command to write a job's proposal for the dashboard ("draft #584350", "redo the draft for #584350") | `references/drafts.md` |
 | Set up the pipeline, adopt existing pages, publish or update the dashboard, create the scheduled tasks, "update the pipeline" | `references/setup.md` |
 
-**Pipeline update.** The config's `schema` is the structure the pipeline was built with; this skill works with `4`. In a conversation (not in automatic mode), after reading the config: if `schema` is missing or below 4, finish what the user asked, then end the reply with this paragraph on its own, separated from the rest, once per conversation — translated into `language` like every message (only the words to say, "update the pipeline", may stay in English):
+**Pipeline update.** The config's `schema` is the structure the pipeline was built with; this skill works with `4`. A pipeline below it is brought up to date by the skill itself, without asking. **Installing the newer plugin is the user's go for its update** — the user chose this behaviour so that a plugin update never needs a second step; do not ask, do not wait for "update the pipeline", do not leave it for later because the user asked about something else. Asking only delays it: the next hourly run does the same update anyway, and until it is done the newer skill cannot work on the old structure. Its safety is in §10 itself — nothing is dropped before its values are checked in their new place. `references/setup.md` §10 is the update; it is safe to stop and run again, and takes the `updating` line in the config so that two sessions never convert the same rows at once. Only two kinds of session start it:
 
-> **Pipeline update available** (schema <n> → 4): <what the newer versions bring, from `references/setup.md` §10 — for 3: a Proposals database with every proposal you write or send, and job facts in plain columns; for 4: price and time kept only on the job card, the proposal holds just its text>. Your data is converted in place, links and tasks stay. Until then the scheduled runs are paused. Say "update the pipeline" to apply.
+- **The hourly run**: schema below 4, no `update_error`, and no `updating` from the last 2 hours → §10 instead of the search; its push and final reply are the update's report (§10). The watermark has not moved, so the next run catches up. A fresh `updating` → another session is at it: end with an empty reply. `update_error` → paused until a conversation finishes it: write nothing, empty reply (the user was told when it stopped).
+- **A conversation**, whatever the user asked — a question as much as a write — when it reads a config below 4: one line saying the pipeline is being updated to the new plugin version, §10 right away (it also finishes a stopped one, `update_error` or not), its report, then the user's request. A fresh `updating` → answer what needs no writes; a request that writes cards or proposals gets one line: an update is running, ask again in a few minutes. "Update the pipeline" runs §10 the same way.
 
-Do not fold it into the answer, and do not repeat it after the user declines. The update itself is `references/setup.md` §10. Until it is done, everything else that writes cards or proposals waits: a chat request that needs them gets one line saying the pipeline needs the update first. **Automatic runs on an older schema** write nothing and read nothing beyond the config: the hourly run and the weekly review end with an empty reply; a digest's whole message is one line, "Upwork Pulse needs an update: open a chat and say \"update the pipeline\"", pushed like a digest. The watermarks stay where they are, so the search catches up after the update.
+**Other automatic runs on an older schema** — digests, the weekly review, drafts mode — never start it: they write nothing and read nothing beyond the config. The weekly review ends with an empty reply; drafts mode as `references/drafts.md` §1 says; a digest's whole message is one line, pushed like a digest — with `update_error`: "Upwork Pulse update stopped: <update_error>. Open a chat and say \"update the pipeline\""; otherwise: "Upwork Pulse is updating to the new version; digests resume after it". The watermarks stay where they are, so the search catches up after the update.
 
 A run whose prompt says it is scheduled starts in **automatic mode**. Nobody is watching it: the user learns about it from a push to the phone, and reads the full message in the task's chat when the push says there is something to read. A push that says "nothing new" 24 times a day trains the user to ignore the pipeline, so a run pushes only when its mode has a message. Everything below lives here, not in the task prompts, so a changed skill changes every task.
 
