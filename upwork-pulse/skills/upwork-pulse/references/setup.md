@@ -174,13 +174,7 @@ If the surface has no artifact tool, still do step 1: write the filled file into
 
 ### Versions
 
-The asset's first line carries its version; SKILL.md (*Dashboard updates*) compares it with the config's `dashboard_version` and offers the user an update. Bump N whenever the asset changes in a way the user would notice, and add a line here — the offer quotes it.
-
-- **1** — the first dashboard: banner and tiles, leads, contracts, threads waiting on you, Applied tabs.
-- **2** — one Your move list with Claude's summary on every chat and contract, header pills instead of banners, each contract shown once, a details drawer for every row (titles open Upwork), the same look as the project-tracker dashboard.
-- **3** — proposal drafts: Claude's advice and a ready-to-paste draft in the lead's drawer (copy icon on every value, Rewrite), a "Proposal ready" mark and an "Only drafts" filter, a Skipped tab with who skipped and why and Restore, Settings with the auto drafts / auto skip switches.
-- **4** — built on the Proposals database: every number on a lead comes from its own column, the proposal is a Proposals row (rate and connects as columns, the text in fixed sections), a proposal's drawer shows its job and what was sent, with Notion links; a skip needs no reason; Facts show when the proposal was written and sent and when the job was decided; a proposal whose writing stopped shows as Not written instead of Writing… forever. Needs `schema: 3`.
-- **5** — Write a proposal / Rewrite records the request in Proposals (the job's row set to Writing, created if needed), so the drafts task always knows which job to write; needs `notion-create-pages` in the page's Notion tools. What you sent shows straight from Upwork right after sending, before the digest saves it to Notion; In talks also lists the chats where it is your turn.
+The asset's first line carries the plugin's version, stamped by the release on every release (the line is marked `x-release-please-version`); SKILL.md (*Dashboard updates*) compares it with the config's `dashboard_version` and offers the user an update. No hand edits: a release that did not change the page still offers it, and updating then republishes the same page.
 
 ## 8. Scheduled tasks
 
