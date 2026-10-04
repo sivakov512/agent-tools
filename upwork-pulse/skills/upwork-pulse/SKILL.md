@@ -1,6 +1,6 @@
 ---
 name: upwork-pulse
-description: Runs a freelancer's Upwork job pipeline with Notion as the source of truth — scheduled search and assessment of new postings, digests, a weekly review of open rule questions, and in chat: assessing a posting, drafting a proposal and submitting it on the user's go, setting a card Skipped or Applied, connects. Use it whenever a scheduled task or the user mentions Upwork Pulse or the Upwork pipeline, its Notion pages or databases (Search rules, Proposal guide, Field notes, Jobs, Runs, Questions), the dashboard, or asks to set the pipeline up — and whenever a message is about a job posting, a proposal or a client on a freelance platform, even without the word Upwork. A job named as `#` plus six digits ("skip #584350", "what about #000101?") is a card in this pipeline, so "skip #584350, not for me", "details 3", "run the hourly search", "write a proposal for this", "mark it applied" all belong here.
+description: Runs a freelancer's Upwork job pipeline with Notion as the source of truth — scheduled search and assessment, digests, a weekly review of rule questions, advice and ready-to-paste proposals for new cards, a history of sent proposals, and in chat: assessing a posting, writing a proposal and submitting it on the user's go, Skipped / Applied marks, search rules, connects. Use it whenever a scheduled task or the user mentions Upwork Pulse or the Upwork pipeline, its Notion pages or databases (Search rules, Proposal guide, Field notes, Jobs, Proposals, Runs, Questions), its Take / Maybe / Skipped lists, the dashboard, or asks to set up or update the pipeline — and whenever a message is about a job posting, a proposal, a client, or a rule for which jobs to take or skip on a freelance platform, even without the word Upwork. A job named as `#` plus six digits ("skip #584350", "what about #000101?") is a card here, so "details 3", "run the hourly search", "draft #584350", "from now on skip X", "mark it applied" all belong here.
 ---
 
 # Upwork Pulse
@@ -15,8 +15,8 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 
 | Key | What it is |
 |---|---|
-| `jobs`, `runs`, `questions` | data source IDs of the three databases |
-| `jobs_inbox`, `jobs_applied`, `jobs_all`, `runs_latest`, `questions_open` | view URLs, for reading without quota (`jobs_all` has every status, Skipped included) |
+| `jobs`, `proposals`, `runs`, `questions` | data source IDs of the four databases |
+| `jobs_inbox`, `jobs_applied`, `jobs_skipped`, `jobs_all`, `proposals_open`, `proposals_sent`, `runs_latest`, `questions_open` | view URLs, for reading without quota (`jobs_all` has every status, Skipped included; `proposals_open` the ones not sent yet) |
 | `rules`, `guide`, `notes`, `state` | page IDs of Search rules, Proposal guide, Field notes, Run state |
 | `language` | the user's language (e.g. `Russian`): everything you write is in it; the structure stays English |
 | `timezone` | IANA zone of the user's wall clock (e.g. `Europe/Belgrade`); all times in messages and windows are in it |
@@ -25,29 +25,44 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 | `dashboard` | URL of the published dashboard page, if any |
 | `dashboard_version` | the dashboard version that page was published from (see *Dashboard updates*) |
 | `dashboard_skip` | a dashboard version the user declined; not offered again |
+| `auto_drafts` | `on` / `off` — after an hourly run finds cards, Opus writes advice and a proposal draft for each (`references/drafts.md`) |
+| `auto_skip` | `on` / `off` — with `auto_drafts` on, a Skip advice from those automatic drafts also sets the card Skipped |
+| `drafts_task` | id of the "Upwork drafts" task the dashboard starts to write or redo a proposal |
+| `schema` | version of the pipeline's structure; this skill writes `3`. No key means 1 |
 
 **Pages** — the user's rules, written by the user and by you on the user's confirmation:
 
 - **Search rules** — what to search (queries), what is in scope, what to reject outright, what to flag, how to set verdict, hours and price, the user's rate, and how to rank a card (Ranking: criteria with points). Read at the start of every run.
 - **Proposal guide** — how the user writes proposals: voice, structure, what never to say, the portfolio (projects with the exact line to quote and the file names to attach), rate rules, what to do after sending.
-- **Field notes** — environment quirks only: facts about the Upwork API and tools that a run should know (fields that lag the site, calls that get blocked). No rules, no questions. Read every run; append one line when you discover a new quirk.
-- **Run state** — one line `PROCESSED_UNTIL: <ISO time with offset>`, the hourly search's watermark.
+- **Field notes** — environment quirks only: facts about the Upwork API and tools that a run should know (fields that lag the site, calls that get blocked). No rules, no questions. Read by every run that fetches postings in detail or writes proposals; append one line when you discover a new quirk.
+- **Run state** — two watermark lines: `PROCESSED_UNTIL: <ISO time with offset>` (the hourly search) and `PROPOSALS_SYNCED_UNTIL: <…>` (the proposals sync). Each mode rewrites only its own line.
 
 **Databases:**
 
-- **Jobs** — one card per Take or Maybe posting. `Title`, `Job ID` (the numeric id; the duplicate key), `Link`, `Published`, `Found`, `Verdict` (Take / Maybe), `Status` (New / Applied / Skipped), `Payment` (Fixed / Hourly), `Client $` (as stated, text), `Budget` (number, fixed only), `Rate min` / `Rate max` (hourly only), `My $` (hourly: the rate to ask per hour; fixed: the total), `My hours`, `Client time`, `Complexity` (Low / Medium / High), `Flags` (multi-select), `Client` (one line: country, verification, hires, spent, average = spent / paid hires, rating), `Proposals`, `Connects` (cost to apply), `Competition` (one line: invites sent, hired if more than zero, the range of competitors' bids — the proposal count has its own column), `Score` (number, by the rules' Ranking section) and `Score why` (one line: the criteria that scored), `Run` (relation to Runs). The page body has exactly five sections: **What's needed**, **Complexity**, **Risks**, **To clarify**, **Estimate** (`references/hourly.md`).
+- **Jobs** — one card per Take or Maybe posting (and one per job the user applied to outside the pipeline). Every fact is its own column, as the API gives it — no column holds a sentence made of several facts:
+  - the posting: `Title`, `Job ID` (the numeric id; the duplicate key), `Link`, `Published`, `Found`, `Run` (relation to Runs);
+  - the client's terms: `Payment` (Fixed / Hourly), `Budget` (fixed), `Rate min` / `Rate max` (hourly), `Duration` (the API's duration, one of its five values), `Connects` (cost to apply);
+  - competition: `Proposals`, `Invites`, `Interviewing`, `Bid low` / `Bid high` (the range of competitors' bids);
+  - the client: `Country`, `Verified` (checkbox), `Hires`, `Spent`, `Rating`;
+  - the assessment: `Verdict` (Take / Maybe), `Score` (by the rules' Ranking) and `Score why` (one line: the criteria that scored), `Complexity` (Low / Medium / High), `My hours`, `My $` (hourly: the rate to ask; fixed: the total), `Flags` (multi-select);
+  - the decision: `Advice` (Apply / Skip), `Advice why` and `Advised on` (when the advice was last written); `Status` (New / Applied / Skipped) and `Decided on` (when it last became Applied or Skipped); for skips `Skipped by` (manual / auto) and `Skip reason`; `Proposal` (relation to Proposals).
+
+  Money columns are plain numbers in dollars. A value the API did not return stays empty — never a made-up 0, never a dash; a zero the source states (no hires yet) is 0. The card body has exactly five sections, headings in English: **What's needed**, **Complexity**, **Risks**, **To clarify**, **Estimate** (`references/hourly.md` §5).
+- **Proposals** — one row per proposal, written or sent: `Title` (the job's title), `Job` (relation to the Jobs card), `Job ID`, `Link` (the job), `State` (Writing / Ready / Sent), `Written`, `Payment`, `Rate` (hourly: per hour; fixed: the total), `Connects` (paid to apply), `Boost` (connects bid on top, as sent), `Sent on`, `Proposal ID` (Upwork's). The body is the proposal in fixed sections (`references/drafts.md` §4): what to paste, nothing to untangle. **One row per job, the last version**: every rewrite replaces the body, and once the proposal is submitted the body becomes what Upwork stored — the letter, rate, answers and files as sent, whoever wrote them and wherever they were sent from.
 - **Runs** — one row per hourly run (per 2-hour chunk when a run catches up on a backlog), always, even empty: `Run` (title, `DD.MM HH:MM`, a label — order by `Created`, never by the title), `Created` (created time), `Status` (ok / empty / partial), `Scanned`, `Title pass`, `Detailed`, `Take`, `Maybe`, `Budget hit` (checkbox), `Tool calls`, `Window`; the body lists what stage 2 rejected and why.
 - **Questions** — cases the rules do not settle: `Question` (title, one sentence), `Job IDs`, `Seen` (number), `Status` (Open / Resolved), `First seen`, `Decision`.
 
-Card `Status` is the one thing three actors write: the hourly run creates cards as New; the user, the dashboard and chat set Applied or Skipped. Digests and the dashboard show only New. A Skipped card is never re-evaluated or duplicated when the same job turns up again.
+Card `Status` is written by several actors: the hourly run creates cards as New; the proposals sync (digests, or on command) sets Applied when a proposal for the job shows up on Upwork, and writes what was sent into Proposals; the user, the dashboard and chat set Applied, Skipped or back to New; drafts mode sets Skipped only as the hourly run's subagent with `auto_skip: on`. Digests and the dashboard's lead lists show only New. A Skipped card is never re-evaluated or duplicated when the same job turns up again.
+
+**Every status change carries when, every skip who**: Applied or Skipped sets `Decided on` (now; the sync uses the proposal's send time). A skip also gets `Skipped by` — manual: the user did it, by a button or by asking in chat; auto: drafts mode did it with nobody involved — and `Skip reason`, one line in `language`: an auto skip always has one (the advice); a manual one has the user's reason when they gave one, else stays empty — the user may skip just because. Putting a card back to New clears all three.
 
 ## Rules that protect the user
 
-- **Nothing goes to Upwork without the user's explicit go in this conversation.** Reading (`find_jobs`, `get_profile`, previews) is free; `confirm_preview`, `send_message`, `boost_profile`, `save_job`, `respond_to_offer` and any other write wait for a plain "send it" about that specific action. A scheduled run never writes to Upwork at all.
+- **Nothing goes to Upwork without the user's explicit go in this conversation.** Reading (`find_jobs`, `get_profile`, previews) is free; `confirm_preview`, `send_message`, `boost_profile`, `save_job`, `respond_to_offer` and any other write wait for a plain "send it" about that specific action. A scheduled run writes nothing to Upwork; the only exception is the proposal preview drafts mode builds to read the screening questions and bids, which is not a submission.
 - **Read Notion through views and page fetches only; never SQL or rows mode.** Those draw on a workspace quota that runs out mid-day on most plans. `notion-query-data-sources` defaults to SQL when `mode` is omitted — always pass `mode: "view"` with a view URL from the config, and filter the rows yourself.
 - **The watermark moves only after a chunk is fully written.** `PROCESSED_UNTIL` is what stops the search from re-reading or skipping jobs; a run that stops early leaves it alone (`references/hourly.md`). Never edit it in chat unless the user asks.
 - **Rules are not guessed.** A case the rules do not settle is decided by the nearest analogy for this run and recorded as a question (below); it is not a new rule until the user confirms it.
-- **If a write returns an error, stop, re-fetch, report.** Do not retry with another command or another escaping — that is how pages get destroyed.
+- **If a write returns an error, stop, re-fetch, report.** Do not retry with another command or another escaping — that is how pages get destroyed. The one exception: a validation error that names a wrong property or value and wrote nothing (the re-fetch shows the page unchanged) may be fixed and sent once more.
 - **Skill first, rules page second, but the rules page wins on content.** This file defines the mechanics and message formats. Whatever the Search rules or Proposal guide say about *what* to take, reject, flag, price or write overrides anything here; if they also define a message format, use theirs.
 
 ## Finding things
@@ -78,20 +93,31 @@ The first line of `assets/dashboard.html` is `<!-- dashboard-version: N -->`. Th
 
 No to either → add `dashboard_skip: N` to the config, so it is not offered again until a newer version. For the check read only the asset's first line, not the whole file.
 
+While the **pipeline update** below is due, offer that instead of this line: it republishes the dashboard too.
+
 ## Modes — read the file for the mode you are in
 
 | When | Read |
 |---|---|
 | A scheduled run says "hourly search", or the user asks to scan / search for new jobs | `references/hourly.md` |
-| A scheduled run says "digest" with a window, or the user asks what was found since a time | `references/digest.md` |
+| A scheduled run says "digest" with a window, or the user asks what was found since a time | `references/digest.md` (it starts with `references/sync.md`) |
 | A scheduled run says "weekly review", or the user asks about open questions | `references/weekly.md` |
-| The user asks about a posting, an estimate, a proposal, a skip, an applied mark, connects, or replies after a digest | `references/chat.md` |
-| Set up the pipeline, adopt existing pages, publish or update the dashboard, create the scheduled tasks | `references/setup.md` |
+| The user asks about a posting, an estimate, a skip, an applied mark, connects, replies after a digest, or asks to write a proposal ("write a proposal for #584350", "apply to this") — the package in chat — or to sync proposals | `references/chat.md` (and `references/sync.md` for a sync or a sent proposal) |
+| A prompt says "drafts mode", an hourly run hands cards to a subagent, or the user's short command to write a job's proposal for the dashboard ("draft #584350", "redo the draft for #584350") | `references/drafts.md` |
+| Set up the pipeline, adopt existing pages, publish or update the dashboard, create the scheduled tasks, "update the pipeline" | `references/setup.md` |
+
+**Pipeline update.** The config's `schema` is the structure the pipeline was built with; this skill works with `3`. In a conversation (not in automatic mode), after reading the config: if `schema` is missing or below 3, finish what the user asked, then end the reply with this paragraph on its own, separated from the rest, once per conversation — translated into `language` like every message (only the words to say, "update the pipeline", may stay in English):
+
+> **Pipeline update available** (schema <n> → 3): a Proposals database — every proposal you write or send, as sent — and job facts in plain columns the dashboard shows as they are; your cards are converted in place (every fact that has a column moves into it), links and tasks stay. Until then the scheduled runs are paused. Say "update the pipeline" to apply.
+
+Do not fold it into the answer, and do not repeat it after the user declines. The update itself is `references/setup.md` §10. Until it is done, everything else that writes cards or proposals waits: a chat request that needs them gets one line saying the pipeline needs the update first. **Automatic runs on an older schema** write nothing and read nothing beyond the config: the hourly run and the weekly review end with an empty reply; a digest's whole message is one line, "Upwork Pulse needs an update: open a chat and say \"update the pipeline\"", pushed like a digest. The watermarks stay where they are, so the search catches up after the update.
 
 A run whose prompt says it is scheduled starts in **automatic mode**. Nobody is watching it: the user learns about it from a push to the phone, and reads the full message in the task's chat when the push says there is something to read. A push that says "nothing new" 24 times a day trains the user to ignore the pipeline, so a run pushes only when its mode has a message. Everything below lives here, not in the task prompts, so a changed skill changes every task.
 
+**Fewer turns, same work.** Every turn re-reads the whole conversation, so a scheduled run's cost is roughly its number of turns. Put calls that do not depend on each other into one turn: after the config, Run state and Search rules together; all searches together; all stage-2 `get` calls together; the chunk's cards in one create call. A write that the next one depends on (the log row before the cards, both before the watermark) waits for its result. Load the Notion and Upwork tools you will need with one `ToolSearch` call, not one per tool; `PushNotification` is not among them — it is loaded only at the end, and only when there is a message.
+
 - **Finish all work first.** Every read and write — cards, log, watermark, questions — happens before the push and the final reply.
-- **The push is the last tool call, only when the mode has a message.** Load the tool (`ToolSearch`, query `select:PushNotification`), then call `PushNotification` with `status: "proactive"` and one line in `language`: under 200 characters, no markdown, what the user would act on — the mode's push line (`references/hourly.md` §8, `references/digest.md` §3, `references/weekly.md` §1). One push per run. Nothing to send → no push, and do not load the tool. If the surface has no push tool, the final reply is the only delivery; go on without it.
+- **The push is the last tool call, only when the mode has a message.** Load the tool (`ToolSearch`, query `select:PushNotification`), then call `PushNotification` with `status: "proactive"` and one line in `language`: under 200 characters, no markdown, what the user would act on — the mode's push line (`references/hourly.md` §9, `references/digest.md` §3, `references/weekly.md` §1). One push per run. Nothing to send → no push, and do not load the tool. If the surface has no push tool, the final reply is the only delivery; go on without it and never write about the push tool or its absence in the reply.
 - **The final reply is the mode's message and nothing else** — from its first character (`# Run`, `# Digest`, `# Questions`) to its last line. No lead-in, no sign-off. It stays in the task's chat for the user to open.
 - **Nothing to send → the final reply is empty.** Not a word, not a dot.
 - **No text between tool calls either.** Work in silence: call the tools one after another without "Now I'll query…", "All writes are done" in between. Where the final reply is empty, the platform may show your last written words as the run's result.
@@ -104,7 +130,8 @@ Tool names are the Notion MCP tools (`notion-search`, `notion-fetch`, `notion-qu
 
 - **Reading a view**: `data: {mode: "view", view_url: "<from config>", page_size: 100}`; page with `start_cursor` while `has_more`. Rows carry `url` (page id), dates as `date:<Prop>:start`.
 - **New card / run / question**: `notion-create-pages` with `parent: {data_source_id: <id from config>}`; a date goes as `"date:Found:start": "2026-09-20T14:05:00+02:00"` with `"date:Found:is_datetime": 1`; a relation as `["<page id>"]`; a select as the option name; a checkbox as `"__YES__"`.
-- **Status and other properties**: `notion-update-page`, `command: "update_properties"`, `properties: {"Status": "Skipped"}` — the plain property name as in the schema, no type prefix.
-- **Page text**: `insert_content` to append a line, `update_content` with the exact old text to change one line. `replace_content` only on Run state, whose whole body is the one watermark line.
+- **Status and other properties**: `notion-update-page`, `command: "update_properties"`, `properties: {"Status": "Skipped"}` — the plain property name as in the schema (`Link`, `Job ID` — the tool's `userDefined:` prefix is only for properties literally named `id` or `url`). Dates are the exception, as in create: `"date:Decided on:start": "<ISO time>"` with `"date:Decided on:is_datetime": 1`; clearing a property is `null` (`"date:Decided on:start": null`).
+- **Page text**: `insert_content` to append a line, `update_content` with the exact old text to change one line. `replace_content` only for a Proposals row's body (the proposal is rewritten whole); never on Run state, whose two lines are changed one at a time with `update_content`, and never on a rules page.
 - **Block tags** in page content (`<details>`, `<summary>`, `<callout>`) go as raw characters, never as `&lt;` `&gt;` entities — escaped tags land on the page as text.
 - **Dates from Notion** come back as UTC instants (`…Z`); convert to `timezone` before showing a time.
+- **Text read from a view is markdown-escaped** (`\$`, `\<`, `\*`, line breaks as `<br>`). Write plain text — `$45/hr`, real line breaks — never copy the backslashes back, or they land on the page and in the dashboard's copy buttons.

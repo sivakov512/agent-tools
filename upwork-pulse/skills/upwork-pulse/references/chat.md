@@ -10,18 +10,22 @@ If the card does not exist and the verdict is Take or Maybe, offer to create it 
 
 ## Skip and applied — "skip it", "not this one", "already applied"
 
-- "Skip", "pass", "not interested" about a posting → `Status` Skipped on its card, without asking. A Skipped card is never re-assessed or duplicated.
-- "Applied", "sent it", "I responded" → `Status` Applied; no card yet → create one with the posting's data, then set Applied.
-- Undoing: "put it back to new" → `Status` New.
+- "Skip", "pass", "not interested" about a posting → `Status` Skipped on its card, without asking, with `Skipped by` manual, `Decided on` now, and `Skip reason` only when the user gave one or one came up in this conversation — never a question just to get one.
+- "Applied", "sent it", "I responded" → `Status` Applied, `Decided on` now; no card yet → create one with the posting's data, then set Applied. What was sent reaches Proposals with the next sync (or "sync proposals" now).
+- Undoing: "put it back", "unskip" → `Status` New, and clear `Skipped by`, `Skip reason`, `Decided on`.
 
-Reply with one line: `#584350 → Skipped`.
+Reply with one line: `#584350 → Skipped` (with `: <reason>` when there is one).
+
+## Drafts — "draft #584350", "redo the draft for #584350"
+
+Only for these short commands to fill a proposal for the dashboard. "Write a proposal" and "apply to this" are **Proposals** below: the whole package in this chat. Drafts mode (`references/drafts.md`) for that card, here in the conversation: fresh data, advice, and for Apply the proposal written to Proposals. It works whatever `auto_drafts` says — asking is the decision. On Sonnet, say once that drafts are written for Opus and the text will drift from the guide; do it anyway if the user insists.
 
 ## Proposals — "write a proposal", "apply to this", "respond to the invitation"
 
 Read the **Proposal guide** first and follow it for the text, the portfolio selection, attachments, screening answers, rate and boost. Whatever it says wins over this section. What this section fixes is the mechanics and the guard:
 
-1. **Fresh data**: `find_jobs` `get`. Check whether the client has already hired the number sought, whether there are screening questions, and the current connects price.
-2. **Preview, not submission**: gathering the form data (`manage_proposals` create → preview: screening questions, bid statistics, boost) is not a submission and costs nothing; do it as part of this request without asking. An invitation uses `accept_invitation` instead of `create`. If the preview is blocked, build the package from `find_jobs` `get` and mark screening and boost as unavailable.
+1. **Fresh data**: `find_jobs` `get`. Check whether the client has already hired the number sought, whether there are screening questions, and the current connects price. If the job already has a proposal in `proposals_open` (`State` Ready), start from it — the user may have read it on the dashboard — and change what the fresh data or the user's remarks require.
+2. **Preview, not submission**: gathering the form data (`manage_proposals` create → preview: screening questions, bid statistics, boost) is not a submission and costs nothing; do it as part of this request without asking. First `list_freelancer_proposals` `invitations`: an invitation to this job uses `accept_invitation` instead of `create`. If the preview is blocked, build the package from `find_jobs` `get` and mark screening and boost as unavailable.
 3. **One package, one message.** The message starts with the `Fresh data:` line — no greeting, no preamble, no "here's the proposal" — and follows this order with these labels, plain text (no bold on the numbers), because the user reads it on a phone, opens the link to check the posting and says "ok" or "send it"; anything before the package pushes the text they need to read below the fold:
 
 ```
@@ -46,11 +50,17 @@ Fresh data: proposals <N> (<M> at find time), hired <N>, <N> connects to apply.
 
    Before replying, read the draft reply once as the user will. It starts with `Fresh data:` — anything above it (a verdict, a summary of your work) or between the blocks pushes the text down on a phone; a concern about fit fits into the Fresh data line in a few words. The proposal text breaks none of the guide's "never" lines. Every claim about past work can be pointed to in the guide's portfolio lines or the profile — a client who asks about a detail you added and the user never did will stop trusting the rest; what is missing becomes a question to the client instead. The package around the text is in `language`; only the proposal text and screening answers follow the posting's language.
 
+   The package also goes to the job's row in Proposals (`references/drafts.md` §4 — the same columns, sections and create-or-replace; `State` Ready, `Written` now) in the same turn, and again after every edit — so the latest version is in Notion even if the user sends it from the dashboard or the website. No card yet (an invitation, a job found outside the pipeline) → create one first, as the hourly run would, with `Status` New.
+
    Then nothing — wait. Any time you show the full text again (an edit, the final), put the link right above it so the user does not scroll for it.
 4. **Send only on the user's plain "send it"** about this proposal, in this conversation. Right before, name the total once more: connects for the application, boost separately, balance after. Attachments are uploaded only after the package is approved, with the mechanics Field notes describe. If the platform cannot take the shape the guide asks for, say so and hand the user what to paste into the web form.
-5. **After sending**: the card's `Status` → Applied (create the card if there is none), and one line to the user with what was sent and what it cost.
+5. **After sending**: write this proposal exactly as the sync does (`references/sync.md` §2, the `get` of the proposal just sent): the Proposals row becomes what Upwork stored, including the boost it actually took; the card Applied. Then one line to the user with what was sent and what it cost.
 
 Never guess a fact for a screening answer or the text: profile, portfolio, cards and what the user said in this conversation are the only sources. Where an honest answer depends on something only the user knows, mark the draft ⚠️.
+
+## Proposals sync — "sync proposals", "pull my past proposals"
+
+`references/sync.md`: no period → from its watermark, as a digest would; a period the user names ("for the last 3 months", "all") → from that start. Reply with one line: how many proposals written, how many of them for jobs the pipeline never saw, how many already in place.
 
 ## Connects — "how many connects", "what's my balance"
 
