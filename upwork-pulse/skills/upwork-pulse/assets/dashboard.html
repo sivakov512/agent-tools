@@ -588,6 +588,12 @@
     return "";
   }
   function myPrice(r, field) { var v = num(r[field || "My $"]); return v == null ? "" : usd(v) + (r.Payment === "Hourly" ? "/hr" : " fixed"); }
+  // my price on a lead: the offer when the job has a written proposal (the row is what goes out), else my estimate on the card
+  function myOffer(r) {
+    var id = r["Job ID"], pr = S.openProps[id] || S.sentByJob[id];
+    if (pr && pr.State && pr.State !== "Writing" && num(pr.Rate) != null) return usd(pr.Rate) + ((pr.Payment || r.Payment) === "Hourly" ? "/hr" : " fixed");
+    return myPrice(r);
+  }
 
   // ---------- time helpers ----------
   // Notion "Found"/"Published" come back as real UTC instants ("...Z"); everything below works in the configured timezone wall-clock ms.
@@ -977,7 +983,7 @@
     g.appendChild(el("span", "c time", r.Duration ? shortDur(r.Duration) : "—"));
     g.appendChild(chips(cflags));
     g.appendChild(el("span", "lab", "Me"));
-    g.appendChild(el("span", "c money", myPrice(r) || "—"));
+    g.appendChild(el("span", "c money", myOffer(r) || "—"));
     g.appendChild(el("span", "c time", r["My hours"] != null ? "~" + r["My hours"] + "h" : "—"));
     g.appendChild(chips(mflags));
     s.appendChild(g);
@@ -1079,7 +1085,7 @@
     }
     function wide(label, v) { if (v == null || v === "") return; t.appendChild(cell("k", label)); t.appendChild(cell("v wide", v)); }
     t.appendChild(cell("k", "")); t.appendChild(cell("h", "Client")); t.appendChild(cell("h", "Me"));
-    row("Price", clientPrice(r), myPrice(r));
+    row("Price", clientPrice(r), myOffer(r));
     row("Time", r.Duration, (r["My hours"] != null ? "~" + r["My hours"] + " h" : "") + (r.Complexity ? (r["My hours"] != null ? " · " : "") + String(r.Complexity).toLowerCase() + " complexity" : ""));
     var comp = [];
     if (r.Proposals != null) comp.push(r.Proposals + " proposals");
@@ -1154,7 +1160,7 @@
       cv.appendChild(cmpTable(r));
       if (r._why && r._why.length) {
         var sl = el("div", "scoreline" + (r._tier === "strong" ? " good" : ""));
-        sl.appendChild(el("b", "", "Score " + r._score + (r._tier === "strong" ? ", strong match" : "") + ": "));
+        sl.appendChild(el("b", "", "Score " + r._score + (r._tier === "strong" ? ", strong match" : "") + " when found: "));
         sl.appendChild(document.createTextNode(r._why.join(" · ")));
         cv.appendChild(sl);
       }

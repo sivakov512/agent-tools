@@ -4,7 +4,7 @@ Everything the user does by hand with the pipeline: look at a posting, get an es
 
 ## Looking at a posting — "what about #584350?", a link, "is this worth it?"
 
-Fresh data first (SKILL.md → Finding things): `find_jobs` `get` on the job. Then the link, and an assessment by Search rules with the card structure — what's needed, complexity, risks, to clarify, estimate — as prose, with the fresh numbers: proposals now vs at find time, hired, connects to apply.
+Fresh data first (SKILL.md → Finding things): `find_jobs` `get` on the job. Then the link, and an assessment by Search rules with the card structure — what's needed, complexity, risks, to clarify, estimate — as prose, with the fresh numbers: proposals now vs on the card, hired, connects to apply. When the job has a card, write the facts that changed back to it (SKILL.md → *One fact, one place*), in one `update_properties`; the estimate only if it changed.
 
 If the card does not exist and the verdict is Take or Maybe, offer to create it (hourly card format); do not create it silently.
 
@@ -24,7 +24,7 @@ Only for these short commands to fill a proposal for the dashboard. "Write a pro
 
 Read the **Proposal guide** first and follow it for the text, the portfolio selection, attachments, screening answers, rate and boost. Whatever it says wins over this section. What this section fixes is the mechanics and the guard:
 
-1. **Fresh data**: `find_jobs` `get`. Check whether the client has already hired the number sought, whether there are screening questions, and the current connects price. If the job already has a proposal in `proposals_open` (`State` Ready), start from it — the user may have read it on the dashboard — and change what the fresh data or the user's remarks require.
+1. **Fresh data**: `find_jobs` `get`. Check whether the client has already hired the number sought, whether there are screening questions, and the current connects price. The facts that changed go back to the card, and when you price the work again, the estimate too (`My hours`, `My $`, the Estimate section) — SKILL.md → *One fact, one place*. If the job already has a proposal in `proposals_open` (`State` Ready), start from it — the user may have read it on the dashboard — and change what the fresh data or the user's remarks require.
 2. **Preview, not submission**: gathering the form data (`manage_proposals` create → preview: screening questions, bid statistics, boost) is not a submission and costs nothing; do it as part of this request without asking. First `list_freelancer_proposals` `invitations`: an invitation to this job uses `accept_invitation` instead of `create`. If the preview is blocked, build the package from `find_jobs` `get` and mark screening and boost as unavailable.
 3. **One package, one message.** The message starts with the `Fresh data:` line — no greeting, no preamble, no "here's the proposal" — and follows this order with these labels, plain text (no bold on the numbers), because the user reads it on a phone, opens the link to check the posting and says "ok" or "send it"; anything before the package pushes the text they need to read below the fold:
 
