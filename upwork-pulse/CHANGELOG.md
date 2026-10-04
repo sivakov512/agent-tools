@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.5.1...upwork-pulse-v0.6.0) (2026-10-04)
+
+
+### Features
+
+* **upwork-pulse:** a conversation's drawer opens with its summary ([f30a2f5](https://github.com/sivakov512/agent-tools/commit/f30a2f596e30c86ffe0aed708758ec3048d71032))
+* **upwork-pulse:** invitations get a job card with advice and a proposal ([085cf13](https://github.com/sivakov512/agent-tools/commit/085cf136633a73c2b0ff97879f7647bbcac113ff))
+* **upwork-pulse:** one Claude chat per job, opened from the dashboard ([6992158](https://github.com/sivakov512/agent-tools/commit/6992158d70527024964f97f4bc478295801743e4))
+* **upwork-pulse:** price and time live only on the job card, the proposal keeps just its text ([e55629e](https://github.com/sivakov512/agent-tools/commit/e55629e772edba2985c2636b6cb3ea1d9ef56e0d))
+* **upwork-pulse:** the pipeline and the dashboard update themselves after a plugin update ([ba3e7ee](https://github.com/sivakov512/agent-tools/commit/ba3e7ee1855fbfbe35194089d69cb608e506e7b5))
+
+
+### Bug Fixes
+
+* **upwork-pulse:** a job's card and its proposal show the same price and today's numbers ([00c389e](https://github.com/sivakov512/agent-tools/commit/00c389e5c3a46f5aaca2e776aa3895194a4955a9))
+* **upwork-pulse:** pipeline update edge cases ([34d6d55](https://github.com/sivakov512/agent-tools/commit/34d6d5511ddf687c97b564ad2244e722d5ca9ac7))
+
 ## [0.5.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.5.0...upwork-pulse-v0.5.1) (2026-10-04)
 
 
