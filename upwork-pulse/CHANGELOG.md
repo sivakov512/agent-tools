@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.3.1...upwork-pulse-v0.4.0) (2026-10-04)
+
+
+### Features
+
+* **upwork-pulse:** auto proposals catch up on shown leads ([4fc856e](https://github.com/sivakov512/agent-tools/commit/4fc856edb0509fc664248ddc2325c15340170ef2))
+
+
+### Bug Fixes
+
+* **upwork-pulse:** request dashboard proposals via Notion ([f0340d5](https://github.com/sivakov512/agent-tools/commit/f0340d5ac523eb0b616d02dfb8e9b20c46ad4515))
+
 ## [0.3.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.3.0...upwork-pulse-v0.3.1) (2026-10-04)
 
 
