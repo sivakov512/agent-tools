@@ -76,14 +76,13 @@ CREATE TABLE ("Title" TITLE, "Job ID" RICH_TEXT COMMENT 'Numeric Upwork id; the 
   "Decided on" DATE COMMENT 'When Status last became Applied or Skipped',
   "Skipped by" SELECT('manual':default, 'auto':purple), "Skip reason" RICH_TEXT)
 
--- Proposals (adds "Proposal" to Jobs as the other side of the relation)
-CREATE TABLE ("Title" TITLE, "Job" RELATION('<jobs>', DUAL 'Proposal'),
-  "Job ID" RICH_TEXT COMMENT 'Numeric Upwork job id', "Link" URL,
-  "State" SELECT('Writing':yellow, 'Ready':green, 'Sent':blue), "Written" DATE,
-  "Payment" SELECT('Fixed':default, 'Hourly':default),
-  "Rate" NUMBER FORMAT 'dollar' COMMENT 'Hourly: the rate; fixed: the total',
-  "Connects" NUMBER COMMENT 'Cost to apply', "Boost" NUMBER COMMENT 'Connects bid on top, as sent',
-  "Sent on" DATE, "Proposal ID" RICH_TEXT COMMENT 'Upwork proposal id')
+-- Proposals (adds "Proposal" to Jobs as the other side of the relation); the text only — price, time and dates are the card's
+CREATE TABLE ("Title" TITLE COMMENT 'The job title', "Job" RELATION('<jobs>', DUAL 'Proposal'),
+  "Job ID" RICH_TEXT COMMENT 'Numeric Upwork job id; the key',
+  "State" SELECT('Writing':yellow, 'Ready':green) COMMENT 'While a draft is written; empty once sent',
+  "Written" DATE COMMENT 'When this text was written; for a sent one, when it was sent',
+  "Proposal ID" RICH_TEXT COMMENT 'Upwork proposal id; set once sent',
+  "Boost" NUMBER COMMENT 'Connects bid on top, as sent')
 
 -- Questions
 CREATE TABLE ("Question" TITLE, "Job IDs" RICH_TEXT, "Seen" NUMBER,
@@ -101,8 +100,8 @@ Jobs       Inbox     (default)  FILTER "Status" = "New";   SORT BY "Found" DESC;
            Applied   table      FILTER "Status" = "Applied"; SORT BY "Decided on" DESC; SHOW "Title", "Verdict", "My $", "Proposal", "Decided on"
            Skipped   table      FILTER "Status" = "Skipped"; SORT BY "Decided on" DESC; SHOW "Title", "Verdict", "Skipped by", "Skip reason", "Decided on"
            All       table      SORT BY "Found" DESC
-Proposals  Open      (default)  FILTER "State" != "Sent"; SORT BY "Written" DESC; SHOW "Title", "State", "Payment", "Rate", "Connects", "Written"
-           Sent      table      FILTER "State" = "Sent"; SORT BY "Sent on" DESC; SHOW "Title", "Payment", "Rate", "Connects", "Boost", "Sent on"
+Proposals  Open      (default)  FILTER "Proposal ID" IS EMPTY; SORT BY "Written" DESC; SHOW "Title", "State", "Job", "Written"
+           Sent      table      FILTER "Proposal ID" IS NOT EMPTY; SORT BY "Written" DESC; SHOW "Title", "Job", "Boost", "Written"
 Runs       Latest    (default)  SORT BY "Created" DESC; SHOW "Run", "Status", "Scanned", "Detailed", "Take", "Maybe", "Window"
 Questions  Open      (default)  FILTER "Status" = "Open"; SORT BY "First seen" ASC
 ```
@@ -143,7 +142,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 	auto_drafts: `off`
 	auto_skip: `off`
 	drafts_task: `<trigger id of the Upwork drafts task>`
-	schema: `3`
+	schema: `4`
 </details>
 ```
 
@@ -229,12 +228,27 @@ For a pipeline whose config `schema` (none means 1) is below what this skill wri
    - `Client` → `Country` (in English, as the API names it: `United States`, `Germany`), `Verified` (checked only when the text says verified), `Hires`, `Spent` (`$8.4K` → 8400), `Rating` (the average is left out: it is `Spent` / `Hires`); "no hires" is `Hires` 0;
    - `Competition` → `Invites`, `Interviewing`, `Bid low` / `Bid high` (a hired count is left out);
    - old cards have no decision or advice dates: `Decided on` (schema 1) and `Advised on` stay empty.
-4. **Schema-2 drafts.** Only cards with a `Draft` value can hold a draft (fetch just those for a `Proposal` page). For each, a row in Proposals, unless one with this `Job ID` exists — two cards with one `Job ID` (a duplicate) get one row, from the draft written last (`Drafted`), and the other card is named in the report: `Job` = the card, `Title`, `Job ID`, `Link`, `Payment`, `Connects` from the card; `State` = `Sent` when the card's `Draft` says Sent, else `Ready`; `Written` = `Drafted`; `Sent on`, `Proposal ID`, `Boost` from the card; `Rate` = the number in the page's `## Rate` section; body = the page's content without that section. Older text draft columns, where they exist, become the body instead: `Proposal` → Cover letter, `Bid` → `Rate`, `Milestones` and `Screening` → their sections, `Draft notes` → How it was written, as it is. Once the row is written, the `Proposal` page leaves the card: `update_content` replacing its `<page …>Proposal</page>` line with nothing, `allow_deleting_content: true` (the user's go covers it; the page goes to Notion's trash).
+4. **Schema-2 drafts.** Only cards with a `Draft` value can hold a draft (fetch just those for a `Proposal` page). For each, a row in Proposals in the §4 shape, unless one with this `Job ID` exists — two cards with one `Job ID` (a duplicate) get one row, from the draft written last (`Drafted`), and the other card is named in the report: `Job` = the card, `Title`, `Job ID` from the card; `Proposal ID` and `Boost` from the card; `State` `Ready` unless the card's `Draft` says Sent (then empty); `Written` = the card's `Sent on` for a sent one, else `Drafted`; body = the page's content without its `## Rate` section. The price goes to the card, not the row: the number in that `## Rate` section → `My $` when the draft was sent or the card's `My $` is empty; the card's `Sent on` → `Decided on` when that is empty. Older text draft columns, where they exist, become the body instead: `Proposal` → Cover letter, `Bid` → the card's `My $` (by the same rule), `Milestones` and `Screening` → their sections, `Draft notes` → How it was written, as it is. A sent draft with no `Proposal ID` on the card gets one found on Upwork, as To 4 step 2 says. Once the row is written, the `Proposal` page leaves the card: `update_content` replacing its `<page …>Proposal</page>` line with nothing, `allow_deleting_content: true` (the user's go covers it; the page goes to Notion's trash).
 5. **Check.** Read `jobs_all` and `proposals_open` / `proposals_sent` again. Every card that had text in an old column has at least one new column filled from it (per card, per old column); every schema-2 draft has its row. Anything missing → stop here, drop nothing, and tell the user which cards and why; running the update again picks up from there.
 6. **Remove the old columns** that are present: `Client $`, `Client time`, `Client`, `Competition`; from schema 2 also `Draft`, `Drafted`, `Proposal ID`, `Boost`, `Sent on`, and the text columns `Proposal`, `Bid`, `Milestones`, `Screening`, `Draft notes` (`DROP COLUMN`). Columns not in §4 and not on this list stay.
 7. **Views** as §5: Inbox shows the new columns; Skipped (created if missing) and Applied sort by `Decided on`.
 8. **Run state**: `PROPOSALS_SYNCED_UNTIL: <now>` appended if missing (`insert_content`; the `PROCESSED_UNTIL` line is never touched).
 9. **Drafts task**: created if the config has no `drafts_task` (§8; no schedule, Opus on the user's word). Where tasks cannot be created, its prompt goes in the reply.
-10. **Dashboard**: §7, published to the URL in `dashboard` (read it first) so the link stays; `dashboard_version` set to N. No `dashboard` → publish a new one. It reads the new columns, so it goes out right before `schema`.
-11. **Config** (`update_content` on the toggle, tab-indented): add whatever is missing of `proposals`, `jobs_skipped`, `proposals_open`, `proposals_sent`, `auto_drafts: off`, `auto_skip: off`, `drafts_task`; then `schema: 3` — last.
+10. **Dashboard**: §7, published to the URL in `dashboard` (read it first) so the link stays; `dashboard_version` set to N. No `dashboard` → publish a new one. It reads the new columns, so it goes out right before `schema`. Going on to 4 in the same session: skip it here — To 4 publishes it once.
+11. **Config** (`update_content` on the toggle, tab-indented): add whatever is missing of `proposals`, `jobs_skipped`, `proposals_open`, `proposals_sent`, `auto_drafts: off`, `auto_skip: off`, `drafts_task`; then `schema: 3` — last. Going on to 4 in the same session: To 4 next; its own steps 1–4 find nothing to convert for rows written here in the §4 shape, and its steps 5–8 still run.
 12. **Report** in `language`: what was added, converted and removed; the cards whose old text gave nothing for a column (by short id, if any); columns left in place; a line in the rules pages or Field notes that names a removed column (quote it — the user decides); that `auto_drafts` and `auto_skip` are off and switch on the dashboard; and that "sync proposals for the last N months" fills Proposals with what they sent before.
+
+### To 4 (from 3)
+
+Price, time and the send date move to the job card, so each lives in one place; a Proposals row keeps only its text, `Written`, `Proposal ID` and `Boost` (SKILL.md → *One fact, one place*). Tell the user before the go: on a sent proposal the price sent becomes the card's `My $`; on a draft the card's `My $` stays (it is the newer estimate) and fills from the draft only when empty.
+
+1. **Read** `proposals_open`, `proposals_sent` (the schema-3 views, filtered by `State`), and `jobs_all`, every page.
+2. **Sent rows** (`State` Sent). The card is the row's `Job`; none → a card made as the sync makes one (`references/sync.md` §2, from the row's `Title`, `Job ID`, `Link`, `Payment`). One `update_properties` on the card: `Status` Applied, `Decided on` = the row's `Sent on` (when it has one), `My $` = the row's `Rate` (when it has one), and `Payment` / `Link` from the row where the card's are empty. On the row: `Written` = its `Sent on`, `State` cleared (`null`). A sent row without a `Proposal ID` (an old conversion) gets it from Upwork: `list_freelancer_proposals` `list` by status, as the sync does (`references/sync.md` §1), back to the earliest such `Sent on`, matched by `Job ID`; none found → `Proposal ID` `unknown`, named in the report — the row must count as sent.
+3. **Draft rows** (`State` Ready, Writing or empty, no `Proposal ID`): the card's `My $` empty → the row's `Rate`; `Connects` empty → the row's `Connects`; `Payment` empty → the row's. A row whose `State` is empty and whose body is empty (a request the dashboard left) stays as it is.
+4. **Check.** Read the rows again: every former sent row has a `Proposal ID` and an empty `State`, and its card is Applied with `My $` set when the row had a `Rate`. Anything missing → stop here, drop nothing, say which rows; running the update again picks up from there.
+5. **Proposals columns**: `DROP COLUMN` `Link`, `Payment`, `Rate`, `Connects`, `Sent on` (those present), and `ALTER COLUMN "State" SET SELECT('Writing':yellow, 'Ready':green)`. Columns not in §4 and not on this list stay.
+6. **Views** as §5: Open filters on an empty `Proposal ID`, Sent on a set one, both sorted by `Written`.
+7. **Dashboard**: §7, published to the URL in `dashboard` (read it first); `dashboard_version` set to N. It reads the new shape, so it goes out right before `schema`.
+8. **Config**: `schema: 4` — last.
+9. **Report** in `language`: rows converted, cards created or changed (price taken from what was sent: by short id), Proposal IDs found or marked `unknown`, columns removed and left in place.
+

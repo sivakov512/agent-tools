@@ -535,7 +535,7 @@
   var VIEW_APPLIED = "__VIEW_APPLIED__";
   var VIEW_SKIPPED = "__VIEW_SKIPPED__";
   var VIEW_PROPOSALS_OPEN = "__VIEW_PROPOSALS_OPEN__", VIEW_PROPOSALS_SENT = "__VIEW_PROPOSALS_SENT__";
-  var SCHEMA = 3; // the Notion structure this page reads (config `schema`)
+  var SCHEMA = 4; // the Notion structure this page reads (config `schema`)
   var STALL_MIN = 20; // a proposal still "Writing" after this many minutes: the task stopped without writing it
   var REMOTE = "Claude Code Remote"; // fire_trigger: the Rewrite button starts the drafts task
   var SKIP_DAYS = 2; // the Skipped tab shows this many days, then "Show 2 more days"
@@ -588,12 +588,6 @@
     return "";
   }
   function myPrice(r, field) { var v = num(r[field || "My $"]); return v == null ? "" : usd(v) + (r.Payment === "Hourly" ? "/hr" : " fixed"); }
-  // my price on a lead: the offer when the job has a written proposal (the row is what goes out), else my estimate on the card
-  function myOffer(r) {
-    var id = r["Job ID"], pr = S.openProps[id] || S.sentByJob[id];
-    if (pr && pr.State && pr.State !== "Writing" && num(pr.Rate) != null) return usd(pr.Rate) + ((pr.Payment || r.Payment) === "Hourly" ? "/hr" : " fixed");
-    return myPrice(r);
-  }
 
   // ---------- time helpers ----------
   // Notion "Found"/"Published" come back as real UTC instants ("...Z"); everything below works in the configured timezone wall-clock ms.
@@ -983,7 +977,7 @@
     g.appendChild(el("span", "c time", r.Duration ? shortDur(r.Duration) : "—"));
     g.appendChild(chips(cflags));
     g.appendChild(el("span", "lab", "Me"));
-    g.appendChild(el("span", "c money", myOffer(r) || "—"));
+    g.appendChild(el("span", "c money", myPrice(r) || "—"));
     g.appendChild(el("span", "c time", r["My hours"] != null ? "~" + r["My hours"] + "h" : "—"));
     g.appendChild(chips(mflags));
     s.appendChild(g);
@@ -1029,7 +1023,7 @@
 
   // ---------- notes (Notion page body, as-is) ----------
   var notesCache = {};
-  function pageContent(url, ver) { // a Notion page's body, kept per version (ver: the row's Written / Sent on time — a rewrite reads afresh)
+  function pageContent(url, ver) { // a Notion page's body, kept per version (ver: the row's Written time, Proposal ID and State — a rewrite reads afresh)
     var key = url + "|" + (ver || "");
     if (notesCache[key] != null) return Promise.resolve(notesCache[key]);
     return MCP.callTool(NOTION, "notion-fetch", { id: url }, { cache: ver ? false : { staleTime: 300000, gcTime: 86400000 } }).then(function (res) {
@@ -1039,11 +1033,11 @@
       return (notesCache[key] = m ? m[1] : "");
     });
   }
-  // a job's proposal: the row in Proposals (Open while written, Sent once out), matched by Job ID
+  // a job's proposal: the row in Proposals (Open while written, Sent once it has a Proposal ID), matched by Job ID
   function openProp(r) { return S.openProps[r["Job ID"]] || null; }
   // a proposal written before the current Skip advice: kept, but no longer what the advice says
   function propBeforeSkip(r, pr) {
-    return r.Advice === "Skip" && pr && pr.State !== "Sent" && Date.parse(pr["date:Written:start"] || "") < Date.parse(r["date:Advised on:start"] || "");
+    return r.Advice === "Skip" && pr && !pr["Proposal ID"] && Date.parse(pr["date:Written:start"] || "") < Date.parse(r["date:Advised on:start"] || "");
   }
   function stale(t) { return t && Date.now() - t > STALL_MIN * 60000; }
   function propState(r) { // Writing that never finished reads as Stalled, so the page never shows "Writing…" forever
@@ -1085,7 +1079,7 @@
     }
     function wide(label, v) { if (v == null || v === "") return; t.appendChild(cell("k", label)); t.appendChild(cell("v wide", v)); }
     t.appendChild(cell("k", "")); t.appendChild(cell("h", "Client")); t.appendChild(cell("h", "Me"));
-    row("Price", clientPrice(r), myOffer(r));
+    row("Price", clientPrice(r), myPrice(r));
     row("Time", r.Duration, (r["My hours"] != null ? "~" + r["My hours"] + " h" : "") + (r.Complexity ? (r["My hours"] != null ? " · " : "") + String(r.Complexity).toLowerCase() + " complexity" : ""));
     var comp = [];
     if (r.Proposals != null) comp.push(r.Proposals + " proposals");
@@ -1118,7 +1112,7 @@
       var verdict = el("span", r._tier === "strong" ? "chip good" : "", r.Verdict + (r._tier === "strong" ? " · strong match" : ""));
       var x = drHead(body, [verdict, r._score > -Infinity ? "score " + r._score : "", pub ? "posted " + fmtWall(pub, true) : ""], unesc(r.Title), r["Job ID"]);
       var ps = propState(r), pr = openProp(r) || S.sentByJob[r["Job ID"]];
-      var wpr = pr ? wallFromNotion(pr["date:Written:start"]) : null, spr = pr ? wallFromNotion(pr["date:Sent on:start"]) : null;
+      var sent = !!(pr && pr["Proposal ID"]), wpr = pr && !sent ? wallFromNotion(pr["date:Written:start"]) : null, spr = sent ? dcd : null; // sent: the card's Decided on is the send time
       var ready = r.Status === "New" && ps === "Ready" && !propBeforeSkip(r, pr);
       if (r.Link) { var ul = navLink(r.Link, "Upwork"); if (ready) { ul.classList.add("primary"); ul.title = "Open the job on Upwork and paste the proposal from below"; } x.acts.appendChild(ul); }
       if (r.url) x.acts.appendChild(navLink(r.url, "Notion job"));
@@ -1171,7 +1165,7 @@
         ["Posted", pub ? fmtWall(pub, true) : "unknown"],
         ["Found", fnd ? fmtWall(fnd, true) : ""],
         ["Advised", wallFromNotion(r["date:Advised on:start"]) ? fmtWall(wallFromNotion(r["date:Advised on:start"]), true) : ""],
-        ["Proposal written", wpr && pr && pr.State !== "Writing" ? fmtWall(wpr, true) : ""],
+        ["Proposal written", wpr && pr.State !== "Writing" ? fmtWall(wpr, true) : ""],
         ["Proposal sent", spr ? fmtWall(spr, true) : ""],
         [r.Status === "Skipped" ? "Skipped" : "Applied", r.Status !== "New" && dcd ? fmtWall(dcd, true) : ""]
       ]));
@@ -1302,30 +1296,30 @@
     });
     return nConfirm;
   }
-  // The proposal is a row in Proposals: rate and connects are its columns, the text is its page in fixed sections.
-  function rateBox(pr, label) {
-    var v = num(pr.Rate); if (v == null) return null;
-    var d = el("div", "df"); d.appendChild(el("div", "k", label || "Rate"));
-    var b = el("div", "v big-v", myPrice(pr, "Rate")); b.appendChild(cpIcon(String(v), "the rate")); d.appendChild(b);
+  // The proposal is a row in Proposals holding only its text; the price is the job card's My $ (one place for money).
+  function rateBox(card, label) {
+    var v = num(card["My $"]); if (v == null) return null;
+    var d = el("div", "df"); d.appendChild(el("div", "k", label));
+    var b = el("div", "v big-v", myPrice(card)); b.appendChild(cpIcon(String(v), "the rate")); d.appendChild(b);
     return d;
   }
-  function proposalInto(fs, pr, sent) { // a Proposals row: the rate from its column, then its page as written
+  function proposalInto(fs, pr, sent, card) { // the card's price, then the row's page as written
     clear(fs);
-    var rb = rateBox(pr, sent ? "Rate sent" : "Rate"); if (rb) fs.appendChild(rb);
+    var rb = card ? rateBox(card, sent ? "Rate sent" : "Rate") : null; if (rb) fs.appendChild(rb);
     var body = el("div", "dfs"); body.appendChild(el("div", "dr-empty", "Loading…")); fs.appendChild(body);
-    var ver = (pr["date:Written:start"] || "") + (pr["date:Sent on:start"] || "") + (pr.State || "");
+    var ver = (pr["date:Written:start"] || "") + (pr["Proposal ID"] || "") + (pr.State || "");
     return pageContent(pr.url, ver).then(function (md) { clear(body); return proposalBody(body, md, sent); })
       .catch(function (err) { clear(body); body.appendChild(el("div", "err", errText(err, NOTION))); return 0; });
   }
   function draftSection(host, r) {
     var live = r.url && r.Status === "New", ps = propState(r), pr = openProp(r) || S.sentByJob[r["Job ID"]];
     if (!ps && !(live && canDraft())) return;
-    var dw = pr ? wallFromNotion(pr["date:Written:start"]) : null, sw = pr ? wallFromNotion(pr["date:Sent on:start"]) : null;
+    var dw = pr ? wallFromNotion(pr["date:Written:start"]) : null, sw = wallFromNotion(r["date:Decided on:start"]);
     var right = ps === "Writing" ? "writing…" : ps === "Stalled" ? "not written" : ps === "Sent" ? (sw ? "sent " + fmtWall(sw, true) : "as sent") : dw && ps === "Ready" ? "written " + fmtWall(dw, true) + (propBeforeSkip(r, pr) ? ", before the Skip advice" : "") : "";
     var fs = el("div", "dfs"), pb = dsec(host, ps === "Sent" ? "What you sent" : "Proposal", right); pb.appendChild(fs); pb.parentNode.id = "secProposal";
     if (!ps) { fs.appendChild(el("div", "dr-empty", "No proposal yet. Write a proposal (above) has Claude write one from fresh data in a few minutes.")); return; }
     if (!pr || ps === "Writing" || ps === "Stalled") { fs.appendChild(el("div", "dr-empty", ps === "Stalled" ? "The task stopped before writing a proposal. Rewrite (above) starts it again." : "Claude is writing the proposal; it shows up here in a few minutes.")); return; }
-    proposalInto(fs, pr, ps === "Sent").then(function (n) {
+    proposalInto(fs, pr, ps === "Sent", r).then(function (n) {
       var go = $("drNextProp"); if (go && n) go.textContent = "Proposal ready — " + n + (n === 1 ? " point" : " points") + " to confirm ↓";
     });
   }
@@ -1337,7 +1331,7 @@
     // the request lives in Notion: the task reads Writing rows from Proposals (references/drafts.md §1), so a job without a row gets one
     var now = new Date().toISOString(), made = null;
     var mark = pid ? MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { State: "Writing", "date:Written:start": now, "date:Written:is_datetime": 1 } }, { cache: false })
-      : MCP.callTool(NOTION, "notion-create-pages", { parent: { data_source_id: S.cfg.proposals }, pages: [{ properties: { Title: r.Title || shortId(id), Job: [r.url], "Job ID": id, Link: r.Link || null, State: "Writing", "date:Written:start": now, "date:Written:is_datetime": 1 } }], allow_async: false }, { cache: false })
+      : MCP.callTool(NOTION, "notion-create-pages", { parent: { data_source_id: S.cfg.proposals }, pages: [{ properties: { Title: r.Title || shortId(id), Job: [r.url], "Job ID": id, State: "Writing", "date:Written:start": now, "date:Written:is_datetime": 1 } }], allow_async: false }, { cache: false })
           .then(function (res) { var pg = res && res.payload && res.payload.pages && res.payload.pages[0]; made = pg ? pg.id : null; });
     mark.then(function () { return MCP.callTool(REMOTE, "fire_trigger", { trigger_id: S.cfg.drafts_task, text: "jobs: " + id }, { cache: false }); })
       .then(function () {
@@ -1923,12 +1917,12 @@
       ["Status", p.closed ? p.statusLabel + (p.reason ? " — " + p.reason : "") : "Open"],
       ["Sent", p.created ? fmtWall(wallOf(p.created), true) + " (" + ago(Date.now() - p.created) + " ago)" : ""],
       ["My rate", p.rate && !sr ? p.rate.replace(/\.0$/, "") : ""], // with the Notion copy, the rate is shown under What you sent
-      ["Connects", sr && sr.Connects != null ? sr.Connects + " to apply" + (num(sr.Boost) ? " + " + sr.Boost + " boost" : "") : p.bid ? "boosted " + p.bid : ""],
+      ["Connects", nr && nr.Connects != null ? nr.Connects + " to apply" + (sr && num(sr.Boost) ? " + " + sr.Boost + " boost" : p.bid ? " + " + p.bid + " boost" : "") : p.bid ? "boosted " + p.bid : ""],
       ["Job ID", p.jobId ? fullIdBadge(p.jobId) : ""]
     ]));
-    var fs = el("div", "dfs"), sw = sr ? wallFromNotion(sr["date:Sent on:start"]) : null;
+    var fs = el("div", "dfs"), sw = sr && nr ? wallFromNotion(nr["date:Decided on:start"]) : null;
     dsec(host, "What you sent", sr ? (sw ? "sent " + fmtWall(sw, true) : "") : "").appendChild(fs);
-    if (sr) proposalInto(fs, sr, true);
+    if (sr) proposalInto(fs, sr, true, nr);
     else upworkSentInto(fs, p);
     if (nr) {
       var cv = dsec(host, "Client vs me"); cv.appendChild(cmpTable(nr));
@@ -2099,12 +2093,12 @@
     return Promise.all([safe(VIEW_PROPOSALS_OPEN, 3), safe(VIEW_PROPOSALS_SENT, 5)]).then(function (res) {
       if (res[0]) {
         var open = {};
-        res[0].forEach(function (p) { if (p["Job ID"] && p.State !== "Sent" && !open[p["Job ID"]]) open[p["Job ID"]] = p; });
+        res[0].forEach(function (p) { if (p["Job ID"] && !p["Proposal ID"] && !open[p["Job ID"]]) open[p["Job ID"]] = p; });
         S.openProps = open;
       }
       if (res[1]) {
         var byJob = {}, byId = {};
-        res[1].forEach(function (p) { if (p.State !== "Sent") return; if (p["Job ID"] && !byJob[p["Job ID"]]) byJob[p["Job ID"]] = p; if (p["Proposal ID"]) byId[String(p["Proposal ID"])] = p; });
+        res[1].forEach(function (p) { if (!p["Proposal ID"]) return; if (p["Job ID"] && !byJob[p["Job ID"]]) byJob[p["Job ID"]] = p; if (p["Proposal ID"]) byId[String(p["Proposal ID"])] = p; });
         S.sentByJob = byJob; S.sentById = byId;
       }
       var open2 = S.openProps, byJob2 = S.sentByJob;
