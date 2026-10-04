@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.5.0...upwork-pulse-v0.5.1) (2026-10-04)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** the dashboard version follows the plugin release, so every release offers the update ([037c258](https://github.com/sivakov512/agent-tools/commit/037c258315482ecec4b76959ae81e5da46e4a185))
+
 ## [0.5.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.4.0...upwork-pulse-v0.5.0) (2026-10-04)
 
 
