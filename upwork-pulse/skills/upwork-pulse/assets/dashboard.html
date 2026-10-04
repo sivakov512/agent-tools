@@ -1,4 +1,4 @@
-<!-- dashboard-version: 2 -->
+<!-- dashboard-version: 4 -->
 <title>Upwork Pulse</title>
 <style>
   :root {
@@ -48,7 +48,6 @@
   .pl.crit { background: var(--critical-soft); border-color: transparent; color: var(--critical); } .pl.crit b { color: var(--critical); }
   .pl.good { background: var(--good-soft); border-color: transparent; color: var(--good); } .pl.good b { color: var(--good); }
   .pl.crit:hover, .pl.good:hover { border-color: currentColor; }
-  .eyebrow { display: none; }
   h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
   .status { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-mute); }
   .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); display: inline-block; margin-right: 6px; vertical-align: middle; }
@@ -63,10 +62,6 @@
   .banner.alert a { color: var(--critical); }
   .banner .list { display: flex; flex-wrap: wrap; gap: 6px 16px; font-weight: 400; }
   .lab { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); opacity: .8; margin-right: 4px; }
-  .body .links button { border: 1px solid var(--border); background: transparent; border-radius: 6px; padding: 3px 10px; cursor: pointer; font-size: 13px; color: var(--text-2); }
-  .body .links button:hover { color: var(--critical); border-color: var(--critical); }
-  .body .links button.ok:hover { color: var(--accent); border-color: var(--accent); }
-  .body .links button[disabled] { opacity: .5; cursor: default; }
   .ms-line .due { color: var(--text-mute); }
   .ms-line .late, .ms-line .stuck { color: var(--critical); font-weight: 500; }
   .p-state { font-size: 13px; }
@@ -80,7 +75,6 @@
   .stat .label { font-size: 13px; color: var(--text-2); margin-bottom: 4px; display: flex; justify-content: space-between; gap: 6px; }
   .stat .label .go { color: var(--text-mute); }
   .stat .value { font-size: 30px; font-weight: 500; line-height: 1.15; letter-spacing: -.02em; }
-  .stat .value.alert { color: var(--critical); }
   .stat .sub { margin-top: 2px; font-size: 13px; color: var(--text-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .spark { display: flex; align-items: flex-end; gap: 3px; height: 24px; margin-top: 10px; }
   .spark .bar { flex: 1; background: var(--accent); opacity: .85; border-radius: 2px 2px 0 0; min-height: 2px; }
@@ -108,8 +102,6 @@
   .tl:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
   .tl::after { content: " ↗"; font-size: .85em; color: var(--accent); opacity: 0; }
   .tl:hover::after, .tl:focus-visible::after { opacity: 1; }
-  .dr-acts a.pbtn { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 12px; color: var(--text); font-size: 13px; }
-  .dr-acts a.pbtn:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
   .t-right { display: flex; align-items: baseline; gap: 10px; }
   /* rows with a meta line: the button and the time stack on the right, the title gets the width */
   /* Claude's summary on a card or a row: plain text, the next step labelled, nothing that looks like a link */
@@ -148,17 +140,44 @@
   .dr-who .sep { margin: 0 7px; opacity: .6; }
   .dr-head h1 { margin: 4px 0 0; font-size: 26px; line-height: 1.2; font-weight: 600; letter-spacing: -.015em; text-wrap: balance; overflow-wrap: anywhere; }
   .dr-head h1 .badge-id { font-size: 13px; vertical-align: 3px; margin-right: 6px; }
-  .dr-acts { display: flex; flex-wrap: wrap; gap: 6px 20px; align-items: center; margin-top: 14px; font-size: 13.5px; }
-  .dr-acts a { color: var(--accent); text-decoration: none; }
-  .dr-acts a:hover { text-decoration: underline; }
-  .dr-acts button { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 13px; color: var(--text-2); }
-  .dr-acts button.ok:hover { color: var(--accent); border-color: var(--accent); }
-  .dr-acts button.no:hover { color: var(--critical); border-color: var(--critical); }
-  .dr-acts button[disabled] { opacity: .5; cursor: default; }
+  /* the drawer's action bar stays in view: links to the item on the left, actions on the right */
+  .dr-actbar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 6px; padding: 10px 20px 10px 36px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .dr-actbar .lks { display: flex; flex-wrap: wrap; gap: 6px; }
+  .dr-actbar .btns { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+  .dr-actbar .btns:empty, .dr-actbar .lks:empty { display: none; }
+  .dr-actbar .lks a { display: inline-flex; align-items: center; gap: 3px; padding: 4px 10px; border-radius: 6px; background: var(--surface-2); color: var(--text-2); font-size: 13px; text-decoration: none; white-space: nowrap; }
+  .dr-actbar .lks a:hover { background: var(--accent-soft); color: var(--accent); }
+  .dr-actbar .lks a .arr { color: var(--text-mute); font-size: .9em; }
+  .dr-actbar .lks a:hover .arr { color: var(--accent); }
+  .dr-actbar button, .dsec-x button { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 13px; color: var(--text-2); white-space: nowrap; }
+  .dr-actbar button.ok:hover, .dsec-x button:hover { color: var(--accent); border-color: var(--accent); }
+  .dr-actbar button.no:hover { color: var(--critical); border-color: var(--critical); }
+  .dr-actbar button[disabled], .dsec-x button[disabled] { opacity: .5; cursor: default; }
+  .dr-actbar .state { font-size: 13px; color: var(--text-mute); }
+  .dr-actbar .lks a.primary { background: var(--accent); color: var(--surface); font-weight: 500; }
+  .dr-actbar .lks a.primary .arr { color: inherit; opacity: .8; }
+  .dr-actbar .lks a.primary:hover { background: var(--accent); color: var(--surface); filter: brightness(1.08); }
+  .dr-actbar button.quiet { border-color: transparent; color: var(--text-mute); }
+  .dr-actbar button.no.hint { border-color: color-mix(in srgb, var(--warn) 55%, var(--border)); color: var(--warn); }
+  .dr-dec { margin: 12px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--text-2); max-width: 68ch; }
+  .dr-dec b { font-weight: 600; }
+  .dr-dec.apply b { color: var(--good); } .dr-dec.skip b { color: var(--warn); } .dr-dec.busy b { color: var(--accent); } .dr-dec.fail b { color: var(--critical); }
+  .dr-next { margin-top: 10px; border: 0; background: none; padding: 0; cursor: pointer; font-size: 13.5px; font-weight: 500; color: var(--accent); }
+  .dr-next:hover { text-decoration: underline; text-underline-offset: 2px; }
+  #secProposal { scroll-margin-top: 12px; }
+  .confirm { padding: 12px 14px; border-radius: 8px; background: color-mix(in srgb, var(--warn) 13%, transparent); }
+  .confirm h5 { margin: 0 0 6px; font-size: 12.5px; font-weight: 600; color: var(--warn); text-transform: none; letter-spacing: 0; }
+  .confirm ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; line-height: 1.5; color: var(--text); }
+  .how p { margin: 0 0 3px; }
+  .qa .a.warn { padding: 6px 10px; border-radius: 6px; background: color-mix(in srgb, var(--warn) 13%, transparent); }
+  @media (max-width: 560px) { .dr-actbar { padding: 10px 18px; } }
   .dr-in { padding: 4px 36px 56px; }
   .ico { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
   .dsec { margin-top: 32px; }
-  .dsec-h { display: flex; align-items: center; gap: 9px; width: 100%; margin-bottom: 10px; padding: 4px 4px 4px 0; border: 0; background: none; text-align: left; cursor: pointer; color: var(--text-2); border-radius: 8px; font: inherit; }
+  .dsec-hw { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .dsec.folded .dsec-hw { margin-bottom: 0; }
+  .dsec-x { flex: none; display: flex; align-items: center; gap: 8px; }
+  .dsec-h { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; margin-bottom: 0; padding: 4px 4px 4px 0; border: 0; background: none; text-align: left; cursor: pointer; color: var(--text-2); border-radius: 8px; font: inherit; }
   .dsec-h:hover h3 { color: var(--accent); }
   .dsec-h .ico { width: 17px; height: 17px; }
   .dsec-h h3 { margin: 0; font-size: 17px; font-weight: 600; color: var(--text); }
@@ -252,7 +271,6 @@
   .tab[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: 0 0 0 1px var(--border); }
   .tab .mono { font-family: var(--sans); color: var(--text-mute); margin-left: 2px; }
   .tab { white-space: nowrap; }
-  .tab .mono.owed { color: var(--critical); font-weight: 600; }
   @media (max-width: 420px) { .tab { padding: 4px 7px; font-size: 12.5px; } }
 
   .scroll { max-height: min(680px, 72vh); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
@@ -280,8 +298,6 @@
   .item.strong .t-title { font-weight: 600; }
   .item.weak .t-title { color: var(--text-2); font-weight: 400; }
   .item.weak .t-grid .money, .item.weak .t-grid .time { color: var(--text-2); }
-  .body .why { margin: 4px 0 10px; font-size: 13px; color: var(--text-mute); }
-  .body .why b { color: var(--good); font-weight: 500; }
   .t-title { font-size: 14.5px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
   .t-title a { text-decoration: none; }
   .t-title a:hover { color: var(--accent); }
@@ -312,25 +328,6 @@
   .chip.bad { color: var(--critical); font-weight: 500; }
   .chip.good { color: var(--good); }
   .chip.accent { color: var(--accent); }
-  .body { padding: 4px 16px 16px; font-size: 14px; color: var(--text-2); line-height: 1.55; background: var(--surface-2); }
-  .body h4 { font-size: 12.5px; font-weight: 600; color: var(--text); margin: 12px 0 2px; }
-  .body h4:first-child { margin-top: 4px; }
-  .body p { margin: 0 0 6px; max-width: 72ch; }
-  .body ul { margin: 0 0 6px; padding-left: 18px; max-width: 72ch; }
-  .body li { margin-bottom: 2px; }
-  .body .cmp { display: grid; grid-template-columns: max-content minmax(0, 1fr) minmax(0, 1fr); gap: 4px 16px; font-size: 13px; margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--border); align-items: baseline; }
-  .body .cmp .k { color: var(--text-mute); }
-  .body .cmp .h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); font-weight: 600; }
-  .body .cmp .v { color: var(--text); overflow-wrap: anywhere; }
-  .body .cmp .v.me { font-weight: 500; }
-  .body .cmp .v.wide { grid-column: 2 / 4; }
-  .body .jobid { margin-top: 10px; font-size: 13px; }
-  .body .jobid .badge-id { margin-left: 0; }
-  .body .facts dt { color: var(--text-mute); }
-  .body .facts dd { margin: 0; }
-  .body .links { margin-top: 10px; font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; }
-  .body .links a { color: var(--accent); text-decoration: none; }
-  .body .links a:hover { text-decoration: underline; }
 
   .contract { position: relative; padding: 14px 16px 14px 22px; border-top: 1px solid var(--border); }
   .contract:first-child { border-top: 0; }
@@ -346,34 +343,7 @@
   .ms-seg.sub { background: var(--warn); }
   .ms-line { font-size: 13px; color: var(--text-mute); }
   .ms-line b { color: var(--text); font-weight: 500; }
-  .last-msg { margin-top: 12px; font-size: 13.5px; color: var(--text-2); border-left: 2px solid var(--border); padding: 2px 0 2px 10px; }
-  .last-msg:hover { border-left-color: var(--accent); }
-  .last-msg .who { font-size: 12.5px; color: var(--text-mute); display: flex; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
-  .sum { margin-top: 12px; font-size: 13.5px; color: var(--text-2); border-left: 2px solid var(--border); padding: 2px 0 2px 10px; }
-  .sum.turn { border-left-color: var(--critical); }
-  .sum .next { margin-top: 4px; font-weight: 500; color: var(--text); }
-  .sum.turn .next { color: var(--critical); }
-  .sum .meta { margin-top: 4px; font-size: 12.5px; color: var(--text-mute); display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-  .sum .meta a { color: var(--text-mute); text-decoration: none; }
-  .sum .meta a:hover { color: var(--accent); }
-  .sum .meta button { border: 0; background: transparent; padding: 0; cursor: pointer; font-size: 12.5px; color: var(--text-mute); }
-  .sum .meta button:hover { color: var(--accent); }
-  .clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
 
-  .invite { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; text-decoration: none; padding: 12px 16px; border-top: 1px solid var(--border); border-left: 3px solid var(--good); }
-  .invite .i-top { grid-column: 1; }
-  .invite .i-sub { grid-column: 1; }
-  .invite:first-child { border-top: 0; }
-  .invite:hover { background: var(--surface-2); }
-  .invite .i-top { display: flex; justify-content: space-between; gap: 8px; }
-  .invite .i-title { font-weight: 600; }
-  .invite .i-sub { font-size: 13px; color: var(--text-mute); margin-top: 2px; }
-  .thread { display: block; text-decoration: none; padding: 12px 16px; border-top: 1px solid var(--border); }
-  .thread:first-child { border-top: 0; }
-  .thread:hover { background: var(--surface-2); }
-  .thread .th-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
-  .thread .th-name { font-weight: 500; }
-  .thread .th-top span + span { margin-left: 8px; }
 
   footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text-mute); }
   .runs { display: flex; align-items: center; gap: 8px; }
@@ -384,6 +354,72 @@
   .qbox .q:first-child { border-top: 0; }
   .qbox .q a { color: var(--accent); text-decoration: none; }
   .qbox .q a:hover { text-decoration: underline; }
+
+  /* ---------- drafts, skipped, settings (version 3) ---------- */
+  .lead-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .dpill { font-size: 11.5px; font-weight: 600; letter-spacing: .02em; padding: 1px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+  .dpill.busy { background: var(--surface-2); color: var(--text-mute); font-weight: 500; }
+  .dpill.skip { background: var(--sunken); color: var(--warn); font-weight: 500; }
+  .dpill.fail { background: color-mix(in srgb, var(--critical) 12%, transparent); color: var(--critical); font-weight: 500; }
+  .more { display: block; width: 100%; border: 0; border-top: 1px solid var(--border); background: var(--surface-2); padding: 10px 16px; cursor: pointer; font-size: 13px; color: var(--text-2); text-align: left; }
+  .more:hover { color: var(--text); }
+  #leadNotice .banner { margin-bottom: 10px; font-weight: 400; font-size: 13.5px; }
+  .callout.skip { background: var(--sunken); border-color: var(--border); }
+  .callout.skip .ch { color: var(--warn); }
+  .skipform { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 12px; width: 100%; }
+  .skipform input { flex: 1 1 240px; min-width: 0; font: inherit; font-size: 13.5px; padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); }
+  .skipform button { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 13px; color: var(--text-2); }
+  .skipform button.no:hover { color: var(--critical); border-color: var(--critical); }
+  .dfs { display: grid; gap: 18px; padding: 16px 16px 18px; }
+  .dfs .dfs { padding: 0; } /* a proposal's page inside its section, after the rate */
+  .letter { margin-top: 4px; padding: 14px 16px; border-radius: 8px; background: var(--surface-2); font-size: 14px; line-height: 1.65; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; max-width: 72ch; }
+  .df .big-v { font-size: 16px; font-weight: 500; }
+  .msl { display: grid; gap: 10px; margin-top: 2px; }
+  .msl .mi { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 2px 6px; }
+  .msl .mn { font-family: var(--mono); font-size: 12.5px; color: var(--text-mute); padding-top: 2px; }
+  .msl .md { font-size: 14px; color: var(--text); overflow-wrap: anywhere; }
+  .msl .ms2 { grid-column: 2; font-size: 13px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
+  .qa { display: grid; gap: 12px; margin-top: 2px; }
+  .qa .q { font-size: 13.5px; color: var(--text-2); font-style: italic; margin-bottom: 3px; }
+  .qa .a { font-size: 14px; line-height: 1.55; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .plain-v p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--text); }
+  .plain-v ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; line-height: 1.5; color: var(--text); }
+  .how { padding-top: 14px; border-top: 1px solid var(--border); font-size: 12.5px; line-height: 1.5; color: var(--text-mute); }
+  .how h5 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); font-weight: 600; }
+  .how ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+  .ms2.amt { color: var(--text); }
+  .scoreline { padding: 0 16px 14px; font-size: 13px; line-height: 1.5; color: var(--text-2); }
+  .scoreline b { font-weight: 600; color: var(--text); }
+  .scoreline.good b { color: var(--good); }
+  .swl { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); cursor: pointer; white-space: nowrap; user-select: none; }
+  .swl:hover { color: var(--text); }
+  .df .k { display: flex; align-items: center; gap: 2px; min-height: 24px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); }
+  .df .v { font-size: 14px; line-height: 1.55; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .df .q { font-size: 13.5px; color: var(--text-2); font-style: italic; margin-bottom: 2px; }
+  .df .sub { font-size: 13px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
+  .df .sub .amt { color: var(--text); }
+  .cpi { display: inline-grid; place-items: center; width: 24px; height: 24px; margin: -4px 0 -4px 2px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--text-mute); cursor: pointer; vertical-align: middle; }
+  .cpi:hover { color: var(--accent); background: var(--accent-soft); }
+  .cpi svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .cpi .ok { display: none; } .cpi.done { color: var(--good); } .cpi.done .ok { display: block; } .cpi.done .cp { display: none; }
+  .setwrap { position: relative; }
+  .set-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: min(340px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 32px rgba(0, 0, 0, .16); padding: 6px; }
+  .set-pop h3 { margin: 6px 10px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-mute); font-weight: 600; }
+  .sopt { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 14px; align-items: center; padding: 9px 10px; border-radius: 8px; cursor: pointer; }
+  .sopt:hover { background: var(--surface-2); }
+  .sopt b { font-weight: 500; font-size: 14px; color: var(--text); }
+  .sopt span { grid-column: 1; font-size: 12.5px; line-height: 1.45; color: var(--text-mute); }
+  .sopt input { grid-column: 2; grid-row: 1 / 3; }
+  .sopt.off { cursor: default; opacity: .5; } .sopt.off:hover { background: none; }
+  .sw { appearance: none; -webkit-appearance: none; margin: 0; width: 34px; height: 20px; border-radius: 99px; background: var(--border); position: relative; cursor: pointer; transition: background .15s; flex: none; }
+  .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .15s; }
+  .sw:checked { background: var(--accent); }
+  .sw:checked::after { transform: translateX(14px); }
+  .sw:disabled { cursor: default; }
+  #settingsBtn { display: inline-flex; align-items: center; gap: 5px; }
+  #settingsBtn .gear { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  #settingsBtn[aria-expanded="true"] { color: var(--text); border-color: var(--text-mute); }
+  @media (prefers-reduced-motion: reduce) { .sw, .sw::after { transition: none; } }
 
   .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 7px 14px; border-radius: 8px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 60; }
   .toast.show { opacity: 1; }
@@ -397,6 +433,14 @@
   <div class="status">
     <span id="liveStatus"><span class="live-dot" id="liveDot"></span><span id="liveText">Connecting…</span></span>
     <button class="btn" id="refreshBtn" type="button">Refresh</button>
+    <div class="setwrap" id="setWrap" hidden>
+      <button class="btn" id="settingsBtn" type="button" aria-expanded="false" aria-controls="setPop"><svg class="gear" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Settings</button>
+      <div class="set-pop" id="setPop" role="dialog" aria-label="Settings" hidden>
+        <h3>Automation</h3>
+        <label class="sopt" for="autoDrafts"><b>Auto proposals</b><span>After each hourly run Claude advises apply or skip on the new cards and writes a ready-to-paste draft for each apply.</span><input class="sw" type="checkbox" role="switch" id="autoDrafts"></label>
+        <label class="sopt" for="autoSkip" id="autoSkipOpt"><b>Auto skip</b><span>A card Claude advises to skip goes to Skipped by itself, marked auto, with the reason. Works with auto proposals.</span><input class="sw" type="checkbox" role="switch" id="autoSkip"></label>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -405,11 +449,16 @@
     <section id="leads">
       <div class="section-head">
         <h2 id="hLeads">Leads — not applied yet</h2>
-        <div class="tabs" role="tablist" aria-label="Verdict">
-          <button class="tab" role="tab" id="tabTake" data-v="Take" aria-selected="true" type="button">Take <span class="mono" id="cntTake"></span></button>
-          <button class="tab" role="tab" id="tabMaybe" data-v="Maybe" aria-selected="false" type="button">Maybe <span class="mono" id="cntMaybe"></span></button>
+        <div class="lead-tools">
+          <label class="swl" id="onlyDraftsWrap" hidden title="Show only the cards whose proposal is ready, in every tab"><input class="sw" type="checkbox" role="switch" id="onlyDrafts">Only ready</label>
+          <div class="tabs" role="tablist" aria-label="Verdict">
+            <button class="tab" role="tab" id="tabTake" data-v="Take" aria-selected="true" type="button">Take <span class="mono" id="cntTake"></span></button>
+            <button class="tab" role="tab" id="tabMaybe" data-v="Maybe" aria-selected="false" type="button">Maybe <span class="mono" id="cntMaybe"></span></button>
+            <button class="tab" role="tab" id="tabSkipped" data-v="Skipped" aria-selected="false" type="button" hidden>Skipped <span class="mono" id="cntSkipped"></span></button>
+          </div>
         </div>
       </div>
+      <div id="leadNotice"></div>
       <div class="card"><div class="scroll" id="leadList"><div class="note">Loading leads from Notion…</div></div></div>
     </section>
   </div>
@@ -469,6 +518,7 @@
     <button class="icon-btn" id="drNext" type="button" aria-label="Next" title="Next (↓)"><svg viewBox="0 0 16 16"><path d="M3.5 6 8 10.5 12.5 6"/></svg></button>
     <button class="icon-btn" id="drClose" type="button" aria-label="Close" title="Close (Esc)"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
   </div>
+  <div class="dr-actbar" id="drActs" hidden></div>
   <div class="dr-body" id="drBody"></div>
   <button class="to-top" id="drTop" type="button" aria-label="Back to top" title="Back to top"><svg viewBox="0 0 16 16"><path d="M8 13V3.5M3.5 8 8 3.5 12.5 8"/></svg></button>
 </aside>
@@ -483,6 +533,12 @@
   var ROOT_PAGE = "__ROOT_PAGE__";
   var VIEW_INBOX = "__VIEW_INBOX__";
   var VIEW_APPLIED = "__VIEW_APPLIED__";
+  var VIEW_SKIPPED = "__VIEW_SKIPPED__";
+  var VIEW_PROPOSALS_OPEN = "__VIEW_PROPOSALS_OPEN__", VIEW_PROPOSALS_SENT = "__VIEW_PROPOSALS_SENT__";
+  var SCHEMA = 3; // the Notion structure this page reads (config `schema`)
+  var STALL_MIN = 20; // a proposal still "Writing" after this many minutes: the task stopped without writing it
+  var REMOTE = "Claude Code Remote"; // fire_trigger: the Rewrite button starts the drafts task
+  var SKIP_DAYS = 2; // the Skipped tab shows this many days, then "Show 2 more days"
   var VIEW_RUNS = "__VIEW_RUNS__";
   var VIEW_QUESTIONS = "__VIEW_QUESTIONS__", QUESTIONS_URL = "__QUESTIONS_URL__";
   var DAY = 86400000, QUIET_DAYS = 14, OLD_LEAD_DAYS = 7, LIVE_LEAD_DAYS = 5, PROPOSAL_MAX_PAGES = 5,
@@ -496,9 +552,13 @@
     verdict: "Take", leads: null, leadsErr: null, appliedNotion: {}, proposals: null, proposalsErr: null,
     dash: null, dashErr: null, connects: null, connectsErr: null, rooms: null, roomsErr: null,
     milestones: {}, runs: null, lastUpdate: 0, balance: null, invites: null, balanceErr: null, ptab: "waiting", prooms: {},
-    questions: null, questionsErr: null
+    questions: null, questionsErr: null,
+    openProps: {}, sentByJob: {}, sentById: {}, writing: {}, // Proposals rows by Job ID / Proposal ID; writing: started here
+    saved: {} // Job ID → the row as this page last saved it, kept over loads for a few minutes
   };
-  try { var sv = localStorage.getItem("fp.verdict"); if (sv === "Take" || sv === "Maybe") S.verdict = sv; } catch (e) {}
+  try { var sv = localStorage.getItem("fp.verdict"); if (sv === "Take" || sv === "Maybe" || sv === "Skipped") S.verdict = sv; } catch (e) {}
+  try { S.onlyDrafts = localStorage.getItem("fp.onlyDrafts") === "1"; } catch (e) {}
+  S.skipped = null; S.skippedMore = null; S.skipDays = SKIP_DAYS; S.cfg = {}; S.cfgText = "";
 
   var $ = function (id) { return document.getElementById(id); };
   function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
@@ -514,14 +574,20 @@
   }
   function unesc(s) { return s == null ? "" : String(s).replace(/\\([$~*_`#\[\]()>|-])/g, "$1"); }
   function shortId(id) { id = String(id || ""); return "#" + id.slice(-6); }
-  function shortMoney(str) { // "$1,500 fix (Phase 0 only, EVT price separate)" -> "$1,500 fixed"
-    var m = /^\s*(\$?\s*[\d.,]+\s*(?:[kK])?(?:\s*[–\-—]\s*\$?\s*[\d.,]+\s*[kK]?)?)\s*(\/\s*h(?:ou)?r|fixed|fix|per hour|hourly)?/i.exec(str);
-    if (!m) return str;
-    var unit = m[2] ? (/fix/i.test(m[2]) ? " fixed" : "/hr") : "";
-    return m[1].replace(/\s+/g, "") + unit;
-  }
-  function fmtMoney(v) { var n = num(v); return n == null ? String(v) : n.toLocaleString("en-US", { maximumFractionDigits: 0 }); }
   function num(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
+  function usd(v) { var n = num(v); return n == null ? "" : "$" + n.toLocaleString("en-US", { maximumFractionDigits: 2 }); }
+  // the client's price, put together from its columns (Payment, Budget, Rate min / max) — no text is parsed
+  function clientPrice(r) {
+    if (r.Payment === "Fixed") return num(r.Budget) != null ? usd(r.Budget) + " fixed" : "fixed";
+    if (r.Payment === "Hourly") {
+      var lo = num(r["Rate min"]), hi = num(r["Rate max"]);
+      if (lo != null && hi != null && lo !== hi) return usd(lo) + "–" + String(hi) + "/hr";
+      if (lo != null || hi != null) return usd(lo != null ? lo : hi) + "/hr";
+      return "hourly";
+    }
+    return "";
+  }
+  function myPrice(r, field) { var v = num(r[field || "My $"]); return v == null ? "" : usd(v) + (r.Payment === "Hourly" ? "/hr" : " fixed"); }
 
   // ---------- time helpers ----------
   // Notion "Found"/"Published" come back as real UTC instants ("...Z"); everything below works in the configured timezone wall-clock ms.
@@ -558,14 +624,22 @@
   // ---------- toast / copy ----------
   var toastTimer;
   function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove("show"); }, 1600); }
-  function copy(text) {
+  function copy(text, label, done) {
+    var what = label || text;
     function fallback() {
       var ta = document.createElement("textarea"); ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
       document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand("copy"); } catch (e) {} document.body.removeChild(ta);
-      toast(ok ? "Copied " + text : "Copy blocked — ID is " + text);
+      toast(ok ? "Copied " + what : label ? "Copy blocked by this view — select the text and copy it" : "Copy blocked — ID is " + text);
+      if (ok && done) done();
     }
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast("Copied " + text); }, fallback);
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast("Copied " + what); if (done) done(); }, fallback);
     else fallback();
+  }
+  var CPI_SVG = '<svg class="cp" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 5.5V3.6c0-.6-.5-1.1-1.1-1.1H3.6c-.6 0-1.1.5-1.1 1.1v5.8c0 .6.5 1.1 1.1 1.1h1.9"/></svg><svg class="ok" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4 6.6 11.4 12.5 5"/></svg>';
+  function cpIcon(text, label) { // a copy icon right next to the value it copies
+    var b = el("button", "cpi"); b.type = "button"; b.innerHTML = CPI_SVG; b.title = "Copy " + label; b.setAttribute("aria-label", "Copy " + label);
+    b.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); copy(text, label, function () { b.classList.add("done"); setTimeout(function () { b.classList.remove("done"); }, 1400); }); });
+    return b;
   }
   function idBadge(id) {
     var b = el("span", "badge-id", shortId(id));
@@ -574,6 +648,9 @@
     b.addEventListener("click", go);
     b.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") go(e); });
     return b;
+  }
+  function navLink(href, text) { // a link in the drawer's bar: the destination's name and an arrow
+    var a = el("a", "", text); a.appendChild(el("span", "arr", " ↗")); a.href = href; a.target = "_blank"; a.rel = "noopener"; return a;
   }
   function extLink(href, text, cls) { var a = el("a", cls || "", text); a.href = href; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", function (e) { e.stopPropagation(); }); return a; }
 
@@ -631,7 +708,7 @@
   function drawDrawer(reset) {
     if (!DR) return;
     var body = $("drBody"), y = body.scrollTop;
-    clear(body); DR.render(body);
+    clear(body); clear($("drActs")); $("drActs").hidden = true; DR.render(body);
     var list = navList(), i = navIndex(list);
     $("drTitle").textContent = DR.label + (i >= 0 && list.length > 1 ? " · " + (i + 1) + " of " + list.length : "");
     $("drPrev").disabled = i <= 0; $("drNext").disabled = i < 0 || i >= list.length - 1;
@@ -687,14 +764,16 @@
     if (badgeId) h1.appendChild(idBadge(badgeId));
     h1.appendChild(document.createTextNode(title));
     h.appendChild(h1);
-    var acts = el("div", "dr-acts"); h.appendChild(acts);
     body.appendChild(h);
     var inner = el("div", "dr-in"); body.appendChild(inner);
-    return { head: h, acts: acts, inner: inner };
+    var bar = $("drActs"); clear(bar); bar.hidden = false;
+    var lks = el("div", "lks"), btns = el("div", "btns"); bar.appendChild(lks); bar.appendChild(btns);
+    return { head: h, bar: bar, acts: lks, btns: btns, inner: inner };
   }
   var SICO = {
     "Client vs me": '<path d="M2.5 4h11M2.5 8h11M2.5 12h11M7 2.5v11"/>',
     "Notes": '<path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 8h4M6 10.5h4"/>',
+    "About the job": '<path d="M2.5 5.5h11v7h-11z"/><path d="M6 5.5V4h4v1.5"/>',
     "Facts": '<circle cx="8" cy="8" r="5.5"/><path d="M8 7.3v3.4M8 5.4v.1"/>',
     "Milestones": '<path d="M2.5 4h6M5 8h8.5M3.5 12h5"/>',
     "Conversation": '<path d="M2.5 3.5h11v7.5H7l-3 2.5V11H2.5z"/>',
@@ -703,20 +782,26 @@
   };
   var CHEV = '<svg class="ico chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
   var folded = {}; // sections folded in this visit; every new visit starts with all of them open
-  function dsec(host, title, right) { // a section of the drawer; its header folds it, open by default
-    var s = el("section", "dsec" + (folded[title] ? " folded" : ""));
-    var hh = el("button", "dsec-h"); hh.type = "button"; hh.setAttribute("aria-expanded", String(!folded[title]));
+  function dsec(host, title, right, extra, shut) { // a section of the drawer; its header folds it; extra = a control beside the header; shut = folded unless opened in this visit
+    var isF = folded[title] != null ? !!folded[title] : !!shut;
+    var s = el("section", "dsec" + (isF ? " folded" : ""));
+    var hh = el("button", "dsec-h"); hh.type = "button"; hh.setAttribute("aria-expanded", String(!isF));
     hh.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true">' + (SICO[title] || SICO.Facts) + "</svg>";
     hh.appendChild(el("h3", "", title));
     if (right) hh.appendChild(el("span", "r", right));
     hh.insertAdjacentHTML("beforeend", CHEV);
-    var b = el("div", "dsec-b"); b.hidden = !!folded[title];
+    var b = el("div", "dsec-b"); b.hidden = isF;
     hh.addEventListener("click", function () {
       var f = !s.classList.contains("folded");
-      if (f) folded[title] = 1; else delete folded[title];
+      folded[title] = f ? 1 : 0;
       s.classList.toggle("folded", f); hh.setAttribute("aria-expanded", String(!f)); b.hidden = f;
     });
-    s.appendChild(hh); s.appendChild(b); host.appendChild(s); return b;
+    var hw = el("div", "dsec-hw"); hw.appendChild(hh);
+    if (extra) { var xw = el("div", "dsec-x"); xw.appendChild(extra); hw.appendChild(xw); }
+    s.appendChild(hw); s.appendChild(b); host.appendChild(s); return b;
+  }
+  function decLine(kind, label, text) {
+    var d = el("p", "dr-dec " + kind); d.appendChild(el("b", "", label)); if (text) d.appendChild(document.createTextNode(" — " + text)); return d;
   }
   function noteHead(text) { // the header line of a plaque in the drawer
     var h = el("div", "ch"); h.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></svg>';
@@ -771,9 +856,13 @@
     var everything = S.leads.filter(function (r) { return r.Status === "New" && !applied[r["Job ID"]]; });
     var isLive = function (r) { var w = leadTime(r); return !w || now - w < LIVE_LEAD_DAYS * DAY; };
     var open = everything.filter(isLive), older = everything.filter(function (r) { return !isLive(r); });
-    var take = open.filter(function (r) { return r.Verdict === "Take"; });
-    var maybe = open.filter(function (r) { return r.Verdict === "Maybe"; });
+    var df = function (r) { return !S.onlyDrafts || propState(r) === "Ready"; };
+    var take = open.filter(function (r) { return r.Verdict === "Take" && df(r); });
+    var maybe = open.filter(function (r) { return r.Verdict === "Maybe" && df(r); });
+    var skippedRows = skippedInWindow(now).filter(df);
     $("cntTake").textContent = take.length; $("cntMaybe").textContent = maybe.length;
+    $("cntSkipped").textContent = S.skipped ? skippedRows.length : "";
+    renderLeadNotice();
 
     var today = take.filter(function (r) { var w = leadTime(r); return w && dayKey(w) === dayKey(now); }).length;
 
@@ -782,8 +871,8 @@
     everything.forEach(function (r) { var t = (r.Title || "").trim().toLowerCase(); titles[t] = (titles[t] || 0) + 1; });
     everything.forEach(function (r) { scoreLead(r); });
     var strong = take.filter(function (r) { return r._tier === "strong"; }).length;
-    S.leadStats = { take: take.length, strong: strong, today: today, maybe: maybe.length };
     renderSoon();
+    if (S.verdict === "Skipped") { renderSkipped(host, skippedRows, now, titles); afterList("leadList"); return; }
     list.sort(function (a, b) {
       var da = leadTime(a) || 0, db = leadTime(b) || 0;
       if (dayKey(da) !== dayKey(db)) return db - da;
@@ -793,7 +882,7 @@
     var scrollTop = host.scrollTop, openIds = {};
     host.querySelectorAll("details[open]").forEach(function (d) { openIds[d.dataset.id] = true; });
     clear(host);
-    if (!list.length) host.appendChild(el("div", "empty", "No fresh " + S.verdict + " leads."));
+    if (!list.length) host.appendChild(el("div", "empty", S.onlyDrafts ? "No " + S.verdict + " leads with a ready proposal." : "No fresh " + S.verdict + " leads."));
     var lastDay = null, perDay = {};
     list.forEach(function (r) { var w = leadTime(r); var k = w ? dayKey(w) : "none"; perDay[k] = (perDay[k] || 0) + 1; });
     list.forEach(function (r) {
@@ -807,7 +896,7 @@
       }
       host.appendChild(leadItem(r, w, now, titles, openIds));
     });
-    var oldList = older.filter(function (r) { return r.Verdict === S.verdict; });
+    var oldList = older.filter(function (r) { return r.Verdict === S.verdict && df(r); });
     oldList.sort(function (a, b) { return (leadTime(b) || 0) - (leadTime(a) || 0); });
     if (oldList.length) {
       var od = el("details", "older"); if (openIds["__older__"]) od.open = true; od.dataset.id = "__older__";
@@ -824,6 +913,30 @@
     fitColumns(host);
     afterList("leadList");
   }
+  function skipTime(r) { return wallFromNotion(r["date:Decided on:start"]) || leadTime(r); }
+  function skippedInWindow(now) {
+    return (S.skipped || []).filter(function (r) { var w = skipTime(r); return !w || now - w < S.skipDays * DAY; });
+  }
+  function renderSkipped(host, rows, now, titles) { // skipped cards, newest skip first, a window of S.skipDays days
+    clear(host);
+    if (!S.skipped) { host.appendChild(el("div", "note", "Loading skipped cards…")); return; }
+    rows = rows.slice().sort(function (a, b) { return (skipTime(b) || 0) - (skipTime(a) || 0); });
+    rows.forEach(function (r) { scoreLead(r); });
+    if (!rows.length) host.appendChild(S.skippedErr && !S.skipped.length ? el("div", "err", "Skipped cards unavailable: " + errText(S.skippedErr, NOTION)) : el("div", "empty", (S.onlyDrafts ? "No skipped cards with a ready proposal" : "Nothing skipped") + " in the last " + S.skipDays + " days."));
+    var last = null;
+    rows.forEach(function (r) {
+      var w = skipTime(r), dk = w ? dayKey(w) : "none";
+      if (dk !== last) { var h = el("div", "day" + (w && dk === dayKey(now) ? " today" : "")); h.appendChild(el("span", "", w ? dayLabel(w) : "Unknown date")); host.appendChild(h); last = dk; }
+      host.appendChild(leadItem(r, w, now, titles, {}));
+    });
+    var older = (S.skipped || []).filter(function (r) { var w = skipTime(r); return w && now - w >= S.skipDays * DAY; }).length;
+    if (older || S.skippedMore) {
+      var b = el("button", "more", "Show " + SKIP_DAYS + " more days"); b.type = "button";
+      b.addEventListener("click", function () { S.skipDays += SKIP_DAYS; if (S.skippedMore && !older) loadSkipped(true); else renderLeads(); });
+      host.appendChild(b);
+    }
+    fitColumns(host);
+  }
   function fitColumns(host) { // equal money/time columns across all rows: measure the widest cell
     host.style.removeProperty("--wm"); host.style.removeProperty("--wt");
     var wm = 0, wt = 0;
@@ -837,14 +950,16 @@
     var id = r["Job ID"] || "";
     var pub = wallFromNotion(r["date:Published:start"]);
     var cls = (pub && now - pub > OLD_LEAD_DAYS * DAY ? "old " : "") + (r._tier || "");
-    var row = rowEl(id, cls.trim(), function () { openDrawer(id, "leadList", "Lead", leadDrawer(r)); });
+    var row = rowEl(id, cls.trim(), function () { openDrawer(id, "leadList", r.Status === "Skipped" ? "Skipped" : "Lead", leadDrawer(r)); });
     var d = row.d, s = row.s;
     var t = el("div", "t-title");
     t.appendChild(idBadge(id)); t.appendChild(document.createTextNode(" ")); t.appendChild(titleLink(r.Link, unesc(r.Title), "Open the job on Upwork"));
     s.appendChild(t);
     var fw = wallFromNotion(r["date:Found:start"]);
-    var tr = el("span", "t-right", w ? fmtWall(w) : "");
-    tr.title = (pub ? "Posted " + fmtWall(pub, true) : "Publication time unknown") + (fw ? " · found " + fmtWall(fw, true) : "");
+    var tr = el("span", "t-right");
+    var pill = draftPill(r); if (pill) tr.appendChild(pill);
+    var tm = el("span", "", w ? fmtWall(w) : ""); tr.appendChild(tm);
+    tm.title = r.Status === "Skipped" ? "Skipped " + (w ? fmtWall(w, true) : "") : (pub ? "Posted " + fmtWall(pub, true) : "Publication time unknown") + (fw ? " · found " + fmtWall(fw, true) : "");
     s.appendChild(tr);
     var CLIENT_FLAGS = /^(no client history|partially hired|timezone lock|mandatory calls|full-time|budget mismatch)$/;
     var cflags = [], mflags = [];
@@ -858,15 +973,24 @@
     if (titles[(r.Title || "").trim().toLowerCase()] > 1) cflags.push(["duplicate", ""]);
     var g = el("div", "t-grid");
     g.appendChild(el("span", "lab", "Client"));
-    var cm = el("span", "c money", r["Client $"] ? shortMoney(unesc(r["Client $"])) : "—"); if (r["Client $"]) cm.title = unesc(r["Client $"]); g.appendChild(cm);
-    g.appendChild(el("span", "c time", r["Client time"] ? shortDur(r["Client time"]) : "—"));
+    g.appendChild(el("span", "c money", clientPrice(r) || "—"));
+    g.appendChild(el("span", "c time", r.Duration ? shortDur(r.Duration) : "—"));
     g.appendChild(chips(cflags));
     g.appendChild(el("span", "lab", "Me"));
-    g.appendChild(el("span", "c money", r["My $"] != null ? "$" + fmtMoney(r["My $"]) + (r.Payment === "Hourly" ? "/hr" : " fixed") : "—"));
+    g.appendChild(el("span", "c money", myPrice(r) || "—"));
     g.appendChild(el("span", "c time", r["My hours"] != null ? "~" + r["My hours"] + "h" : "—"));
     g.appendChild(chips(mflags));
     s.appendChild(g);
     return d;
+  }
+  function draftPill(r) { // the mark on the right of a row: a draft is ready, being written, or Claude advises to skip
+    if (r.Status === "Skipped") { var sp = el("span", "dpill skip", r["Skipped by"] === "auto" ? "Auto" : "Manual"); sp.title = (r["Skipped by"] === "auto" ? "Skipped automatically: " : "Skipped by you: ") + (plain(r["Skip reason"]) || "no reason recorded"); return sp; }
+    var ps = propState(r);
+    if (ps === "Ready" && !propBeforeSkip(r, openProp(r))) return el("span", "dpill", "Proposal ready");
+    if (ps === "Writing") return el("span", "dpill busy", "Writing…");
+    if (ps === "Stalled") { var f = el("span", "dpill fail", "Not written"); f.title = "The writing task stopped without a proposal; Rewrite to try again"; return f; }
+    if (r.Advice === "Skip" && r.Status === "New") { var k = el("span", "dpill skip", "Skip advised"); k.title = plain(r["Advice why"]); return k; }
+    return null;
   }
   // Ranking is done by the hourly agent by the user's rules (Search rules → Ranking) and written to the card
   // as Score / Score why; the page only compares Score with match_score from the root page's config.
@@ -888,7 +1012,7 @@
   }
   function chips(list) {
     var c = el("span", "c chips");
-    list.forEach(function (f, i) { if (i) c.appendChild(el("span", "sep", "·")); var sp = el("span", f[1] === "tier" ? "tier" : f[1] === "warn" ? "flag" : f[1] === "good" ? "chip good" : f[1] === "cn" ? "cn" : "", f[0]); if (f[1] === "cn") sp.title = "Connects to apply"; c.appendChild(sp); });
+    list.forEach(function (f, i) { if (i) c.appendChild(el("span", "sep", "·")); var sp = el("span", f[1] === "warn" ? "flag" : f[1] === "good" ? "chip good" : f[1] === "cn" ? "cn" : "", f[0]); if (f[1] === "cn") sp.title = "Connects to apply"; c.appendChild(sp); });
     return c;
   }
   function flagsOf(r) {
@@ -899,30 +1023,47 @@
 
   // ---------- notes (Notion page body, as-is) ----------
   var notesCache = {};
-  function notesInto(host, r) { // the card's page body, fetched once and kept
-    var box = el("div", "prose");
-    host.appendChild(box);
-    if (!r.url) { box.appendChild(el("p", "dr-empty", "No Notion card for this job.")); return; }
-    if (notesCache[r.url] != null) { fillNotes(box, notesCache[r.url]); return; }
-    box.appendChild(el("p", "dr-empty", "Loading notes…"));
-    MCP.callTool(NOTION, "notion-fetch", { id: r.url }, { cache: { staleTime: 300000, gcTime: 86400000 } }).then(function (res) {
+  function pageContent(url, ver) { // a Notion page's body, kept per version (ver: the row's Written / Sent on time — a rewrite reads afresh)
+    var key = url + "|" + (ver || "");
+    if (notesCache[key] != null) return Promise.resolve(notesCache[key]);
+    return MCP.callTool(NOTION, "notion-fetch", { id: url }, { cache: ver ? false : { staleTime: 300000, gcTime: 86400000 } }).then(function (res) {
       var p = payloadOf(res);
       var txt = p && typeof p === "object" ? p.text : (typeof p === "string" ? p : "");
       var m = /<content>([\s\S]*?)<\/content>/.exec(txt || "");
-      notesCache[r.url] = m ? m[1] : "";
-      fillNotes(box, notesCache[r.url]);
-    }, function (err) { clear(box); box.appendChild(el("div", "err", errText(err, NOTION))); });
+      return (notesCache[key] = m ? m[1] : "");
+    });
+  }
+  // a job's proposal: the row in Proposals (Open while written, Sent once out), matched by Job ID
+  function openProp(r) { return S.openProps[r["Job ID"]] || null; }
+  // a proposal written before the current Skip advice: kept, but no longer what the advice says
+  function propBeforeSkip(r, pr) {
+    return r.Advice === "Skip" && pr && pr.State !== "Sent" && Date.parse(pr["date:Written:start"] || "") < Date.parse(r["date:Advised on:start"] || "");
+  }
+  function stale(t) { return t && Date.now() - t > STALL_MIN * 60000; }
+  function propState(r) { // Writing that never finished reads as Stalled, so the page never shows "Writing…" forever
+    var id = r["Job ID"], p = S.openProps[id];
+    // the run started here is over once the card's advice is written after the start (Skip advice writes no proposal)
+    if (S.writing[id] && Date.parse(r["date:Advised on:start"] || "") > S.writing[id] - 60000) delete S.writing[id];
+    if (S.writing[id]) return stale(S.writing[id]) ? "Stalled" : "Writing";
+    if (p) return p.State === "Writing" && stale(Date.parse(p["date:Written:start"] || "")) ? "Stalled" : p.State || null;
+    return S.sentByJob[id] ? "Sent" : null;
+  }
+  function notesInto(host, r) { // the card's page body: the job write-up, five fixed sections
+    var box = el("div", "prose");
+    host.appendChild(box);
+    if (!r.url) { box.appendChild(el("p", "dr-empty", "No Notion card for this job.")); return; }
+    box.appendChild(el("p", "dr-empty", "Loading…"));
+    pageContent(r.url).then(function (c) { fillNotes(box, c); }, function (err) { clear(box); box.appendChild(el("div", "err", errText(err, NOTION))); });
   }
   function fillNotes(box, content) {
     clear(box);
-    var HEAD = /^(что нужно|риски|уточнить|what's needed|needs|risks|clarify|questions)\s*:?$/i;
     var ul = null;
-    if (!content || !content.trim()) { box.appendChild(el("p", "dr-empty", "No notes on this Notion card.")); return; }
+    if (!content || !content.trim()) { box.appendChild(el("p", "dr-empty", "The card has no write-up.")); return; }
     content.split("\n").forEach(function (raw) {
       var line = raw.trim();
-      if (!line) { ul = null; return; }
-      var h = /^#{1,6}\s+(.*)$/.exec(line) || /^\*\*(.+?)\*\*:?$/.exec(line);
-      if (h || HEAD.test(line)) { box.appendChild(el("h4", "", unesc((h ? h[1] : line).replace(/\*\*/g, "")))); ul = null; return; }
+      if (!line || /^<page\b/.test(line)) { ul = null; return; }
+      var h = /^#{1,6}\s+(.*)$/.exec(line); // the card's five ## sections
+      if (h) { box.appendChild(el("h4", "", inlineText(h[1]))); ul = null; return; }
       var li = /^[-*•]\s+(.*)$/.exec(line);
       if (li) { if (!ul) { ul = el("ul"); box.appendChild(ul); } ul.appendChild(el("li", "", unesc(li[1].replace(/\*\*/g, "")))); return; }
       ul = null; box.appendChild(el("p", "", unesc(line.replace(/\*\*/g, ""))));
@@ -938,12 +1079,21 @@
     }
     function wide(label, v) { if (v == null || v === "") return; t.appendChild(cell("k", label)); t.appendChild(cell("v wide", v)); }
     t.appendChild(cell("k", "")); t.appendChild(cell("h", "Client")); t.appendChild(cell("h", "Me"));
-    row("Price", r["Client $"] ? r["Client $"] + (pay && !/hr|hour|fix/i.test(r["Client $"]) ? " (" + pay + ")" : "") : (pay || ""),
-        r["My $"] != null ? "$" + r["My $"] + (r.Payment === "Hourly" ? "/hr" : " fixed") : "");
-    row("Time", r["Client time"], (r["My hours"] != null ? "~" + r["My hours"] + " h" : "") + (r.Complexity ? (r["My hours"] != null ? " · " : "") + String(r.Complexity).toLowerCase() + " complexity" : ""));
-    row("Competition", (r.Proposals != null ? r.Proposals + " bids" : "") + (r.Competition ? (r.Proposals != null ? " · " : "") + r.Competition : ""),
-        r.Connects != null ? r.Connects + " connects to apply" : "");
-    wide("Client", r.Client);
+    row("Price", clientPrice(r), myPrice(r));
+    row("Time", r.Duration, (r["My hours"] != null ? "~" + r["My hours"] + " h" : "") + (r.Complexity ? (r["My hours"] != null ? " · " : "") + String(r.Complexity).toLowerCase() + " complexity" : ""));
+    var comp = [];
+    if (r.Proposals != null) comp.push(r.Proposals + " proposals");
+    if (num(r.Invites)) comp.push(r.Invites + " invited");
+    if (num(r.Interviewing)) comp.push(r.Interviewing + " interviewing");
+    if (num(r["Bid low"]) != null || num(r["Bid high"]) != null) comp.push("bids " + [usd(r["Bid low"]), usd(r["Bid high"])].filter(Boolean).join("–"));
+    row("Competition", comp.join(" · "), r.Connects != null ? r.Connects + " connects to apply" : "");
+    var cl = [];
+    if (r.Country) cl.push(unesc(r.Country));
+    if (r.Verified === "__YES__" || r.Verified === true) cl.push("verified");
+    if (num(r.Hires)) cl.push(r.Hires + (+r.Hires === 1 ? " hire" : " hires"));
+    if (num(r.Spent)) cl.push(usd(r.Spent) + " spent");
+    if (num(r.Rating)) cl.push("rating " + r.Rating);
+    wide("Client", cl.join(" · "));
     wide("Flags", flagsOf(r).join(", "));
     return t;
   }
@@ -953,46 +1103,92 @@
     b.addEventListener("click", go); b.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") go(e); });
     return b;
   }
-  function leadDrawer(r) {
+  function leadDrawer(r0) {
+    var id0 = r0["Job ID"];
     return function (body) {
-      var pub = wallFromNotion(r["date:Published:start"]), fnd = wallFromNotion(r["date:Found:start"]);
+      var r = (S.saved[id0] && S.saved[id0].row) || S.leadsById[id0] || (S.skipped || []).filter(function (x) { return x["Job ID"] === id0; })[0] || r0; // after a reload, the fresh row
+      scoreLead(r);
+      var pub = wallFromNotion(r["date:Published:start"]), fnd = wallFromNotion(r["date:Found:start"]), dcd = wallFromNotion(r["date:Decided on:start"]);
       var verdict = el("span", r._tier === "strong" ? "chip good" : "", r.Verdict + (r._tier === "strong" ? " · strong match" : ""));
       var x = drHead(body, [verdict, r._score > -Infinity ? "score " + r._score : "", pub ? "posted " + fmtWall(pub, true) : ""], unesc(r.Title), r["Job ID"]);
-      if (r.Link) x.acts.appendChild(extLink(r.Link, "Open on Upwork ↗", "pbtn"));
-      if (r.url) x.acts.appendChild(extLink(r.url, "Open in Notion ↗"));
+      var ps = propState(r), pr = openProp(r) || S.sentByJob[r["Job ID"]];
+      var wpr = pr ? wallFromNotion(pr["date:Written:start"]) : null, spr = pr ? wallFromNotion(pr["date:Sent on:start"]) : null;
+      var ready = r.Status === "New" && ps === "Ready" && !propBeforeSkip(r, pr);
+      if (r.Link) { var ul = navLink(r.Link, "Upwork"); if (ready) { ul.classList.add("primary"); ul.title = "Open the job on Upwork and paste the proposal from below"; } x.acts.appendChild(ul); }
+      if (r.url) x.acts.appendChild(navLink(r.url, "Notion job"));
+      if (pr && pr.url) x.acts.appendChild(navLink(pr.url, "Notion proposal"));
       if (r.url && r.Status === "New") {
-        var ap = el("button", "ok", "Applied"); ap.type = "button"; ap.title = "Mark as Applied in Notion (proposal already sent)";
+        if (canDraft() && ps !== "Writing") {
+          var again = ps === "Ready" || ps === "Stalled";
+          var wd = el("button", "ok", again ? "↻ Rewrite" : "Write a proposal"); wd.type = "button";
+          wd.title = "Claude takes fresh data and writes the proposal" + (again ? " again" : "") + " (a few minutes)";
+          wd.addEventListener("click", function () { regenerate(r, wd); });
+          x.btns.appendChild(wd);
+        }
+        var ap = el("button", "ok", "Mark applied"); ap.type = "button"; ap.title = "Mark it Applied now — the sync in the next digest does it on its own";
         ap.addEventListener("click", function () { setLeadStatus(r, ap, "Applied"); });
-        var sk = el("button", "no", "Skip"); sk.type = "button"; sk.title = "Mark as Skipped in Notion";
-        sk.addEventListener("click", function () { setLeadStatus(r, sk, "Skipped"); });
-        x.acts.appendChild(ap); x.acts.appendChild(sk);
-      } else if (r.Status && r.Status !== "New") x.acts.appendChild(el("span", "muted", "Marked " + r.Status));
-      if (r._why && r._why.length) {
-        var c = el("div", "callout" + (r._tier === "strong" ? " good" : ""));
-        c.appendChild(noteHead("Why score " + r._score));
-        c.appendChild(el("div", "", r._why.join(" · ")));
-        x.inner.appendChild(c);
+        var sk = el("button", "no" + (r.Advice === "Skip" ? " hint" : ""), "Skip"); sk.type = "button"; sk.title = "Move to Skipped, with a reason";
+        sk.addEventListener("click", function () { openSkipForm(r, x.bar); });
+        x.btns.appendChild(ap); x.btns.appendChild(sk);
+      } else if (r.url && r.Status === "Skipped") {
+        var rs = el("button", "ok", "Restore"); rs.type = "button"; rs.title = "Put it back to the leads";
+        rs.addEventListener("click", function () { setLeadStatus(r, rs, "New", { "Skipped by": null, "Skip reason": null, "date:Decided on:start": null }); });
+        x.btns.appendChild(rs);
+      } else if (r.Status && r.Status !== "New") x.btns.appendChild(el("span", "state", "Marked " + r.Status));
+      // the decision sits under the title: what Claude advises (or why it was skipped) is the first thing read
+      if (skipDraft && skipDraft.id === r["Job ID"] && r.Status === "New") openSkipForm(r, x.bar);
+      var dec = null;
+      if (r.Status === "Skipped") {
+        var sw = wallFromNotion(r["date:Decided on:start"]);
+        dec = decLine("skip", r["Skipped by"] === "auto" ? "Skipped automatically" : "Skipped manually", (plain(r["Skip reason"]) || "no reason given") + (sw ? " · " + fmtWall(sw, true) : ""));
+      } else if (ps === "Writing") dec = decLine("busy", "Writing the proposal", "it shows up below in a few minutes");
+      else if (ps === "Stalled") dec = decLine("fail", "Not written", "the task stopped without a proposal (its run in Claude says why); Rewrite to try again");
+      else if (r.Advice) dec = decLine(r.Advice === "Apply" ? "apply" : "skip", r.Advice, plain(r["Advice why"]));
+      if (dec) x.head.appendChild(dec);
+      if (ready) { // where to look next: the proposal; the count of points to confirm arrives with the page
+        var go = el("button", "dr-next", "Proposal ready ↓"); go.type = "button"; go.id = "drNextProp";
+        go.addEventListener("click", function () { var t = $("secProposal"); if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); });
+        x.head.appendChild(go);
       }
-      dsec(x.inner, "Client vs me").appendChild(cmpTable(r));
-      notesInto(dsec(x.inner, "Notes", "from the Notion card"), r);
-      dsec(x.inner, "Facts").appendChild(factsBox([
+      var cv = dsec(x.inner, "Client vs me");
+      cv.appendChild(cmpTable(r));
+      if (r._why && r._why.length) {
+        var sl = el("div", "scoreline" + (r._tier === "strong" ? " good" : ""));
+        sl.appendChild(el("b", "", "Score " + r._score + (r._tier === "strong" ? ", strong match" : "") + ": "));
+        sl.appendChild(document.createTextNode(r._why.join(" · ")));
+        cv.appendChild(sl);
+      }
+      notesInto(dsec(x.inner, "About the job"), r);
+      draftSection(x.inner, r);
+      dsec(x.inner, "Facts", "", null, true).appendChild(factsBox([
         ["Job ID", fullIdBadge(r["Job ID"])],
         ["Posted", pub ? fmtWall(pub, true) : "unknown"],
-        ["Found", fnd ? fmtWall(fnd, true) : ""]
+        ["Found", fnd ? fmtWall(fnd, true) : ""],
+        ["Advised", wallFromNotion(r["date:Advised on:start"]) ? fmtWall(wallFromNotion(r["date:Advised on:start"]), true) : ""],
+        ["Proposal written", wpr && pr && pr.State !== "Writing" ? fmtWall(wpr, true) : ""],
+        ["Proposal sent", spr ? fmtWall(spr, true) : ""],
+        [r.Status === "Skipped" ? "Skipped" : "Applied", r.Status !== "New" && dcd ? fmtWall(dcd, true) : ""]
       ]));
     };
   }
   function pageIdOf(url) { var m = /([0-9a-f]{32})(?:\?|$)/i.exec(String(url || "")); return m ? m[1] : null; }
-  function setLeadStatus(r, btn, status) {
+  function setLeadStatus(r, btn, status, extra) {
     var pid = pageIdOf(r.url); if (!pid || !MCP) return;
     var label = btn.textContent; btn.disabled = true; btn.textContent = "Saving…";
-    MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { Status: status } }, { cache: false }).then(function () {
+    var props = { Status: status }; Object.keys(extra || {}).forEach(function (k) { props[k] = extra[k]; });
+    if (status !== "New") { props["date:Decided on:start"] = new Date().toISOString(); props["date:Decided on:is_datetime"] = 1; } // when it was decided
+    MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: props }, { cache: false }).then(function () {
       var id = r["Job ID"], here = DR && DR.key === id, nextId = null;
       if (here) { var list = navList(), i = navIndex(list), n = list[i + 1] || list[i - 1]; nextId = n ? n.dataset.id : null; }
       r.Status = status;
+      Object.keys(props).forEach(function (k) { if (k !== "Status" && (k.indexOf("date:") !== 0 || /:start$/.test(k))) r[k] = props[k]; });
+      S.saved[id] = { row: r, at: Date.now() }; // a load that started before this save must not bring the old status back
       S.leads = (S.leads || []).filter(function (x) { return x !== r; });
+      if (S.skipped) S.skipped = S.skipped.filter(function (x) { return x !== r; });
       if (status === "Applied") S.appliedNotion[id] = r;
-      toast(status + " " + shortId(id));
+      if (status === "Skipped" && S.skipped) S.skipped.unshift(r);
+      if (status === "New") S.leads.unshift(r);
+      toast((status === "New" ? "Restored " : status + " ") + shortId(id));
       renderLeads();
       if (here) { // triage flow: the drawer moves on to the next lead
         var nx = nextId && [].filter.call($("leadList").querySelectorAll(".item"), function (x) { return x.dataset.id === nextId; })[0];
@@ -1004,6 +1200,205 @@
       toast("Couldn't save: " + errText(err, NOTION));
     });
   }
+  var skipDraft = null; // {id, text}: an open skip form, kept when the drawer redraws after a load
+  function openSkipForm(r, head) { // the reason is optional; Claude's own skip reason is offered when it advised one
+    if (head.querySelector(".skipform")) { head.querySelector(".skipform input").focus(); return; }
+    var f = el("form", "skipform");
+    var inp = el("input"); inp.type = "text"; inp.placeholder = "Reason, if you want one"; inp.setAttribute("aria-label", "Reason to skip");
+    inp.value = skipDraft && skipDraft.id === r["Job ID"] ? skipDraft.text : r.Advice === "Skip" ? plain(r["Advice why"]) : "";
+    skipDraft = { id: r["Job ID"], text: inp.value };
+    inp.addEventListener("input", function () { skipDraft = { id: r["Job ID"], text: inp.value }; });
+    var sv = el("button", "no", "Skip"); sv.type = "submit";
+    var cn = el("button", "", "Cancel"); cn.type = "button";
+    f.appendChild(inp); f.appendChild(sv); f.appendChild(cn);
+    var close = function () { skipDraft = null; f.remove(); };
+    f.addEventListener("keydown", function (e) { e.stopPropagation(); if (e.key === "Escape") close(); });
+    cn.addEventListener("click", close);
+    f.addEventListener("submit", function (e) {
+      e.preventDefault(); skipDraft = null;
+      var why = inp.value.trim();
+      setLeadStatus(r, sv, "Skipped", { "Skipped by": "manual", "Skip reason": why || null });
+    });
+    head.appendChild(f); inp.focus(); inp.select();
+  }
+
+  // ---------- proposals: a row in Proposals per job, every value copyable ----------
+  function canDraft() { return S.cfg.schema >= SCHEMA && !!S.cfg.drafts_task; }
+  // Notion turns file names like "clip.mp4" into links and returns escaped markdown; a draft is plain text.
+  function plain(s) { return unesc(String(s == null ? "" : s).replace(/<br\s*\/?>/gi, "\n")).replace(/\\([\\"<{}.!+])/g, "$1").replace(/\[([^\]]+)\]\((?:https?:)?\/\/[^)\s]+\)/g, "$1").trim(); }
+  // A proposal's page has fixed sections (references/drafts.md §4); the dashboard shows them as written and only
+  // picks the presentation by the section's name: what to confirm stands out, form fields get a copy icon, background is quiet.
+  // Notion's inline markdown to the plain text it stands for: `code` (file names are written so) and the links Notion
+  // makes by itself out of anything that looks like a domain ("clip.mp4" comes back as "[clip.mp](http://clip.mp)4").
+  function inlineText(l) {
+    return unesc(l).replace(/`([^`]+)`/g, "$1").replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, function (m, t, u) { return u.replace(/^https?:\/\//, "") === t ? t : m; });
+  }
+  // A page body comes back one block per line; paragraphs get a blank line between them, list items stay together.
+  function blocksText(lines) {
+    return lines.reduce(function (out, l, i) { return i ? out + (/^(?:[-*•]|\d+[.)])\s+/.test(l) ? "\n" : "\n\n") + l : l; }, "");
+  }
+  function mdSections(md) {
+    var out = [], cur = null, sub = null;
+    String(md || "").split("\n").forEach(function (raw) {
+      var line = raw.replace(/\s+$/, ""), h2 = /^##\s+(.+)$/.exec(line), h3 = /^###\s+(.+)$/.exec(line);
+      if (h2) { cur = { name: unesc(h2[1]).trim(), lines: [], subs: [] }; sub = null; out.push(cur); return; }
+      if (!cur) return;
+      if (h3) { sub = { title: unesc(h3[1]).trim(), lines: [] }; cur.subs.push(sub); return; }
+      if (!line.trim() || /^<\/?(page|empty-block)/.test(line.trim())) return;
+      (sub ? sub.lines : cur.lines).push(inlineText(line.trim()));
+    });
+    return out;
+  }
+  function itemText(l) { return l.replace(/^(?:[-*•]|\d+[.)])\s+/, ""); }
+  function linesInto(box, lines, opts) { // paragraphs and "- " lists, as written
+    var ul = null;
+    lines.forEach(function (l) {
+      if (/^(?:[-*•]|\d+[.)])\s+/.test(l)) { if (!ul) { ul = el("ul"); box.appendChild(ul); } ul.appendChild(el("li", "", itemText(l))); }
+      else { ul = null; var pp = el("p", "", l); if (opts && opts.copy) pp.appendChild(cpIcon(l, opts.copy)); box.appendChild(pp); }
+    });
+  }
+  function proposalBody(fs, md, sent) {
+    var secs = mdSections(md), nConfirm = 0;
+    if (!secs.length) { fs.appendChild(el("div", "dr-empty", "The proposal page is empty.")); return 0; }
+    secs.forEach(function (sec) {
+      var n = sec.name.toLowerCase(), d;
+      if (n === "confirm before sending") {
+        if (sent) return;
+        d = el("div", "confirm"); d.appendChild(el("h5", "", "⚠️ Confirm before sending"));
+        linesInto(d, sec.lines); nConfirm = sec.lines.length; fs.appendChild(d); return;
+      }
+      if (n === "how it was written") { d = el("div", "how"); d.appendChild(el("h5", "", sec.name)); linesInto(d, sec.lines); fs.appendChild(d); return; }
+      d = el("div", "df"); var k = el("div", "k", sec.name); d.appendChild(k);
+      var whole = blocksText(sec.lines);
+      if (n === "cover letter") { k.appendChild(cpIcon(whole, "the cover letter")); d.appendChild(el("div", "letter", whole)); }
+      else if (n === "milestones") {
+        var ml = el("div", "msl");
+        sec.subs.forEach(function (m, i) {
+          var mi = el("div", "mi"); mi.appendChild(el("span", "mn", String(i + 1)));
+          var md = el("div", "md", m.title); md.appendChild(cpIcon(m.title, "milestone " + (i + 1))); mi.appendChild(md);
+          m.lines.forEach(function (l, j) { var m2 = el("div", "ms2" + (j ? "" : " amt"), l); if (!j) m2.appendChild(cpIcon(l.replace(/[^\d.]/g, ""), "the amount of milestone " + (i + 1))); mi.appendChild(m2); });
+          ml.appendChild(mi);
+        });
+        d.appendChild(ml);
+      }
+      else if (n === "screening questions") {
+        var qb = el("div", "qa");
+        sec.subs.forEach(function (q, i) {
+          var it = el("div"), ans = blocksText(q.lines);
+          it.appendChild(el("div", "q", (i + 1) + ". " + q.title));
+          var a = el("div", "a" + (/⚠️/.test(ans) ? " warn" : ""), ans); a.appendChild(cpIcon(ans.replace(/^⚠️\s*/, ""), "answer " + (i + 1)));
+          it.appendChild(a); qb.appendChild(it);
+        });
+        d.appendChild(qb);
+      }
+      else { var body = el("div", "plain-v"); linesInto(body, sec.lines); d.appendChild(body); }
+      fs.appendChild(d);
+    });
+    return nConfirm;
+  }
+  // The proposal is a row in Proposals: rate and connects are its columns, the text is its page in fixed sections.
+  function rateBox(pr, label) {
+    var v = num(pr.Rate); if (v == null) return null;
+    var d = el("div", "df"); d.appendChild(el("div", "k", label || "Rate"));
+    var b = el("div", "v big-v", myPrice(pr, "Rate")); b.appendChild(cpIcon(String(v), "the rate")); d.appendChild(b);
+    return d;
+  }
+  function proposalInto(fs, pr, sent) { // a Proposals row: the rate from its column, then its page as written
+    clear(fs);
+    var rb = rateBox(pr, sent ? "Rate sent" : "Rate"); if (rb) fs.appendChild(rb);
+    var body = el("div", "dfs"); body.appendChild(el("div", "dr-empty", "Loading…")); fs.appendChild(body);
+    var ver = (pr["date:Written:start"] || "") + (pr["date:Sent on:start"] || "") + (pr.State || "");
+    return pageContent(pr.url, ver).then(function (md) { clear(body); return proposalBody(body, md, sent); })
+      .catch(function (err) { clear(body); body.appendChild(el("div", "err", errText(err, NOTION))); return 0; });
+  }
+  function draftSection(host, r) {
+    var live = r.url && r.Status === "New", ps = propState(r), pr = openProp(r) || S.sentByJob[r["Job ID"]];
+    if (!ps && !(live && canDraft())) return;
+    var dw = pr ? wallFromNotion(pr["date:Written:start"]) : null, sw = pr ? wallFromNotion(pr["date:Sent on:start"]) : null;
+    var right = ps === "Writing" ? "writing…" : ps === "Stalled" ? "not written" : ps === "Sent" ? (sw ? "sent " + fmtWall(sw, true) : "as sent") : dw && ps === "Ready" ? "written " + fmtWall(dw, true) + (propBeforeSkip(r, pr) ? ", before the Skip advice" : "") : "";
+    var fs = el("div", "dfs"), pb = dsec(host, ps === "Sent" ? "What you sent" : "Proposal", right); pb.appendChild(fs); pb.parentNode.id = "secProposal";
+    if (!ps) { fs.appendChild(el("div", "dr-empty", "No proposal yet. Write a proposal (above) has Claude write one from fresh data in a few minutes.")); return; }
+    if (!pr || ps === "Writing" || ps === "Stalled") { fs.appendChild(el("div", "dr-empty", ps === "Stalled" ? "The task stopped before writing a proposal. Rewrite (above) starts it again." : "Claude is writing the proposal; it shows up here in a few minutes.")); return; }
+    proposalInto(fs, pr, ps === "Sent").then(function (n) {
+      var go = $("drNextProp"); if (go && n) go.textContent = "Proposal ready — " + n + (n === 1 ? " point" : " points") + " to confirm ↓";
+    });
+  }
+  var draftPoll = null;
+  function regenerate(r, btn) { // marks the proposal Writing and starts the "Upwork drafts" task for this job
+    if (!MCP || !canDraft()) return;
+    var id = r["Job ID"], pr = openProp(r), pid = pr ? pageIdOf(pr.url) : null;
+    var label = btn.textContent, prev = pr ? pr.State : null; btn.disabled = true; btn.textContent = "Starting…";
+    var mark = pid ? MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { State: "Writing", "date:Written:start": new Date().toISOString(), "date:Written:is_datetime": 1 } }, { cache: false }) : Promise.resolve();
+    mark.then(function () { return MCP.callTool(REMOTE, "fire_trigger", { trigger_id: S.cfg.drafts_task, text: "jobs: " + id }, { cache: false }); })
+      .then(function () {
+        if (pr) { pr.State = "Writing"; pr["date:Written:start"] = new Date().toISOString(); } S.writing[id] = Date.now();
+        toast("Claude is writing the proposal for " + shortId(id) + " — a few minutes");
+        renderLeads(); refreshDrawer(); watchDrafts();
+      }, function (err) {
+        btn.disabled = false; btn.textContent = label;
+        if (pid) MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { State: prev, "date:Written:start": pr["date:Written:start"] || null } }, { cache: false }).catch(function () {});
+        toast("Couldn't start writing: " + errText(err, REMOTE));
+      });
+  }
+  function watchDrafts() { // while a proposal is being written, re-read the open proposals every minute
+    if (draftPoll) return;
+    draftPoll = setInterval(function () {
+      var busy = (S.leads || []).some(function (r) { return propState(r) === "Writing"; });
+      if (!busy || !MCP) { clearInterval(draftPoll); draftPoll = null; return; }
+      MCP.invalidate(NOTION, "notion-query-data-sources").catch(function () {}).then(function () { loadNotion(); }); // the card's advice and the proposal row both change
+    }, 60000);
+  }
+
+  // ---------- settings and notices from the config ----------
+  function renderLeadNotice() {
+    var host = $("leadNotice"); clear(host);
+    if (S.cfg.loaded && !(S.cfg.schema >= SCHEMA)) {
+      var n = el("div", "banner alert");
+      n.appendChild(el("span", "", "This dashboard needs the pipeline update (a Proposals database, jobs as plain columns); until then leads show without numbers. Ask Claude to \u201cupdate the pipeline\u201d."));
+      host.appendChild(n); return;
+    }
+    if (S.cfg.auto_drafts === "on" && S.guideIssue) {
+      var w = el("div", "banner alert");
+      w.appendChild(el("span", "", "Auto proposals are on, but the Proposal guide is not filled: " + S.guideIssue + ". Claude writes advice only until it is."));
+      if (S.cfg.guide) w.appendChild(extLink("https://www.notion.so/" + S.cfg.guide.replace(/-/g, ""), "Open the guide \u2197"));
+      host.appendChild(w);
+    }
+  }
+  function renderSettings() {
+    var ok = S.cfg.schema >= SCHEMA, on = ok && S.cfg.auto_drafts != null;
+    $("setWrap").hidden = !on; $("onlyDraftsWrap").hidden = !ok; $("tabSkipped").hidden = !ok;
+    if (!ok && S.verdict === "Skipped") setVerdict("Take");
+    if (!ok && S.onlyDrafts) { S.onlyDrafts = false; $("onlyDrafts").checked = false; }
+    if (!on) { closeSettings(); return; }
+    $("autoDrafts").checked = S.cfg.auto_drafts === "on";
+    $("autoSkip").checked = S.cfg.auto_skip === "on";
+    $("autoSkip").disabled = S.cfg.auto_drafts !== "on";
+    $("autoSkipOpt").className = S.cfg.auto_drafts === "on" ? "sopt" : "sopt off";
+  }
+  function closeSettings() { $("setPop").hidden = true; $("settingsBtn").setAttribute("aria-expanded", "false"); }
+  function setFlag(key, value, input) { // the switch writes the config line in the root page
+    if (!MCP) return;
+    var from = new RegExp(key + ":\\s*`?(on|off)`?").exec(S.cfgText || "");
+    if (!from) { toast("The config has no " + key + " key"); input.checked = !input.checked; return; }
+    input.disabled = true;
+    MCP.callTool(NOTION, "notion-update-page", { page_id: ROOT_PAGE, command: "update_content", content_updates: [{ old_str: from[0], new_str: key + ": `" + value + "`" }] }, { cache: false })
+      .then(function () {
+        S.cfg[key] = value; S.cfgText = S.cfgText.replace(from[0], key + ": `" + value + "`");
+        toast((key === "auto_drafts" ? "Auto proposals " : "Auto skip ") + value);
+        MCP.invalidate(NOTION, "notion-fetch").catch(function () {});
+      }, function (err) { input.checked = !input.checked; toast("Couldn't save: " + errText(err, NOTION)); })
+      .then(function () { input.disabled = false; renderSettings(); renderLeadNotice(); if (key === "auto_drafts" && value === "on") checkGuide(); });
+  }
+  function checkGuide() { // drafts need the user's voice, portfolio and rate in the guide
+    if (!S.cfg.guide || S.cfg.auto_drafts !== "on") { S.guideIssue = null; return; }
+    MCP.callTool(NOTION, "notion-fetch", { id: S.cfg.guide }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
+      var p = payloadOf(res), txt = p && typeof p === "object" ? p.text : (typeof p === "string" ? p : "");
+      var body = (/<content>([\s\S]*?)<\/content>/.exec(txt || "") || [])[1] || "";
+      S.guideIssue = /_to fill_/i.test(body) ? "some parts still say \u201c_to fill_\u201d" : body.replace(/\s+/g, " ").length < 400 ? "it is nearly empty" : null;
+      renderLeadNotice();
+    }, function () {});
+  }
+
   // ---------- rendering: stats from Upwork ----------
   function renderConnects() {
     if (S.connectsErr && !S.connects) { $("connectsValue").textContent = "—"; $("connectsSub").textContent = errText(S.connectsErr, UPWORK); return; }
@@ -1101,7 +1496,6 @@
       var ms = (S.milestones[c.id] || {}).list || [];
       ms.forEach(function (m) { if (m.state === "Active" || m.state === "Submitted") escrow += (num(m.fundedAmount && m.fundedAmount.rawValue) || 0) - (num(m.paid && m.paid.rawValue) || 0); });
     });
-    S.contractStats = { total: total, escrow: escrow };
     $("contractsCount").textContent = total > list.length ? list.length + " of " + total : escrow ? "$" + Math.round(escrow) + " funded, unpaid" : "";
 
     clear(host);
@@ -1155,8 +1549,8 @@
         var due = cur.dueDateTime ? Date.parse(cur.dueDateTime) : null;
         if (due && cur.state !== "Submitted") { var left = due - Date.now(); line.appendChild(el("span", left < 0 ? "late" : "due", left < 0 ? " · overdue by " + ago(-left) : " · due in " + ago(left))); }
         if (cur.state === "Submitted") {
-          var sub = cur.modifiedDateTime ? Date.now() - Date.parse(cur.modifiedDateTime) : 0;
-          line.appendChild(el("span", sub > 3 * DAY ? "stuck" : "due", " · awaiting client approval" + (sub ? " for " + ago(sub) : "")));
+          var waited = cur.modifiedDateTime ? Date.now() - Date.parse(cur.modifiedDateTime) : 0;
+          line.appendChild(el("span", waited > 3 * DAY ? "stuck" : "due", " · awaiting client approval" + (waited ? " for " + ago(waited) : "")));
         }
       } else line.appendChild(el("b", "", "all milestones paid"));
       box.appendChild(line);
@@ -1173,8 +1567,8 @@
       var since = c.start_date ? new Date(c.start_date) : null;
       var x = drHead(body, ["Contract", clean(c.client), since ? "since " + MON[since.getUTCMonth()] + " " + since.getUTCDate() + ", " + since.getUTCFullYear() : "", turnChip(room)], clean(c.title));
       var owe = needsMe(c);
-      if (room && owe && owe.reply) { x.acts.appendChild(extLink(roomUrl(room.id), "Reply on Upwork ↗", "pbtn")); x.acts.appendChild(extLink(workroom(c.id), "Open the workroom ↗")); }
-      else { x.acts.appendChild(extLink(workroom(c.id), "Open the workroom ↗", "pbtn")); if (room) x.acts.appendChild(extLink(roomUrl(room.id), "Open thread ↗")); }
+      if (room && owe && owe.reply) { x.acts.appendChild(navLink(roomUrl(room.id), "Reply on Upwork")); x.acts.appendChild(navLink(workroom(c.id), "Workroom")); }
+      else { x.acts.appendChild(navLink(workroom(c.id), "Workroom")); if (room) x.acts.appendChild(navLink(roomUrl(room.id), "Chat")); }
       if (room && room.latestStory) x.inner.appendChild(summaryCallout(room));
       var ms = msSorted(c), msData = S.milestones[c.id];
       var sec = dsec(x.inner, "Milestones", ms && ms.length ? ms.filter(function (m) { return m.state === "Paid"; }).length + " of " + ms.length + " paid" : "");
@@ -1288,7 +1682,6 @@
   // ---------- Your move: everything that waits on me, one list ----------
   // Sources: chats where it's my turn (contract, proposal or plain), invitations and offers, overdue milestones.
   // A proposal chat listed here is left out of Proposals → In talks, so nothing shows twice.
-  function contractById(id) { var r = null; (((S.dash || {}).active_contracts || {}).contracts || []).forEach(function (c) { if (!r && String(c.id) === String(id)) r = c; }); return r; }
   function proposalByRoom() {
     var m = {}; (S.proposals || []).forEach(function (p) { var r = proposalRoom(p); if (r) m[r.id] = p; }); return m;
   }
@@ -1331,7 +1724,6 @@
       else S.moveStats[{ chat: "chats", invite: "invites", offer: "offers" }[x.type]]++;
     });
     $("moveCount").textContent = items.length ? items.length : "";
-    var openIds = {}; host.querySelectorAll("details[open]").forEach(function (d) { openIds[d.dataset.id] = true; });
     clear(host);
     if (!items.length) {
       var ok = el("div", "move-ok"); ok.appendChild(el("b", "", "Nothing waits on you. "));
@@ -1385,7 +1777,7 @@
   function inviteDrawer(v) {
     return function (body) {
       var x = drHead(body, [el("span", "chip good", v.kind), v.client, v.t ? "received " + ago(Date.now() - v.t) + " ago" : ""], v.title);
-      x.acts.appendChild(extLink(v.href, "Answer on Upwork ↗", "pbtn"));
+      x.acts.appendChild(navLink(v.href, "Answer on Upwork"));
       var c = el("div", "callout good");
       c.appendChild(noteHead(v.kind === "Offer" ? "Offer" : "Invitation"));
       c.appendChild(el("div", "", v.kind === "Offer" ? "The client sent you an offer. Accept or decline it on Upwork." : "The client invited you to this job. Reply on Upwork to accept or decline."));
@@ -1396,15 +1788,14 @@
   // A proposal or plain chat: the conversation first, then the proposal and its Notion card.
   function chatDrawer(room, p) {
     return function (body) {
-      var nr = p && (S.appliedNotion[p.jobId] || S.leadsById[p.jobId]);
+      var nr = p && (S.appliedNotion[p.jobId] || S.leadsById[p.jobId]), sr = p && sentRowOf(p);
       var title = p ? p.title : clientOf(room) || clean(room.roomName) || "Chat";
       var t = roomAct(room);
       var x = drHead(body, [p ? "Proposal" : "Chat", clientOf(room) !== title ? clientOf(room) : "", turnChip(room), t ? "last message " + ago(Date.now() - t) + " ago" : ""], title, p && p.jobId);
-      x.acts.appendChild(extLink(roomUrl(room.id), myTurn(room) ? "Reply on Upwork ↗" : "Open thread ↗", "pbtn"));
-      if (p && p.url) x.acts.appendChild(extLink(p.url, "Open the job ↗"));
-      if (nr && nr.url) x.acts.appendChild(extLink(nr.url, "Open in Notion ↗"));
+      x.acts.appendChild(navLink(roomUrl(room.id), myTurn(room) ? "Reply on Upwork" : "Chat"));
+      if (p) proposalLinks(x, p, nr, sr);
       messagesInto(dsec(x.inner, "Conversation", "latest first"), room);
-      if (p) proposalSections(x.inner, p, nr);
+      if (p) upworkProposalInto(x.inner, p, nr, sr);
     };
   }
 
@@ -1430,7 +1821,11 @@
     soonTimer = setTimeout(function () { soonTimer = null; renderMove(); renderPills(); }, 0);
   }
 
-  function proposalRoom(p) { var r = S.prooms[p.id]; return r && r.room ? r.room : null; }
+  function proposalRoom(p) { // the room found for this proposal, with its live state from the rooms list when it is there
+    var r = S.prooms[p.id]; if (!r || !r.room) return null;
+    var live = (S.rooms || []).filter(function (x) { return x.id === r.room.id; })[0];
+    return live || r.room;
+  }
   function roomAct(room) { return room ? (Date.parse((room.latestStory || {}).createdDateTime) || num(room.lastActivity) || 0) : 0; } // last message time; lastActivity may include non-message events
   function myTurn(room) { return !!room && (room.awaiting_reply_from === "you" || (room.awaiting_reply_from == null && room.last_message_from_self === false)); }
   // One rule for the whole section: a proposal is shown while something happened on it in the last LIVE_DAYS.
@@ -1459,14 +1854,12 @@
     });
     $("cntPDiscussing").textContent = groups.discussing.length + loose.length;
     $("cntPWaiting").textContent = groups.waiting.length; $("cntPClosed").textContent = groups.closed.length;
-    S.propStats = { sent: groups.waiting.length + groups.discussing.length + owedP, talks: groups.discussing.length + loose.length };
     renderSoon();
     var list = groups[S.ptab].slice();
     if (S.ptab === "discussing") list = list.concat(loose.map(function (r) { return { _room: r }; }));
     var key = function (x) { return S.ptab === "discussing" ? roomAct(x._room || proposalRoom(x)) : S.ptab === "closed" ? (x.modified || x.created) : x.created; };
     var owes = function (x) { return S.ptab === "discussing" && myTurn(x._room || proposalRoom(x)) ? 1 : 0; };
     list.sort(function (a, b) { return (owes(b) - owes(a)) || (key(b) - key(a)); });
-    var openIds = {}; host.querySelectorAll("details[open]").forEach(function (d) { openIds[d.dataset.id] = true; });
     clear(host);
     if (!list.length) {
       host.appendChild(el("div", "empty", S.ptab === "discussing" ? "No chats waiting on a client reply." :S.ptab === "waiting" ? "No proposals sent in the last " + LIVE_DAYS + " days without a reply." : "Nothing closed in the last " + LIVE_DAYS + " days."));
@@ -1497,7 +1890,7 @@
     if (room && clientOf(room)) m.appendChild(el("span", "", clientOf(room)));
     if (p.closed) { metaSep(m); m.appendChild(el("span", "", p.statusLabel + (p.reason ? " — " + p.reason : ""))); }
     else if (chat) { metaSep(m); m.appendChild(turnSpan(room)); }
-    else { var rp = S.prooms[p.id]; if (rp && rp.err) { metaSep(m); m.appendChild(el("span", "", "Reply status unknown")); } else if (!rp) { metaSep(m); m.appendChild(el("span", "", "Checking replies…")); } }
+    else { var rp = S.prooms[p.id]; if (rp && rp.err) { metaSep(m); m.appendChild(el("span", "", "Reply status unknown")); } else if (!rp || rp.pending) { metaSep(m); m.appendChild(el("span", "", "Checking replies…")); } }
     var extra = [];
     if (p.rate) extra.push(p.rate.replace(/\.0$/, ""));
     if (p.bid) extra.push("boosted " + p.bid + " cn");
@@ -1514,29 +1907,39 @@
     var m = el("div", "t-meta"); m.appendChild(turnSpan(room)); s.appendChild(m);
     return row.d;
   }
-  function proposalSections(host, p, nr) {
+  // A proposal from Upwork: its terms, what was sent (the Proposals row) and the job (the Jobs card).
+  function sentRowOf(p) { return S.sentById[String(p.id)] || S.sentByJob[p.jobId] || null; }
+  function upworkProposalInto(host, p, nr, sr) {
     dsec(host, "Proposal").appendChild(factsBox([
       ["Status", p.closed ? p.statusLabel + (p.reason ? " — " + p.reason : "") : "Open"],
       ["Sent", p.created ? fmtWall(wallOf(p.created), true) + " (" + ago(Date.now() - p.created) + " ago)" : ""],
-      ["My rate", p.rate ? p.rate.replace(/\.0$/, "") : ""],
-      ["Boost", p.bid ? p.bid + " connects" : ""],
+      ["My rate", p.rate && !sr ? p.rate.replace(/\.0$/, "") : ""], // with the Notion copy, the rate is shown under What you sent
+      ["Connects", sr && sr.Connects != null ? sr.Connects + " to apply" + (num(sr.Boost) ? " + " + sr.Boost + " boost" : "") : p.bid ? "boosted " + p.bid : ""],
       ["Job ID", p.jobId ? fullIdBadge(p.jobId) : ""]
     ]));
+    var fs = el("div", "dfs"), sw = sr ? wallFromNotion(sr["date:Sent on:start"]) : null;
+    dsec(host, "What you sent", sr ? (sw ? "sent " + fmtWall(sw, true) : "") : "").appendChild(fs);
+    if (sr) proposalInto(fs, sr, true);
+    else fs.appendChild(el("div", "dr-empty", S.cfg.schema >= SCHEMA ? "Not in Proposals yet — the next digest syncs it, or ask Claude to \u201csync proposals\u201d." : "Proposals are kept in Notion after the pipeline update."));
     if (nr) {
-      dsec(host, "Client vs me").appendChild(cmpTable(nr));
-      notesInto(dsec(host, "Notes", "from the Notion card"), nr);
-    } else dsec(host, "Notes").appendChild(el("div", "dr-empty", "This job has no card in Notion."));
+      var cv = dsec(host, "Client vs me"); cv.appendChild(cmpTable(nr));
+      notesInto(dsec(host, "About the job"), nr);
+    } else dsec(host, "About the job").appendChild(el("div", "dr-empty", "This job has no card in Notion yet; the proposals sync adds one."));
+  }
+  function proposalLinks(x, p, nr, sr) {
+    if (p.url) x.acts.appendChild(navLink(p.url, "Upwork job"));
+    x.acts.appendChild(navLink("https://www.upwork.com/nx/proposals/" + encodeURIComponent(p.id), "Upwork proposal"));
+    if (nr && nr.url) x.acts.appendChild(navLink(nr.url, "Notion job"));
+    if (sr && sr.url) x.acts.appendChild(navLink(sr.url, "Notion proposal"));
   }
   function proposalDrawer(p) {
     return function (body) {
-      var nr = S.appliedNotion[p.jobId] || S.leadsById[p.jobId];
+      var nr = S.appliedNotion[p.jobId] || S.leadsById[p.jobId], sr = sentRowOf(p);
       var rp = S.prooms[p.id];
       var state = p.closed ? el("span", "chip", p.statusLabel) : el("span", "chip", rp && rp.err ? "reply status unknown" : "no reply yet");
       var x = drHead(body, ["Proposal", state, "sent " + ago(Date.now() - p.created) + " ago"], p.title, p.jobId);
-      if (p.url) x.acts.appendChild(extLink(p.url, "Open the job ↗", "pbtn"));
-      if (nr && nr.url) x.acts.appendChild(extLink(nr.url, "Open in Notion ↗"));
-      x.acts.appendChild(extLink("https://www.upwork.com/nx/proposals/" + encodeURIComponent(p.id), "Open the proposal ↗"));
-      proposalSections(x.inner, p, nr);
+      proposalLinks(x, p, nr, sr);
+      upworkProposalInto(x.inner, p, nr, sr);
     };
   }
   function setPTab(v) {
@@ -1558,7 +1961,7 @@
     var now = wallNow(), y = new Date(now).getUTCFullYear();
     // Order by the Created timestamp; the "DD.MM HH:MM" title is only a fallback for rows without it.
     var rows = S.runs.map(function (r) {
-      var w = wallFromNotion(r.Created);
+      var w = wallFromNotion(r.Created || r["date:Created:start"] || r.createdTime);
       if (w == null) {
         var m = /(\d{1,2})\.(\d{1,2})\s+(\d{1,2}):(\d{2})/.exec(r.Run || "");
         w = m ? Date.UTC(y, +m[2] - 1, +m[1], +m[3], +m[4]) : 0;
@@ -1598,10 +2001,9 @@
     var all = el("div", "q muted"); all.appendChild(extLink(QUESTIONS_URL, "Open the questions database ↗")); box.appendChild(all);
   }
 
-  function renderAll() { renderConnects(); renderBalance(); renderContracts(); renderApplied(); renderLeads(); renderSoon(); }
 
   // ---------- data loading ----------
-  var MCP = null, unsubs = [], milestoneWatch = {};
+  var MCP = null, milestoneWatch = {};
   S.leadsById = {};
 
   function watch(server, tool, input, onData, onErr) {
@@ -1609,15 +2011,14 @@
       if (ev.type === "data") { touch(ev.result); onData(payloadOf(ev.result)); }
       else onErr(ev.error);
     }, { cache: CACHE, refetchInterval: POLL });
-    unsubs.push(u);
   }
 
-  function loadNotionView(viewUrl, maxPages) {
+  function loadNotionView(viewUrl, maxPages, fresh) { // fresh: skip the cache (a proposal being written)
     var rows = [];
     function page(cursor, n) {
       var data = { mode: "view", view_url: viewUrl, page_size: 100 };
       if (cursor) data.start_cursor = cursor;
-      return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: { staleTime: 120000, gcTime: 86400000 } }).then(function (res) {
+      return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: fresh ? false : { staleTime: 120000, gcTime: 86400000 } }).then(function (res) {
         touch(res);
         var p = payloadOf(res) || {};
         rows = rows.concat(p.results || []);
@@ -1634,15 +2035,67 @@
       var p = payloadOf(res), txt = p && typeof p === "object" ? p.text : (typeof p === "string" ? p : "");
       var m = /match_score:\s*`?\s*(-?\d+(?:\.\d+)?)/.exec(txt || "");
       S.matchScore = m ? +m[1] : null;
-    }, function () { S.matchScore = null; });
+      var key = function (k) { var x = new RegExp("\\b" + k + ":\\s*`([^`]*)`").exec(txt || ""); return x ? x[1].trim() : null; };
+      S.cfgText = txt || "";
+      S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide") };
+      renderSettings(); checkGuide();
+    }, function () { S.matchScore = null; renderSettings(); });
   }
+  function loadSkipped(more) { // the Skipped view, newest skip first; one page now, the next on "Show more days"
+    if (!(S.cfg.schema >= SCHEMA) || /^__/.test(VIEW_SKIPPED)) { S.skipped = S.skipped || []; return Promise.resolve(); }
+    var data = { mode: "view", view_url: VIEW_SKIPPED, page_size: 100 };
+    if (more && S.skippedMore) data.start_cursor = S.skippedMore;
+    return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: { staleTime: 120000, gcTime: 86400000 } }).then(function (res) {
+      var p = payloadOf(res) || {};
+      var rows = withSaved((p.results || []).filter(function (r) { return r.Status === "Skipped"; }), "Skipped");
+      S.skipped = more ? (S.skipped || []).concat(rows) : rows;
+      S.skippedMore = p.has_more ? p.next_cursor : null;
+      renderLeads();
+    }, function (err) { if (!S.skipped) { S.skipped = []; S.skippedErr = err; } renderLeads(); });
+  }
+  function withSaved(rows, status) { // rows of one status, corrected by this page's own recent saves
+    var now = Date.now(), seen = {};
+    Object.keys(S.saved).forEach(function (id) { if (now - S.saved[id].at > 5 * 60000) delete S.saved[id]; });
+    rows = rows.filter(function (r) { var sv = S.saved[r["Job ID"]]; seen[r["Job ID"]] = true; return !sv || sv.row.Status === status; });
+    Object.keys(S.saved).forEach(function (id) { if (!seen[id] && S.saved[id].row.Status === status) rows.unshift(S.saved[id].row); });
+    return rows;
+  }
+  function loadPropRows(fresh) { // Proposals: Open (written, not sent) and Sent, both keyed by Job ID; Sent also by Proposal ID
+    if (!(S.cfg.schema >= SCHEMA) || /^__/.test(VIEW_PROPOSALS_OPEN)) return Promise.resolve();
+    // each view on its own: a broken Sent view must not hide the ready proposals, and the other way round
+    var safe = function (v, n) { return loadNotionView(v, n, fresh).catch(function () { return null; }); }; // null: keep what we had
+    return Promise.all([safe(VIEW_PROPOSALS_OPEN, 3), safe(VIEW_PROPOSALS_SENT, 5)]).then(function (res) {
+      if (res[0]) {
+        var open = {};
+        res[0].forEach(function (p) { if (p["Job ID"] && p.State !== "Sent" && !open[p["Job ID"]]) open[p["Job ID"]] = p; });
+        S.openProps = open;
+      }
+      if (res[1]) {
+        var byJob = {}, byId = {};
+        res[1].forEach(function (p) { if (p.State !== "Sent") return; if (p["Job ID"] && !byJob[p["Job ID"]]) byJob[p["Job ID"]] = p; if (p["Proposal ID"]) byId[String(p["Proposal ID"])] = p; });
+        S.sentByJob = byJob; S.sentById = byId;
+      }
+      var open2 = S.openProps, byJob2 = S.sentByJob;
+      Object.keys(S.writing).forEach(function (id) { // a proposal started here is done once its row is written after the start
+        var p = open2[id] || byJob2[id], w = p ? Date.parse(p["date:Written:start"] || "") : NaN;
+        if (p && p.State !== "Writing" && w > S.writing[id] - 60000) delete S.writing[id];
+      });
+      if ((S.leads || []).some(function (r) { return propState(r) === "Writing"; })) watchDrafts();
+      renderLeads(); renderApplied(); refreshDrawer();
+    }, function () {});
+  }
+  var loadAgain = false;
   function loadNotion() {
-    if (loading) return; loading = true;
+    if (loading) { loadAgain = true; return; } // a Refresh during a load runs once more when it ends
+    loading = true;
     loadConfig().then(function () { return loadNotionView(VIEW_INBOX, 10); }).then(function (rows) {
+      rows = withSaved(rows, "New");
       S.leads = rows; S.leadsErr = null;
       S.leadsById = {}; rows.forEach(function (r) { if (r["Job ID"]) S.leadsById[r["Job ID"]] = r; });
-      renderLeads(); renderApplied();
+      renderLeads(); renderApplied(); refreshDrawer();
     }, function (err) { S.leadsErr = err; if (isDenial(err)) S.leads = null; renderLeads(); })
+    .then(function () { return loadPropRows(); })
+    .then(function () { return loadSkipped(false); })
     .then(function () { return loadNotionView(VIEW_APPLIED, 3); })
     .then(function (rows) {
       if (!rows) return;
@@ -1661,7 +2114,8 @@
       S.questions = Array.isArray(p.results) ? p.results.filter(function (q) { return q.Status === "Open"; }) : null; S.questionsErr = S.questions ? null : { code: "tool_error", message: "unexpected response" };
       renderQuestions();
     }, function (err) { S.questions = null; S.questionsErr = err; renderQuestions(); })
-    .then(function () { loading = false; });
+    .then(done, done);
+    function done() { loading = false; if (loadAgain) { loadAgain = false; loadNotion(); } }
   }
 
   var connectsLoading = false;
@@ -1686,7 +2140,7 @@
       first = first || {}; first.usage_history = { transactions: all, complete: all.length ? Date.parse(all[all.length - 1].createdDateTime) <= since : true };
       S.connects = first; S.connectsErr = null; renderConnects(); renderLeads();
     }, function (err) { S.connectsErr = err; if (isDenial(err)) S.connects = null; renderConnects(); })
-    .then(function () { connectsLoading = false; });
+    .then(function () { connectsLoading = false; }, function () { connectsLoading = false; });
   }
 
   function watchMilestones() {
@@ -1778,7 +2232,7 @@
     PROPOSAL_SOURCES.forEach(function (src) { (propParts[src.status] || []).forEach(function (p) { if (!seen[p.id]) { seen[p.id] = true; all.push(p); } }); });
     S.proposals = all;
     S.proposalsErr = null;
-    S.proposals.forEach(function (p) { if (!p.closed && !S.prooms[p.id]) fetchProposalRoom(p); });
+    S.proposals.forEach(function (p) { var r = S.prooms[p.id]; if (!p.closed && (!r || (!r.pending && !r.room))) fetchProposalRoom(p); }); // no room yet: the client may have opened one since
     renderApplied(); renderLeads();
   }
   function fetchProposalRoom(p) {
@@ -1831,6 +2285,9 @@
       ["List", "jobs posted in the last " + LIVE_LEAD_DAYS + " days, grouped by day, highest score first within a day."],
       ["Older", "jobs posted more than " + LIVE_LEAD_DAYS + " days ago, folded at the bottom; most are closed by now. Past " + OLD_LEAD_DAYS + " days the title is dimmed."],
       ["Green bar", "the card's score is at or above match_score from the Notion config" + (S.matchScore != null ? " (now " + S.matchScore + ")" : "") + "."],
+      ["Proposal ready", "Claude advised to apply and wrote a ready-to-paste proposal (a row in Notion's Proposals); it is in the drawer under About the job, with a copy icon on every value. Skip advised — Claude would skip it; you decide (or auto skip does, if it is on)."],
+      ["Skipped", "cards skipped in the last " + SKIP_DAYS + " days. Auto: auto skip did it on Claude's advice; Manual: you did, by a button, in chat or in Notion. The drawer says why; Restore puts one back."],
+      ["Only ready", "keeps only the cards whose proposal is ready, in every tab."],
       ["", "Click a row for the details. Applied and Skip in the drawer change the card's status in Notion; the lead leaves this list and the drawer moves on to the next one."]
     ];
   });
@@ -1839,7 +2296,8 @@
       ["", "Your proposals from Upwork. A proposal stays here while something happens on it; after " + LIVE_DAYS + " quiet days it drops off."],
       ["Sent", "sent, no reply from the client yet."],
       ["In talks", "the client replied and the next message is theirs. When it's your turn the chat moves up to Your move."],
-      ["Closed", "declined, archived or withdrawn."]
+      ["Closed", "declined, archived or withdrawn."],
+      ["Drawer", "the proposal's terms, What you sent — the copy kept in Notion's Proposals, synced from Upwork by the digests — and the job it was for."]
     ];
   });
   addInfo("hMove", function () {
@@ -1865,11 +2323,21 @@
     try { localStorage.setItem("fp.verdict", v); } catch (e) {}
     $("tabTake").setAttribute("aria-selected", v === "Take");
     $("tabMaybe").setAttribute("aria-selected", v === "Maybe");
+    $("tabSkipped").setAttribute("aria-selected", v === "Skipped");
     $("leadList").scrollTop = 0;
     renderLeads();
   }
   $("tabTake").addEventListener("click", function () { setVerdict("Take"); });
   $("tabMaybe").addEventListener("click", function () { setVerdict("Maybe"); });
+  $("tabSkipped").addEventListener("click", function () { S.skipDays = SKIP_DAYS; setVerdict("Skipped"); });
+  $("onlyDrafts").checked = !!S.onlyDrafts;
+  $("onlyDrafts").addEventListener("change", function () { S.onlyDrafts = this.checked; try { localStorage.setItem("fp.onlyDrafts", S.onlyDrafts ? "1" : "0"); } catch (e) {} renderLeads(); });
+  $("settingsBtn").addEventListener("click", function (e) { e.stopPropagation(); var open = $("setPop").hidden; closeInfos(); $("setPop").hidden = !open; this.setAttribute("aria-expanded", open ? "true" : "false"); });
+  $("setPop").addEventListener("click", function (e) { e.stopPropagation(); });
+  document.addEventListener("click", closeSettings);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSettings(); });
+  $("autoDrafts").addEventListener("change", function () { setFlag("auto_drafts", this.checked ? "on" : "off", this); });
+  $("autoSkip").addEventListener("change", function () { setFlag("auto_skip", this.checked ? "on" : "off", this); });
   setVerdict(S.verdict);
   setPTab(S.ptab);
 
@@ -1877,7 +2345,7 @@
     if (!MCP) return;
     $("liveText").textContent = "Refreshing…";
     var p = MCP.invalidate ? MCP.invalidate() : Promise.resolve();
-    p.catch(function () {}).then(function () { S.prooms = {}; loadNotion(); loadConnects(); loadProposals(); });
+    p.catch(function () {}).then(function () { S.prooms = {}; notesCache = {}; loadNotion(); loadConnects(); loadProposals(); });
   });
   setInterval(function () { if (MCP && !document.hidden) { loadNotion(); loadConnects(); loadProposals(); } }, POLL);
 
