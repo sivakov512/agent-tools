@@ -1651,7 +1651,7 @@
         });
         sec.appendChild(list);
       } else sec.appendChild(el("div", "dr-empty", msData && msData.err ? errText(msData.err, UPWORK) : msData ? "No milestones (hourly or not set up)." : "Loading milestones…"));
-      if (room) messagesInto(dsec(x.inner, "Conversation", "latest first"), room);
+      if (room) messagesInto(dsec(x.inner, "Conversation", "latest first", null, true), room);
     };
   }
   function roomUrl(id) { return "https://www.upwork.com/ab/messages/rooms/" + encodeURIComponent(id); }
@@ -1857,7 +1857,8 @@
       else { if (room.contractId) loadContractJob(room.contractId); if (!room.contractId || !S.contractJobs[room.contractId].busy) setChat(chatLink(room.contractId ? contractJob(room.contractId) : null, title, { contract: room.contractId, room: room.id })); }
       x.acts.appendChild(navLink(roomUrl(room.id), myTurn(room) ? "Reply on Upwork" : "Chat"));
       if (p) proposalLinks(x, p, nr, sr, true);
-      messagesInto(dsec(x.inner, "Conversation", "latest first"), room);
+      if (room.latestStory) x.inner.appendChild(summaryCallout(room)); // the same plaque as a contract: where it stands and the next step; the thread itself is folded below
+      messagesInto(dsec(x.inner, "Conversation", "latest first", null, true), room);
       if (p) upworkProposalInto(x.inner, p, nr, sr);
     };
   }
