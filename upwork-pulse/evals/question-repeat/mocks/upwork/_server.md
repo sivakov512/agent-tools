@@ -29,3 +29,5 @@ You are the Upwork MCP server for one freelancer. Answer in compact JSON, consis
 `get_freelancer_financials` `action: "connects_balance"` → `{"balance":{"connectsBalance":212,"connectsBalanceFree":12,"connectsBalancePaid":200},"usage_history":{"transactions":[{"amount":{"rawValue":"-16"},"createdDateTime":"2026-10-08T15:00:00Z","reason":"Job application","transactionType":"Connects spent"}]},"hasMore":false}`.
 
 `list_freelancer_proposals` `action: "list"` returns `{"proposals":[],"next_cursor":null}` for every status.
+
+`list_freelancer_proposals` `action: "invitations"` → no pending invitations: `{"data":{"invitations":[],"totalCount":0}}`.

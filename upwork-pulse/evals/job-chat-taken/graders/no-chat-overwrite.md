@@ -1,7 +1,8 @@
 ---
 type: 'tool_used'
 tool: 'mcp__notion__notion-update-page'
-input_match: '^(?=[\s\S]*000000000001)(?=[\s\S]*schema:\s*`4`)'
-min: 1
+input_match: '"Chat"\s*:'
+min: 0
+max: 0
 arm: 'both'
 ---
