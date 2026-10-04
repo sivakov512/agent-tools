@@ -1,17 +1,17 @@
 # upwork-pulse
 
-Runs a freelancer's Upwork job search with Notion as the source of truth. Scheduled agents search the feed every hour, assess each posting against your own rules, write the promising ones into Notion and message you only when something is worth applying to fast; two digests a day recap the rest; a weekly review turns the cases your rules did not cover into new rules. In chat the same skill discusses a posting on fresh data, drafts a proposal in your voice and submits it only on your explicit go. A live dashboard shows leads, proposals, contracts and connects.
+Runs a freelancer's Upwork job search with Notion as the source of truth. Scheduled agents search the feed every hour, assess each posting against your own rules, write the promising ones into Notion and message you only when something is worth applying to fast; two digests a day recap the rest; a weekly review turns the cases your rules did not cover into new rules. For every new card an Opus agent advises apply or skip and, for apply, writes a ready-to-paste draft — cover letter, bid, milestones, screening answers — that you copy into Upwork yourself. In chat the same skill discusses a posting on fresh data, drafts a proposal in your voice and submits it only on your explicit go. Every proposal you write or send lands in a Proposals database, as sent. A live dashboard shows leads with their proposals, what you sent, contracts and connects.
 
 The plugin and the skill inside it are both called `upwork-pulse`.
 
 ## What you get in Notion
 
-A root page — you name it at setup, **Upwork Pulse** by default — with a collapsed config toggle, four pages and three databases:
+A root page — you name it at setup, **Upwork Pulse** by default — with a collapsed config toggle, four pages and four databases:
 
 ```
 ▸ ⚙️ Config
 Search rules · Proposal guide · Field notes · Run state
-Jobs · Runs · Questions
+Jobs · Proposals · Runs · Questions
 ```
 
 | | Holds | Written by |
@@ -19,16 +19,17 @@ Jobs · Runs · Questions
 | Search rules | your queries, what is in scope, what to reject, what to flag, how to set the verdict, hours and price, how to rank (criteria with points) | you; the agent adds a rule you confirm |
 | Proposal guide | your voice, what never to say, portfolio lines and files, rate | you; the agent adds a rule you confirm |
 | Field notes | what the Upwork API and tools do and do not do — nothing else | the agent, when it meets something new |
-| Run state | `PROCESSED_UNTIL`, the hourly search's watermark | the hourly run |
-| Jobs | one card per Take / Maybe posting: the client's numbers against your estimate, flags, a score by your ranking with the reasons, a five-section write-up; `Status` New → Applied / Skipped | the hourly run; the status by you, in chat or on the dashboard |
+| Run state | two watermarks: `PROCESSED_UNTIL` for the hourly search, `PROPOSALS_SYNCED_UNTIL` for the proposals sync | the hourly run; the digests and "sync proposals" |
+| Jobs | one card per Take / Maybe posting, every fact in its own column — the client's terms (payment, budget or rate range, duration, connects), competition (proposals, invites, interviewing, bid range), the client (country, verified, hires, spent, rating) — against your estimate (hours, price, complexity, flags) and a score by your ranking with the reasons; a five-section write-up; the advice (Apply / Skip, why); `Status` New → Applied / Skipped with when it was decided, every skip with who (manual / auto) and, when given, why | the hourly run and the drafts agent; the status by you, in chat or on the dashboard, Applied also by the proposals sync |
+| Proposals | one row per job you write or send a proposal for: state (Writing / Ready / Sent), rate, connects, boost, sent on, the Upwork id, linked to the job; the text in fixed sections (Confirm before sending, Milestones, Cover letter, Screening questions, Attach, Portfolio highlights, Boost, How it was written). Once you apply, the draft is replaced by what Upwork stored (letter, rate, answers, files, boost), however you sent it — one final version per job | the drafts agent and chat; the proposals sync (digests twice a day, or "sync proposals") |
 | Runs | one log row per run (per 2-hour chunk when catching up on a backlog): what was checked, what was rejected and why | the hourly run |
 | Questions | cases your rules did not settle, with a counter of how often they came up | the hourly run; closed by the weekly review |
 
-Views: Jobs — Inbox (New), Applied, All; Runs — Latest; Questions — Open. The agent reads only through these views, which cost no Notion query quota.
+Views: Jobs — Inbox (New), Applied, All, Skipped; Proposals — Open, Sent; Runs — Latest; Questions — Open. The agent reads only through these views, which cost no Notion query quota.
 
 **Language.** Everything the agent writes — messages, analyses, cards, questions, rule lines — is in the `language` from the config. The structure stays English: page and database titles, columns, card section headings, the dashboard. Proposals are written in the posting's language.
 
-**Config.** The toggle holds the database IDs, view URLs, page IDs, `language`, `timezone`, `match_score` (the score from which a job counts as a strong match), your Upwork account and the dashboard link. The skill finds the root page by the toggle's title line — keep it — and reads the rest on every run, so the page can have any name and several pipelines can live side by side (each scheduled task names its root page). Move a database, edit the config.
+**Config.** The toggle holds the database IDs, view URLs, page IDs, `language`, `timezone`, `match_score` (the score from which a job counts as a strong match), your Upwork account, the dashboard link, the switches `auto_drafts` and `auto_skip`, the drafts task id and the `schema` version. The skill finds the root page by the toggle's title line — keep it — and reads the rest on every run, so the page can have any name and several pipelines can live side by side (each scheduled task names its root page). Move a database, edit the config.
 
 ## Install
 
@@ -52,7 +53,7 @@ The claude.ai Notion and Upwork connectors are picked up if you are logged in wi
 ## First run
 
 1. **"Set up Upwork Pulse."** The agent proposes a page **Upwork Pulse** at the top level and asks for your profile in one message: field and stack, rate, what to reject and flag, search queries, proposal voice, portfolio, language, timezone, when the digests and the weekly review should come, the model for scheduled runs. Instead of answering you can point it at your Upwork profile, a Notion page, a CV or an email — it takes your decisions from there (not someone else's formats) and shows what it found. Unknowns stay as `_to fill_`; nothing is invented.
-2. **It builds everything**: the four pages, the three databases with views, the config, the dashboard (published as a claude.ai artifact), and on Cowork the four scheduled tasks — hourly search, morning and evening digest, weekly review. It then fires the hourly task once and checks that a run was logged; if not, it says why (plugin not installed for tasks, connector missing, approval pending). Elsewhere it hands you the table of schedules and prompts.
+2. **It builds everything**: the four pages, the four databases with views, the config, the dashboard (published as a claude.ai artifact), and on Cowork five scheduled tasks — hourly search, morning and evening digest, weekly review, and "Upwork drafts" with no schedule, which the dashboard starts. It then fires the hourly task once and checks that a run was logged; if not, it says why (plugin not installed for tasks, connector missing, approval pending). Elsewhere it hands you the table of schedules and prompts.
 3. **Fill the placeholders** in Search rules and Proposal guide. Both are read on every run, so edits apply from the next one.
 4. **"Run the hourly search now"** in chat — the first live check.
 
@@ -70,19 +71,24 @@ The scheduled tasks need nothing from you. A run pushes one line to your phone o
 | Digests (e.g. 11:00 and 22:00) | the New cards found since the previous digest, two lines each; nothing if none |
 | Weekly review | open questions with a recommendation each; reply "1 yes, 2 no, 3 as recommended" and it writes the rules |
 
+**Drafts.** With `auto_drafts` on, the hourly run hands its new cards to an Opus subagent. For each card it fetches the posting fresh, builds a proposal preview (never submitted), and writes the advice — Apply or Skip, with the reason. For Apply it also writes the proposal by your Proposal guide as a row in Proposals — rate and connects as columns, and in the body: what you must confirm first, milestones, the cover letter, screening answers (⚠️ where only you can answer), files to attach, highlights, boost advice, and how the text was put together — formatted the same in Notion and on the dashboard. With `auto_skip` on, a Skip advice also sets the card Skipped, marked `auto` with the reason. Both switches are off after setup; flip them under Settings on the dashboard (Auto proposals, Auto skip). Without your voice, portfolio and rate in the Proposal guide, only the advice is written and the dashboard says what is missing.
+
 Every job in a message has a number and a short id — `2. #584350 …` — the same id as on the dashboard. In chat:
 
 | You say | What happens |
 |---|---|
 | "What about #584350?" / a link / "what about the second one?" after a digest | fetches fresh data from Upwork first, gives the link, then an assessment by your rules |
 | "Details 2" / "details #584350" | the full card |
+| "Draft #584350" / "redo the draft for #584350" | the advice and the proposal written to Proposals, as the drafts agent does |
 | "Write a proposal for it" | one package: fresh numbers, the text, rate, screening drafts, boost advice, files — then waits |
-| "Send it" | submits, sets the card Applied, reports the cost |
+| "Send it" | submits, writes what was sent to Proposals, sets the card Applied, reports the cost |
 | "Skip it" / "already applied" / "put it back" | sets the card's status |
 | "From now on skip anything with X" | writes the rule into Search rules as one line |
 | "How many connects?" | balance and recent spend |
+| "Sync proposals" / "sync proposals for the last 3 months" | puts what you sent on Upwork into Proposals now (the digests do it twice a day anyway); with a period it also pulls in older proposals, each with its job |
+| "Update the pipeline" | after a plugin update that changes the structure: the agent says what will change and waits for your go. Version 3 builds a new pipeline page and moves your rules, field notes, open questions, watermarks, dashboard link and tasks to it; old cards stay on the old page |
 
-A number ("the second one") works only in the conversation that showed the list; elsewhere use the id. The agent never sends, boosts, messages or saves anything on Upwork without your explicit go for that action, and scheduled runs never write to Upwork at all.
+A number ("the second one") works only in the conversation that showed the list; elsewhere use the id. The agent never sends, boosts, messages or saves anything on Upwork without your explicit go for that action, and scheduled runs never write to Upwork — the drafts agent only builds proposal previews, which submit nothing.
 
 If a message does not trigger the skill, mention Upwork or the job's id, or start it with `/upwork-pulse`.
 
@@ -91,9 +97,10 @@ If a message does not trigger the skill, mention Upwork or the job's id, or star
 `skills/upwork-pulse/assets/dashboard.html` — one page that reads Notion and Upwork through the viewer's own connectors (no server, no stored tokens). Setup fills in your view URLs, account and timezone and publishes it; the link goes into the config.
 
 - **Pills** in the header — replies, overdue, invitations — always there, red or green only when not zero.
-- **Leads** with the client's numbers against your estimate, grouped by day; a green mark when the card's score reaches `match_score` from the config (read on every load, so a change applies at once).
+- **Leads** with the client's numbers against your estimate, grouped by day; a green mark when the card's score reaches `match_score` from the config (read on every load, so a change applies at once). Tabs Take, Maybe and Skipped (the last two days, more on request, who skipped and why if a reason was given, Restore). A lead with a proposal is marked "Proposal ready"; "Only ready" filters every tab. The drawer shows the advice on top, the job, then the proposal, each value with a copy icon; Rewrite starts the drafts task for that job. Every number is a column shown as stored.
+- **Settings** in the header: the `auto_drafts` / `auto_skip` switches.
 - **Your move** — everything that waits on you, each thing once: contracts that need a reply or have an overdue milestone, other chats where it is your turn, invitations and offers. Every chat and contract shows Claude's summary of the thread and the next step.
-- **Contracts** that need nothing now, **Proposals** (Sent / In talks / Closed), Connects spend and Balance.
+- **Contracts** that need nothing now, **Proposals** (Sent / In talks / Closed, live from Upwork — a proposal's drawer shows its job and what you sent, with Notion links), Connects spend and Balance.
 - A row's **title opens it on Upwork**; the rest of the row opens a drawer with the details — the lead's notes with Skip / Applied, a contract's milestones and conversation, a proposal's chat — and ↑ / ↓ to walk the list. An ⓘ next to a section says how its list is built.
 
 **Updates.** The page carries a version on its first line and the config remembers which version you published. When the skill ships a newer one, the next time you talk to the skill it says what is new and asks whether to update; yes republishes to the same link, no means that version is not offered again. With no dashboard in the config at all, it offers to publish one the same way.
@@ -101,7 +108,7 @@ If a message does not trigger the skill, mention Upwork or the job's id, or star
 ## Model
 
 - **Sonnet** for everything scheduled — search, assessment, cards, digests, the weekly review — and for chat about jobs. Its weak spot: when a case matches an open question, it sometimes adds a second question row instead of bumping the counter; the weekly review still shows both.
-- **Opus** for proposals. On Sonnet the text drifts from the guide: it retells the posting, adds experience the portfolio does not have, puts remarks before the package.
+- **Opus** for proposals and drafts — the hourly run starts the drafts subagent on Opus itself, and the "Upwork drafts" task is set to Opus. On Sonnet the text drifts from the guide: it retells the posting, adds experience the portfolio does not have, puts remarks before the package.
 
 ## Tests
 
@@ -128,11 +135,13 @@ upwork-pulse/
 └── skills/upwork-pulse/
     ├── SKILL.md                  loaded on every use: data model, guards, finding things, questions, modes
     ├── references/               loaded only for the mode in use
-    │   ├── setup.md              create / adopt / finish; dashboard; scheduled tasks
+    │   ├── setup.md              create / adopt / finish; dashboard; scheduled tasks; "update the pipeline"
     │   ├── hourly.md             queue, filter, cards, log, message
-    │   ├── digest.md             window, New only, message, "details N"
+    │   ├── digest.md             sync, then the window's New cards, message, "details N"
     │   ├── weekly.md             questions → rules
-    │   └── chat.md               postings, skip / applied, proposals, connects
+    │   ├── chat.md               postings, skip / applied, proposals, connects
+    │   ├── sync.md               sent proposals from Upwork into Proposals (digests, chat)
+    │   └── drafts.md             advice and ready-to-paste proposals for new cards
     └── assets/dashboard.html     the dashboard template
 ```
 
