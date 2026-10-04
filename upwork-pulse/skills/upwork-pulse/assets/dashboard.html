@@ -157,6 +157,10 @@
   .dr-actbar .lks a.primary { background: var(--accent); color: var(--surface); font-weight: 500; }
   .dr-actbar .lks a.primary .arr { color: inherit; opacity: .8; }
   .dr-actbar .lks a.primary:hover { background: var(--accent); color: var(--surface); filter: brightness(1.08); }
+  .dr-chat a { display: inline-flex; align-items: center; gap: 3px; padding: 4px 10px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 500; text-decoration: none; white-space: nowrap; }
+  .dr-chat a::before { content: "\2733"; font-size: .85em; margin-right: 2px; }
+  .dr-chat a .arr { color: inherit; opacity: .7; }
+  .dr-chat a:hover { filter: brightness(1.08); }
   .dr-actbar button.quiet { border-color: transparent; color: var(--text-mute); }
   .dr-actbar button.no.hint { border-color: color-mix(in srgb, var(--warn) 55%, var(--border)); color: var(--warn); }
   .dr-dec { margin: 12px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--text-2); max-width: 68ch; }
@@ -513,6 +517,7 @@
 <aside class="drawer" id="drawer" aria-label="Details" aria-hidden="true">
   <div class="dr-bar">
     <span class="ttl" id="drTitle"></span>
+    <span class="dr-chat" id="drChat"></span>
     <span class="kbd-hint">↑ ↓ to move</span>
     <button class="icon-btn" id="drPrev" type="button" aria-label="Previous" title="Previous (↑)"><svg viewBox="0 0 16 16"><path d="M3.5 10 8 5.5 12.5 10"/></svg></button>
     <button class="icon-btn" id="drNext" type="button" aria-label="Next" title="Next (↓)"><svg viewBox="0 0 16 16"><path d="M3.5 6 8 10.5 12.5 6"/></svg></button>
@@ -535,7 +540,7 @@
   var VIEW_APPLIED = "__VIEW_APPLIED__";
   var VIEW_SKIPPED = "__VIEW_SKIPPED__";
   var VIEW_PROPOSALS_OPEN = "__VIEW_PROPOSALS_OPEN__", VIEW_PROPOSALS_SENT = "__VIEW_PROPOSALS_SENT__";
-  var SCHEMA = 4; // the Notion structure this page reads (config `schema`)
+  var SCHEMA = 5; // the Notion structure this page reads (config `schema`)
   var STALL_MIN = 20; // a proposal still "Writing" after this many minutes: the task stopped without writing it
   var REMOTE = "Claude Code Remote"; // fire_trigger: the Rewrite button starts the drafts task
   var SKIP_DAYS = 2; // the Skipped tab shows this many days, then "Show 2 more days"
@@ -551,7 +556,7 @@
   var S = {
     verdict: "Take", leads: null, leadsErr: null, appliedNotion: {}, proposals: null, proposalsErr: null,
     dash: null, dashErr: null, connects: null, connectsErr: null, rooms: null, roomsErr: null,
-    milestones: {}, runs: null, lastUpdate: 0, balance: null, invites: null, balanceErr: null, ptab: "waiting", prooms: {},
+    milestones: {}, contractJobs: {}, runs: null, lastUpdate: 0, balance: null, invites: null, balanceErr: null, ptab: "waiting", prooms: {},
     questions: null, questionsErr: null,
     openProps: {}, sentByJob: {}, sentById: {}, writing: {}, // Proposals rows by Job ID / Proposal ID; writing: started here
     saved: {} // Job ID → the row as this page last saved it, kept over loads for a few minutes
@@ -651,6 +656,42 @@
   }
   function navLink(href, text) { // a link in the drawer's bar: the destination's name and an arrow
     var a = el("a", "", text); a.appendChild(el("span", "arr", " ↗")); a.href = href; a.target = "_blank"; a.rel = "noopener"; return a;
+  }
+  // ---------- the job's Claude chat: one Cowork chat per job, its link kept in the card's `Chat` ----------
+  // Desktop: the Claude app's own link (artifacts let claude:// out there). Phone: the web, since iOS keeps claude.ai links in the browser.
+  var MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "") || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent || ""));
+  function cardFor(jobId) {
+    if (!jobId) return null;
+    return (S.saved[jobId] && S.saved[jobId].row) || S.leadsById[jobId] || S.appliedNotion[jobId] || (S.skipped || []).filter(function (x) { return x["Job ID"] === jobId; })[0] || null;
+  }
+  function chatSid(card) { var m = card && /session_([A-Za-z0-9]+)/.exec(String(card.Chat || "")); return m ? m[1] : null; }
+  function chatLink(jobId, title, ctx) { // the bar's link to the job's chat: open it, or start it with the job named first (the app titles a chat from its first message)
+    ctx = ctx || {};
+    var card = cardFor(jobId), sid = chatSid(card), href, a;
+    if (sid) href = MOBILE ? "https://claude.ai/cowork/cse_" + sid : "claude://claude.ai/code/session_" + sid;
+    else { // what it is about and which ids to load; what to do next is the user's to say
+      var q = clean(title || (card && card.Title) || "Upwork") + " — Upwork Pulse";
+      if (jobId) q += ", job #" + String(jobId).slice(-6) + " (Job ID " + jobId + ")";
+      if (ctx.contract) q += ", contract " + ctx.contract;
+      if (!jobId && ctx.room) q += ", Upwork room " + ctx.room;
+      q += jobId ? ". Load everything about it: the job card, the proposal, the contract and the conversation on Upwork." : ". Load the conversation and everything about this client.";
+      href = MOBILE ? "https://claude.ai/new?mode=cowork&surface=cowork&q=" + encodeURIComponent(q) : "claude://cowork/new?q=" + encodeURIComponent(q);
+    }
+    a = navLink(href, "Claude chat");
+    a.classList.add("claude");
+    a.title = jobId ? "This job's chat with Claude — the same one from its lead, proposal, contract and conversation" : "A chat with Claude about this conversation";
+    return a;
+  }
+  function setChat(a) { var h = $("drChat"); clear(h); h.appendChild(a); } // the job's chat sits in the drawer's top bar, the same place in every drawer
+  function contractJob(id) { var c = S.contractJobs[id]; return c && c.job ? c.job : null; }
+  function loadContractJob(id) { // the contract's job id is only in the contract's details
+    if (!id || S.contractJobs[id]) return;
+    S.contractJobs[id] = { busy: true };
+    MCP.callTool(UPWORK, "upwork__list_contracts", { action: "get", org_uid: ORG, params: { contract_id: String(id) } }, { cache: { staleTime: 86400000, gcTime: 604800000 } }).then(function (res) {
+      var p = payloadOf(res) || {}, d = ((p.data || {}).contractDetails) || {};
+      S.contractJobs[id] = { job: d.job && d.job.id ? String(d.job.id) : null };
+      refreshDrawer();
+    }, function () { S.contractJobs[id] = { job: null }; refreshDrawer(); }); // no job found: the drawer still offers a chat, just not a kept one
   }
   function extLink(href, text, cls) { var a = el("a", cls || "", text); a.href = href; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", function (e) { e.stopPropagation(); }); return a; }
 
@@ -766,7 +807,7 @@
     h.appendChild(h1);
     body.appendChild(h);
     var inner = el("div", "dr-in"); body.appendChild(inner);
-    var bar = $("drActs"); clear(bar); bar.hidden = false;
+    var bar = $("drActs"); clear(bar); bar.hidden = false; clear($("drChat"));
     var lks = el("div", "lks"), btns = el("div", "btns"); bar.appendChild(lks); bar.appendChild(btns);
     return { head: h, bar: bar, acts: lks, btns: btns, inner: inner };
   }
@@ -1114,6 +1155,7 @@
       var ps = propState(r), pr = openProp(r) || S.sentByJob[r["Job ID"]];
       var sent = !!(pr && pr["Proposal ID"]), wpr = pr && !sent ? wallFromNotion(pr["date:Written:start"]) : null, spr = sent ? dcd : null; // sent: the card's Decided on is the send time
       var ready = r.Status === "New" && ps === "Ready" && !propBeforeSkip(r, pr);
+      setChat(chatLink(r["Job ID"], unesc(r.Title)));
       if (r.Link) { var ul = navLink(r.Link, "Upwork"); if (ready) { ul.classList.add("primary"); ul.title = "Open the job on Upwork and paste the proposal from below"; } x.acts.appendChild(ul); }
       if (r.url) x.acts.appendChild(navLink(r.url, "Notion job"));
       if (pr && pr.url) x.acts.appendChild(navLink(pr.url, "Notion proposal"));
@@ -1583,6 +1625,8 @@
       var room = roomByContract(c.id);
       var since = c.start_date ? new Date(c.start_date) : null;
       var x = drHead(body, ["Contract", clean(c.client), since ? "since " + MON[since.getUTCMonth()] + " " + since.getUTCDate() + ", " + since.getUTCFullYear() : "", turnChip(room)], clean(c.title));
+      loadContractJob(c.id);
+      if (!S.contractJobs[c.id].busy) setChat(chatLink(contractJob(c.id), clean(c.title), { contract: c.id }));
       var owe = needsMe(c);
       if (room && owe && owe.reply) { x.acts.appendChild(navLink(roomUrl(room.id), "Reply on Upwork")); x.acts.appendChild(navLink(workroom(c.id), "Workroom")); }
       else { x.acts.appendChild(navLink(workroom(c.id), "Workroom")); if (room) x.acts.appendChild(navLink(roomUrl(room.id), "Chat")); }
@@ -1809,8 +1853,10 @@
       var title = p ? p.title : clientOf(room) || clean(room.roomName) || "Chat";
       var t = roomAct(room);
       var x = drHead(body, [p ? "Proposal" : "Chat", clientOf(room) !== title ? clientOf(room) : "", turnChip(room), t ? "last message " + ago(Date.now() - t) + " ago" : ""], title, p && p.jobId);
+      if (p) setChat(chatLink(p.jobId, p.title));
+      else { if (room.contractId) loadContractJob(room.contractId); if (!room.contractId || !S.contractJobs[room.contractId].busy) setChat(chatLink(room.contractId ? contractJob(room.contractId) : null, title, { contract: room.contractId, room: room.id })); }
       x.acts.appendChild(navLink(roomUrl(room.id), myTurn(room) ? "Reply on Upwork" : "Chat"));
-      if (p) proposalLinks(x, p, nr, sr);
+      if (p) proposalLinks(x, p, nr, sr, true);
       messagesInto(dsec(x.inner, "Conversation", "latest first"), room);
       if (p) upworkProposalInto(x.inner, p, nr, sr);
     };
@@ -1964,7 +2010,8 @@
       if (!cl && !qa.length && !files.length) fs.appendChild(el("div", "dr-empty", "Upwork returned no text for this proposal."));
     }, function (err) { clear(fs); fs.appendChild(el("div", "err", errText(err, UPWORK))); });
   }
-  function proposalLinks(x, p, nr, sr) {
+  function proposalLinks(x, p, nr, sr, chatDone) {
+    if (!chatDone) setChat(chatLink(p.jobId, p.title));
     if (p.url) x.acts.appendChild(navLink(p.url, "Upwork job"));
     x.acts.appendChild(navLink("https://www.upwork.com/nx/proposals/" + encodeURIComponent(p.id), "Upwork proposal"));
     if (nr && nr.url) x.acts.appendChild(navLink(nr.url, "Notion job"));
