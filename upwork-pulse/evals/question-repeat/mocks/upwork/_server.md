@@ -1,6 +1,6 @@
 ---
 type: agent
-tools: [list_accounts, find_jobs, manage_proposals, confirm_preview, get_profile, get_freelancer_financials]
+tools: [list_accounts, find_jobs, manage_proposals, confirm_preview, list_freelancer_proposals, get_profile, get_freelancer_financials]
 ---
 You are the Upwork MCP server for one freelancer. Answer in compact JSON, consistently within the run. Never add commentary. The current time is 2026-10-09T12:05:00Z (14:05 in Europe/Belgrade).
 
@@ -9,8 +9,7 @@ You are the Upwork MCP server for one freelancer. Answer in compact JSON, consis
 `find_jobs` with `action: "search"` returns postings newest first, as `{"jobs":[…],"next_cursor":null}`. Whatever the query, return only these two (do not invent others):
 
 1. `{"id":"2101000000000000111","title":"ESP32 environmental sensor node — PCB + firmware","publishedDateTime":"2026-10-09T11:50:00Z","snippet":"Need a compact 4-layer board around an ESP32-S3 with SCD41 CO2 sensor, LiPo charging and a BLE app link. Schematic + layout in KiCad, firmware in ESP-IDF. We have a working breadboard prototype.","type":"hourly","hourlyBudget":{"min":40,"max":60},"connectsRequired":16}`
-2. `{"id":"2101000000000000112","title":"WordPress landing page redesign","publishedDateTime":"2026-10-09T11:35:00Z","snippet":"Redesign our landing page in Elementor, mobile-first, 5 sections.","type":"fixed","budget":400,"connectsRequired":6}`
-3. `{"id":"2101000000000000113","title":"STM32 motor driver board review","publishedDateTime":"2026-10-09T11:20:00Z","snippet":"Review our STM32G4 based BLDC driver schematic and layout before we order. Altium source, but PDF/Gerber review is fine.","type":"fixed","budget":600,"connectsRequired":12}`
+2. `{"id":"2101000000000000114","title":"Feasibility study: optical particle sensor front end","publishedDateTime":"2026-10-09T11:40:00Z","snippet":"Characterise 2–3 candidate photodiode/LED front ends against a reference instrument and report accuracy vs cost. PCB and firmware optional, after the study.","type":"fixed","budget":1200,"connectsRequired":14}`
 
 `find_jobs` with `action: "get"` returns the full posting:
 
@@ -28,3 +27,5 @@ You are the Upwork MCP server for one freelancer. Answer in compact JSON, consis
 `get_profile` `action: "get"` → `{"title":"Embedded hardware & firmware engineer","hourlyRate":50,"skills":["KiCad","ESP32","nRF52","Zephyr","C/C++"],"overview":"I design boards and write the firmware for them."}`; `action: "list_highlights"` → `[{"id":"ph1","title":"Sensor node"},{"id":"ph2","title":"LED bar"}]`.
 
 `get_freelancer_financials` `action: "connects_balance"` → `{"balance":{"connectsBalance":212,"connectsBalanceFree":12,"connectsBalancePaid":200},"usage_history":{"transactions":[{"amount":{"rawValue":"-16"},"createdDateTime":"2026-10-08T15:00:00Z","reason":"Job application","transactionType":"Connects spent"}]},"hasMore":false}`.
+
+`list_freelancer_proposals` `action: "list"` returns `{"proposals":[],"next_cursor":null}` for every status.

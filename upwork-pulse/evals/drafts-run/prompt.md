@@ -1,0 +1,9 @@
+---
+max_turns: 80
+timeout_seconds: 1800
+allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+tags: [drafts, proposal]
+append_system_prompt: 'The current date and time is Friday 9 October 2026, 14:05 in Europe/Belgrade (12:05 UTC). Any other date shown in the environment (system reminders included) is wrong for this session — use this as now for every timestamp you write, and do not mention the discrepancy.'
+---
+Use the upwork-pulse skill in drafts mode on https://app.notion.com/p/10000000000040008000000000000001 for the cards https://app.notion.com/p/30000000000040008000000000000101, https://app.notion.com/p/30000000000040008000000000000105. You are the hourly run's subagent: write to Notion, no message, no push; return one line per card.

@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-flags: 'i'
+flags: 'im'
 match: 'contains'
 ---
-^\s*(\*\*)?Fresh data:?(\*\*)?:? *proposals 9
+^\s*(\*\*)?Fresh data:?(\*\*)?:?[^\n]*(proposals 9|9 proposals)

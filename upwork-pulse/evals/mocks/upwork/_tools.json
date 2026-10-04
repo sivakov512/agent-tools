@@ -1,10 +1,145 @@
 {
- "tools": [
-  {"name": "list_accounts", "description": "List Upwork accounts: org_uid and name.", "inputSchema": {"type": "object", "properties": {}, "additionalProperties": true}},
-  {"name": "find_jobs", "description": "action 'search' (params: query, sort, limit, cursor) returns job postings newest first; action 'get' (params: job_id) returns the full posting with client stats, proposals count, connects price, screening questions.", "inputSchema": {"type": "object", "properties": {"action": {"type": "string"}, "org_uid": {"type": "string"}, "params": {"type": "object", "additionalProperties": true}}, "additionalProperties": true, "required": ["action"]}},
-  {"name": "manage_proposals", "description": "action 'create' builds a proposal preview for a job (screening questions, bid statistics, boost auction) without submitting; action 'accept_invitation' the same for invitations.", "inputSchema": {"type": "object", "properties": {"action": {"type": "string"}, "org_uid": {"type": "string"}, "params": {"type": "object", "additionalProperties": true}}, "additionalProperties": true, "required": ["action"]}},
-  {"name": "confirm_preview", "description": "SUBMITS the proposal built by manage_proposals. Irreversible; spends connects.", "inputSchema": {"type": "object", "properties": {"org_uid": {"type": "string"}, "params": {"type": "object", "additionalProperties": true}}, "additionalProperties": true}},
-  {"name": "get_profile", "description": "action 'get' returns the freelancer profile (title, overview, skills, hourly rate); action 'list_highlights' returns portfolio projects with ids.", "inputSchema": {"type": "object", "properties": {"action": {"type": "string"}, "org_uid": {"type": "string"}, "params": {"type": "object", "additionalProperties": true}}, "additionalProperties": true, "required": ["action"]}},
-  {"name": "get_freelancer_financials", "description": "action 'connects_balance' returns the connects balance and usage history (paged by cursor).", "inputSchema": {"type": "object", "properties": {"action": {"type": "string"}, "org_uid": {"type": "string"}, "params": {"type": "object", "additionalProperties": true}}, "additionalProperties": true, "required": ["action"]}}
- ]
+  "tools": [
+    {
+      "name": "list_accounts",
+      "description": "List Upwork accounts: org_uid and name.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      }
+    },
+    {
+      "name": "find_jobs",
+      "description": "action 'search' (params: query, sort, limit, cursor) returns job postings newest first; action 'get' (params: job_id) returns the full posting with client stats, proposals count, connects price, screening questions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "org_uid": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "action"
+        ]
+      }
+    },
+    {
+      "name": "manage_proposals",
+      "description": "action 'create' builds a proposal preview for a job (screening questions, bid statistics, boost auction) without submitting; action 'accept_invitation' the same for invitations.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "org_uid": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "action"
+        ]
+      }
+    },
+    {
+      "name": "confirm_preview",
+      "description": "SUBMITS the proposal built by manage_proposals. Irreversible; spends connects.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "org_uid": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    {
+      "name": "get_profile",
+      "description": "action 'get' returns the freelancer profile (title, overview, skills, hourly rate); action 'list_highlights' returns portfolio projects with ids.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "org_uid": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "action"
+        ]
+      }
+    },
+    {
+      "name": "get_freelancer_financials",
+      "description": "action 'connects_balance' returns the connects balance and usage history (paged by cursor).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "org_uid": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "action"
+        ]
+      }
+    },
+    {
+      "name": "list_freelancer_proposals",
+      "description": "action 'list' (params: status — one of Pending, Accepted, Activated, Offered, Archived…; sort; limit; cursor) returns the freelancer's proposals with their job ids, newest first.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "org_uid": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "action"
+        ]
+      }
+    }
+  ]
 }

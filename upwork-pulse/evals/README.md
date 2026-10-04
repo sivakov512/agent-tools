@@ -9,25 +9,26 @@ claude plugin eval . --tag routine   --model sonnet --judge-model sonnet --runs 
 claude plugin eval . --tag proposal  --model opus   --judge-model sonnet --runs 1 --ablation none --trust-plugin -j 2 --no-publish
 ```
 
-- Two groups because two models do the work: `routine` (everything but proposals) runs on Sonnet, what the scheduled tasks use; `proposal` runs on Opus, what proposals are written with. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
-- One case: `--case hourly-take` (one `--case` per run; `--case` and `--tag` together match nothing). By mode: `--tag hourly` (hourly, digest, weekly, chat, setup, negative).
-- 13 cases, roughly 15 minutes at `-j 2`.
+- Two groups because two models do the work: `routine` (everything but proposals and drafts) runs on Sonnet, what the scheduled tasks use; `proposal` (chat proposals and the drafts mode) runs on Opus, what proposals and drafts are written with. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
+- One case: `--case hourly-take` (one `--case` per run; `--case` and `--tag` together match nothing). By mode: `--tag hourly` (hourly, digest, weekly, chat, setup, drafts, negative).
+- 23 cases, roughly 15 minutes at `-j 3`.
 
 What is checked:
 
-- **Guards on every case** — no Notion SQL / rows queries; no Upwork submission (`confirm_preview`) ever; no `replace_content` on anything but the Run state page; the skill was loaded.
+- **Guards on every case** — no Notion SQL / rows queries; no Upwork submission (`confirm_preview`) ever; no `replace_content` on the root, the rules pages, Run state or a card (only a Proposals row may be rewritten whole); the skill was loaded.
 - **Per mode** — the exact Notion and Upwork calls (which database, which id, which property) via `tool_used` graders, plus an LLM judge over the final message for format and silence.
+- **Proposals and schema 3** — `drafts-run` (as the hourly run's subagent with auto skip on: one Apply written as a Proposals row: `State` Ready, `Rate` as a column, the body in the fixed sections with the guide's intro line, no `## Rate` section, no copied markdown escapes; one gone posting auto-skipped with a reason and no proposal; one older card picked up by the catch-up); `hourly-take` checks the card is written as columns (country, duration, rate range, hires) and none of the old text columns; the digests and `chat-sync` write what was sent as a new Proposals row (`State` Sent, `pr-7701`) and skip `pr-7690`, which is already there; `chat-proposal` writes the package to Proposals; `chat-skip` checks `Skipped by` manual with a reason; `chat-update-offer`, `hourly-old-schema` and `update-pipeline` run on a schema-1 workspace (the offer as a separate paragraph; a scheduled run that does nothing; then the update itself, in place: Proposals added, job columns added and filled from the old text columns — checked on two cards — the old columns dropped only after that, nothing copied, config and Run state updated). `drafts-rewrite-skip`: the dashboard's Rewrite on a card whose posting is gone, with auto skip on — Skip advice and `Advised on`, the card stays New, the old proposal goes back from Writing to Ready untouched, no preview, no catch-up. `chat-sync` also turns an open draft into the sent proposal instead of adding a second row.
 - `unrelated` — a question that has nothing to do with Upwork must not touch Notion.
 
 Layout:
 
 ```
 evals/
-├── mocks/notion/          the shared fake workspace: an existing pipeline with rules pages, four cards, one run, one open question
-├── mocks/upwork/          the shared fake Upwork: three fresh postings (a Take, a stage-1 reject, a Maybe) and the posting behind card #000101
+├── mocks/notion/          the shared fake workspace: an existing schema-3 pipeline (drafts and auto skip off) with rules pages, four cards, one sent proposal (for #000102), one run, one open question
+├── mocks/upwork/          the shared fake Upwork: three fresh postings (a Take, a stage-1 reject, a Maybe), the postings behind cards #000101 and #000104, and two own proposals (one for #000104, still New in Notion)
 ├── <case>/prompt.md       what the user or the scheduled task says; frontmatter: date/time, tools, runs
 ├── <case>/graders/*.md    checks
-└── <case>/mocks/…         case-specific fakes (Maybe-only feed; a feasibility-study posting; a rules page that fails to load; an empty workspace; a pipeline without a config)
+└── <case>/mocks/…         case-specific fakes (Maybe-only feed; a feasibility-study posting; a rules page that fails to load; an empty workspace; a pipeline without a config; a schema-1 pipeline; drafts and auto skip on with a fifth card whose posting is gone)
 ```
 
 ## Keeping the suite honest
@@ -42,7 +43,7 @@ Sonnet cannot reliably end a run with an empty reply, and when the reply is empt
 
 The agent, the mocks and the judge are all models; one run can fail for reasons unrelated to the skill. Read the trace first, re-run the case (`--case <name> --runs 3`), and change the skill only for failures that repeat or that would damage data — with a general rule and its reason, not a patch for the one example. The LLM judge itself misfires: `setup-adopt` and `chat-proposal` have failed on replies that meet every claim when re-judged by hand; check the reply against the rubric before touching the skill.
 
-Known unstable on Sonnet, one run in two or three: `question-repeat` (the case is decided without recording a question, or a second row instead of bumping `Seen`); `setup-adopt` (a `<root>` placeholder left in the hand-made task table); `setup-empty` (the watermark takes the machine date instead of the case's date). The LLM judge on `setup-adopt` and `chat-proposal` fails replies that pass every claim when re-judged by hand.
+Known unstable on Sonnet, one run in two or three: `question-repeat` (the case is decided without recording a question, or a second row instead of bumping `Seen`); `setup-adopt` (a `<root>` placeholder left in the hand-made task table); `setup-empty` (the watermark takes the machine date instead of the case's date; or, without a task tool, the reply says the tasks are missing but leaves out the table of prompts). The LLM judge on `setup-adopt` and `chat-proposal` fails replies that pass every claim when re-judged by hand.
 
 ## Pushes
 
