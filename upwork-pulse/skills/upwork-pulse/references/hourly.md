@@ -1,10 +1,10 @@
 # Hourly search
 
-One run: read the rules, take the queue of postings published since the watermark, filter and assess them, write cards and a run log, move the watermark, and send one message only if something is worth applying to fast.
+One run: read the rules, take the queue of postings published since the watermark, filter and assess them, write cards and a run log, move the watermark, hand the new cards to drafts mode when it is on, and send one message only if something is worth applying to fast.
 
 ## 1. Read first
 
-Fetch **Search rules** and **Field notes** (ids from the config). If Search rules cannot be fetched, or its content is not a search specification: do not improvise from memory — write a Runs row with `Status` empty and `Window` = `rules read failed`, send nothing, stop.
+Fetch **Search rules** (id from the config). **Field notes** and `jobs_all` are read only once the search (§3) returns postings inside the queue — an empty hour needs neither: it searches, writes its `empty` log row, moves the watermark and stops. If Search rules cannot be fetched, or its content is not a search specification: do not improvise from memory — write a Runs row with `Status` empty and `Window` = `rules read failed`, send nothing, stop.
 
 ## 2. The queue
 
@@ -14,7 +14,7 @@ Fetch **Run state**; find `PROCESSED_UNTIL: <ISO time>`.
 - No line, or unparseable → the last 70 minutes.
 - Longer than 24 h → only the last 24 h (older backlog is dropped; it shows only as the window in the log).
 
-Not longer than 2 h: process it whole, and at the very end — after every card, the log and the message — rewrite the line to now (`replace_content` on Run state, format `2026-09-20T14:00+02:00` in the config timezone).
+Not longer than 2 h: process it whole, and once every card and the log are written — before §8 and the message — rewrite the line to now — `update_content` on that line only (Run state also holds the proposals sync's line), format `2026-09-20T14:00+02:00` in the config timezone.
 
 Longer: work in 2-hour chunks, oldest first (search results arrive newest first — reverse them). After each chunk is fully written, rewrite the watermark to that chunk's end. Continue to now or to the budget — about 25 detailed job requests per run. At the budget: stop, log `partial`; the next run takes the rest. The watermark moves only after a fully written chunk; a run interrupted mid-chunk leaves it where it was.
 
@@ -30,13 +30,33 @@ Run each query from Search rules as its own `find_jobs` search (`action: search`
 
 The default flags mean the same for everyone (the rules decide how much each weighs on the verdict): `no client history` — the client has never hired; `partially hired` — some of the people sought are hired, not all; `timezone lock` — a hard requirement on presence or working hours; `mandatory calls` — regular calls required; `budget mismatch` — a fixed budget far below the scope; `full-time` — 30+ hours a week or 6+ months, effectively a hire; `unfamiliar tech` — a tool, platform or part the user has not worked with. The user's own flags are defined in the rules.
 
-A posting already handled by the previous run (in the overlap, present in Jobs by `Job ID`, or in the previous run's log — the first row of `runs_latest`): skip silently — not counted, not logged.
+**`get` says not found, closed or private** for a posting the search just listed: the posting is gone — count it as rejected ("gone") in the log and go on. It never holds the watermark back: a gone posting stays gone, and holding the watermark for it would retry the same window every hour. Only an error of the call itself (timeout, rate limit, server error) leaves the chunk unfinished.
 
-**A case the rules do not settle.** The test is mechanical: the posting's main deliverable is not on the rules' in-scope list and not on their reject lists (a study or report, consulting, a review with an optional build, a mixed role), or a flag would fit but is not listed, or two rules pull in different directions. "Probably out of scope" is not a rule — if you had to reason it out, it is a question. It still gets a verdict for this run, by the nearest analogy, with the usual reason in the log. And it gets recorded, before the run log is written: query `questions_open`; the same question already there → append this job id to `Job IDs`, `Seen` + 1; not there → a new row (SKILL.md → Questions and quirks). Skipping this step is how the same doubt gets re-decided differently every hour; recording it is what lets the weekly review turn it into a rule once.
+**Already seen** — checked once, before stage 2: a posting that has a card in `jobs_all` (any status; the view is newest `Found` first, so stop paging once `Found` is two days older than the queue start) → skip silently, not counted, not logged. (A posting the previous run rejected can come back in the 10-minute overlap; it is simply assessed again.)
+
+**A case the rules do not settle.** The test is mechanical: the posting's main deliverable is not on the rules' in-scope list and not on their reject lists (a study or report, consulting, a review with an optional build, a mixed role), or a flag would fit but is not listed, or two rules pull in different directions. "Probably out of scope" is not a rule — if you had to reason it out, it is a question. It still gets a verdict for this run, by the nearest analogy, with the usual reason in the log. And it gets recorded, before the run log is written: query `questions_open`; the same question already there → append this job id to `Job IDs`, `Seen` + 1; not there → a new row (SKILL.md → Questions and quirks).
 
 ## 5. Cards
 
-For each **Take** or **Maybe** — rejected postings get no card — check Jobs by `Job ID` in `jobs_all` (every status — `jobs_inbox` alone misses Skipped and Applied cards): an existing card is left as is, whatever its status. Otherwise `notion-create-pages` into `jobs` with the properties from SKILL.md; `Status` New; `Found` = the clock time when you write the card (not the chunk boundary, not the publish time); `Published` from the API; `Link` = `https://www.upwork.com/jobs/~02` + id; `Client time` = the API's `duration` string exactly as returned (`1 to 3 months`, `Less than 1 month`), nothing added or rephrased; `Client $` as the posting states it (`$1,500 fixed`, `$20–50/hr`, `rate not stated`); `Client` and `Competition` as one line each, skipping fields the API did not return (no dashes) and zero counts ("0 hired" is left out); `Score` = the sum of the points of every criterion in the rules' Ranking section that holds for this posting when the card is written, and `Score why` = those criteria in a few words each, in `language`, in one line (`6 hires · rating 4.9 · 3 proposals · budget mismatch −2`); no Ranking section → leave both empty. The score is not recomputed later, so criteria that go stale with time (the posting's age) are not the ranking's business — the dashboard handles age itself. `Run` is set after the chunk's run row is written (§7): update each card of the chunk with `update_properties`.
+Each **Take** or **Maybe** gets a card — rejected postings and the already-seen ones do not. The chunk's cards go in one `notion-create-pages` call into `jobs`, after the chunk's run row (§7) so `Run` is set right there: `Status` New, every column filled straight from the `get` response — one fact per column, copied, not summarised:
+
+| Column | From |
+|---|---|
+| `Title`, `Published` | the posting |
+| `Job ID`, `Link` | the id; `https://www.upwork.com/jobs/~02` + id |
+| `Found` | the clock time when you write the card (not the chunk boundary, not the publish time) |
+| `Payment` | Fixed / Hourly |
+| `Budget` | the fixed amount (fixed only) |
+| `Rate min`, `Rate max` | the hourly range (hourly only; one end stated → only that one) |
+| `Duration` | the API's duration, exactly one of `Less than 1 week`, `Less than 1 month`, `1 to 3 months`, `3 to 6 months`, `More than 6 months` |
+| `Connects` | the cost to apply |
+| `Proposals`, `Invites`, `Interviewing` | the counters |
+| `Bid low`, `Bid high` | the range of competitors' bids, as numbers |
+| `Country`, `Verified`, `Hires`, `Spent`, `Rating` | the client: country, payment verified, paid hires, total spent, the freelancers' rating of the client |
+| `Verdict`, `Complexity`, `My hours`, `My $`, `Flags` | your assessment by the rules (`My $`: hourly — the rate to ask; fixed — the total) |
+| `Score`, `Score why` | the sum of the points of every criterion in the rules' Ranking section that holds now, and those criteria in a few words each, in `language`, one line (`6 hires · rating 4.9 · 3 proposals · budget mismatch −2`); no Ranking section → both empty |
+
+Numbers are plain numbers in dollars (`1500`, not `$1,500`). A field the API did not return stays empty — no made-up 0, no dash, no "not stated"; a zero the API returns is 0. The score is not recomputed later, so criteria that go stale with time (the posting's age) are not the ranking's business — the dashboard handles age itself.
 
 The body: exactly these five sections in this order, nothing else — the headings in English as written (structure), the text under them in `language`; the run message and the dashboard quote them:
 
@@ -59,11 +79,17 @@ Any question from step 4 is written now (or bumped), and any new fact about the 
 
 ## 7. The run log
 
-Always, including empty runs: one row in `runs` per chunk, written when the chunk is done. `Run` = `DD.MM HH:MM` in the config timezone; `Status` ok (queue fully processed), empty (processed, nothing relevant), partial (stopped at the budget); the counters; `Window` = the range actually processed. Body — written in the `content` of the same `notion-create-pages` call that makes the row, never added later with `replace_content`: each stage-2 reject as *title* — link — one sentence — **reason from the reject list**. Stage-1 rejects only as the `Title pass` number, except a doubtful one or one whose title hints at the user's field — log it with the note "stage 1, doubt". Obvious foreign work caught at stage 1 (web, design, marketing, data entry) is never listed, not even as "reject on sight". Partial: add `Not processed: N postings, window HH:MM–HH:MM, next run takes them`.
+Always, including empty runs: one row in `runs` per chunk, written once the chunk is assessed, before its cards (§5). `Run` = `DD.MM HH:MM` in the config timezone; `Status` ok (queue fully processed), empty (processed, nothing relevant), partial (stopped at the budget); `Scanned` (postings in the queue), `Title pass` (left after stage 1), `Detailed` (`get` calls), `Take`, `Maybe`, `Budget hit` (stopped at the budget), `Tool calls` (this chunk's calls); `Window` = the range actually processed. Body — written in the `content` of the same `notion-create-pages` call that makes the row, never added later with `replace_content`: each stage-2 reject as *title* — link — one sentence — **reason from the reject list**. Stage-1 rejects only as the `Title pass` number, except a doubtful one or one whose title hints at the user's field — log it with the note "stage 1, doubt". Obvious foreign work caught at stage 1 (web, design, marketing, data entry) is never listed, not even as "reject on sight". Partial: add `Not processed: N postings, window HH:MM–HH:MM, next run takes them`.
 
-## 8. The message
+## 8. Drafts
 
-The message is the "respond fast" signal. Send it once per run and **only if this run wrote at least one Take card**. Maybe cards go into it too, but on their own they do not earn a message: Maybe only, or nothing written → send nothing at all — no push, no empty message, no "nothing found", no report. Finish silently. The user sees Maybe cards in the digest and on the dashboard. Questions never go into the message.
+After the log and the watermark, so a failure here never loses a card or a window. (Marking cards Applied is the proposals sync's job: `references/sync.md`.)
+
+Only with `auto_drafts: on`, and only when this run wrote at least one card or the `jobs_all` rows it read show a New card found in the last 24 hours without `Advice` (one an earlier subagent left). Start a subagent with the Agent tool, `model: "opus"`, and this task: "Use the upwork-pulse skill in drafts mode on <root URL> for the cards <card URLs written by this run, if any>. You are the hourly run's subagent: write to Notion, no message, no push; return one line per card." Wait for it. Its lines tell you which cards got Apply and which were auto-skipped. If the Agent tool is missing or the subagent fails, leave the cards as they are and go on: drafts mode also picks up New cards left without advice by an earlier run.
+
+## 9. The message
+
+The message is the "respond fast" signal. A card from this run is **news** when it is still New and is either a Take or has Apply advice (its proposal is ready to paste); a card auto-skipped by drafts mode is not. Send the message once per run and only if at least one card is news; other Maybe cards go into it too, but never earn one on their own. No news → send nothing at all — no push, no empty message, no "nothing found", no report. Finish silently. The user sees Maybe cards in the digest and on the dashboard. Questions never go into the message.
 
 Format, in `language` (labels translated, structure kept), only these blocks, nothing before or after:
 
@@ -74,10 +100,10 @@ Checked N · take M · maybe K · connects L
 ## Take
 ### 1. #<short id> <title as posted>
 
-**<Client $>** · <Client time> · <N> connects · [Upwork →](<link>) · [Notion →](<card url>)
+**<client's price>** · <Duration> · <Connects> connects · [Upwork →](<link>) · [Notion →](<card url>)
 
-Client: <Client line>
-Competition: <Proposals> proposals, <Competition line>
+Client: <Country> · verified · <Hires> hires · $<Spent> spent · rating <Rating>
+Competition: <Proposals> proposals · <Invites> invited · <Interviewing> interviewing · bids $<Bid low>–<Bid high>
 
 <the What's needed paragraph, no heading>
 
@@ -91,6 +117,8 @@ To clarify:
 
 Estimate **<My hours> h** · ask **<My $>** — <the Estimate sentence>
 
+Advice **<apply|skip>** — <the reason from the subagent's line> · proposal ready   ← only when drafts ran
+
 ---
 ### 2. …
 
@@ -98,10 +126,10 @@ Estimate **<My hours> h** · ask **<My $>** — <the Estimate sentence>
 …
 ```
 
-`<short id>` is the last six digits of `Job ID`, as on the dashboard, so the user can refer to an item by its number in this message or by its id. Numbering runs across both sections; an empty section is left out; a horizontal rule between cards; `Client:` and `Competition:` labels not bold. `connects L` in the header is the sum over the listed cards.
+`<client's price>` is made from the columns: `$<Budget> fixed`, `$<Rate min>–<Rate max>/hr`, or `rate not stated`; money is written as money (`$8,400`). In the Client and Competition lines leave out a part whose column is empty or zero, and "verified" when it is not. `<short id>` is the last six digits of `Job ID`, as on the dashboard, so the user can refer to an item by its number in this message or by its id. Numbering runs across both sections; an empty section is left out; a horizontal rule between cards; `Client:` and `Competition:` labels not bold. `connects L` in the header is the sum over the listed cards.
 
 Forbidden in the message: describing your own actions, anything outside the format, draft proposal text.
 
-**Push line** (SKILL.md → automatic mode), in `language`, plain text: `Upwork: <M> take[, <K> maybe] · #<short id> <title> · <Client $>` for the first Take card, with ` +<n>` after the title when there are more Take cards; cut the title so the line stays under 200 characters.
+**Push line** (SKILL.md → automatic mode), in `language`, plain text: `Upwork: <M> take[, <K> maybe] · #<short id> <title> · <client's price>` for the first news card (the client's price as above), with ` +<n>` after the title when there are more news cards; cut the title so the line stays under 200 characters.
 
-Last steps, in this order, once all writes are done: load `PushNotification` and push the line; then the final reply — the message alone. No Take card → neither: no push, empty reply.
+Last steps, in this order, once all writes are done: load `PushNotification` and push the line (no such tool → skip it without a word); then the final reply — the message alone, its first characters `# Run`. No news → neither: no push, empty reply.
