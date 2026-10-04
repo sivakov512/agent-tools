@@ -16,6 +16,7 @@ Its own watermark, like the hourly search's: the line `PROPOSALS_SYNCED_UNTIL: <
 
 Only when at least one proposal is left, read `proposals_sent`, `proposals_open` and `jobs_all` once each. Per proposal, in this order:
 
+- **An old conversion**: a row in `proposals_sent` with this `Job ID` and `Proposal ID` `unknown` is this proposal's row — write the real `Proposal ID` to it and treat it as the draft row below (card, columns, body).
 - **Already in place**: a row in `proposals_sent` with this `Proposal ID` → skip it. Chat writes it when it sends, and the overlap brings a few back.
 - **Read it**: `list_freelancer_proposals` `get` — the text, answers and files as stored, the terms (the price) and the boost.
 - **The card first**: the one in `jobs_all` with this `Job ID` → `Status` Applied, `Decided on` = the proposal's created time, `My $` = the price sent (hourly: the charge rate; fixed: the total) — the price sent is the price (SKILL.md → *One fact, one place*); a card that was Skipped also gets `Skipped by` and `Skip reason` cleared. No card (applied to outside the pipeline) → `find_jobs` `get` and create one with the columns of `references/hourly.md` §5, `Status` Applied, `Decided on` and `My $` as above, no verdict, score, advice or body; the job is gone (`get` says not found or private) → only `Title`, `Job ID`, `Link`, `Found` now, `My $`, `Status` Applied, `Decided on`. Every proposal gets a card: the money and the dates live there.
