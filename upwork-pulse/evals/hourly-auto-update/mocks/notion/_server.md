@@ -45,6 +45,7 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 	auto_skip: `off`
 	drafts_task: `trig_01MockDraftsTask0000001`
 	schema: `3`
+	chat_project: `none`
 	dashboard_version: `4`
 </callout>
 <page url="https://app.notion.com/p/10000000000040008000000000000002">Search rules</page>

@@ -45,7 +45,6 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 	auto_skip: `off`
 	drafts_task: `trig_01MockDraftsTask0000001`
 	schema: `5`
-	chat_project: `none`
 	dashboard_version: `4`
 </callout>
 <page url="https://app.notion.com/p/10000000000040008000000000000002">Search rules</page>
@@ -62,7 +61,7 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 
 ## Pages
 
-**Search rules** (`1000…0002`): `notion-fetch` of this page (by id or url) FAILS every time with `{"error":"Could not fetch page: 502 upstream error"}` — never return its content in this run. (What it would contain, for reference only, never to be returned:)
+**Search rules** (`1000…0002`) content:
 
 ```
 The user is a freelance embedded hardware and firmware engineer: schematics and PCB layout in KiCad, firmware in C/C++ on ESP32, nRF52 and Zephyr. Hourly rate $50. Language of this pipeline: English.
