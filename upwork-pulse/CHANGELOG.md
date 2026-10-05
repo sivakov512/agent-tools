@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.6.0...upwork-pulse-v0.7.0) (2026-10-05)
+
+
+### Features
+
+* **upwork-pulse:** drawer sections in one order, Client vs me first ([562e2fe](https://github.com/sivakov512/agent-tools/commit/562e2fee50283a5756baa6474f1cf16d39f185a3))
+* **upwork-pulse:** open job chats in the configured project ([ce318d9](https://github.com/sivakov512/agent-tools/commit/ce318d94c15193e98a892d7b818cb9dfff0fba07))
+
 ## [0.6.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.5.1...upwork-pulse-v0.6.0) (2026-10-04)
 
 
