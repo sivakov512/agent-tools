@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.8.1...upwork-pulse-v0.8.2) (2026-10-05)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** dashboard update reads the whole live page instead of deferring ([edfd84b](https://github.com/sivakov512/agent-tools/commit/edfd84be82c636b89a2436168b1b8f08cef2f6e6))
+
 ## [0.8.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.8.0...upwork-pulse-v0.8.1) (2026-10-05)
 
 
