@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.8.2...upwork-pulse-v0.9.0) (2026-10-05)
+
+
+### Features
+
+* **upwork-pulse:** compact drawer actions, versions in settings ([c72b8cb](https://github.com/sivakov512/agent-tools/commit/c72b8cb30e9ff36a23730ef861d9889e5e990130))
+
 ## [0.8.2](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.8.1...upwork-pulse-v0.8.2) (2026-10-05)
 
 
