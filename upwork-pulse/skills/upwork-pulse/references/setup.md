@@ -25,7 +25,7 @@ The rules pages are written from the user's profile. Gather it before writing an
 9. **Upwork org_uid** — from `list_accounts`.
 10. **Models for the scheduled runs** — Sonnet for search, digests and the weekly review, Opus for the drafts task, unless the user says otherwise (only when tasks are created here).
 11. **When the digests and the weekly review come** — two digest times and a weekly slot, to the minute; 11:00, 22:00 and Sunday 20:00 unless the user says otherwise.
-12. **Drafts** — whether Opus should write advice and a ready proposal for each new card (`auto_drafts`), and whether a Skip advice should also skip the card (`auto_skip`). Both off unless the user says so; the dashboard has a switch for each.
+12. **Drafts** — whether Opus should write advice and a ready proposal for each new card (`auto_drafts`), and whether the hourly run should skip every card Claude advises to skip, except locked ones (`auto_skip`). Both off unless the user says so; the dashboard has a switch for each.
 
 Anything the user does not know yet is left as a marked placeholder (`_to fill_`) in the page, not invented.
 
@@ -75,6 +75,7 @@ CREATE TABLE ("Title" TITLE, "Job ID" RICH_TEXT COMMENT 'Numeric Upwork id; the 
   "Status" SELECT('New':blue, 'Applied':green, 'Skipped':gray),
   "Decided on" DATE COMMENT 'When Status last became Applied or Skipped',
   "Skipped by" SELECT('manual':default, 'auto':purple), "Skip reason" RICH_TEXT,
+  "Locked" CHECKBOX COMMENT 'Auto skip leaves this card; the user decides',
   "Chat" URL COMMENT 'Cowork chat with Claude for this job')
 
 -- Proposals (adds "Proposal" to Jobs as the other side of the relation); the text only — price, time and dates are the card's
@@ -97,7 +98,7 @@ Add the user's own flags from the profile to `Flags` (`ALTER COLUMN "Flags" SET 
 Views live on the databases (fetch each database for its default view; rename it and add the rest with `notion-create-view` / `notion-update-view`). Filters list the statuses to show, so a status added later never leaks in.
 
 ```
-Jobs       Inbox     (default)  FILTER "Status" = "New";   SORT BY "Found" DESC; SHOW "Title", "Verdict", "Score", "Advice", "Payment", "Budget", "Rate max", "My $", "My hours", "Complexity", "Proposals", "Connects", "Found"
+Jobs       Inbox     (default)  FILTER "Status" = "New";   SORT BY "Found" DESC; SHOW "Title", "Verdict", "Score", "Advice", "Locked", "Payment", "Budget", "Rate max", "My $", "My hours", "Complexity", "Proposals", "Connects", "Found"
            Applied   table      FILTER "Status" = "Applied"; SORT BY "Decided on" DESC; SHOW "Title", "Verdict", "My $", "Proposal", "Decided on"
            Skipped   table      FILTER "Status" = "Skipped"; SORT BY "Decided on" DESC; SHOW "Title", "Verdict", "Skipped by", "Skip reason", "Decided on"
            All       table      SORT BY "Found" DESC
@@ -144,7 +145,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 	auto_drafts: `off`
 	auto_skip: `off`
 	drafts_task: `<trigger id of the Upwork drafts task>`
-	schema: `5`
+	schema: `6`
 </details>
 ```
 
@@ -159,10 +160,10 @@ What is on it, 1180px wide, one screen on a laptop:
 - **Header**: name, three pills — `replies` · `overdue` · `invitations` — always shown, coloured only when not zero, a click scrolls to Your move; `Live · updated hh:mm`, Refresh, **Settings** (a popover with the `auto_drafts` / `auto_skip` switches, written to the config, and the `chat_project` the job chats open in, shown read-only — it is changed in chat).
 - **Leads** (left): `New` cards from `Inbox` minus jobs already applied to, Take / Maybe / Skipped tabs (Skipped: the last 2 days, more on request, Auto / Manual on the right), an "Only ready" switch, a "Proposal ready" / "Writing…" mark on the right of a row from the job's row in Proposals `Open`, grouped by day, posting time on the right, the client's numbers against the user's estimate in a Client / Me grid, flags on each side; a green mark for a score at or above `match_score`. Every value is a column shown as stored — the page never parses text.
 - **Connects** and **Balance** tiles (right, top).
-- **Your move**: everything that waits on the user, each thing once — contracts that need a reply or have an overdue milestone (the whole contract card), other chats where the next message is the user's, invitations and offers. Each chat and contract carries Claude's summary of the thread and the next step (`Your move: …`), made with `sample` from the last 12 messages and redone when a new message arrives; a chat's or contract's drawer opens with the same summary, the thread folded below it. An invitation shows its job card's advice (the hourly run gives every pending invitation a card) and opens that card's lead drawer — Write a proposal, Skip, Claude chat; until the card exists it says the next hourly run assesses it.
-- **Contracts**: the active contracts that need nothing now — summary, milestone strip, the current milestone.
+- **Your move**: everything that waits on the user, each thing once — contracts that need a reply or have an overdue milestone (a short row: what it needs — the overdue milestone named — and the summary; the card itself stays under Contracts), other chats where the next message is the user's, invitations and offers. Each chat and contract carries Claude's summary of the thread and the next step (`Your move: …`), made with `sample` from the last 12 messages and redone when a new message arrives; a chat's or contract's drawer opens with the same summary, the thread folded below it. An invitation shows its job card's advice (the hourly run gives every pending invitation a card) and opens that card's lead drawer — Write a proposal, Skip, Claude chat; until the card exists it says the next hourly run assesses it.
+- **Contracts**: every active contract, always — summary, milestone strip, the current milestone; one that needs the user has a red bar and is in Your move too.
 - **Proposals**: Sent / In talks / Closed, live from Upwork; In talks lists every proposal chat, newest message first, each marked whose turn it is (the user's-turn ones are in Your move too). A proposal's drawer shows its job (the Jobs card: Client vs me, About the job) and **What you sent** — the row in Proposals `Sent`, or, until the next digest syncs it, the proposal as Upwork returns it (same blocks, no milestones, marked as from Upwork) — with links to both in Notion.
-- **Rows**: the title opens the item on Upwork (the job, the thread for a reply, the workroom, the invitation); the rest of the row opens the **drawer** from the right — the lead's advice line, Client vs me, About the job and then the proposal from Proposals with a copy icon on every value, with Mark applied / Skip (a reason if you want one) / Write a proposal or Rewrite / Restore in a sticky bar, a contract's summary, milestones and conversation, a proposal's chat and terms — with the main Upwork action as a button, foldable sections and ↑ / ↓ through the list. Every drawer lists its sections in one order — Client vs me (first and always open, when the job has a card), About the job, the proposal or What you sent, Milestones, Conversation, Facts — and starts folded what matters less for its kind: About the job once the user has applied (an applied lead, a proposal, a contract, a conversation), What you sent in a proposal that is being discussed, the Conversation under its summary, Facts always. Mark applied / Skip / Restore write `Status`, `Decided on` and the skip fields to the card, the switches write the config, Rewrite sets the proposal's `State` to Writing and starts the drafts task; nothing else writes.
+- **Rows**: the title opens the item on Upwork (the job, the thread for a reply, the workroom, the invitation); the rest of the row opens the **drawer** from the right — the lead's advice line, Client vs me, About the job and then the proposal from Proposals with a copy icon on every value, with Mark applied / Skip (a reason if you want one) / Write a proposal or Rewrite / Restore in a sticky bar, a contract's summary, milestones and conversation, a proposal's chat and terms — with the main Upwork action as a button, foldable sections and ↑ / ↓ through the list. Every drawer lists its sections in one order — Client vs me (first and always open, when the job has a card), About the job, the proposal or What you sent, Milestones, Conversation, Facts — and starts folded what matters less for its kind: About the job once the user has applied (an applied lead, a proposal, a contract, a conversation), What you sent in a proposal that is being discussed, the Conversation under its summary, Facts always. A New lead has Lock / Unlock in the bar, and a locked one shows `Locked` on its row and in the drawer's header; Write a proposal and Rewrite check `Locked` on the card before starting the task (SKILL.md → *Locked*). Mark applied / Skip / Restore write `Status`, `Decided on` and the skip fields to the card, Lock / Unlock writes `Locked`, the switches write the config, Rewrite sets the proposal's `State` to Writing and starts the drafts task; nothing else writes.
 - **Claude chat**, in the drawer's top bar for a lead, a proposal, a contract or a conversation: the job's one Cowork chat. The link is the card's `Chat` — on a phone `https://claude.ai/cowork/cse_<id>`, elsewhere `claude://claude.ai/code/session_<id>` (artifacts let `claude://` out in the desktop app; iOS keeps claude.ai links in the browser). No `Chat` yet → a new Cowork with the job named first and its ids — `claude://cowork/new?q=…`, on a phone `https://claude.ai/new?mode=cowork&surface=cowork&project=<id>&q=…` with the project from `chat_project` (none → no `project`) — and that chat writes its own link to the card (`references/chat.md` → *A job's chat*). A contract finds its job through `list_contracts` `get` (`job.id`), its conversation through the contract; a conversation with no proposal or contract gets a chat that is not kept.
 - Same look as the project-tracker dashboard (tokens, pills, rows, drawer); change the shared parts in both together.
 
@@ -264,3 +265,11 @@ Each job gets one Cowork chat with Claude, opened from the dashboard's Claude ch
 
 1. **Jobs**: `ADD COLUMN "Chat" URL COMMENT 'Cowork chat with Claude for this job'` when missing. The `invited` flag needs no step: Notion adds the option the first time a card gets it.
 2. **Report** in `language`: the dashboard's Claude chat link — the first chat opened from a job is kept on its card and every later click on that job opens the same one; invitations now get a card and advice like found jobs.
+
+### To 6 (from 5)
+
+Auto skip covers every Skip advice, not only the one just written, and `Locked` keeps it away from the cards the user asked about and from invitations (SKILL.md → *Locked*). Lock what the user already asked about before `schema` is written: from then on the hourly run skips every unlocked card advised Skip.
+
+1. **Jobs**: `ADD COLUMN "Locked" CHECKBOX COMMENT 'Auto skip leaves this card; the user decides'` when missing; the Inbox view shows it (§5).
+2. **Lock** — read `jobs_inbox` (New cards) and `proposals_open`. `Locked` checked (one `update_properties` per card, several per turn) on every New card that has the `invited` flag, or has `Advice` Skip and a row in Proposals (its `Proposal` relation, or a row with its `Job ID`): the hourly run never writes a proposal row for a Skip, so that row comes from the user's own request — the dashboard's button or a chat. Cards already locked are left alone.
+3. **Report** in `language`: what `Locked` does and where it is set (the dashboard's Write a proposal / Rewrite, chat requests, invitations, Lock / Unlock in the drawer); the cards locked now, by short id; and, when `auto_skip` is on, how many New cards are advised Skip and unlocked — the next hourly run skips them.
