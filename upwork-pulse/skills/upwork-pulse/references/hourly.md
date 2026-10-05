@@ -1,10 +1,10 @@
 # Hourly search
 
-One run: read the rules, take the queue of postings published since the watermark, filter and assess them, write cards and a run log, move the watermark, hand the new cards to drafts mode when it is on, and send one message only if something is worth applying to fast.
+One run: read the rules, take the queue of postings published since the watermark, filter and assess them, write cards and a run log, move the watermark, hand the new cards to drafts mode when it is on, and end with a short report of what it did — pushed to the phone only when there is something to apply to fast.
 
 ## 1. Read first
 
-Fetch **Search rules** (id from the config). **Field notes** and `jobs_all` are read only once the search (§3) returns postings inside the queue or there is a pending invitation — an empty hour needs neither: it searches, writes its `empty` log row, moves the watermark and goes to the dashboard check (end of §8). If Search rules cannot be fetched, or its content is not a search specification: do not improvise from memory — write a Runs row with `Status` empty and `Window` = `rules read failed`, send nothing, stop.
+Fetch **Search rules** (id from the config). **Field notes** and `jobs_all` are read only once the search (§3) returns postings inside the queue or there is a pending invitation — an empty hour needs neither: it searches, writes its `empty` log row, moves the watermark and goes to the version check (end of §8). If Search rules cannot be fetched, or its content is not a search specification: do not improvise from memory — write a Runs row with `Status` empty and `Window` = `rules read failed`, send nothing, stop.
 
 ## 2. The queue
 
@@ -14,7 +14,7 @@ Fetch **Run state**; find `PROCESSED_UNTIL: <ISO time>`.
 - No line, or unparseable → the last 70 minutes.
 - Longer than 24 h → only the last 24 h (older backlog is dropped; it shows only as the window in the log).
 
-Not longer than 2 h: process it whole, and once every card and the log are written — before §8 and the message — rewrite the line to now — `update_content` on that line only (Run state also holds the proposals sync's line), format `2026-09-20T14:00+02:00` in the config timezone.
+Not longer than 2 h: process it whole, and once every card and the log are written — before §8 and the report — rewrite the line to now — `update_content` on that line only (Run state also holds the proposals sync's line), format `2026-09-20T14:00+02:00` in the config timezone.
 
 Longer: work in 2-hour chunks, oldest first (search results arrive newest first — reverse them). After each chunk is fully written, rewrite the watermark to that chunk's end. Continue to now or to the budget — about 25 detailed job requests per run. At the budget: stop, log `partial`; the next run takes the rest. The watermark moves only after a fully written chunk; a run interrupted mid-chunk leaves it where it was.
 
@@ -27,7 +27,7 @@ Run each query from Search rules as its own `find_jobs` search (`action: search`
 - No card → `find_jobs` `get` and stage 2 (§4), but it always gets a card: the user decides on an invitation, not the filter. A posting the rules would reject becomes Maybe, with the reject reason as the first line under Risks. Its flags include `invited`, and `Locked` is checked. It joins this run's cards: written with them (§5), counted in the log (§7), handed to drafts (§8), and it is news (§9).
 - `get` says gone → no card; the invitation is the client's to withdraw.
 
-No pending invitations → nothing about them anywhere, the message included.
+No pending invitations → nothing about them anywhere, the report's Log included.
 
 ## 4. Two-stage filter
 
@@ -61,11 +61,14 @@ Each **Take** or **Maybe** gets a card — rejected postings and the already-see
 | `Bid low`, `Bid high` | the range of competitors' bids, as numbers |
 | `Country`, `Verified`, `Hires`, `Spent`, `Rating` | the client: country, payment verified, paid hires, total spent, the freelancers' rating of the client |
 | `Verdict`, `Complexity`, `My hours`, `My $`, `Flags` | your assessment by the rules (`My $`: hourly — the rate to ask; fixed — the total) |
+| `Estimate` | the hours by part of the work, as below; its lines add up to `My hours` |
 | `Score`, `Score why` | the sum of the points of every criterion in the rules' Ranking section that holds now, and those criteria in a few words each, in `language`, one line (`6 hires · rating 4.9 · 3 proposals · budget mismatch −2`); no Ranking section → both empty |
 
 Numbers are plain numbers in dollars (`1500`, not `$1,500`). A field the API did not return stays empty — no made-up 0, no dash, no "not stated"; a zero the API returns is 0. The score is not recomputed later, so criteria that go stale with time (the posting's age) are not the ranking's business — the dashboard handles age itself.
 
-The body: exactly these five sections in this order, nothing else — the headings in English as written (structure), the text under them in `language`; the run message and the dashboard quote them:
+**`Estimate`** is the estimate itself: one line per part of the work, `<part> — <hours> h` (the part in `language`, short and concrete — "Schematic and layout study against the spec — 3 h", "Ripple and fuse calculations for the 4 channels — 3 h", "Report with severities and annotated images — 5 h"), 3–7 lines, whole or half hours. The lines add up to `My hours` exactly. Work the client asks to be priced apart (a recheck, an option, a later phase) goes last as `+ <part> — <hours> h` and is not in the sum. No money and no total line: the price is `My $`, the total is `My hours`, and the dashboard and the message print both next to it. A line break between lines (a real newline in the text value).
+
+The body: exactly these four sections in this order, nothing else — the headings in English as written (structure), the text under them in `language`; the run report and the dashboard quote them:
 
 ```
 ## What's needed
@@ -76,13 +79,13 @@ One sentence why this level (the level itself is the Complexity property).
 - bullets
 ## To clarify
 - only questions whose answer changes the estimate
-## Estimate
-One sentence: why these hours and this price (numbers live in My hours / My $).
 ```
+
+The estimate is the `Estimate` column, not a body section: hours, price and their breakdown change together, in one `update_properties`, so they never disagree. (Cards made before schema 7 have a fifth section, `## Estimate`, and an empty column; leave them as they are.)
 
 ## 6. Questions and quirks
 
-Any question from step 4 is written now (or bumped), and any new fact about the API or tools met during the run goes as one line to Field notes. Neither appears in the message.
+Any question from step 4 is written now (or bumped), and any new fact about the API or tools met during the run goes as one line to Field notes. Questions never appear in the report; a tool problem appears as one `Problems` line (§9) and, when it is a quirk of the environment, also in Field notes.
 
 ## 7. The run log
 
@@ -96,11 +99,11 @@ Only with `auto_drafts: on`, and only when this run wrote at least one card or `
 
 **Auto skip**, with `auto_skip: on` and `auto_drafts: on`, after the drafts step (whether or not a subagent ran): read `jobs_inbox` (fresh — the subagent may have just written advice). Every New card with `Advice` Skip and `Locked` unchecked gets one `update_properties`: `Status` Skipped, `Skipped by` auto, `Skip reason` = its `Advice why` (one line), `Decided on` = now. Whenever that advice was written — by this run, an earlier one, before auto skip was switched on — it counts: the switch means "skip what Claude advises to skip". A `Locked` card stays New whatever its advice (SKILL.md → *Locked*). Cards skipped here are not news (§9).
 
-**Dashboard check**, every run, last before the message: first, when the config's `skill_version` is not N (the first line of `assets/dashboard.html`), write `skill_version: N` (add the line if missing) — the dashboard shows which skill the runs use. Then: a `dashboard` line in the config, its `dashboard_version` below N on the first line of `assets/dashboard.html`, and an Artifact tool in this session → republish the dashboard as SKILL.md → *Dashboard updates* says, in this run — reading the whole live page first is part of it (`references/setup.md` → 7, step 2), not a reason to skip. It adds nothing to the message; only a publish that fails is left for the next run.
+**Version check**, every run, last before the report: first, when the config's `skill_version` is not N (the first line of `assets/dashboard.html`), write `skill_version: N` (add the line if missing) — the dashboard shows which skill the runs use; remember the old value for the report's `Update` line. Then: a `dashboard` line in the config, its `dashboard_version` below N, and an Artifact tool in this session → republish the dashboard as SKILL.md → *Dashboard updates* says, in this run — reading the whole live page first is part of it (`references/setup.md` → 7, step 2), not a reason to skip. Only a publish that fails is left for the next run; it goes in the report as a `Problems` line.
 
-## 9. The message
+## 9. The report
 
-The message is the "respond fast" signal. A card from this run is **news** when it is still New and is either a Take, has Apply advice (its proposal is ready to paste) or comes from an invitation (its title line ends with ` · invited`); a card auto skip set Skipped (§8) is not. Send the message once per run and only if at least one card is news; other Maybe cards go into it too, but never earn one on their own. No news → send nothing at all — no push, no empty message, no "nothing found", no report. Finish silently. The user sees Maybe cards in the digest and on the dashboard. Questions never go into the message.
+Every run ends with a report in the task's chat: what was found, then what the run did. The **push** is the "respond fast" signal and goes only when the run has **news**: a card from this run that is still New and is a Take, or comes from an invitation (its title line ends with ` · invited`). Maybe cards, Apply advice on a Maybe, auto skips, updates and problems are in the report and never earn a push on their own.
 
 Format, in `language` (labels translated, structure kept), only these blocks, nothing before or after:
 
@@ -126,7 +129,8 @@ Risks:
 To clarify:
 - …
 
-Estimate **<My hours> h** · ask **<My $>** — <the Estimate sentence>
+Estimate **<My hours> h** · ask **<My $>**
+- <each line of the Estimate column, as written>
 
 Advice **<apply|skip>** — <the reason from the subagent's line> · proposal ready   ← only when drafts ran
 
@@ -135,12 +139,22 @@ Advice **<apply|skip>** — <the reason from the subagent's line> · proposal re
 
 ## Maybe
 …
+
+## Log
+- Search: <N> in the window → <cards written> cards[, <gone> gone]
+- Invitations: <n> pending, <new> new card(s): #<short id>, …
+- Drafts: <n> advised — apply #<short id>, …; skip #<short id>, …
+- Auto skip: #<short id> <title, cut to 40 characters>, …
+- Update: skill <old> → <N> · dashboard <old> → <N>   ← no old skill_version: `skill <N>`
+- Problems: <one line per problem: where, what failed, what is left undone>
 ```
 
 `<client's price>` is made from the columns: `$<Budget> fixed`, `$<Rate min>–<Rate max>/hr`, or `rate not stated`; money is written as money (`$8,400`). In the Client and Competition lines leave out a part whose column is empty or zero, and "verified" when it is not. `<short id>` is the last six digits of `Job ID`, as on the dashboard, so the user can refer to an item by its number in this message or by its id. Numbering runs across both sections; an empty section is left out; a horizontal rule between cards; `Client:` and `Competition:` labels not bold. `connects L` in the header is the sum over the listed cards.
 
-Forbidden in the message: describing your own actions, anything outside the format, draft proposal text.
+**The Log** is the only place for what the run did, one line per process and only for what happened: `Search` always; `Invitations` only when there are pending ones; `Drafts` only when the subagent ran (its lines); `Auto skip` only when it skipped something; `Update` only when `skill_version` changed or the dashboard was republished (just the parts that happened); `Problems` only when a call failed or was blocked — the card or step, the error in a few words, and what stays undone for the next run. What this session cannot do by design is not a problem and is not mentioned: no Artifact tool for the dashboard, no push tool, no Agent tool for drafts. An hour with no cards is the header, the counts line and the Log alone.
+
+Forbidden in the report: narration outside the Log ("Now I'll…", "All writes are done"), notes on a value (the client's price is exactly as built above — `rate not stated`, nothing in brackets), extra sections, draft proposal text, questions.
 
 **Push line** (SKILL.md → automatic mode), in `language`, plain text: `Upwork: <M> take[, <K> maybe] · #<short id> <title> · <client's price>` for the first news card (the client's price as above), with ` +<n>` after the title when there are more news cards; cut the title so the line stays under 200 characters.
 
-Last steps, in this order, once all writes are done: load `PushNotification` and push the line (no such tool → skip it without a word); then the final reply — the message alone, its first characters `# Run`. No news → neither: no push, empty reply.
+Last steps, in this order, once all writes are done: with news, load `PushNotification` and push the line (no such tool → skip it without a word); then the final reply — the report alone, its first characters `# Run`. No news → no push, the report all the same.
