@@ -113,7 +113,7 @@ Runs are ordered by `Created`, never by the `Run` title: `DD.MM HH:MM` as text p
 
 ## 6. Config
 
-At the start of the root page (`insert_content`, `position: {"type": "start"}`), unless it is there — if it exists but lacks keys, `update_content` to add them. The config is a toggle, so it stays collapsed and does not fill the page; an older pipeline's callout is left as a callout and gets the missing keys.
+At the start of the root page (`insert_content`, `position: {"type": "start"}`), unless it is there, with every line below that has a value now — the `chat_project` line included — if it exists but lacks keys, `update_content` to add them. The config is a toggle, so it stays collapsed and does not fill the page; an older pipeline's callout is left as a callout and gets the missing keys.
 
 ```
 <details color="gray_bg">
@@ -140,6 +140,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 	upwork_org: `<org_uid>`
 	dashboard: `<url, once published>`
 	dashboard_version: `<N from the asset's first line, once published>`
+	chat_project: `none`
 	auto_drafts: `off`
 	auto_skip: `off`
 	drafts_task: `<trigger id of the Upwork drafts task>`
@@ -147,7 +148,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 </details>
 ```
 
-Lines inside the toggle are indented with a tab (unindented lines fall outside it); block tags are sent as the raw characters `<details color="gray_bg">`, `<summary>` — never HTML-escaped as `&lt;details&gt;`, which Notion stores as visible text. After the write, fetch the page and check the toggle is first, holds every key, and rendered as a toggle (not as `&lt;details` text).
+`dashboard`, `dashboard_version` and `drafts_task` wait until there is something to put in them; every other line is written now. `chat_project` stays `none` unless this conversation is in a claude.ai project: then `<project id> <name>` of that project (SKILL.md → Chat project; in a project whose id is not visible, the line is left out). Lines inside the toggle are indented with a tab (unindented lines fall outside it); block tags are sent as the raw characters `<details color="gray_bg">`, `<summary>` — never HTML-escaped as `&lt;details&gt;`, which Notion stores as visible text. After the write, fetch the page and check the toggle is first, holds every key, and rendered as a toggle (not as `&lt;details` text).
 
 ## 7. Dashboard
 
@@ -155,14 +156,14 @@ The dashboard is a single HTML page (`assets/dashboard.html`) that reads Notion 
 
 What is on it, 1180px wide, one screen on a laptop:
 
-- **Header**: name, three pills — `replies` · `overdue` · `invitations` — always shown, coloured only when not zero, a click scrolls to Your move; `Live · updated hh:mm`, Refresh, **Settings** (a popover with the `auto_drafts` / `auto_skip` switches, written to the config).
+- **Header**: name, three pills — `replies` · `overdue` · `invitations` — always shown, coloured only when not zero, a click scrolls to Your move; `Live · updated hh:mm`, Refresh, **Settings** (a popover with the `auto_drafts` / `auto_skip` switches, written to the config, and the `chat_project` the job chats open in, shown read-only — it is changed in chat).
 - **Leads** (left): `New` cards from `Inbox` minus jobs already applied to, Take / Maybe / Skipped tabs (Skipped: the last 2 days, more on request, Auto / Manual on the right), an "Only ready" switch, a "Proposal ready" / "Writing…" mark on the right of a row from the job's row in Proposals `Open`, grouped by day, posting time on the right, the client's numbers against the user's estimate in a Client / Me grid, flags on each side; a green mark for a score at or above `match_score`. Every value is a column shown as stored — the page never parses text.
 - **Connects** and **Balance** tiles (right, top).
 - **Your move**: everything that waits on the user, each thing once — contracts that need a reply or have an overdue milestone (the whole contract card), other chats where the next message is the user's, invitations and offers. Each chat and contract carries Claude's summary of the thread and the next step (`Your move: …`), made with `sample` from the last 12 messages and redone when a new message arrives; a chat's or contract's drawer opens with the same summary, the thread folded below it. An invitation shows its job card's advice (the hourly run gives every pending invitation a card) and opens that card's lead drawer — Write a proposal, Skip, Claude chat; until the card exists it says the next hourly run assesses it.
 - **Contracts**: the active contracts that need nothing now — summary, milestone strip, the current milestone.
 - **Proposals**: Sent / In talks / Closed, live from Upwork; In talks lists every proposal chat, newest message first, each marked whose turn it is (the user's-turn ones are in Your move too). A proposal's drawer shows its job (the Jobs card: Client vs me, About the job) and **What you sent** — the row in Proposals `Sent`, or, until the next digest syncs it, the proposal as Upwork returns it (same blocks, no milestones, marked as from Upwork) — with links to both in Notion.
 - **Rows**: the title opens the item on Upwork (the job, the thread for a reply, the workroom, the invitation); the rest of the row opens the **drawer** from the right — the lead's advice line, Client vs me, About the job and then the proposal from Proposals with a copy icon on every value, with Mark applied / Skip (a reason if you want one) / Write a proposal or Rewrite / Restore in a sticky bar, a contract's summary, milestones and conversation, a proposal's chat and terms — with the main Upwork action as a button, foldable sections and ↑ / ↓ through the list. Mark applied / Skip / Restore write `Status`, `Decided on` and the skip fields to the card, the switches write the config, Rewrite sets the proposal's `State` to Writing and starts the drafts task; nothing else writes.
-- **Claude chat**, in the drawer's top bar for a lead, a proposal, a contract or a conversation: the job's one Cowork chat. The link is the card's `Chat` — on a phone `https://claude.ai/cowork/cse_<id>`, elsewhere `claude://claude.ai/code/session_<id>` (artifacts let `claude://` out in the desktop app; iOS keeps claude.ai links in the browser). No `Chat` yet → a new Cowork with the job named first and its ids — `claude://cowork/new?q=…`, on a phone `https://claude.ai/new?mode=cowork&surface=cowork&q=…` — and that chat writes its own link to the card (`references/chat.md` → *A job's chat*). A contract finds its job through `list_contracts` `get` (`job.id`), its conversation through the contract; a conversation with no proposal or contract gets a chat that is not kept.
+- **Claude chat**, in the drawer's top bar for a lead, a proposal, a contract or a conversation: the job's one Cowork chat. The link is the card's `Chat` — on a phone `https://claude.ai/cowork/cse_<id>`, elsewhere `claude://claude.ai/code/session_<id>` (artifacts let `claude://` out in the desktop app; iOS keeps claude.ai links in the browser). No `Chat` yet → a new Cowork with the job named first and its ids — `claude://cowork/new?q=…`, on a phone `https://claude.ai/new?mode=cowork&surface=cowork&project=<id>&q=…` with the project from `chat_project` (none → no `project`) — and that chat writes its own link to the card (`references/chat.md` → *A job's chat*). A contract finds its job through `list_contracts` `get` (`job.id`), its conversation through the contract; a conversation with no proposal or contract gets a chat that is not kept.
 - Same look as the project-tracker dashboard (tokens, pills, rows, drawer); change the shared parts in both together.
 
 To publish or update it:
