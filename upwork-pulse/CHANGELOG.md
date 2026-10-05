@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.8.0...upwork-pulse-v0.8.1) (2026-10-05)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** move the lead's lock under its mark ([72dc9a7](https://github.com/sivakov512/agent-tools/commit/72dc9a74553b879e08677874cc927fb415a05087))
+
 ## [0.8.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.7.0...upwork-pulse-v0.8.0) (2026-10-05)
 
 
