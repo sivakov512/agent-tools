@@ -45,6 +45,7 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 	auto_skip: `off`
 	drafts_task: `trig_01MockDraftsTask0000001`
 	schema: `3`
+	chat_project: `none`
 	update_error: `To 4 step 4 — row 0402 has no Proposal ID and none was found on Upwork`
 	dashboard_version: `4`
 </callout>
