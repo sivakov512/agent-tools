@@ -170,11 +170,12 @@ Jobs:
   ```
 - `3000…0102` — "Firmware for a BLE beacon"; Job ID `2101000000000000102`; Found 2026-10-09T08:15:00Z; Verdict Take; Status Applied; Decided on 2026-10-09T08:30:00Z; Hourly; Rate min 45; Rate max 45; My $ 50; My hours 12; Complexity Low; Connects 10; Proposals 8; Proposal → `3000…0402`.
 - `3000…0103` — "STM32 motor controller review"; Job ID `2101000000000000103`; Found 2026-10-09T08:40:00Z; Verdict Maybe; Status Skipped; Fixed; Budget 300; My $ 400; My hours 8; Complexity Medium; Flags ["unfamiliar chip"]; Connects 8; Proposals 15; Skipped by manual; Skip reason "STM32 is outside my stack and $300 is below the work"; Decided on 2026-10-09T09:00:00Z.
-- `3000…0105` — "Zephyr firmware for a smart lock (nRF52840)"; Job ID `2101000000000000105`; Link https://www.upwork.com/jobs/~022101000000000000105; Found 2026-10-09T10:20:00Z; Verdict Take; Status New; Hourly; Rate min 45; Rate max 65; My $ 50; My hours 30; Complexity Medium; Flags []; Country "Canada"; Verified yes; Hires 3; Spent 2100; Proposals 2; Connects 12. Body: the five headings with one line each.
 - `3000…0104` — "LoRa gateway PCB (rigid-flex)"; Job ID `2101000000000000104`; Found 2026-10-08T21:10:00Z; Verdict Maybe; Status New; Fixed; Budget 1500; Duration "1 to 3 months"; My $ 1600; My hours 32; Complexity High; Flags ["no client history"]; Country "Germany"; Verified yes; Hires 0; Proposals 3; Connects 14; Invites 0. Body: the same five headings with one line each.
 
-Proposals: `3000…0405` — Title "Zephyr firmware for a smart lock (nRF52840)"; Job → `3000…0105`; Job ID `2101000000000000105`; State Writing (the dashboard set it when the user pressed Rewrite); Written 2026-10-09T12:04:00Z. Body: a full earlier draft in the fixed sections (Confirm before sending, Cover letter starting "Hi, I'm Alex — I design both hardware and firmware.", Attach).
-- `3000…0402` — Title "Firmware for a BLE beacon"; Job → `3000…0102`; Job ID `2101000000000000102`; State empty; Written 2026-10-09T08:30:00Z; Proposal ID `pr-7690`. Body: `## Cover letter` and the letter as sent.
+- `3000…0106` — "Altium to KiCad migration of a 6-layer board"; Job ID `2101000000000000106`; Link https://www.upwork.com/jobs/~022101000000000000106; Published 2026-10-07T09:00:00Z; Found 2026-10-07T09:30:00Z; Verdict Maybe; Status New; Fixed; Budget 250; My $ 900; My hours 18; Complexity Medium; Flags ["budget mismatch"]; Proposals 22; Connects 12; Advice Skip; Advice why "The budget covers a third of the work and 22 proposals are in"; Advised on 2026-10-07T10:00:00Z; Locked unchecked. Body: the five headings with one line each.
+- `3000…0107` — "nRF52 wearable: firmware review"; Job ID `2101000000000000107`; Link https://www.upwork.com/jobs/~022101000000000000107; Published 2026-10-08T15:00:00Z; Found 2026-10-08T15:20:00Z; Verdict Take; Status New; Hourly; Rate min 30; Rate max 40; My $ 50; My hours 10; Complexity Low; Flags []; Proposals 9; Connects 10; Advice Skip; Advice why "The rate range tops out below your ask"; Advised on 2026-10-08T16:00:00Z; Locked checked. Body: the five headings with one line each.
+
+Proposals: `3000…0402` — Title "Firmware for a BLE beacon"; Job → `3000…0102`; Job ID `2101000000000000102`; State empty; Written 2026-10-09T08:30:00Z; Proposal ID `pr-7690`. Body: `## Cover letter` and the letter as sent.
 
 Runs: `3000…0201` — Run "09.10 13:05"; Status ok; Scanned 14; Title pass 6; Detailed 4; Take 1; Maybe 0; Budget hit unchecked; Tool calls 22; Window "12:50–13:00".
 
@@ -182,10 +183,10 @@ Questions: `3000…0301` — Question "Feasibility study with analog or optical 
 
 ## What each read returns (strict)
 
-- Jobs "Inbox" (view …0001): cards 0105, 0101 and 0104 (Status New), in that order.
-- Jobs "Applied" (…0002): 0102 only. Jobs "All" (…0003): 0105, 0101, 0102, 0103, 0104. Jobs "Skipped" (…0006): 0103 only.
-- Cards 0105, 0101 and 0104 have Advice and the skip columns empty, and no Proposal.
-- Proposals "Open" (…0007): 0405 only. Card 0105's `Proposal` relation points to 0405. Proposals "Sent" (…0008): 0402 only.
+- Jobs "Inbox" (view …0001): cards 0101, 0107, 0106 and 0104 (Status New), in that order.
+- Jobs "Applied" (…0002): 0102 only. Jobs "All" (…0003): 0101, 0107, 0106, 0102, 0103, 0104. Jobs "Skipped" (…0006): 0103 only.
+- Cards 0101 and 0104 have Advice and the skip columns empty, and no Proposal.
+- Proposals "Open" (…0007): empty. Proposals "Sent" (…0008): 0402 only.
 - Runs "Latest" (…0004): 0201.
 - Questions "Open" (…0005): 0301.
 - `notion-fetch` of a row id returns that card's properties and body.

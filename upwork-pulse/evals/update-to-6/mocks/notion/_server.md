@@ -41,10 +41,10 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 	upwork_org: `99001`
 	dashboard: `https://claude.ai/artifact/mockdash`
 	jobs_skipped: `https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000006`
-	auto_drafts: `on`
-	auto_skip: `on`
+	auto_drafts: `off`
+	auto_skip: `off`
 	drafts_task: `trig_01MockDraftsTask0000001`
-	schema: `6`
+	schema: `5`
 	chat_project: `none`
 	dashboard_version: `4`
 </callout>
@@ -145,7 +145,7 @@ Fetching a database URL lists its data source with the schema and its views as `
 - Questions `4000…0003` — data source `2000…0003`; view `…0005` "Open" (Status = Open).
 
 Schemas:
-- Jobs: Title (title), Job ID (text), Link (url), Published (date), Found (date), Run (relation → Runs), Payment (Fixed / Hourly), Budget, Rate min, Rate max (numbers, dollars), Duration (select: Less than 1 week / Less than 1 month / 1 to 3 months / 3 to 6 months / More than 6 months), Connects, Proposals, Invites, Interviewing, Bid low, Bid high (numbers), Country (text), Verified (checkbox), Hires, Spent, Rating (numbers), Verdict (Take / Maybe), Score (number), Score why (text), Complexity (Low / Medium / High), My hours, My $ (numbers), Flags (multi-select: no client history, unfamiliar chip, budget mismatch, mandatory calls, timezone lock, partially hired, full-time), Advice (Apply / Skip), Advice why (text), Advised on (date), Status (New / Applied / Skipped), Decided on (date), Skipped by (manual / auto), Skip reason (text), Locked (checkbox; unchecked unless a card says Locked), Proposal (relation → Proposals, the other side of Proposals' Job), Chat (url).
+- Jobs: Title (title), Job ID (text), Link (url), Published (date), Found (date), Run (relation → Runs), Payment (Fixed / Hourly), Budget, Rate min, Rate max (numbers, dollars), Duration (select: Less than 1 week / Less than 1 month / 1 to 3 months / 3 to 6 months / More than 6 months), Connects, Proposals, Invites, Interviewing, Bid low, Bid high (numbers), Country (text), Verified (checkbox), Hires, Spent, Rating (numbers), Verdict (Take / Maybe), Score (number), Score why (text), Complexity (Low / Medium / High), My hours, My $ (numbers), Flags (multi-select: no client history, unfamiliar chip, budget mismatch, mandatory calls, timezone lock, partially hired, full-time, invited), Advice (Apply / Skip), Advice why (text), Advised on (date), Status (New / Applied / Skipped), Decided on (date), Skipped by (manual / auto), Skip reason (text), Proposal (relation → Proposals, the other side of Proposals' Job), Chat (url).
 - Proposals: Title (title), Job (relation → Jobs), Job ID (text), State (Writing / Ready; empty once sent), Written (date), Proposal ID (text; set once sent), Boost (number). No price, connects or send date: those are the Jobs card's (`My $`, `Connects`, `Decided on`).
 - Runs: Run (title), Status (ok / empty / partial), Scanned, Title pass, Detailed, Take, Maybe (numbers), Budget hit (checkbox), Tool calls (number), Window (text).
 - Questions: Question (title), Job IDs (text), Seen (number), Status (Open / Resolved), First seen (date), Decision (text).
@@ -170,11 +170,15 @@ Jobs:
   ```
 - `3000…0102` — "Firmware for a BLE beacon"; Job ID `2101000000000000102`; Found 2026-10-09T08:15:00Z; Verdict Take; Status Applied; Decided on 2026-10-09T08:30:00Z; Hourly; Rate min 45; Rate max 45; My $ 50; My hours 12; Complexity Low; Connects 10; Proposals 8; Proposal → `3000…0402`.
 - `3000…0103` — "STM32 motor controller review"; Job ID `2101000000000000103`; Found 2026-10-09T08:40:00Z; Verdict Maybe; Status Skipped; Fixed; Budget 300; My $ 400; My hours 8; Complexity Medium; Flags ["unfamiliar chip"]; Connects 8; Proposals 15; Skipped by manual; Skip reason "STM32 is outside my stack and $300 is below the work"; Decided on 2026-10-09T09:00:00Z.
-- `3000…0105` — "Zephyr firmware for a smart lock (nRF52840)"; Job ID `2101000000000000105`; Link https://www.upwork.com/jobs/~022101000000000000105; Found 2026-10-09T10:20:00Z; Verdict Take; Status New; Hourly; Rate min 45; Rate max 65; My $ 50; My hours 30; Complexity Medium; Flags []; Country "Canada"; Verified yes; Hires 3; Spent 2100; Proposals 2; Connects 12. Body: the five headings with one line each.
 - `3000…0104` — "LoRa gateway PCB (rigid-flex)"; Job ID `2101000000000000104`; Found 2026-10-08T21:10:00Z; Verdict Maybe; Status New; Fixed; Budget 1500; Duration "1 to 3 months"; My $ 1600; My hours 32; Complexity High; Flags ["no client history"]; Country "Germany"; Verified yes; Hires 0; Proposals 3; Connects 14; Invites 0. Body: the same five headings with one line each.
 
-Proposals: `3000…0405` — Title "Zephyr firmware for a smart lock (nRF52840)"; Job → `3000…0105`; Job ID `2101000000000000105`; State Writing (the dashboard set it when the user pressed Rewrite); Written 2026-10-09T12:04:00Z. Body: a full earlier draft in the fixed sections (Confirm before sending, Cover letter starting "Hi, I'm Alex — I design both hardware and firmware.", Attach).
-- `3000…0402` — Title "Firmware for a BLE beacon"; Job → `3000…0102`; Job ID `2101000000000000102`; State empty; Written 2026-10-09T08:30:00Z; Proposal ID `pr-7690`. Body: `## Cover letter` and the letter as sent.
+- `3000…0106` — "Altium to KiCad migration of a 6-layer board"; Job ID `2101000000000000106`; Found 2026-10-07T09:30:00Z; Verdict Maybe; Status New; Fixed; Budget 250; My $ 900; My hours 18; Complexity Medium; Proposals 22; Connects 12; Advice Skip; Advice why "The budget covers a third of the work"; Advised on 2026-10-07T10:00:00Z; Proposal → `3000…0403`.
+- `3000…0107` — "nRF52 wearable: firmware review"; Job ID `2101000000000000107`; Found 2026-10-08T15:20:00Z; Verdict Take; Status New; Hourly; Rate min 30; Rate max 40; My $ 50; My hours 10; Complexity Low; Proposals 9; Connects 10; Advice Skip; Advice why "The rate range tops out below your ask"; Advised on 2026-10-08T16:00:00Z; no Proposal.
+- `3000…0108` — "ESPHome e-paper display"; Job ID `2101000000000000108`; Found 2026-10-09T11:00:00Z; Verdict Maybe; Status New; Hourly; Rate min 15; Rate max 50; My $ 45; My hours 14; Complexity Low; Flags ["invited"]; Proposals 4; Connects 8; no Advice; no Proposal.
+
+Proposals: `3000…0403` — Title "Altium to KiCad migration of a 6-layer board"; Job → `3000…0106`; Job ID `2101000000000000106`; State Ready; Written 2026-10-07T09:50:00Z; Proposal ID empty. Body: a cover letter.
+
+Also in Proposals: `3000…0402` — Title "Firmware for a BLE beacon"; Job → `3000…0102`; Job ID `2101000000000000102`; State empty; Written 2026-10-09T08:30:00Z; Proposal ID `pr-7690`. Body: `## Cover letter` and the letter as sent.
 
 Runs: `3000…0201` — Run "09.10 13:05"; Status ok; Scanned 14; Title pass 6; Detailed 4; Take 1; Maybe 0; Budget hit unchecked; Tool calls 22; Window "12:50–13:00".
 
@@ -182,10 +186,10 @@ Questions: `3000…0301` — Question "Feasibility study with analog or optical 
 
 ## What each read returns (strict)
 
-- Jobs "Inbox" (view …0001): cards 0105, 0101 and 0104 (Status New), in that order.
-- Jobs "Applied" (…0002): 0102 only. Jobs "All" (…0003): 0105, 0101, 0102, 0103, 0104. Jobs "Skipped" (…0006): 0103 only.
-- Cards 0105, 0101 and 0104 have Advice and the skip columns empty, and no Proposal.
-- Proposals "Open" (…0007): 0405 only. Card 0105's `Proposal` relation points to 0405. Proposals "Sent" (…0008): 0402 only.
+- Jobs "Inbox" (view …0001): cards 0101, 0108, 0107, 0106 and 0104 (Status New), in that order.
+- Jobs "Applied" (…0002): 0102 only. Jobs "All" (…0003): 0101, 0108, 0107, 0106, 0102, 0103, 0104. Jobs "Skipped" (…0006): 0103 only.
+- Cards 0101 and 0104 have Advice and the skip columns empty, and no Proposal.
+- Proposals "Open" (…0007): 0403 only. Proposals "Sent" (…0008): 0402 only.
 - Runs "Latest" (…0004): 0201.
 - Questions "Open" (…0005): 0301.
 - `notion-fetch` of a row id returns that card's properties and body.
