@@ -24,6 +24,7 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 | `upwork_org` | the Upwork org_uid to pass to every Upwork call |
 | `dashboard` | URL of the published dashboard page, if any |
 | `dashboard_version` | the dashboard version that page was published from (see *Dashboard updates*) |
+| `skill_version` | the plugin version the last hourly run used (N from the asset's first line); the dashboard shows it under Settings → Versions. Written by the hourly run when it differs, and by setup |
 | `dashboard_skip` | present (any value) when the user declined a dashboard (see *Dashboard updates*) |
 | `chat_project` | the claude.ai project new Claude chats from the dashboard open in: `<project id> <name>`, or `none` (see *Chat project*) |
 | `auto_drafts` | `on` / `off` — after an hourly run finds cards, Opus writes advice and a proposal draft for each (`references/drafts.md`) |

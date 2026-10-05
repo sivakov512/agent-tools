@@ -141,6 +141,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 	upwork_org: `<org_uid>`
 	dashboard: `<url, once published>`
 	dashboard_version: `<N from the asset's first line, once published>`
+	skill_version: `<N from the asset's first line>`
 	chat_project: `none`
 	auto_drafts: `off`
 	auto_skip: `off`
