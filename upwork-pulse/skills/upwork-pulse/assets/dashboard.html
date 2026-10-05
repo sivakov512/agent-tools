@@ -415,6 +415,7 @@
   .sopt span { grid-column: 1; font-size: 12.5px; line-height: 1.45; color: var(--text-mute); }
   .sopt input { grid-column: 2; grid-row: 1 / 3; }
   .sopt.off { cursor: default; opacity: .5; } .sopt.off:hover { background: none; }
+  .sopt.ro { cursor: default; } .sopt.ro:hover { background: none; } /* shown, not set here: the chat sets it */
   .sw { appearance: none; -webkit-appearance: none; margin: 0; width: 34px; height: 20px; border-radius: 99px; background: var(--border); position: relative; cursor: pointer; transition: background .15s; flex: none; }
   .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .15s; }
   .sw:checked { background: var(--accent); }
@@ -443,6 +444,8 @@
         <h3>Automation</h3>
         <label class="sopt" for="autoDrafts"><b>Auto proposals</b><span>After each hourly run Claude advises apply or skip on the new cards and writes a ready-to-paste draft for each apply.</span><input class="sw" type="checkbox" role="switch" id="autoDrafts"></label>
         <label class="sopt" for="autoSkip" id="autoSkipOpt"><b>Auto skip</b><span>A card Claude advises to skip goes to Skipped by itself, marked auto, with the reason. Works with auto proposals.</span><input class="sw" type="checkbox" role="switch" id="autoSkip"></label>
+        <h3>Claude chat</h3>
+        <div class="sopt ro"><b id="chatProj">No project</b><span>New chats from the phone and the web open in this project; the desktop app opens them outside projects. To change it, ask Claude in a chat inside the project you want, or say “no project”.</span></div>
       </div>
     </div>
   </div>
@@ -675,7 +678,8 @@
       if (ctx.contract) q += ", contract " + ctx.contract;
       if (!jobId && ctx.room) q += ", Upwork room " + ctx.room;
       q += jobId ? ". Load everything about it: the job card, the proposal, the contract and the conversation on Upwork." : ". Load the conversation and everything about this client.";
-      href = MOBILE ? "https://claude.ai/new?mode=cowork&surface=cowork&q=" + encodeURIComponent(q) : "claude://cowork/new?q=" + encodeURIComponent(q);
+      // the web takes the project from the config's chat_project; the app's own link has no way to name one
+      href = MOBILE ? "https://claude.ai/new?mode=cowork&surface=cowork" + (S.cfg.chat_project ? "&project=" + S.cfg.chat_project : "") + "&q=" + encodeURIComponent(q) : "claude://cowork/new?q=" + encodeURIComponent(q);
     }
     a = navLink(href, "Claude chat");
     a.classList.add("claude");
@@ -1433,6 +1437,7 @@
     $("autoSkip").checked = S.cfg.auto_skip === "on";
     $("autoSkip").disabled = S.cfg.auto_drafts !== "on";
     $("autoSkipOpt").className = S.cfg.auto_drafts === "on" ? "sopt" : "sopt off";
+    $("chatProj").textContent = S.cfg.chat_project ? "Project: " + S.cfg.chat_project_name : "No project";
   }
   function closeSettings() { $("setPop").hidden = true; $("settingsBtn").setAttribute("aria-expanded", "false"); }
   function setFlag(key, value, input) { // the switch writes the config line in the root page
@@ -2135,6 +2140,8 @@
       var key = function (k) { var x = new RegExp("\\b" + k + ":\\s*`([^`]*)`").exec(txt || ""); return x ? x[1].trim() : null; };
       S.cfgText = txt || "";
       S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide"), proposals: key("proposals"), updating: key("updating"), update_error: key("update_error") };
+      var cp = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\s*(.*)$/i.exec(key("chat_project") || ""); // `<project id> <name>`, or `none`
+      S.cfg.chat_project = cp ? cp[1] : null; S.cfg.chat_project_name = cp ? (cp[2] || "A project") : null;
       renderSettings(); checkGuide();
     }, function () { S.matchScore = null; renderSettings(); });
   }

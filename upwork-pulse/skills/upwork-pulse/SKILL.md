@@ -25,6 +25,7 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 | `dashboard` | URL of the published dashboard page, if any |
 | `dashboard_version` | the dashboard version that page was published from (see *Dashboard updates*) |
 | `dashboard_skip` | present (any value) when the user declined a dashboard (see *Dashboard updates*) |
+| `chat_project` | the claude.ai project new Claude chats from the dashboard open in: `<project id> <name>`, or `none` (see *Chat project*) |
 | `auto_drafts` | `on` / `off` — after an hourly run finds cards, Opus writes advice and a proposal draft for each (`references/drafts.md`) |
 | `auto_skip` | `on` / `off` — with `auto_drafts` on, a Skip advice from those automatic drafts also sets the card Skipped |
 | `drafts_task` | id of the "Upwork drafts" task the dashboard starts to write or redo a proposal |
@@ -85,6 +86,8 @@ The root page, in this order:
 
 Fetch the root and read the config. **Then check `schema` before anything else**: below 5 → *Pipeline update* (under Modes) decides what this session does first — in a conversation that is the update itself, whatever the user asked.
 
+**In a conversation, a config without a `chat_project` line gets one in the same session** — whatever the user asked, after answering it: the project this conversation is in, or `none` (*Chat project*). It is one config edit and one closing line; skipping it leaves the dashboard opening chats in no project until some later conversation does it.
+
 A job can be named by short id (`#584350`, the last six digits of `Job ID`), by title, by link, or by its number in a list this conversation already holds ("the second one" after a digest or a run message). A number means nothing outside the conversation that showed the list — with no such list here, ask which job. To find the card: query `jobs_inbox` (New cards) and match; not there → `jobs_all` (Applied and Skipped cards too). "No card" is said only after `jobs_all`. **Talking about a job starts from fresh data.** Before you assess, estimate or answer anything about a specific posting in a conversation, fetch it from Upwork (`find_jobs`, action `get`), then give its link and talk. The card is a snapshot from the moment it was found; proposals, hires and the connects price move, and advice on stale numbers is wrong advice. This holds for every conversation about a job, whatever the rules pages say; scheduled runs and digests read the cards only.
 
 ## Questions and quirks
@@ -100,6 +103,14 @@ The first line of `assets/dashboard.html` is `<!-- dashboard-version: N -->`, wh
 **Below N → republished without asking**, as `references/setup.md` → 7. Dashboard says (same link, `dashboard_version` set to N): a newer plugin's dashboard is part of the update the user installed, and an old page can misread data the new skill writes. The hourly run does it after its work and before its message — no message of its own; a conversation that gets there first does it after answering, with one line saying the dashboard was updated and, from the plugin's `CHANGELOG.md` (at the plugin root, next to `skills/`) between the two versions, what is new on it in a few words. A session that cannot publish (no Artifact tool) leaves it to the next one that can; a publish that fails is not retried in the same run.
 
 **No `dashboard` line** (set up before the dashboard existed, or the user removed it): in a conversation only, once per conversation and unless the config has a `dashboard_skip` line, end with one short line in `language` — what the dashboard is and whether to publish it now. Yes → `references/setup.md` → 7; no → `dashboard_skip: none`. Automatic runs never publish a dashboard the config has none of.
+
+## Chat project
+
+On the phone and the web the dashboard starts a job's new Claude chat in the project named by `chat_project`; the desktop app's link has no way to name a project, so there new chats open outside projects. The dashboard reads the line on every load and only shows it (Settings), so changing it never needs a republish.
+- **Set once, by the first conversation that finds no `chat_project` line** — the setup itself, or the first conversation after the plugin update that brought it: the project this conversation belongs to, as `<project id> <name>`; `none` when the conversation is in no project. The user chose this default: the project the skill was set up or updated from. After that it changes only when the user asks. Automatic runs never write it.
+- **The project's id** is its claude.ai UUID, the one in a link to it (`claude.ai/project/<id>`). The session sees it only indirectly — in a project-scoped path in its tools' instructions, such as a memory scope `/projects/<id>/` — and never guesses it; the name is the one the session's context gives the project. In a project whose id is nowhere in sight, write nothing: a later conversation tries again.
+- **Write it** with `update_content` on the config toggle — the line replaced, or added as the toggle's last line (tab-indented) — then one short line in `language` at the end of the reply: new chats from the dashboard open in <name> (or outside projects), and saying so in a chat inside another project moves them there.
+- **The user changes it in chat**: "open dashboard chats in this project" → this conversation's project, as above; "no project" → `none`. Another project by name cannot be resolved from here (its id is not visible): say to ask from a chat inside that project.
 
 ## Modes — read the file for the mode you are in
 
