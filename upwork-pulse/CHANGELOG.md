@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.7.0...upwork-pulse-v0.8.0) (2026-10-05)
+
+
+### Features
+
+* **upwork-pulse:** auto skip honours locked cards ([33a4e5b](https://github.com/sivakov512/agent-tools/commit/33a4e5b998e12980e275e502ce1f2d5418bb07bc))
+
 ## [0.7.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.6.0...upwork-pulse-v0.7.0) (2026-10-05)
 
 
