@@ -63,11 +63,11 @@ On Cowork: set the tasks to **Automatically approve** if a run asks for approval
 
 ## How to use it
 
-The scheduled tasks need nothing from you. A run pushes one line to your phone only when there is something to read; the full message is in the task's chat:
+The scheduled tasks need nothing from you. A run pushes one line to your phone only when there is something to act on; the full message is in the task's chat:
 
 | Task | Sends |
 |---|---|
-| Hourly search | the run report with the new cards — only if one of them is a Take or has Apply advice |
+| Hourly search | every run: the new cards and a short log of what it did (search, invitations, drafts, auto skip, updates, problems); the push only for a Take or an invitation |
 | Digests (e.g. 11:00 and 22:00) | the New cards found since the previous digest, two lines each; nothing if none |
 | Weekly review | open questions with a recommendation each; reply "1 yes, 2 no, 3 as recommended" and it writes the rules |
 
@@ -108,7 +108,7 @@ If a message does not trigger the skill, mention Upwork or the job's id, or star
 
 ### Pipeline updates
 
-The config's `schema` is the structure the pipeline was built with. When a plugin update needs a newer one, the skill updates the pipeline by itself: the next hourly run does it instead of searching and pushes one line when it is done, or your next chat does it first if you get there before the hourly run. The update works in place — same page, databases, cards, links and tasks: it republishes the dashboard first, converts the cards, removes old columns only after checking their values moved, never removes a column you added, writes `schema` last, and can be run again if it stops halfway. Until it is done the other scheduled runs pause and their watermarks stay put, so nothing is lost; the dashboard shows that the update is running. If it stops (a check fails), it says why in a push, on the dashboard and in the digests, and the scheduled runs stay paused until you say "update the pipeline" in a chat. Several versions behind, it takes them in order (3 brought Proposals and the card's facts as columns; 4 keeps price, time and the send date only on the job card, the proposal just its text; 5 adds one Claude chat per job; 6 adds `Locked`, and the update locks the cards you already asked about and the invitations). Take a copy of the page in Notion first if you want a backup.
+The config's `schema` is the structure the pipeline was built with. When a plugin update needs a newer one, the skill updates the pipeline by itself: the next hourly run does it instead of searching and pushes one line when it is done, or your next chat does it first if you get there before the hourly run. The update works in place — same page, databases, cards, links and tasks: it republishes the dashboard first, converts the cards, removes old columns only after checking their values moved, never removes a column you added, writes `schema` last, and can be run again if it stops halfway. Until it is done the other scheduled runs pause and their watermarks stay put, so nothing is lost; the dashboard shows that the update is running. If it stops (a check fails), it says why in a push, on the dashboard and in the digests, and the scheduled runs stay paused until you say "update the pipeline" in a chat. Several versions behind, it takes them in order (3 brought Proposals and the card's facts as columns; 4 keeps price, time and the send date only on the job card, the proposal just its text; 5 adds one Claude chat per job; 6 adds `Locked`, and the update locks the cards you already asked about and the invitations; 7 moves the estimate into an `Estimate` column — the hours by part of the work, written together with `My hours` and `My $` — and adds the `invited` flag option). Take a copy of the page in Notion first if you want a backup.
 
 ## Model
 

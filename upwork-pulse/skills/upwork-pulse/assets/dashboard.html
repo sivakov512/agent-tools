@@ -216,6 +216,16 @@
   .dsec .cmp .v { color: var(--text); overflow-wrap: anywhere; }
   .dsec .cmp .v.me { font-weight: 500; }
   .dsec .cmp .v.wide { grid-column: 2 / 4; }
+  .est { border-top: 1px solid var(--border); padding: 12px 16px 14px; }
+  .est-h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); font-weight: 600; margin-bottom: 6px; }
+  .est-g { display: grid; grid-template-columns: minmax(0, 1fr) max-content; gap: 4px 16px; font-size: 13.5px; align-items: baseline; }
+  .est-g .w { color: var(--text); overflow-wrap: anywhere; }
+  .est-g .n { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-2); white-space: nowrap; }
+  .est-g .sep { grid-column: 1 / -1; border-top: 1px solid var(--border); margin-top: 2px; }
+  .est-g .tot { font-weight: 600; color: var(--text); }
+  .est-g .apart { color: var(--text-mute); }
+  .est-g .warn { color: var(--warn); font-size: 12.5px; }
+  .est-note { margin-top: 6px; font-size: 13px; color: var(--text-2); }
   .callout { margin-top: 20px; padding: 13px 16px 14px; border-radius: 10px; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); font-size: 14px; line-height: 1.5; color: var(--text); }
   .callout.turn { background: var(--critical-soft); border-color: color-mix(in srgb, var(--critical) 30%, transparent); }
   .callout.good { background: var(--good-soft); border-color: color-mix(in srgb, var(--good) 30%, transparent); }
@@ -568,7 +578,7 @@
   var VIEW_APPLIED = "__VIEW_APPLIED__";
   var VIEW_SKIPPED = "__VIEW_SKIPPED__";
   var VIEW_PROPOSALS_OPEN = "__VIEW_PROPOSALS_OPEN__", VIEW_PROPOSALS_SENT = "__VIEW_PROPOSALS_SENT__";
-  var SCHEMA = 6; // the Notion structure this page reads (config `schema`)
+  var SCHEMA = 7; // the Notion structure this page reads (config `schema`)
   var DASH_VERSION = "0.9.0"; // x-release-please-version
   var STALL_MIN = 20; // a proposal still "Writing" after this many minutes: the task stopped without writing it
   var REMOTE = "Claude Code Remote"; // fire_trigger: the Rewrite button starts the drafts task
@@ -1192,6 +1202,37 @@
     wide("Flags", flagsOf(r).join(", "));
     return t;
   }
+  // The card's Estimate column: one line per part of the work, "<part> — <hours>"; a line starting with "+" is priced apart
+  // (a recheck, an option) and stays out of the total. The total and the price come from My hours / My $, written in the same call.
+  function estimateBox(r) {
+    var txt = plain(r.Estimate || ""); if (!txt.trim()) return null;
+    var LINE = /^(\+\s*)?(.+?)\s+[—–-]\s+~?(\d+(?:[.,]\d+)?)\s*(?:h|hrs?|ч|час\S*)?\.?$/i;
+    var parts = [], extra = [], notes = [], sum = 0;
+    txt.split(/\n|<br\s*\/?>/).forEach(function (raw) {
+      var line = raw.replace(/^[-*•]\s+/, "").trim(); if (!line) return;
+      var m = LINE.exec(line);
+      if (!m) { notes.push(line); return; }
+      var h = +m[3].replace(",", ".");
+      (m[1] ? extra : parts).push([m[2], h]); if (!m[1]) sum += h;
+    });
+    if (!parts.length && !notes.length) return null;
+    var box = el("div", "est");
+    box.appendChild(el("div", "est-h", "Estimate"));
+    var g = el("div", "est-g");
+    function hrs(h) { return (Math.round(h * 10) / 10) + " h"; }
+    parts.forEach(function (x) { g.appendChild(el("span", "w", x[0])); g.appendChild(el("span", "n", hrs(x[1]))); });
+    if (parts.length) {
+      var mh = num(r["My hours"]), my = num(r["My $"]), hourly = r.Payment === "Hourly";
+      var tot = mh != null ? mh : sum, price = "";
+      if (my != null) price = hourly ? " × " + usd(my) + "/hr ≈ " + usd(Math.round(tot * my)) : " · " + usd(my) + " fixed";
+      g.appendChild(el("span", "sep")); g.appendChild(el("span", "w tot", "Total")); g.appendChild(el("span", "n tot", hrs(tot) + price));
+      if (mh != null && Math.abs(sum - mh) > 0.5) { var w = el("span", "w warn", "The parts add up to " + hrs(sum) + ", the card says " + hrs(mh)); g.appendChild(w); g.appendChild(el("span", "n")); }
+    }
+    extra.forEach(function (x) { g.appendChild(el("span", "w apart", x[0] + " (apart)")); g.appendChild(el("span", "n apart", "+" + hrs(x[1]))); });
+    box.appendChild(g);
+    notes.forEach(function (t) { box.appendChild(el("div", "est-note", t)); });
+    return box;
+  }
   function fullIdBadge(id) {
     var b = el("span", "badge-id", String(id || "")); b.setAttribute("role", "button"); b.tabIndex = 0; b.title = "Copy the full Job ID";
     function go(e) { e.preventDefault(); e.stopPropagation(); copy(String(id || "")); }
@@ -1205,6 +1246,7 @@
     }
     var cv = dsec(host, "Client vs me");
     cv.appendChild(cmpTable(card));
+    var est = estimateBox(card); if (est) cv.appendChild(est);
     if (scoreLine && card._why && card._why.length) {
       var sl = el("div", "scoreline" + (card._tier === "strong" ? " good" : ""));
       sl.appendChild(el("b", "", "Score " + card._score + (card._tier === "strong" ? ", strong match" : "") + " when found: "));

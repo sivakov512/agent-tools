@@ -70,6 +70,7 @@ CREATE TABLE ("Title" TITLE, "Job ID" RICH_TEXT COMMENT 'Numeric Upwork id; the 
   "Score" NUMBER COMMENT 'Sum of the Ranking points', "Score why" RICH_TEXT,
   "Complexity" SELECT('Low':green, 'Medium':yellow, 'High':red),
   "My hours" NUMBER, "My $" NUMBER FORMAT 'dollar' COMMENT 'Hourly: the rate; fixed: the total',
+  "Estimate" RICH_TEXT COMMENT 'Hours by part of the work, one per line; they add up to My hours',
   "Flags" MULTI_SELECT('no client history':gray, 'unfamiliar tech':gray, 'budget mismatch':gray, 'mandatory calls':gray, 'timezone lock':gray, 'partially hired':gray, 'full-time':gray, 'invited':blue),
   "Advice" SELECT('Apply':green, 'Skip':gray), "Advice why" RICH_TEXT, "Advised on" DATE COMMENT 'When Advice was last written',
   "Status" SELECT('New':blue, 'Applied':green, 'Skipped':gray),
@@ -146,7 +147,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 	auto_drafts: `off`
 	auto_skip: `off`
 	drafts_task: `<trigger id of the Upwork drafts task>`
-	schema: `6`
+	schema: `7`
 </details>
 ```
 
@@ -274,3 +275,11 @@ Auto skip covers every Skip advice, not only the one just written, and `Locked` 
 1. **Jobs**: `ADD COLUMN "Locked" CHECKBOX COMMENT 'Auto skip leaves this card; the user decides'` when missing; the Inbox view shows it (§5).
 2. **Lock** — read `jobs_inbox` (New cards) and `proposals_open`. `Locked` checked (one `update_properties` per card, several per turn) on every New card that has the `invited` flag, or has `Advice` Skip and a row in Proposals (its `Proposal` relation, or a row with its `Job ID`): the hourly run never writes a proposal row for a Skip, so that row comes from the user's own request — the dashboard's button or a chat. Cards already locked are left alone.
 3. **Report** in `language`: what `Locked` does and where it is set (the dashboard's Write a proposal / Rewrite, chat requests, invitations, Lock / Unlock in the drawer); the cards locked now, by short id; and, when `auto_skip` is on, how many New cards are advised Skip and unlocked — the next hourly run skips them.
+
+### To 7 (from 6)
+
+The estimate becomes a column: `Estimate` holds the hours by part of the work and is written in the same call as `My hours` and `My $`, so the breakdown and the numbers can no longer disagree (a card's body text was a second write that could fail on its own). New cards have four body sections (`references/hourly.md` §5).
+
+1. **Jobs**: `ADD COLUMN "Estimate" RICH_TEXT COMMENT 'Hours by part of the work, one per line; they add up to My hours'` when missing. `Flags` without the `invited` option gets it: `ALTER COLUMN "Flags" SET MULTI_SELECT(...)` with every option the column has now, in its order and colours, plus `'invited':blue` — an option left out of that list is removed from the cards, so fetch the data source first and copy them all.
+2. **Old cards** stay as they are: their `## Estimate` body section is kept, the column stays empty, and the dashboard shows the section in About the job. Nothing is converted.
+3. **Report** in `language`: the estimate is now a breakdown by part of the work in the `Estimate` column, shown in the dashboard's Client vs me and in the hourly report; old cards keep their text; the `invited` flag option was added (or was there).
