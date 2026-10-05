@@ -96,7 +96,7 @@ Only with `auto_drafts: on`, and only when this run wrote at least one card or `
 
 **Auto skip**, with `auto_skip: on` and `auto_drafts: on`, after the drafts step (whether or not a subagent ran): read `jobs_inbox` (fresh — the subagent may have just written advice). Every New card with `Advice` Skip and `Locked` unchecked gets one `update_properties`: `Status` Skipped, `Skipped by` auto, `Skip reason` = its `Advice why` (one line), `Decided on` = now. Whenever that advice was written — by this run, an earlier one, before auto skip was switched on — it counts: the switch means "skip what Claude advises to skip". A `Locked` card stays New whatever its advice (SKILL.md → *Locked*). Cards skipped here are not news (§9).
 
-**Dashboard check**, every run, last before the message: a `dashboard` line in the config, its `dashboard_version` below N on the first line of `assets/dashboard.html`, and an Artifact tool in this session → republish the dashboard as SKILL.md → *Dashboard updates* says. It adds nothing to the message; a failed publish is left for the next run.
+**Dashboard check**, every run, last before the message: a `dashboard` line in the config, its `dashboard_version` below N on the first line of `assets/dashboard.html`, and an Artifact tool in this session → republish the dashboard as SKILL.md → *Dashboard updates* says, in this run — reading the whole live page first is part of it (`references/setup.md` → 7, step 2), not a reason to skip. It adds nothing to the message; only a publish that fails is left for the next run.
 
 ## 9. The message
 
