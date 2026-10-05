@@ -826,9 +826,12 @@
     "Terms": '<path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 8h4M6 10.5h4"/>'
   };
   var CHEV = '<svg class="ico chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
-  var folded = {}; // sections folded in this visit; every new visit starts with all of them open
+  // Every drawer lists its sections in one order — Client vs me, About the job, the proposal, Milestones, Conversation, Facts —
+  // and only the folding differs: what matters less for this kind of drawer starts folded.
+  var folded = {}; // sections folded or opened in this visit, per kind of drawer; a new visit starts from the defaults
   function dsec(host, title, right, extra, shut) { // a section of the drawer; its header folds it; extra = a control beside the header; shut = folded unless opened in this visit
-    var isF = folded[title] != null ? !!folded[title] : !!shut;
+    var fk = (DR ? DR.label : "") + "|" + title;
+    var isF = folded[fk] != null ? !!folded[fk] : !!shut;
     var s = el("section", "dsec" + (isF ? " folded" : ""));
     var hh = el("button", "dsec-h"); hh.type = "button"; hh.setAttribute("aria-expanded", String(!isF));
     hh.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true">' + (SICO[title] || SICO.Facts) + "</svg>";
@@ -838,7 +841,7 @@
     var b = el("div", "dsec-b"); b.hidden = isF;
     hh.addEventListener("click", function () {
       var f = !s.classList.contains("folded");
-      folded[title] = f ? 1 : 0;
+      folded[fk] = f ? 1 : 0;
       s.classList.toggle("folded", f); hh.setAttribute("aria-expanded", String(!f)); b.hidden = f;
     });
     var hw = el("div", "dsec-hw"); hw.appendChild(hh);
@@ -1148,6 +1151,21 @@
     b.addEventListener("click", go); b.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") go(e); });
     return b;
   }
+  function jobSections(host, card, jobId, aboutShut, scoreLine) { // the first two sections of every drawer about a job: Client vs me (always open), then About the job
+    if (!card) {
+      if (jobId) dsec(host, "About the job", "", null, aboutShut).appendChild(el("div", "dr-empty", "This job has no card in Notion yet; the proposals sync adds one."));
+      return;
+    }
+    var cv = dsec(host, "Client vs me");
+    cv.appendChild(cmpTable(card));
+    if (scoreLine && card._why && card._why.length) {
+      var sl = el("div", "scoreline" + (card._tier === "strong" ? " good" : ""));
+      sl.appendChild(el("b", "", "Score " + card._score + (card._tier === "strong" ? ", strong match" : "") + " when found: "));
+      sl.appendChild(document.createTextNode(card._why.join(" · ")));
+      cv.appendChild(sl);
+    }
+    notesInto(dsec(host, "About the job", "", null, aboutShut), card);
+  }
   function leadDrawer(r0) {
     var id0 = r0["Job ID"];
     return function (body) {
@@ -1196,15 +1214,7 @@
         go.addEventListener("click", function () { var t = $("secProposal"); if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); });
         x.head.appendChild(go);
       }
-      var cv = dsec(x.inner, "Client vs me");
-      cv.appendChild(cmpTable(r));
-      if (r._why && r._why.length) {
-        var sl = el("div", "scoreline" + (r._tier === "strong" ? " good" : ""));
-        sl.appendChild(el("b", "", "Score " + r._score + (r._tier === "strong" ? ", strong match" : "") + " when found: "));
-        sl.appendChild(document.createTextNode(r._why.join(" · ")));
-        cv.appendChild(sl);
-      }
-      notesInto(dsec(x.inner, "About the job"), r);
+      jobSections(x.inner, r, r["Job ID"], r.Status === "Applied", true); // applied: the job is known by now, the proposal and what follows matter
       draftSection(x.inner, r);
       dsec(x.inner, "Facts", "", null, true).appendChild(factsBox([
         ["Job ID", fullIdBadge(r["Job ID"])],
@@ -1636,6 +1646,8 @@
       if (room && owe && owe.reply) { x.acts.appendChild(navLink(roomUrl(room.id), "Reply on Upwork")); x.acts.appendChild(navLink(workroom(c.id), "Workroom")); }
       else { x.acts.appendChild(navLink(workroom(c.id), "Workroom")); if (room) x.acts.appendChild(navLink(roomUrl(room.id), "Chat")); }
       if (room && room.latestStory) x.inner.appendChild(summaryCallout(room));
+      var cj = contractJob(c.id);
+      jobSections(x.inner, cardFor(cj), cj, true);
       var ms = msSorted(c), msData = S.milestones[c.id];
       var sec = dsec(x.inner, "Milestones", ms && ms.length ? ms.filter(function (m) { return m.state === "Paid"; }).length + " of " + ms.length + " paid" : "");
       if (ms && ms.length) {
@@ -1862,7 +1874,7 @@
       if (v.amount) dsec(x.inner, "Terms").appendChild(factsBox([["Rate", v.amount], ["Client", v.client]]));
     };
   }
-  // A proposal or plain chat: the conversation first, then the proposal and its Notion card.
+  // A proposal or plain chat: the summary first, then the job, what was sent, the thread and the facts.
   function chatDrawer(room, p) {
     return function (body) {
       var nr = p && (S.appliedNotion[p.jobId] || S.leadsById[p.jobId]), sr = p && sentRowOf(p);
@@ -1874,8 +1886,10 @@
       x.acts.appendChild(navLink(roomUrl(room.id), myTurn(room) ? "Reply on Upwork" : "Chat"));
       if (p) proposalLinks(x, p, nr, sr, true);
       if (room.latestStory) x.inner.appendChild(summaryCallout(room)); // the same plaque as a contract: where it stands and the next step; the thread itself is folded below
+      if (p) { jobSections(x.inner, nr, p.jobId, true); sentInto(x.inner, p, nr, sr, true); }
+      else if (room.contractId) { var cj = contractJob(room.contractId); jobSections(x.inner, cardFor(cj), cj, true); }
       messagesInto(dsec(x.inner, "Conversation", "latest first", null, true), room);
-      if (p) upworkProposalInto(x.inner, p, nr, sr);
+      if (p) proposalFacts(x.inner, p, nr, sr);
     };
   }
 
@@ -1987,22 +2001,20 @@
   }
   // A proposal from Upwork: its terms, what was sent (the Proposals row) and the job (the Jobs card).
   function sentRowOf(p) { return S.sentById[String(p.id)] || S.sentByJob[p.jobId] || null; }
-  function upworkProposalInto(host, p, nr, sr) {
-    dsec(host, "Proposal").appendChild(factsBox([
+  function sentInto(host, p, nr, sr, shut) { // what was sent: the Notion copy, or Upwork's while Notion has none
+    var fs = el("div", "dfs"), sw = sr && nr ? wallFromNotion(nr["date:Decided on:start"]) : null;
+    dsec(host, "What you sent", sr ? (sw ? "sent " + fmtWall(sw, true) : "") : "", null, shut).appendChild(fs);
+    if (sr) proposalInto(fs, sr, true, nr);
+    else upworkSentInto(fs, p);
+  }
+  function proposalFacts(host, p, nr, sr) { // the proposal on Upwork, last and folded like a lead's Facts: its state is in the drawer's header
+    dsec(host, "Facts", "", null, true).appendChild(factsBox([
       ["Status", p.closed ? p.statusLabel + (p.reason ? " — " + p.reason : "") : "Open"],
       ["Sent", p.created ? fmtWall(wallOf(p.created), true) + " (" + ago(Date.now() - p.created) + " ago)" : ""],
       ["My rate", p.rate && !sr ? p.rate.replace(/\.0$/, "") : ""], // with the Notion copy, the rate is shown under What you sent
       ["Connects", nr && nr.Connects != null ? nr.Connects + " to apply" + (sr && num(sr.Boost) ? " + " + sr.Boost + " boost" : p.bid ? " + " + p.bid + " boost" : "") : p.bid ? "boosted " + p.bid : ""],
       ["Job ID", p.jobId ? fullIdBadge(p.jobId) : ""]
     ]));
-    var fs = el("div", "dfs"), sw = sr && nr ? wallFromNotion(nr["date:Decided on:start"]) : null;
-    dsec(host, "What you sent", sr ? (sw ? "sent " + fmtWall(sw, true) : "") : "").appendChild(fs);
-    if (sr) proposalInto(fs, sr, true, nr);
-    else upworkSentInto(fs, p);
-    if (nr) {
-      var cv = dsec(host, "Client vs me"); cv.appendChild(cmpTable(nr));
-      notesInto(dsec(host, "About the job"), nr);
-    } else dsec(host, "About the job").appendChild(el("div", "dr-empty", "This job has no card in Notion yet; the proposals sync adds one."));
   }
   // What was sent, read from Upwork while Notion has no copy yet: the same blocks as a Proposals row, minus milestones (Upwork does not return them)
   function upworkSentInto(fs, p) {
@@ -2041,7 +2053,9 @@
       var state = p.closed ? el("span", "chip", p.statusLabel) : el("span", "chip", rp && rp.err ? "reply status unknown" : "no reply yet");
       var x = drHead(body, ["Proposal", state, "sent " + ago(Date.now() - p.created) + " ago"], p.title, p.jobId);
       proposalLinks(x, p, nr, sr);
-      upworkProposalInto(x.inner, p, nr, sr);
+      jobSections(x.inner, nr, p.jobId, true); // sent, no reply yet: what was sent is the point
+      sentInto(x.inner, p, nr, sr, false);
+      proposalFacts(x.inner, p, nr, sr);
     };
   }
   function setPTab(v) {
