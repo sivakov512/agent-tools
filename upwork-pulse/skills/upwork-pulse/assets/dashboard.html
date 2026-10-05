@@ -153,6 +153,16 @@
   .dr-actbar button.ok:hover, .dsec-x button:hover { color: var(--accent); border-color: var(--accent); }
   .dr-actbar button.no:hover { color: var(--critical); border-color: var(--critical); }
   .dr-actbar button[disabled], .dsec-x button[disabled] { opacity: .5; cursor: default; }
+  /* Notion's two pages as one group: one label, a link per page */
+  .dr-actbar .lks .lgrp { display: inline-flex; align-items: center; border-radius: 6px; background: var(--surface-2); font-size: 13px; white-space: nowrap; }
+  .dr-actbar .lks .lgrp .gl { padding: 4px 2px 4px 10px; color: var(--text-mute); }
+  .dr-actbar .lks .lgrp a { background: none; padding: 4px 8px; }
+  .dr-actbar .lks .lgrp a + a { border-left: 1px solid var(--border); }
+  .dr-actbar .lks .lgrp a:last-child { padding-right: 10px; }
+  /* Lock / Unlock as an icon: the state is the icon, the words are in its tooltip */
+  .dr-actbar button.lockb { display: inline-grid; place-items: center; padding: 4px 8px; }
+  .dr-actbar button.lockb svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .dr-actbar button.lockb[aria-pressed="true"] { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--accent-soft); }
   .dr-actbar .state { font-size: 13px; color: var(--text-mute); }
   .dr-actbar .lks a.primary { background: var(--accent); color: var(--surface); font-weight: 500; }
   .dr-actbar .lks a.primary .arr { color: inherit; opacity: .8; }
@@ -427,6 +437,7 @@
   .sopt span { grid-column: 1; font-size: 12.5px; line-height: 1.45; color: var(--text-mute); }
   .sopt input { grid-column: 2; grid-row: 1 / 3; }
   .sopt.off { cursor: default; opacity: .5; } .sopt.off:hover { background: none; }
+  .sopt.vers span { grid-column: 1 / 3; font-variant-numeric: tabular-nums; }
   .sopt.ro { cursor: default; } .sopt.ro:hover { background: none; } /* shown, not set here: the chat sets it */
   .sw { appearance: none; -webkit-appearance: none; margin: 0; width: 34px; height: 20px; border-radius: 99px; background: var(--border); position: relative; cursor: pointer; transition: background .15s; flex: none; }
   .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .15s; }
@@ -458,6 +469,8 @@
         <label class="sopt" for="autoSkip" id="autoSkipOpt"><b>Auto skip</b><span>Every card Claude advises to skip goes to Skipped with the next hourly run, marked auto, with the reason — except locked ones. A card you ask Claude to write for is locked. Works with auto proposals.</span><input class="sw" type="checkbox" role="switch" id="autoSkip"></label>
         <h3>Claude chat</h3>
         <div class="sopt ro"><b id="chatProj">No project</b><span>New chats from the phone and the web open in this project; the desktop app opens them outside projects. To change it, ask Claude in a chat inside the project you want, or say “no project”.</span></div>
+        <h3>Versions</h3>
+        <div class="sopt ro vers"><span id="versLine"></span></div>
       </div>
     </div>
   </div>
@@ -556,6 +569,7 @@
   var VIEW_SKIPPED = "__VIEW_SKIPPED__";
   var VIEW_PROPOSALS_OPEN = "__VIEW_PROPOSALS_OPEN__", VIEW_PROPOSALS_SENT = "__VIEW_PROPOSALS_SENT__";
   var SCHEMA = 6; // the Notion structure this page reads (config `schema`)
+  var DASH_VERSION = "0.8.2"; // x-release-please-version
   var STALL_MIN = 20; // a proposal still "Writing" after this many minutes: the task stopped without writing it
   var REMOTE = "Claude Code Remote"; // fire_trigger: the Rewrite button starts the drafts task
   var SKIP_DAYS = 2; // the Skipped tab shows this many days, then "Show 2 more days"
@@ -671,6 +685,13 @@
   }
   function navLink(href, text) { // a link in the drawer's bar: the destination's name and an arrow
     var a = el("a", "", text); a.appendChild(el("span", "arr", " ↗")); a.href = href; a.target = "_blank"; a.rel = "noopener"; return a;
+  }
+  function notionLinks(host, job, prop) { // the card and its proposal in Notion, one group: "Notion  Job ↗ | Proposal ↗"
+    if (!job && !prop) return;
+    var g = el("span", "lgrp"); g.appendChild(el("span", "gl", "Notion"));
+    if (job) { var a = navLink(job, "Job"); a.title = "The job card in Notion"; g.appendChild(a); }
+    if (prop) { var b = navLink(prop, "Proposal"); b.title = "The proposal in Notion"; g.appendChild(b); }
+    host.appendChild(g);
   }
   // ---------- the job's Claude chat: one Cowork chat per job, its link kept in the card's `Chat` ----------
   // Desktop: the Claude app's own link (artifacts let claude:// out there). Phone: the web, since iOS keeps claude.ai links in the browser.
@@ -1047,14 +1068,15 @@
   // Locked: auto skip leaves the card alone (the user asked about it, or it is an invitation); a manual Skip still works
   function isLocked(r) { return r.Locked === "__YES__" || r.Locked === true; }
   var LOCK_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
+  var UNLOCK_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 4.85-.85"/></svg>';
   function lockMark() { var m = el("span", "lockmk"); m.innerHTML = LOCK_SVG; m.appendChild(document.createTextNode("Locked")); m.title = "Locked: auto skip leaves it; you decide"; return m; }
   function setLock(r, btn, on) { // the drawer's Lock / Unlock
     var pid = pageIdOf(r.url); if (!pid || !MCP) return;
-    var label = btn.textContent; btn.disabled = true; btn.textContent = "Saving…";
+    btn.disabled = true; // an icon: disabled is the "saving" state
     MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { Locked: on ? "__YES__" : "__NO__" } }, { cache: false }).then(function () {
       r.Locked = on ? "__YES__" : "__NO__"; S.saved[r["Job ID"]] = { row: r, at: Date.now() };
       toast((on ? "Locked " : "Unlocked ") + shortId(r["Job ID"])); renderLeads(); refreshDrawer();
-    }, function (err) { btn.disabled = false; btn.textContent = label; toast("Couldn't save: " + errText(err, NOTION)); });
+    }, function (err) { btn.disabled = false; toast("Couldn't save: " + errText(err, NOTION)); });
   }
   function draftPill(r) { // the mark on the right of a row: a draft is ready, being written, or Claude advises to skip
     if (r.Status === "Skipped") { var sp = el("span", "dpill skip", r["Skipped by"] === "auto" ? "Auto" : "Manual"); sp.title = (r["Skipped by"] === "auto" ? "Skipped automatically: " : "Skipped by you: ") + (plain(r["Skip reason"]) || "no reason recorded"); return sp; }
@@ -1204,24 +1226,23 @@
       var ready = r.Status === "New" && ps === "Ready" && !propBeforeSkip(r, pr);
       setChat(chatLink(r["Job ID"], unesc(r.Title)));
       if (r.Link) { var ul = navLink(r.Link, "Upwork"); if (ready) { ul.classList.add("primary"); ul.title = "Open the job on Upwork and paste the proposal from below"; } x.acts.appendChild(ul); }
-      if (r.url) x.acts.appendChild(navLink(r.url, "Notion job"));
-      if (pr && pr.url) x.acts.appendChild(navLink(pr.url, "Notion proposal"));
+      notionLinks(x.acts, r.url, pr && pr.url);
       if (r.url && r.Status === "New") {
         if (canDraft() && ps !== "Writing") {
           var again = ps === "Ready" || ps === "Stalled";
-          var wd = el("button", "ok", again ? "↻ Rewrite" : "Write a proposal"); wd.type = "button";
+          var wd = el("button", "ok", again ? "↻ Rewrite" : "✎ Write"); wd.type = "button";
           wd.title = "Claude takes fresh data and writes the proposal" + (again ? " again" : "") + " (a few minutes)";
           wd.addEventListener("click", function () { regenerate(r, wd); });
           x.btns.appendChild(wd);
         }
-        var ap = el("button", "ok", "Mark applied"); ap.type = "button"; ap.title = "Mark it Applied now — the sync in the next digest does it on its own";
+        var ap = el("button", "ok", "Applied"); ap.type = "button"; ap.title = "Mark it Applied now — the sync in the next digest does it on its own";
         ap.addEventListener("click", function () { setLeadStatus(r, ap, "Applied"); });
         var sk = el("button", "no" + (r.Advice === "Skip" ? " hint" : ""), "Skip"); sk.type = "button"; sk.title = "Move to Skipped, with a reason";
         sk.addEventListener("click", function () { openSkipForm(r, x.bar); });
         x.btns.appendChild(ap); x.btns.appendChild(sk);
         if (S.cfg.schema >= SCHEMA) {
-          var lk = isLocked(r), lb = el("button", "ok", lk ? "Unlock" : "Lock"); lb.type = "button";
-          lb.title = lk ? "Let auto skip skip it when Claude advises to" : "Keep auto skip away from it: it stays until you decide";
+          var lk = isLocked(r), lb = el("button", "ok lockb"); lb.type = "button"; lb.innerHTML = lk ? LOCK_SVG : UNLOCK_SVG; lb.setAttribute("aria-pressed", lk ? "true" : "false");
+          lb.title = lk ? "Locked — click to unlock: auto skip may skip it when Claude advises to" : "Lock: keep auto skip away from it, it stays until you decide"; lb.setAttribute("aria-label", lk ? "Unlock" : "Lock");
           lb.addEventListener("click", function () { setLock(r, lb, !lk); });
           x.btns.appendChild(lb);
         }
@@ -1481,7 +1502,12 @@
     $("autoSkip").disabled = S.cfg.auto_drafts !== "on";
     $("autoSkipOpt").className = S.cfg.auto_drafts === "on" ? "sopt" : "sopt off";
     $("chatProj").textContent = S.cfg.chat_project ? "Project: " + S.cfg.chat_project_name : "No project";
+    // what runs where: this page, the Notion structure, the skill the scheduled runs last ran with (the hourly run writes `skill_version`)
+    var sv = S.cfg.skill_version, newer = sv && verCmp(sv, DASH_VERSION) > 0;
+    $("versLine").textContent = "Dashboard " + DASH_VERSION + " · Schema " + S.cfg.schema + (S.cfg.schema !== SCHEMA ? " (page reads " + SCHEMA + ")" : "") + " · Skill " + (sv || "—") + (newer ? " — the dashboard updates with the next hourly run" : "");
+    $("versLine").title = "Skill: the plugin version the last hourly run used";
   }
+  function verCmp(a, b) { var x = String(a).split("."), y = String(b).split("."); for (var i = 0; i < 3; i++) { var d = (+x[i] || 0) - (+y[i] || 0); if (d) return d; } return 0; }
   function closeSettings() { $("setPop").hidden = true; $("settingsBtn").setAttribute("aria-expanded", "false"); }
   function setFlag(key, value, input) { // the switch writes the config line in the root page
     if (!MCP) return;
@@ -2085,8 +2111,7 @@
     if (!chatDone) setChat(chatLink(p.jobId, p.title));
     if (p.url) x.acts.appendChild(navLink(p.url, "Upwork job"));
     x.acts.appendChild(navLink("https://www.upwork.com/nx/proposals/" + encodeURIComponent(p.id), "Upwork proposal"));
-    if (nr && nr.url) x.acts.appendChild(navLink(nr.url, "Notion job"));
-    if (sr && sr.url) x.acts.appendChild(navLink(sr.url, "Notion proposal"));
+    notionLinks(x.acts, nr && nr.url, sr && sr.url);
   }
   function proposalDrawer(p) {
     return function (body) {
@@ -2195,7 +2220,7 @@
       S.matchScore = m ? +m[1] : null;
       var key = function (k) { var x = new RegExp("\\b" + k + ":\\s*`([^`]*)`").exec(txt || ""); return x ? x[1].trim() : null; };
       S.cfgText = txt || "";
-      S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide"), proposals: key("proposals"), updating: key("updating"), update_error: key("update_error") };
+      S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide"), proposals: key("proposals"), updating: key("updating"), update_error: key("update_error"), skill_version: key("skill_version"), dashboard_version: key("dashboard_version") };
       var cp = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\s*(.*)$/i.exec(key("chat_project") || ""); // `<project id> <name>`, or `none`
       S.cfg.chat_project = cp ? cp[1] : null; S.cfg.chat_project_name = cp ? (cp[2] || "A project") : null;
       renderSettings(); checkGuide();
