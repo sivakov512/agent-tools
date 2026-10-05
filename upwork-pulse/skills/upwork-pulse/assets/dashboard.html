@@ -63,7 +63,7 @@
   .banner .list { display: flex; flex-wrap: wrap; gap: 6px 16px; font-weight: 400; }
   .lab { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); opacity: .8; margin-right: 4px; }
   .ms-line .due { color: var(--text-mute); }
-  .ms-line .late, .ms-line .stuck { color: var(--critical); font-weight: 500; }
+  .ms-line .late, .ms-line .stuck, .t-meta .late { color: var(--critical); font-weight: 500; }
   .p-state { font-size: 13px; }
   .p-state.turn { color: var(--critical); font-weight: 500; }
   .p-state.replied { color: var(--good); }
@@ -365,6 +365,8 @@
   .dpill.busy { background: var(--surface-2); color: var(--text-mute); font-weight: 500; }
   .dpill.skip { background: var(--sunken); color: var(--warn); font-weight: 500; }
   .dpill.fail { background: color-mix(in srgb, var(--critical) 12%, transparent); color: var(--critical); font-weight: 500; }
+  .lockmk { display: inline-flex; align-items: center; gap: 3px; font-size: 11.5px; color: var(--text-mute); white-space: nowrap; }
+  .lockmk svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   .more { display: block; width: 100%; border: 0; border-top: 1px solid var(--border); background: var(--surface-2); padding: 10px 16px; cursor: pointer; font-size: 13px; color: var(--text-2); text-align: left; }
   .more:hover { color: var(--text); }
   #leadNotice .banner { margin-bottom: 10px; font-weight: 400; font-size: 13.5px; }
@@ -443,7 +445,7 @@
       <div class="set-pop" id="setPop" role="dialog" aria-label="Settings" hidden>
         <h3>Automation</h3>
         <label class="sopt" for="autoDrafts"><b>Auto proposals</b><span>After each hourly run Claude advises apply or skip on the new cards and writes a ready-to-paste draft for each apply.</span><input class="sw" type="checkbox" role="switch" id="autoDrafts"></label>
-        <label class="sopt" for="autoSkip" id="autoSkipOpt"><b>Auto skip</b><span>A card Claude advises to skip goes to Skipped by itself, marked auto, with the reason. Works with auto proposals.</span><input class="sw" type="checkbox" role="switch" id="autoSkip"></label>
+        <label class="sopt" for="autoSkip" id="autoSkipOpt"><b>Auto skip</b><span>Every card Claude advises to skip goes to Skipped with the next hourly run, marked auto, with the reason — except locked ones. A card you ask Claude to write for is locked. Works with auto proposals.</span><input class="sw" type="checkbox" role="switch" id="autoSkip"></label>
         <h3>Claude chat</h3>
         <div class="sopt ro"><b id="chatProj">No project</b><span>New chats from the phone and the web open in this project; the desktop app opens them outside projects. To change it, ask Claude in a chat inside the project you want, or say “no project”.</span></div>
       </div>
@@ -543,7 +545,7 @@
   var VIEW_APPLIED = "__VIEW_APPLIED__";
   var VIEW_SKIPPED = "__VIEW_SKIPPED__";
   var VIEW_PROPOSALS_OPEN = "__VIEW_PROPOSALS_OPEN__", VIEW_PROPOSALS_SENT = "__VIEW_PROPOSALS_SENT__";
-  var SCHEMA = 5; // the Notion structure this page reads (config `schema`)
+  var SCHEMA = 6; // the Notion structure this page reads (config `schema`)
   var STALL_MIN = 20; // a proposal still "Writing" after this many minutes: the task stopped without writing it
   var REMOTE = "Claude Code Remote"; // fire_trigger: the Rewrite button starts the drafts task
   var SKIP_DAYS = 2; // the Skipped tab shows this many days, then "Show 2 more days"
@@ -1005,6 +1007,7 @@
     s.appendChild(t);
     var fw = wallFromNotion(r["date:Found:start"]);
     var tr = el("span", "t-right");
+    if (r.Status === "New" && isLocked(r)) tr.appendChild(lockMark());
     var pill = draftPill(r); if (pill) tr.appendChild(pill);
     var tm = el("span", "", w ? fmtWall(w) : ""); tr.appendChild(tm);
     tm.title = r.Status === "Skipped" ? "Skipped " + (w ? fmtWall(w, true) : "") : (pub ? "Posted " + fmtWall(pub, true) : "Publication time unknown") + (fw ? " · found " + fmtWall(fw, true) : "");
@@ -1030,6 +1033,18 @@
     g.appendChild(chips(mflags));
     s.appendChild(g);
     return d;
+  }
+  // Locked: auto skip leaves the card alone (the user asked about it, or it is an invitation); a manual Skip still works
+  function isLocked(r) { return r.Locked === "__YES__" || r.Locked === true; }
+  var LOCK_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
+  function lockMark() { var m = el("span", "lockmk"); m.innerHTML = LOCK_SVG; m.appendChild(document.createTextNode("Locked")); m.title = "Locked: auto skip leaves it; you decide"; return m; }
+  function setLock(r, btn, on) { // the drawer's Lock / Unlock
+    var pid = pageIdOf(r.url); if (!pid || !MCP) return;
+    var label = btn.textContent; btn.disabled = true; btn.textContent = "Saving…";
+    MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { Locked: on ? "__YES__" : "__NO__" } }, { cache: false }).then(function () {
+      r.Locked = on ? "__YES__" : "__NO__"; S.saved[r["Job ID"]] = { row: r, at: Date.now() };
+      toast((on ? "Locked " : "Unlocked ") + shortId(r["Job ID"])); renderLeads(); refreshDrawer();
+    }, function (err) { btn.disabled = false; btn.textContent = label; toast("Couldn't save: " + errText(err, NOTION)); });
   }
   function draftPill(r) { // the mark on the right of a row: a draft is ready, being written, or Claude advises to skip
     if (r.Status === "Skipped") { var sp = el("span", "dpill skip", r["Skipped by"] === "auto" ? "Auto" : "Manual"); sp.title = (r["Skipped by"] === "auto" ? "Skipped automatically: " : "Skipped by you: ") + (plain(r["Skip reason"]) || "no reason recorded"); return sp; }
@@ -1173,7 +1188,7 @@
       scoreLead(r);
       var pub = wallFromNotion(r["date:Published:start"]), fnd = wallFromNotion(r["date:Found:start"]), dcd = wallFromNotion(r["date:Decided on:start"]);
       var verdict = el("span", r._tier === "strong" ? "chip good" : "", r.Verdict + (r._tier === "strong" ? " · strong match" : ""));
-      var x = drHead(body, [verdict, r._score > -Infinity ? "score " + r._score : "", pub ? "posted " + fmtWall(pub, true) : ""], unesc(r.Title), r["Job ID"]);
+      var x = drHead(body, [verdict, r._score > -Infinity ? "score " + r._score : "", pub ? "posted " + fmtWall(pub, true) : "", r.Status === "New" && isLocked(r) ? lockMark() : ""], unesc(r.Title), r["Job ID"]);
       var ps = propState(r), pr = openProp(r) || S.sentByJob[r["Job ID"]];
       var sent = !!(pr && pr["Proposal ID"]), wpr = pr && !sent ? wallFromNotion(pr["date:Written:start"]) : null, spr = sent ? dcd : null; // sent: the card's Decided on is the send time
       var ready = r.Status === "New" && ps === "Ready" && !propBeforeSkip(r, pr);
@@ -1194,6 +1209,12 @@
         var sk = el("button", "no" + (r.Advice === "Skip" ? " hint" : ""), "Skip"); sk.type = "button"; sk.title = "Move to Skipped, with a reason";
         sk.addEventListener("click", function () { openSkipForm(r, x.bar); });
         x.btns.appendChild(ap); x.btns.appendChild(sk);
+        if (S.cfg.schema >= SCHEMA) {
+          var lk = isLocked(r), lb = el("button", "ok", lk ? "Unlock" : "Lock"); lb.type = "button";
+          lb.title = lk ? "Let auto skip skip it when Claude advises to" : "Keep auto skip away from it: it stays until you decide";
+          lb.addEventListener("click", function () { setLock(r, lb, !lk); });
+          x.btns.appendChild(lb);
+        }
       } else if (r.url && r.Status === "Skipped") {
         var rs = el("button", "ok", "Restore"); rs.type = "button"; rs.title = "Put it back to the leads";
         rs.addEventListener("click", function () { setLeadStatus(r, rs, "New", { "Skipped by": null, "Skip reason": null, "date:Decided on:start": null }); });
@@ -1389,7 +1410,9 @@
     var mark = pid ? MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { State: "Writing", "date:Written:start": now, "date:Written:is_datetime": 1 } }, { cache: false })
       : MCP.callTool(NOTION, "notion-create-pages", { parent: { data_source_id: S.cfg.proposals }, pages: [{ properties: { Title: r.Title || shortId(id), Job: [r.url], "Job ID": id, State: "Writing", "date:Written:start": now, "date:Written:is_datetime": 1 } }], allow_async: false }, { cache: false })
           .then(function (res) { var pg = res && res.payload && res.payload.pages && res.payload.pages[0]; made = pg ? pg.id : null; });
-    mark.then(function () { return MCP.callTool(REMOTE, "fire_trigger", { trigger_id: S.cfg.drafts_task, text: "jobs: " + id }, { cache: false }); })
+    var cardId = pageIdOf(r.url); // asking Claude about a job locks it: whatever the advice, the user decides, not auto skip
+    mark.then(function () { return isLocked(r) || !cardId ? null : MCP.callTool(NOTION, "notion-update-page", { page_id: cardId, command: "update_properties", properties: { Locked: "__YES__" } }, { cache: false }).then(function () { r.Locked = "__YES__"; }); })
+      .then(function () { return MCP.callTool(REMOTE, "fire_trigger", { trigger_id: S.cfg.drafts_task, text: "jobs: " + id }, { cache: false }); })
       .then(function () {
         if (pr) { pr.State = "Writing"; pr["date:Written:start"] = new Date().toISOString(); } S.writing[id] = Date.now();
         toast("Claude is writing the proposal for " + shortId(id) + " — a few minutes");
@@ -1574,9 +1597,8 @@
 
     clear(host);
     if (!list.length) { host.appendChild(el("div", "empty", "No active contracts.")); return; }
-    var calm = list.filter(function (c) { return !needsMe(c); }), moved = list.length - calm.length;
-    calm.forEach(function (c) { host.appendChild(contractCard(c, "contractList")); });
-    if (moved) host.appendChild(el("div", "note", calm.length ? "+ " + plural(moved, "contract") + " in Your move above." : (moved === 1 ? "Your active contract needs you" : "All " + moved + " contracts need you") + " — see Your move above."));
+    // every active contract stays here, card and all; one that needs you is also a short row in Your move
+    list.forEach(function (c) { host.appendChild(contractCard(c, "contractList")); });
     afterList("contractList");
     if (total > list.length) host.appendChild(el("div", "note", (total - list.length) + " more on Upwork — open any contract above and switch from there."));
   }
@@ -1809,7 +1831,7 @@
       host.appendChild(ok); return;
     }
     items.forEach(function (x) {
-      host.appendChild(x.type === "contract" ? contractCard(x.contract, "moveList") : x.type === "chat" ? moveChat(x, now) : moveInvite(x, now));
+      host.appendChild(x.type === "contract" ? moveContract(x, now) : x.type === "chat" ? moveChat(x, now) : moveInvite(x, now));
     });
     afterList("moveList");
   }
@@ -1843,6 +1865,16 @@
     var key = "room-" + r.id;
     var open = function () { openDrawer(key, "moveList", p ? "Proposal" : "Chat", chatDrawer(r, p)); };
     return moveRow(key, "turn", titleWithId(p && p.jobId, title, roomUrl(r.id), "Open the thread on Upwork to reply"), roomAct(r) ? "waiting " + ago(now - roomAct(r)) : "", meta, open, null, summaryInline(r));
+  }
+  function moveContract(x, now) { // what the contract needs from you and the thread's summary; its milestones and money stay on its card under Contracts
+    var c = x.contract, w = x.why, room = w.room;
+    var meta = [el("span", "kind", w.reply && w.late.length ? "Reply · milestone overdue" : w.reply ? "Reply · contract" : "Milestone overdue")];
+    if (clean(c.client)) meta.push(clean(c.client));
+    w.late.forEach(function (m) { meta.push(el("span", "late", msName(m) + " overdue by " + ago(now - Date.parse(m.dueDateTime)))); });
+    var key = "c-" + c.id;
+    var open = function () { openDrawer(key, "moveList", "Contract", contractDrawer(c)); };
+    var title = w.reply && room ? titleLink(roomUrl(room.id), clean(c.title), "Open the thread on Upwork to reply") : titleLink(workroom(c.id), clean(c.title), "Open the workroom on Upwork");
+    return moveRow(key, "turn", title, w.reply && roomAct(room) ? "waiting " + ago(now - roomAct(room)) : "", meta, open, null, summaryInline(room));
   }
   function moveInvite(x, now) { // an invitation's job gets a card in the hourly run; with it, the row carries its advice and opens the lead's drawer
     var v = x.inv, card = v.kind === "Invitation" ? cardFor(v.jobId) : null;
@@ -2403,7 +2435,8 @@
       ["List", "jobs posted in the last " + LIVE_LEAD_DAYS + " days, grouped by day, highest score first within a day."],
       ["Older", "jobs posted more than " + LIVE_LEAD_DAYS + " days ago, folded at the bottom; most are closed by now. Past " + OLD_LEAD_DAYS + " days the title is dimmed."],
       ["Green bar", "the card's score is at or above match_score from the Notion config" + (S.matchScore != null ? " (now " + S.matchScore + ")" : "") + "."],
-      ["Proposal ready", "Claude advised to apply and wrote a ready-to-paste proposal (a row in Notion's Proposals); it is in the drawer under About the job, with a copy icon on every value. Skip advised — Claude would skip it; you decide (or auto skip does, if it is on)."],
+      ["Proposal ready", "Claude advised to apply and wrote a ready-to-paste proposal (a row in Notion's Proposals); it is in the drawer under About the job, with a copy icon on every value. Skip advised — Claude would skip it; you decide, or auto skip does with the next hourly run if it is on and the card is not locked."],
+      ["Locked", "auto skip leaves the card: you asked Claude to write for it (Write a proposal, Rewrite, or in chat), it is an invitation, or you locked it in the drawer. Unlock to let auto skip take it."],
       ["Skipped", "cards skipped in the last " + SKIP_DAYS + " days. Auto: auto skip did it on Claude's advice; Manual: you did, by a button, in chat or in Notion. The drawer says why; Restore puts one back."],
       ["Only ready", "keeps only the cards whose proposal is ready, in every tab."],
       ["", "Click a row for the details. Applied and Skip in the drawer change the card's status in Notion; the lead leaves this list and the drawer moves on to the next one."]
@@ -2421,7 +2454,7 @@
   addInfo("hMove", function () {
     return [
       ["", "Everything that waits on you, in one list. A proposal chat listed here is also under Proposals → In talks."],
-      ["Red bar", "a client chat where the last message is theirs or unread (contract chats always, other chats for " + QUIET_DAYS + " days), or a contract with a milestone past its due date. A contract that needs you moves here from Contracts, card and all."],
+      ["Red bar", "a client chat where the last message is theirs or unread (contract chats always, other chats for " + QUIET_DAYS + " days), or a contract with a milestone past its due date. A contract here shows what it needs from you; its card with the milestones stays under Contracts."],
       ["Summary", "Claude reads the last 12 messages of each chat here and of each contract and writes where it stands and whose move it is; it is redone when a new message arrives."],
       ["Green bar", "invitations and offers you haven't answered."],
       ["Order", "offers, overdue milestones, chats waiting longest, then invitations."]
@@ -2429,7 +2462,7 @@
   });
   addInfo("hContracts", function () {
     return [
-      ["", "Contracts Upwork lists as active on your freelancer dashboard."],
+      ["", "Every contract Upwork lists as active on your freelancer dashboard; a red bar means it needs you, and it is in Your move too."],
       ["Bar", "the milestones: green paid, teal in progress, amber submitted and waiting for the client's approval."],
       ["Drawer", "click a contract for its milestones, the conversation and Claude's summary of the last 12 messages (made when you open it, redone after a new message; ↻ re-summarize redoes it now)."]
     ];
