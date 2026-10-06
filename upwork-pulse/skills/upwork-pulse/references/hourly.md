@@ -2,6 +2,8 @@
 
 One run: read the rules, take the queue of postings published since the watermark, filter and assess them, write cards and a run log, move the watermark, hand the new cards to drafts mode when it is on, and end with a short report of what it did — pushed to the phone only when there is something to apply to fast.
 
+**Silent until the report.** No text at all between tool calls — not "Hourly search is running", not "Now the watermark": the app pushes every message of a scheduled session to the user's phone, so each such line is a false alarm. What the run did goes in the report's `## Log` (§9), and nowhere else.
+
 ## 1. Read first
 
 Fetch **Search rules** (id from the config). **Field notes** and `jobs_all` are read only once the search (§3) returns postings inside the queue or there is a pending invitation — an empty hour needs neither: it searches, writes its `empty` log row, moves the watermark and goes to the version check (end of §8). If Search rules cannot be fetched, or its content is not a search specification: do not improvise from memory — write a Runs row with `Status` empty and `Window` = `rules read failed`, send nothing, stop.
