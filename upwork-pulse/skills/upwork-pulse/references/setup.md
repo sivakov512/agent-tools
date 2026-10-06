@@ -187,11 +187,11 @@ Five tasks, each a fresh session, each with the Notion and Upwork connectors. Th
 
 | Task | When | Prompt |
 |---|---|---|
-| Upwork search — hourly | every hour | `Use the upwork-pulse skill in hourly search mode on <root>. Scheduled run.` |
-| Upwork digest — morning | e.g. 11:00 | `Use the upwork-pulse skill in digest mode on <root>, window from <evening hour> yesterday to now. Scheduled run.` |
-| Upwork digest — evening | e.g. 22:00 | `Use the upwork-pulse skill in digest mode on <root>, window from <morning hour> today to now. Scheduled run.` |
-| Upwork questions — weekly | e.g. Sunday 20:00 | `Use the upwork-pulse skill in weekly review mode on <root>. Scheduled run.` |
-| Upwork drafts | no schedule — started by the dashboard's Write a proposal / Rewrite button | `Use the upwork-pulse skill in drafts mode on <root>. Scheduled run; the jobs come with the run.` |
+| Upwork search — hourly | every hour | `Use the upwork-pulse skill in hourly search mode on <root>. Scheduled run. Work silently: write nothing until the final report.` |
+| Upwork digest — morning | e.g. 11:00 | `Use the upwork-pulse skill in digest mode on <root>, window from <evening hour> yesterday to now. Scheduled run. Work silently: write nothing until the final reply.` |
+| Upwork digest — evening | e.g. 22:00 | `Use the upwork-pulse skill in digest mode on <root>, window from <morning hour> today to now. Scheduled run. Work silently: write nothing until the final reply.` |
+| Upwork questions — weekly | e.g. Sunday 20:00 | `Use the upwork-pulse skill in weekly review mode on <root>. Scheduled run. Work silently: write nothing until the final reply.` |
+| Upwork drafts | no schedule — started by the dashboard's Write a proposal / Rewrite button | `Use the upwork-pulse skill in drafts mode on <root>. Scheduled run; the jobs come with the run. Work silently: write nothing until the final reply.` |
 
 The drafts task has no schedule of its own: the hourly run writes drafts through an Opus subagent, and this task exists so the dashboard can write or redo one job's proposal. Write its id into the config as `drafts_task`.
 
