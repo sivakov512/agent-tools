@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.9.0...upwork-pulse-v0.10.0) (2026-10-06)
+
+
+### Features
+
+* **upwork-pulse:** estimate breakdown column, hourly run log ([ea31456](https://github.com/sivakov512/agent-tools/commit/ea31456c4249fcbbeb86a60959cb058c09084430))
+
+
+### Bug Fixes
+
+* **upwork-pulse:** scheduled runs work silently until the final reply ([550b994](https://github.com/sivakov512/agent-tools/commit/550b99496f4c4d505958c95100d6e5f26d319b52))
+
 ## [0.9.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.8.2...upwork-pulse-v0.9.0) (2026-10-05)
 
 
