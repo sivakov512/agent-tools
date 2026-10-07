@@ -10,7 +10,7 @@ Pasted → use it. Pointed to → fetch it with whatever tools the session has (
 
 Only what the source says — no risks, milestones or tasks of your own. Follow the rules literally so the same source always gives the same rows.
 
-- **Project** — name (the product or deliverable), client, `Origin`: `Upwork` for an Upwork contract, `Personal` with no client, else `Direct` — or the option the user names; `Claude project` as the user gives it (SKILL.md → *Claude project*).
+- **Project** — name (the product or deliverable), client, `Origin`: `Upwork` for an Upwork contract, `Personal` with no client, else `Direct` — or the option the user names; `Claude project` as the user gives it (`chats.md` → Claude project).
 - **Milestones and tasks** — by the source's structure:
   - **Section headings with items under them** → each heading is a milestone, named in sentence case without dates or durations ("SITE INSTALLATION — until June 5" → `Site installation`); each item under it is a task of that milestone, named with the source's wording minus the date.
   - **A heading with no items** → a milestone with no tasks.
@@ -19,9 +19,9 @@ Only what the source says — no risks, milestones or tasks of your own. Follow 
 - Work the source reports as already done: a listed item marked done is Done with `Finished` = the date the source gives for it, else the source date. Done work the source mentions without listing it becomes one Done item at the start — a task of the first milestone if there are headings, else a milestone — named with the source's phrase for the result. A Done item with no dates of its own gets `Dates` from a week before `Finished` to `Finished` (the source rarely says when it started, and a week keeps it visible on the Gantt), marked as rule-derived in the confirmation.
 - Statuses: the first item not done whose start is on or before today (or that has no start) is In progress, and its milestone with it; everything else not done is Planned — a waiting handover keeps its milestone Planned. Problems from a source get `Opened` = the source date.
 - **Tasks and problems**, by what the source says:
-  - someone is asked to do something, or something is pending with a third party (a quote, a sign-off, a purchase someone was asked to make) → a task, Waiting, `Waiting on` = that party (the project's `Client` value if none is named), under the milestone it serves — the source wrote it into the plan;
+  - someone is asked to do something the plan expects (a quote, a sign-off, files) → a task, Waiting, `Waiting on` = that party (the project's `Client` value if none is named), under the milestone it serves — the source wrote it into the plan;
   - "I will do X once Y" → a task, Planned, under the milestone it serves;
-  - the source says work is stuck now on something nobody planned for → Blocker; `Waiting on` = who must act;
+  - something missing that stops work and nobody planned for ("the bench has no power analyzer — Ivan, please order one") → Blocker, Waiting, `Waiting on` = the person asked to act (none named → Open, `Waiting on` empty);
   - an undecided either/or → Question; `Waiting on` = who decides, by default the `Client` value;
   - "missing X would cost N", "N is an assumption until Y" → Risk, Open; consequence in `Note`; linked to the milestone (and task) it threatens.
 
@@ -39,7 +39,7 @@ A milestone with no date in the source and none following from these rules is as
 
 ## 4. Confirm
 
-Show: which source you used (email subject and date, or document name), the project and client, the milestones with their dates and, under each, its tasks with dates, then the problems. Ask for missing milestone dates in the same message, and which claude.ai project the project's chats from the dashboard should open in — this conversation's project as the default when it is in one ("its chats will open in **<name>** — or another project's link, or none?"), else "a project's link, or none?". Wait for OK — this creates many rows, and a wrong assumption means a cleanup.
+Show: which source you used (email subject and date, or document name), the project and client, the milestones with their dates and, under each, its tasks with dates, then the problems. Ask for missing milestone dates in the same message. If the config has a `dashboard` line, also ask which claude.ai project the project's chats from the dashboard should open in — this conversation's project as the default when it is in one ("its chats will open in **<name>** — or another project's link, or none?"), else "a project's link, or none?". Wait for OK — this creates many rows, and a wrong assumption means a cleanup.
 
 ## 5. Create
 
@@ -47,7 +47,7 @@ First check `Active` for a project of this name. If one exists, an earlier attem
 
 Otherwise, in this order — the page comes before the rows, so an interrupted attempt can always be resumed through the project's own views:
 
-1. The Projects row: `Status` Active, `Target end` = the end of the last milestone, empty if that one has no dates yet (without milestones: the end the source gives for the work, else empty — ongoing work has no end), `Source` = the source's URL if it is a shared web document, else empty; `Repository` only if the user gave one; `Claude project` as confirmed (`<name> — <project id>`), empty for none.
+1. The Projects row: `Status` Active, `Target end` = the end of the last milestone, empty if that one has no dates yet (without milestones: the end the source gives for the work, else empty — ongoing work has no end), `Source` = the source's URL if it is a shared web document, else empty; `Repository` only if the user gave one; `Claude project` as confirmed (`<name> — <project id>`), empty for none or when not asked.
 2. The project page's views and tabs (below).
 3. Milestones (new rows, `Project` = the row) with their `Dates`.
 4. Tasks (`Project` = the row, `Milestone` = its milestone).
@@ -55,7 +55,7 @@ Otherwise, in this order — the page comes before the rows, so an interrupted a
 6. The status callout at the start of the page (`insert_content`, `position: {"type": "start"}`), now that the counts are known.
 7. A source without a URL (pasted text, an email, a local file) goes into the `Notes` tab as a sub-page `Mon D — Source: <subject or short description>` (Mon D = the source date), as for long notes in SKILL.md, so the original plan stays with the project.
 
-Reply with what was created, and remind the user to switch the `Plan` and `Tasks` timelines to **Quarter** or **Month** once — the API cannot set the zoom; Notion remembers it. On the first project, also the helper-property hiding from `setup.md` step 8, now that there are pages to click it on.
+Reply with what was created, and remind the user to switch the `Plan` timeline and the Tasks tab's `Timeline` view to **Quarter** or **Month** once — the API cannot set the zoom; Notion remembers it. On the first project, also the helper-property hiding from `setup.md` step 8, now that there are pages to click it on.
 
 ## Project page
 
@@ -65,10 +65,18 @@ Views — `notion-create-view` with `parent_page_id` = the project page, in this
 
 ```
 Plan       timeline  data source <milestones>  FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Paused", "Done"); TIMELINE BY "Dates"; SORT BY "Dates" ASC; SHOW "Name", "Status", "Late, days"
-Tasks      timeline  data source <tasks>       FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Waiting", "Done"); TIMELINE BY "Dates"; GROUP BY "Milestone"; SORT BY "Dates" ASC; SHOW "Name", "Status", "Waiting on", "Late, days"
+Tasks      table     data source <tasks>       FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Waiting", "Done"); GROUP BY "Milestone"; SORT BY "Dates" ASC; SHOW "Name", "Status", "Dates", "Waiting on", "Late, days"
 Schedule   table     data source <milestones>  FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Paused", "Done"); SORT BY "Dates" ASC; SHOW "Name", "Status", "Dates", "Finished", "Late, days"
 Problems   table     data source <problems>    FILTER "Project" = "<page id>"; FILTER "Status" IN ("Open", "Waiting"); SORT BY "Type" ASC; SHOW "Name", "Type", "Status", "Waiting on", "Milestone", "Task"
 ```
+
+Then the Gantt as a second view of the `Tasks` block — `notion-create-view` with `database_id` = that block:
+
+```
+Timeline   timeline  data source <tasks>       FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Waiting", "Done"); TIMELINE BY "Dates"; GROUP BY "Milestone"; SORT BY "Dates" ASC; SHOW "Name", "Status", "Waiting on", "Late, days"
+```
+
+The table comes first because a timeline hides tasks without dates; the dashboard reads the view named `Tasks`. Create the block with the table (`notion-create-view`, `parent_page_id` = the project page), then add the timeline to the same block: `notion-create-view` with `database_id` = that block's id (from the page fetch, `<database url=…>`) — it becomes the block's second view.
 
 Tabs — fetch the page, then `update_content` with `old_str` = the four `<database …>` lines, `new_str` = the same lines, unchanged, wrapped like this (an existing view's url moves it; it does not copy):
 

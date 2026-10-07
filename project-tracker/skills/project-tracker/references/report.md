@@ -4,7 +4,7 @@
 
 **Form.** By default the report is your answer in the conversation, in the conversation's language. Write it as an email to the client, in English, only when the user asks for an email, a client update or something to send. With several active projects and none named, ask which.
 
-**Window.** From the same weekday one week ago through today, both included (on a Friday, from last Friday), or since the previous report if the user says when it went out.
+**Window.** From the same weekday one week ago through today, both included, or since the previous report if the user says when it went out.
 
 **Collect**, all five every time:
 

@@ -14,7 +14,7 @@ Dropped milestones and issues, and Removed projects, do not move.
 
 ## 2. Map — the fixed rules
 
-**Projects**: every field as is (`Name`, `Client`, `Status`, `Summary`, `Target end`, `Repository`, `Source`); `Origin` from the old rule — `Source` on upwork.com → Upwork, empty `Client` → Personal, else Direct.
+**Projects**: every field as is (`Name`, `Client`, `Status`, `Summary`, `Target end`, `Repository`, `Source`); `Origin` from the old rule — `Source` on upwork.com → Upwork, empty `Client` → Personal, else Direct; `Chat` and `Claude project` empty (set later — `chats.md`).
 
 **Milestones**, by the project's phases:
 
@@ -42,8 +42,8 @@ Show, per project: the milestones with their tasks (dates, status), the problems
 
 ## 4. Copy
 
-1. Set up the new tracker (`setup.md`): the name is the old page's title, the place is the old page's parent. Both pages carry a config toggle while the copy runs; the old one is recognised by its `open_items` line, so it is never written to.
-2. Per project, as `new-project.md` → **Create** does: the Projects row, the page's views and tabs, milestones, tasks, problems, Notes, then the callout. Before creating a row, look for it in the new project's views by name; if it exists (an interrupted run), compare and fill what is missing instead of creating a second.
+1. The new root page. A current tracker with the old page's title already found (SKILL.md → **Finding things**: an interrupted upgrade) → use it. Otherwise create it directly, without a search or a question: `notion-create-pages` with the old page's title, `parent` = the old page's parent (none for a top-level page), and the config toggle as `setup.md` step 1 shows. Then `setup.md` steps 2–6 on it — databases, computed columns, page layouts, config, views, tabs, verify; not step 7: the dashboard is step 5 below. Both pages carry a config toggle while the copy runs; the old one is recognised by its `open_items` line, so it is never written to.
+2. Per project: the Projects row with the fields mapped above, then as `new-project.md` → **Create** steps 2–6 do, with the field values mapped above — the page's views and tabs, milestones, tasks, problems, the callout; then the Notes tab as mapped (no `Source` sub-page: the old Notes come over as they are). `Target end` is copied, not recomputed, and the Claude project question is not asked. Before creating a row, look for it in the new project's views by name; if it exists (an interrupted run), compare and fill what is missing instead of creating a second.
 3. Verify by counts, per project: milestones, tasks, problems and notes in the new tracker equal what the preview listed. Fix any gap before going on.
 
 ## 5. Retire the old tracker
@@ -54,4 +54,4 @@ Only after the counts match:
 - The old page title gets ` (0.x)` appended.
 - The dashboard: if the old config had a `dashboard` line, copy it into the new config and update that artifact as `dashboard.md` → **Updating** says, with the new root page — the link the user already has keeps working. Otherwise publish a new one.
 
-Tell the user what moved (counts per project), what stayed behind, the new page, and that the old page is kept as a backup they can delete by hand once they are satisfied.
+Tell the user what moved (counts per project), what stayed behind, the new page, that the old page is kept as a backup they can delete by hand once they are satisfied, and the click-through list from `setup.md` step 8.

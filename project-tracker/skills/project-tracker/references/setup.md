@@ -7,7 +7,7 @@ One procedure for two cases: no tracker yet, and a setup that was interrupted ha
 Find it as in SKILL.md (**Finding things**) — by the config toggle, whatever the page is called.
 
 - Found, made by this version (config lines `tasks` and `problems`) → fetch it and each `<database>` on it; reuse what exists.
-- Found, made by version 0.x (config line `open_items`, no `tasks`) → this setup does not convert it: `upgrade.md` does, and it starts by setting up a new tracker here. If the user only asked for setup, say that the old tracker exists and offer the upgrade.
+- Found, made by version 0.x (config line `open_items`, no `tasks`) → this setup does not convert it: `upgrade.md` does — it creates its own new root page and runs steps 2–6 of this file on it. If the user only asked for setup, say that the old tracker exists and offer the upgrade.
 - Found, but its databases match neither (for example an old tracker with `Current dates` / `Promised dates`) → do not try to convert it: tell the user it was made by an older version and should be deleted or renamed, then set up anew.
 - Not found → the page needs a name and a place. Take what the user already said; propose the rest in one short question — "I'll create **Project tracker** at the top level of the workspace — OK, or another name or place?" — and wait. Then `notion-create-pages` with that title (top level of the workspace = no `parent`, which makes a private top-level page; under a page = `parent: {page_id}`; a teamspace's top level cannot be reached through the API — create it under a page there), no icon, and as its only content the config toggle — collapsed, because the IDs are for the skill, not for reading:
 
@@ -85,7 +85,17 @@ ADD COLUMN "Late, days" FORMULA('if(empty(prop("Milestones late")) and empty(pro
 
 Projects ↔ Milestones, Projects ↔ Tasks and Milestones ↔ Tasks are two-way because the project's `Late, days` and the milestone page's task list need the reverse side; Problems point at projects, milestones and tasks one way only, so pages do not grow another backlink list.
 
-Existing databases from an interrupted setup: fetch each data source and add what is missing (`ADD COLUMN` as above).
+Existing databases (an interrupted setup, or a tracker made by an earlier 1.x): fetch each data source and add what is missing — the computed columns as above, and these plain columns an earlier 1.x may lack (one call per data source, statements joined by `;`):
+
+```sql
+-- on <projects>
+ADD COLUMN "Origin" SELECT('Upwork':green, 'Direct':blue, 'Personal':gray) COMMENT 'Where the work comes from; add options freely';
+ADD COLUMN "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude';
+ADD COLUMN "Claude project" RICH_TEXT COMMENT 'The claude.ai project its dashboard chats open in: <name> — <project id>; empty = none'
+
+-- on <milestones>, <tasks>, <problems>, each
+ADD COLUMN "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude'
+```
 
 Make every database inline so it renders on the page: `notion-update-data-source`, `is_inline: true`.
 
@@ -117,18 +127,21 @@ Add the missing lines with `update_content` — `old_str` from the fetch (for an
 
 ## 4. Views on the databases
 
-Views live on the databases themselves; linked views on the root page would add "View of …" pages to the sidebar. Fetch each database for its views; "(default view)" means the view a new database comes with ("Default view"): rename and configure it with `notion-update-view`; create the rest with `notion-create-view` (`database_id` + `data_source_id`); fix an existing one with `notion-update-view`, `CLEAR FILTER` first. `TIMELINE BY "Dates"` with one date-range property is valid. Filters list the statuses to show rather than the ones to hide, so a status added later never leaks into a view.
+Views live on the databases themselves; linked views on the root page would add "View of …" pages to the sidebar. Fetch each database for its views. A new database comes with one view, "Default view", and it is the one the database opens on: it becomes the view marked "(default view)" below — rename and configure it with `notion-update-view`, never create that view anew (it would land after the others, and the database would open on another one). Create the rest with `notion-create-view` (`database_id` + `data_source_id`), in the order listed; fix an existing one with `notion-update-view`, `CLEAR FILTER` first. On an existing database whose first view is not the "(default view)" one, create the missing view and add "drag `<view>` to the first place" to the checklist in step 8. `TIMELINE BY "Dates"` with one date-range property is valid. Filters list the statuses to show rather than the ones to hide, so a status added later never leaks into a view.
 
 ```
 Projects    Active             (default view)  FILTER "Status" IN ("Active", "Paused"); SHOW "Name", "Client", "Origin", "Status", "Late, days", "Summary", "Target end", "Source"
+            Closed             table           FILTER "Status" IN ("Done", "Removed"); SORT BY "Target end" DESC; SHOW "Name", "Client", "Origin", "Status", "Target end", "Source"
 Milestones  Next up            (default view)  FILTER "Status" IN ("Planned", "In progress", "Paused"); GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Status", "Dates", "Late, days"
             Timeline           timeline        FILTER "Status" IN ("Planned", "In progress", "Paused"); TIMELINE BY "Dates"; GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Status"
-Tasks       All                (default view)  FILTER "Status" IN ("Planned", "In progress", "Waiting", "Done"); GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Milestone", "Status", "Dates", "Waiting on", "Late, days"
+Tasks       All                (default view)  FILTER "Status" IN ("Planned", "In progress", "Waiting"); GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Milestone", "Status", "Dates", "Waiting on", "Late, days"
             Waiting on         table           FILTER "Status" = "Waiting"; GROUP BY "Waiting on"; SORT BY "Dates" ASC; SHOW "Name", "Project", "Milestone", "Dates"
             Timeline           timeline        FILTER "Status" IN ("Planned", "In progress", "Waiting"); TIMELINE BY "Dates"; GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Status"
 Problems    Open               (default view)  FILTER "Status" IN ("Open", "Waiting"); GROUP BY "Type"; SORT BY "Opened" ASC; SHOW "Name", "Project", "Status", "Waiting on", "Opened"
             Recently resolved  table           FILTER "Status" = "Resolved"; SORT BY "Resolved on" DESC; SHOW "Name", "Project", "Type", "Resolved on", "Note"
 ```
+
+The view DSL takes only fixed dates, so `Recently resolved` gets its "past month" window by hand (checklist below); until then it lists every resolved problem, newest first.
 
 ## 5. Tabs
 
@@ -167,7 +180,8 @@ Unless the config already has a `dashboard` line: publish the dashboard as `refe
 
 What was created or added (or that everything was already in place), the dashboard (its link, or where the file is), and the page's name — the user can rename or move it freely, it is found by the config toggle, which stays collapsed; open it only to fix the IDs. Then the things the API cannot do, as a short checklist to click through once:
 
-- **Full width** on the tracker page itself (••• → Full width) — without it Notion folds each tab's second view (`Timeline`, `Recently resolved`) into a dropdown. Project, milestone and task pages are already full width.
-- After the first project exists — **hide helper properties**, once for the whole database: on any project page, click `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*; on any milestone page, `Project status` and `Open late`; on any task page, `Project status`, `Milestone status` and `Open late`. They exist only to compute lateness. (new-project.md repeats this, and the timeline zoom, when it creates the first project.)
+- **Recently resolved**: Problems tab → `Recently resolved` → Filter → `Resolved on` → *is within* → *Past month*, so the view stays short.
+- **Full width** on the tracker page itself (••• → Full width) — without it Notion folds each tab's second view (`Closed`, `Timeline`, `Recently resolved`) into a dropdown. Project, milestone and task pages are already full width.
+- After the first project exists — **hide properties**, once for the whole database (the API cannot set property visibility): on any project page, click `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*, and `Chat`, `Claude project` → *Hide when empty*; on any milestone page, `Project status` and `Open late` → *Always hide*, `Chat` → *Hide when empty*; on any task page, `Project status`, `Milestone status` and `Open late` → *Always hide*, `Chat` → *Hide when empty*; on any problem page, `Chat` → *Hide when empty*. The helpers exist only to compute lateness; `Chat` and `Claude project` are set later, from the dashboard and on request. (new-project.md repeats this, and the timeline zoom, when it creates the first project.)
 
 Next step: a new project.
