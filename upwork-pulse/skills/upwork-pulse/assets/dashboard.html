@@ -725,12 +725,12 @@
   function chatLink(jobId, title, ctx) { // the bar's link to the job's chat: open it, or start it with the job named first (the app titles a chat from its first message)
     ctx = ctx || {};
     var card = cardFor(jobId), sid = chatSid(card), a;
-    // what it is about and which ids to load; what to do next is the user's to say
-    var q = clean(title || (card && card.Title) || "Upwork") + " — Upwork Pulse";
+    // "Job: <title>" or "Conversation: <client>" first, for the chat's title; then the ids to load and the skill that loads them; what to do next is the user's to say
+    var q = (jobId ? "Job: " : "Conversation: ") + clean(title || (card && card.Title) || "Upwork") + " — Upwork Pulse";
     if (jobId) q += ", job #" + String(jobId).slice(-6) + " (Job ID " + jobId + ")";
     if (ctx.contract) q += ", contract " + ctx.contract;
     if (!jobId && ctx.room) q += ", Upwork room " + ctx.room;
-    var load = jobId ? " Load everything about it: the job card, the proposal, the contract and the conversation on Upwork." : " Load the conversation and everything about this client.";
+    var load = " Load it with the upwork-pulse skill.";
     // the web takes the project from the config's chat_project; the app's own link has no way to name one
     function newChat(q2) { return MOBILE ? "https://claude.ai/new?mode=cowork&surface=cowork" + (S.cfg.chat_project ? "&project=" + S.cfg.chat_project : "") + "&q=" + encodeURIComponent(q2) : "claude://cowork/new?q=" + encodeURIComponent(q2); }
     a = navLink(sid ? (MOBILE ? "https://claude.ai/cowork/cse_" + sid : "claude://claude.ai/code/session_" + sid) : newChat(q + "." + load), "Claude chat");
