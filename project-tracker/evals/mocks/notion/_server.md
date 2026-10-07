@@ -28,7 +28,7 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 	problems: `20000000-0000-4000-8000-000000000003`
 	dashboard: `https://claude.ai/artifact/d0000000-0000-4000-8000-000000000001`
 	dashboard_version: 99.0.0
-	schema: 2
+	schema: 3
 </details>
 <tabs>
 	<tab>
@@ -62,7 +62,7 @@ Fetching a database URL lists its data source with the schema below and its view
 A view is queried with `data: {mode: "view", view_url: "https://app.notion.com/p/<database or block id without dashes>?v=<view id without dashes>"}` and returns `{"results":[{…row properties…, "url":"https://app.notion.com/p/<row id>"}],"has_more":false}` with dates as `date:<Prop>:start` / `date:<Prop>:end`, relations as JSON arrays of page URLs, `Late, days`, `Open late` and the rollups as opaque formula references.
 
 Schemas:
-- Projects: Name (title), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Claude project (text), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
+- Projects: Name (title), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Claude project (text), Client dashboard (url), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
 - Milestones: Name (title), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Order (number), Chat (url), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
 - Tasks: Name (title), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Order (number), Chat (url), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
 - Problems: Name (title), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Note (text), Opened (date), Resolved on (date), Chat (url). `Chat` is empty on every row at the start.

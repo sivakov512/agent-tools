@@ -1,7 +1,8 @@
 ---
 type: 'tool_used'
 tool: 'mcp__notion__notion-update-page'
-input_match: 'schema: 3'
-min: 1
+input_match: 'replace_content'
+min: 0
+max: 0
 arm: 'both'
 ---

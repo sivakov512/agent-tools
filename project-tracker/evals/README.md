@@ -19,7 +19,7 @@ What is checked:
 - **Per scenario** — the exact Notion writes (which page, which property, which dates) via `tool_used` graders, plus an LLM judge over the mock calls or the final message for the parts regexes cannot pin down.
 - `unrelated` — a question that has nothing to do with projects must not touch Notion.
 - `upgrade-detect` — a workspace with only a 0.x tracker (config with `open_items`): the agent must not write to it and must offer the upgrade.
-- `schema-update` — the shared workspace as release 1.0.0 built it (no `schema` line, no `Order`): the agent brings it to schema 2 without asking — adds `Order`, numbers the rows, re-sorts the views, writes `schema: 2` last — then answers the status question.
+- `schema-update` — the shared workspace as release 1.0.0 built it (no `schema` line, no `Order`): the agent brings it to schema 3 without asking — adds `Order`, numbers the rows, re-sorts the views, writes `schema: 2`; adds `Client dashboard` to Projects, writes `schema: 3` last — then answers the status question.
 - `reorder` — "Hardware comes before Firmware — swap them": `Order` is renumbered without a preview, the dates stay, and the reply offers to move them because they now contradict the order.
 
 Layout (callout, tabs, views) is checked structurally here but a mock cannot render Notion; after changing the page markup, also run the skill once against a scratch page in a real workspace and look at it.
@@ -36,7 +36,7 @@ evals/
 
 ## The shared workspace
 
-`mocks/notion/_server.md` is a schema-2 tracker (config line `schema: 2`; every milestone and task has `Order`, 1, 2, … in the order listed below): root page **Client work** (`10000000-…-0001`) with the config toggle and four tabs, plus a decoy page with another tool's config callout. Today in it is Fri 2026-10-09. Ids graders match on:
+`mocks/notion/_server.md` is a schema-3 tracker (config line `schema: 3`; `Client dashboard` empty everywhere; every milestone and task has `Order`, 1, 2, … in the order listed below): root page **Client work** (`10000000-…-0001`) with the config toggle and four tabs, plus a decoy page with another tool's config callout. Today in it is Fri 2026-10-09. Ids graders match on:
 
 | What | Ids |
 |---|---|
