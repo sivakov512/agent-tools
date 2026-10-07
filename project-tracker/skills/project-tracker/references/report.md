@@ -1,6 +1,34 @@
-# Weekly report
+# Reading the tracker and the weekly report
 
-"What happened on the weather station this week?", "weekly report", "draft the client update".
+## Reading the tracker
+
+### My week — "what's on me this week?", "what do I have to do?"
+
+Across the active projects, from today through Sunday (on Friday to Sunday, through the next Sunday): the tasks and milestones the user has to move — not Waiting, `Waiting on` empty — grouped by project:
+
+- **Overdue**: items past their end.
+- **Due this week**: items whose end falls in the window.
+- **In progress**: what is underway without a date in the window.
+- **Starting**: Planned items whose start falls in the window.
+- **Decide**: Questions and Blockers that are on the user.
+
+Then one short line of whom to chase (Waiting items, oldest first). Undated Planned tasks are listed only under an In-progress milestone or in a project without milestones, as "no date".
+
+### Overview — "what's burning?", "who do I chase?", "what got done this week?"
+
+A question about what is burning or whom to chase is this Overview even when it says "this week"; My week answers only what the user has to do.
+
+From the root views `Next up`, `Open` (problems), `Recently resolved`, and the Tasks views `All` and `Waiting on`; Done milestones and tasks are in no root view, so what closed this week comes from the active projects' `Schedule` and `Tasks` views. Only projects in `Active` count — skip rows of other projects. The criteria are the dashboard's:
+
+- Late and due soon: open milestones and tasks past their end (with days late), then those ending in the next 7 days, by project — nothing paused is late.
+- On hold: paused milestones, with reason and how long.
+- Chase: Waiting tasks and problems waiting on someone, grouped by who, oldest first (a problem's age counts from `Opened`; a task's from the start of its `Dates`, or, without dates, from the history line that set it Waiting).
+- On you: tasks with empty `Waiting on` that are in progress, start or end in the next 7 days, or have no dates under the In-progress milestone or in a project without milestones; Blockers and Questions with empty `Waiting on`. Risks are not on you: the open ones go in one line of their own.
+- Closed this week: milestones and tasks done and problems resolved in the last 7 days, today included — when there are any.
+
+If the config has a `dashboard` line, end with its link: the same picture, live.
+
+## Weekly report — "what happened on the weather station this week?", "weekly report", "draft the client update"
 
 **Form.** By default the report is your answer in the conversation, in the conversation's language. Write it as an email to the client, in English, only when the user asks for an email, a client update or something to send. With several active projects and none named, ask which.
 

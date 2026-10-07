@@ -54,6 +54,7 @@ Pages, databases and tabs have no icons.
 - **Milestones** — the stages the client was promised, status Planned / In progress / Paused / Done / Dropped:
   - `Dates` — the dates agreed with the client; the Gantt is drawn from them. They move only when you say the new dates are agreed (every move is written into the history).
   - `Finished` — the day it was actually done.
+  - `Order` — its place in the plan (tasks: within their milestone), so the sequence holds where there are no dates.
   - `Late, days` — live: finished − due for a done milestone; today − due for an open one past its date; nothing while it (or its project) is paused.
 - **Tasks** — steps of days or weeks, with an optional milestone, status Planned / In progress / Waiting / Done / Dropped. `Dates` follow the same rule as milestones: every date in the tracker is one the client was given, and a late task counts in the project's lateness; steps you plan only for yourself simply have no dates. A handover the plan expects — an RFQ the labs must answer, a sign-off, files from the client — is a task in `Waiting`, with whom it waits on, named by its result ("Lab quotes received").
 - **Problems** — only what was not in the plan: `Blocker` (stuck on something nobody planned for), `Risk`, `Question`, with status Open / Waiting / Resolved / Dropped, who it is waiting on (a person, a vendor or the client by name; empty = on you) and an optional link to the milestone and task it affects.
@@ -62,7 +63,7 @@ All four databases have `Chat` — the link of the Claude chat about that row, f
 
 `Removed` and `Dropped` are for things you threw away: they disappear from every view, overview and report instead of showing up as finished work.
 
-The root page's **Config** toggle lists the four database IDs. The skill finds the root page by this toggle and reads it on every run, so nothing is hardcoded: rename or move the page as you like; if you move or recreate the databases, edit the IDs. Keep the toggle's title line — that is what the skill searches for. Setup also adds a `dashboard` line with the dashboard's link and `dashboard_version` with the version it was published from.
+The root page's **Config** toggle lists the four database IDs. The skill finds the root page by this toggle and reads it on every run, so nothing is hardcoded: rename or move the page as you like; if you move or recreate the databases, edit the IDs. Keep the toggle's title line — that is what the skill searches for. Setup also adds a `dashboard` line with the dashboard's link, `dashboard_version` with the version it was published from, and `schema`, the version of the structure. When a newer plugin changes the structure, the first conversation that finds an older tracker brings it up to date by itself (for schema 2: adds `Order` and numbers the existing rows), says so in one line, then answers you.
 
 **Coming from 0.x** (three databases, `Phase` on milestones, Issues with a `Task` type)? The skill recognises the old tracker and offers the upgrade: it sets up the new structure next to the old one, copies the live data by fixed rules (phases become milestones and their milestones tasks, `Task` issues become tasks, everything else problems, histories kept), keeps the same dashboard link, and retires the old page without deleting it — it stays as your backup.
 
@@ -113,7 +114,7 @@ then authenticate Notion as the Codex docs describe. Any other agent that reads 
 1. "Set up the project tracker in Notion" (or `/project-tracker set up`). It proposes a name and a place for the page (`Project tracker`, top level) — answer OK or give your own, or say them up front: "set up the tracker as *Client work* under *Freelance*". Running it again is safe: it finishes an interrupted setup instead of making a second one.
 2. Click through the short list setup ends with — the API cannot do these:
    - **full width** for the page (••• → Full width), optional but recommended: without it Notion folds each tab's second view (`Closed`, `Timeline`, `Recently resolved`) into a dropdown;
-   - **hide properties**, once per database: on a project page `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*, `Chat` and `Claude project` → *Hide when empty*; on a milestone page `Project status` and `Open late` → *Always hide*, `Chat` → *Hide when empty*; on a task page `Project status`, `Milestone status` and `Open late` → *Always hide*, `Chat` → *Hide when empty*; on a problem page `Chat` → *Hide when empty*. Project, milestone and task pages already open at full width.
+   - **hide properties**, once per database: on a project page `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*, `Chat` and `Claude project` → *Hide when empty*; on a milestone page `Project status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on a task page `Project status`, `Milestone status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on a problem page `Chat` → *Hide when empty*. Project, milestone and task pages already open at full width.
 3. Create a project: paste a plan or an email, point to one ("my last weekly report in Sent"), or name an Upwork contract. Section headings become milestones and the items under them tasks; a flat list becomes milestones; a contract gives its stages as milestones. The agent shows what it extracted and which source it used, and waits for your OK.
 4. On the project page: switch the Plan timeline and the Tasks tab's Timeline view to **Quarter** or **Month**. Notion remembers it.
 
@@ -137,6 +138,7 @@ Talk normally. After every change the agent replies with one line per change, **
 | "Save the notes from today's call: …" / "attach this datasheet" | goes into the project's Notes tab (correspondence about one task goes into that task's history) |
 | "The meter is on hold" / "Brightbrush is finished" | sets the project's status |
 | "The client added a second enclosure revision" / "break the demo into these steps: …" / "drop the accuracy validation" / "finished early, pull the rest in" | proposes the plan change, asks, applies it with history lines |
+| "Hardware comes before firmware — swap them" | renumbers the plan without asking; if the dates now contradict the new order, says so and offers to move them |
 | "Sync Brightbrush with Upwork" | re-reads the contract and applies stages started or submitted there and changed due dates |
 | "How are the masts?" | now (milestone and its current task) / late / blocked, waiting or on hold / next |
 | "What's on me this week?" | your overdue, due, in-progress and starting items, grouped by project, and whom to chase |
@@ -179,12 +181,14 @@ project-tracker/
     ├── SKILL.md                  loaded on every use: the model, data rules, Notion calls, everyday scenarios
     ├── assets/dashboard.html     the dashboard page; setup fills in the root page ID and publishes it
     └── references/               loaded only when the scenario needs them
-        ├── setup.md              create or finish the Notion structure
+        ├── setup.md              create or finish the Notion structure; bring an older tracker up to date
         ├── upgrade.md            move a 0.x tracker to this version
         ├── new-project.md        extracting a plan; building a project page
         ├── contracts.md          platform contracts (Upwork): mapping and resync
-        ├── plan-changes.md       adding / dropping milestones and tasks, pulling in, removing
-        ├── report.md             weekly report
+        ├── plan-changes.md       adding / dropping milestones and tasks, pulling in, removing, undoing an earlier change
+        ├── state.md              pausing and resuming; a project's status and fields
+        ├── notes.md              long notes and files in a project's Notes tab
+        ├── report.md             my week, the overview across projects, the weekly report
         ├── chats.md              Claude chats opened from the dashboard; a project's claude.ai project
         └── dashboard.md          what the dashboard is for; publishing and updating it
 ```

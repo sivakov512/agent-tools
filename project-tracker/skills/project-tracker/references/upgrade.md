@@ -18,6 +18,7 @@ Dropped milestones and issues, and Removed projects, do not move.
 
 **Milestones**, by the project's phases:
 
+- `Order`: milestones 1, 2, … per project; tasks 1, 2, … within each milestone (a project's tasks without a milestone among themselves), in the old tracker's order: by `Dates`, then as the old `Schedule` view lists them; phases in the order of their first milestone; issues that become tasks after the tasks they join.
 - All milestones in one phase (`General` or any single phase) → they stay milestones, one to one: `Name`, `Status`, `Dates`, `Finished`, body.
 - Several phases → each phase becomes a milestone named after it, and the milestones of that phase become its tasks, one to one (`Name`, `Status`, `Dates`, `Finished`, body; Paused → Planned with a history line `Was Paused in the 0.x tracker`). A phase that holds a single milestone with the phase's own name stays that one milestone, without a task.
   - The phase milestone's `Dates` run from its first task's start to its last task's end; with no dated task, none.
@@ -32,7 +33,7 @@ Dropped milestones and issues, and Removed projects, do not move.
 
 **Bodies**: every history and page body is copied verbatim, as fetched, then one line is added at the end: `- **<today>** — Moved from the 0.x tracker.` (for a milestone that became a task: `… was a milestone of the phase "<phase>"`). Mentions of old pages (`<mention-page url="…">`) are rewritten to the new page of the same row once that page exists — write the body as it was, then fix the mention with `update_content` after the target row is created; mentions of pages that did not move stay.
 
-**Notes tab**: lines and sub-pages in the old tab's order — short lines copied as they are, each sub-page re-created under the new project page with the same title and its body copied verbatim, then moved into the tab as SKILL.md (**Notes and files**) describes. Lines the upgrade itself adds come last.
+**Notes tab**: lines and sub-pages in the old tab's order — short lines copied as they are, each sub-page re-created under the new project page with the same title and its body copied verbatim, then moved into the tab as `notes.md` describes. Lines the upgrade itself adds come last.
 
 **Callout**: rebuilt by the rules of this version from the new rows; `On hold` reasons and `Paused` / `Done` lines come from the old callout.
 
