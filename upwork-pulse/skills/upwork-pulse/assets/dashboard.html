@@ -127,6 +127,10 @@
   .scrim.on { opacity: 1; pointer-events: auto; }
   .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(680px, 100vw); background: var(--surface); box-shadow: -20px 0 48px rgba(0, 0, 0, .14); display: flex; flex-direction: column; transform: translateX(104%); transition: transform .24s cubic-bezier(.2, .7, .2, 1); visibility: hidden; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
   .drawer.on { transform: none; visibility: visible; }
+  .drawer.wide { width: min(1180px, 100vw); } /* widened: as wide as the page, never wider than the window */
+  .drawer { transition: transform .24s cubic-bezier(.2, .7, .2, 1), width .2s ease-out; }
+  #drWide .w2, .drawer.wide #drWide .w1 { display: none; } .drawer.wide #drWide .w2 { display: block; }
+  @media (max-width: 720px) { #drWide { display: none; } }
   @media (prefers-reduced-motion: reduce) { .drawer, .scrim, .to-top { transition: none; } }
   .dr-bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px 12px 20px; border-bottom: 1px solid var(--border); flex: none; }
   .dr-bar .ttl { flex: 1; min-width: 0; font-size: 13px; color: var(--text-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -167,10 +171,19 @@
   .dr-actbar .lks a.primary { background: var(--accent); color: var(--surface); font-weight: 500; }
   .dr-actbar .lks a.primary .arr { color: inherit; opacity: .8; }
   .dr-actbar .lks a.primary:hover { background: var(--accent); color: var(--surface); filter: brightness(1.08); }
-  .dr-chat a { display: inline-flex; align-items: center; gap: 3px; padding: 4px 10px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 500; text-decoration: none; white-space: nowrap; }
-  .dr-chat a::before { content: "\2733"; font-size: .85em; margin-right: 2px; }
-  .dr-chat a .arr { color: inherit; opacity: .7; }
-  .dr-chat a:hover { filter: brightness(1.08); }
+  .dr-chat { position: relative; display: inline-flex; flex: none; }
+  .dr-chat .split-wrap { display: inline-flex; align-items: stretch; }
+  .dr-chat a.claude { display: inline-flex; align-items: center; gap: 3px; padding: 4px 10px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 500; text-decoration: none; white-space: nowrap; }
+  .dr-chat a.claude::before { content: "\2733"; font-size: .85em; margin-right: 2px; }
+  .dr-chat a.claude .arr { color: inherit; opacity: .7; }
+  .dr-chat a.claude:hover, .dr-chat .more:hover { filter: brightness(1.08); }
+  .dr-chat.split a.claude { border-radius: 6px 0 0 6px; padding-right: 8px; }
+  .dr-chat .more { border: 0; border-left: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); background: var(--accent-soft); color: var(--accent); padding: 0 7px; border-radius: 0 6px 6px 0; cursor: pointer; display: grid; place-items: center; }
+  .dr-chat .more svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .chat-m { position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; width: min(280px, calc(100vw - 32px)); padding: 6px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 12px 32px rgba(0, 0, 0, .16); }
+  .chat-m a { display: block; padding: 9px 10px; border-radius: 8px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 500; white-space: normal; }
+  .chat-m a .d { display: block; font-size: 12.5px; line-height: 1.45; font-weight: 400; color: var(--text-mute); margin-top: 2px; }
+  .chat-m a:hover { background: var(--surface-2); }
   .dr-actbar button.quiet { border-color: transparent; color: var(--text-mute); }
   .dr-actbar button.no.hint { border-color: color-mix(in srgb, var(--warn) 55%, var(--border)); color: var(--warn); }
   .dr-dec { margin: 12px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--text-2); max-width: 68ch; }
@@ -257,11 +270,9 @@
   .to-top { position: absolute; right: 22px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 2; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); box-shadow: 0 6px 18px rgba(0, 0, 0, .14); display: grid; place-items: center; cursor: pointer; opacity: 0; pointer-events: none; transform: translateY(6px); transition: opacity .18s, transform .18s; }
   .to-top.on { opacity: 1; pointer-events: auto; transform: none; }
   .to-top svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-  .kbd-hint { font-size: 12px; color: var(--text-mute); }
   @media (max-width: 560px) {
     .dr-head { padding: 18px 18px 16px; } .dr-in { padding: 4px 18px 48px; }
     .dr-head h1 { font-size: 20px; }
-    .kbd-hint { display: none; }
   }
 
   .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 24px; align-items: start; }
@@ -556,7 +567,7 @@
   <div class="dr-bar">
     <span class="ttl" id="drTitle"></span>
     <span class="dr-chat" id="drChat"></span>
-    <span class="kbd-hint">↑ ↓ to move</span>
+    <button class="icon-btn" id="drWide" type="button" aria-label="Widen" aria-pressed="false" title="Widen to the page width"><svg class="w1" viewBox="0 0 16 16"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg><svg class="w2" viewBox="0 0 16 16"><path d="M13 7H9V3M9 7l4.5-4.5M3 9h4v4M7 9l-4.5 4.5"/></svg></button>
     <button class="icon-btn" id="drPrev" type="button" aria-label="Previous" title="Previous (↑)"><svg viewBox="0 0 16 16"><path d="M3.5 10 8 5.5 12.5 10"/></svg></button>
     <button class="icon-btn" id="drNext" type="button" aria-label="Next" title="Next (↓)"><svg viewBox="0 0 16 16"><path d="M3.5 6 8 10.5 12.5 6"/></svg></button>
     <button class="icon-btn" id="drClose" type="button" aria-label="Close" title="Close (Esc)"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
@@ -713,23 +724,32 @@
   function chatSid(card) { var m = card && /session_([A-Za-z0-9]+)/.exec(String(card.Chat || "")); return m ? m[1] : null; }
   function chatLink(jobId, title, ctx) { // the bar's link to the job's chat: open it, or start it with the job named first (the app titles a chat from its first message)
     ctx = ctx || {};
-    var card = cardFor(jobId), sid = chatSid(card), href, a;
-    if (sid) href = MOBILE ? "https://claude.ai/cowork/cse_" + sid : "claude://claude.ai/code/session_" + sid;
-    else { // what it is about and which ids to load; what to do next is the user's to say
-      var q = clean(title || (card && card.Title) || "Upwork") + " — Upwork Pulse";
-      if (jobId) q += ", job #" + String(jobId).slice(-6) + " (Job ID " + jobId + ")";
-      if (ctx.contract) q += ", contract " + ctx.contract;
-      if (!jobId && ctx.room) q += ", Upwork room " + ctx.room;
-      q += jobId ? ". Load everything about it: the job card, the proposal, the contract and the conversation on Upwork." : ". Load the conversation and everything about this client.";
-      // the web takes the project from the config's chat_project; the app's own link has no way to name one
-      href = MOBILE ? "https://claude.ai/new?mode=cowork&surface=cowork" + (S.cfg.chat_project ? "&project=" + S.cfg.chat_project : "") + "&q=" + encodeURIComponent(q) : "claude://cowork/new?q=" + encodeURIComponent(q);
-    }
-    a = navLink(href, "Claude chat");
+    var card = cardFor(jobId), sid = chatSid(card), a;
+    // what it is about and which ids to load; what to do next is the user's to say
+    var q = clean(title || (card && card.Title) || "Upwork") + " — Upwork Pulse";
+    if (jobId) q += ", job #" + String(jobId).slice(-6) + " (Job ID " + jobId + ")";
+    if (ctx.contract) q += ", contract " + ctx.contract;
+    if (!jobId && ctx.room) q += ", Upwork room " + ctx.room;
+    var load = jobId ? " Load everything about it: the job card, the proposal, the contract and the conversation on Upwork." : " Load the conversation and everything about this client.";
+    // the web takes the project from the config's chat_project; the app's own link has no way to name one
+    function newChat(q2) { return MOBILE ? "https://claude.ai/new?mode=cowork&surface=cowork" + (S.cfg.chat_project ? "&project=" + S.cfg.chat_project : "") + "&q=" + encodeURIComponent(q2) : "claude://cowork/new?q=" + encodeURIComponent(q2); }
+    a = navLink(sid ? (MOBILE ? "https://claude.ai/cowork/cse_" + sid : "claude://claude.ai/code/session_" + sid) : newChat(q + "." + load), "Claude chat");
     a.classList.add("claude");
     a.title = jobId ? "This job's chat with Claude — the same one from its lead, proposal, contract and conversation" : "A chat with Claude about this conversation";
-    return a;
+    if (!sid) return a;
+    // the job has its chat: ▾ beside it starts it over, for when the old one is deleted or too long
+    var w = el("span", "split-wrap"), mb = document.createElement("button"), menu = el("div", "chat-m");
+    mb.type = "button"; mb.className = "more"; mb.innerHTML = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.8 5 6.8 8 3.8"/></svg>';
+    mb.setAttribute("aria-label", "More chat options"); mb.setAttribute("aria-expanded", "false"); menu.hidden = true;
+    var nw = navLink(newChat(q + ". Its old chat is gone: this is the job's chat from now on." + load), "New chat");
+    nw.appendChild(el("span", "d", "For when the old one is deleted or too long: the new chat becomes this job's chat."));
+    nw.addEventListener("click", function () { menu.hidden = true; mb.setAttribute("aria-expanded", "false"); });
+    menu.appendChild(nw);
+    mb.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; menu.hidden = !on; mb.setAttribute("aria-expanded", String(on)); });
+    w.appendChild(a); w.appendChild(mb); w.appendChild(menu); return w;
   }
-  function setChat(a) { var h = $("drChat"); clear(h); h.appendChild(a); } // the job's chat sits in the drawer's top bar, the same place in every drawer
+  function setChat(a) { var h = $("drChat"); clear(h); h.classList.toggle("split", a.classList.contains("split-wrap")); h.appendChild(a); }
+  document.addEventListener("click", function () { var m = document.querySelector("#drChat .chat-m"); if (m && !m.hidden) { m.hidden = true; $("drChat").querySelector(".more").setAttribute("aria-expanded", "false"); } }); // the job's chat sits in the drawer's top bar, the same place in every drawer
   function contractJob(id) { var c = S.contractJobs[id]; return c && c.job ? c.job : null; }
   function loadContractJob(id) { // the contract's job id is only in the contract's details
     if (!id || S.contractJobs[id]) return;
@@ -829,6 +849,9 @@
   }
   // after a list re-renders: keep the open row highlighted and the position counter right
   function afterList(hostId) { if (DR && DR.host === hostId) { markSel(); var list = navList(), i = navIndex(list); $("drTitle").textContent = DR.label + (i >= 0 && list.length > 1 ? " · " + (i + 1) + " of " + list.length : ""); $("drPrev").disabled = i <= 0; $("drNext").disabled = i < 0 || i >= list.length - 1; } }
+  function setWide(on) { var d = $("drawer"), b = $("drWide"); d.classList.toggle("wide", on); b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", on ? "Narrow" : "Widen"); b.title = on ? "Back to the narrow panel" : "Widen to the page width"; try { localStorage.setItem("fp.wide", on ? "1" : ""); } catch (e) {} }
+  $("drWide").addEventListener("click", function () { setWide(!$("drawer").classList.contains("wide")); });
+  try { if (localStorage.getItem("fp.wide")) setWide(true); } catch (e) {}
   $("drClose").addEventListener("click", closeDrawer);
   $("scrim").addEventListener("click", closeDrawer);
   $("drPrev").addEventListener("click", function () { step(-1); });
