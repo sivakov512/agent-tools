@@ -8,9 +8,9 @@ Run from `project-tracker/`:
 claude plugin eval . --runs 1 --ablation none --scaffold --trust-plugin --judge-model sonnet -j 2 --no-publish
 ```
 
-- One case: `--case progress`. By tag: `--tag create` (create, update, dates, tasks, problems, notes, state, plan, corrections, read, contracts, commands, setup, upgrade, negative).
+- One case: `--case progress`. By tag: `--tag create` (create, update, dates, tasks, problems, notes, state, plan, corrections, read, contracts, commands, setup, upgrade, chat, negative).
 - `--model sonnet` pins the model under test. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
-- One full run is 37 agent runs, about 25 minutes at `-j 2` and roughly $18 of API usage (`--runs 3` for a stability check triples that). Raise `-j` only on a machine with spare cores and memory — too many parallel runs get killed and show up as harness errors, not as failures.
+- One full run is 38 agent runs, about 25 minutes at `-j 2` and roughly $18 of API usage (`--runs 3` for a stability check triples that). Raise `-j` only on a machine with spare cores and memory — too many parallel runs get killed and show up as harness errors, not as failures.
 - `--scaffold` is needed for `new-from-file` (its `scaffold.sh` writes the estimate file into the sandbox).
 
 What is checked:

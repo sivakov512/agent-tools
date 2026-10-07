@@ -30,14 +30,17 @@ CREATE TABLE ("Name" TITLE, "Client" RICH_TEXT,
   "Status" SELECT('Active':blue, 'Paused':yellow, 'Done':green, 'Removed':gray),
   "Summary" RICH_TEXT COMMENT 'One sentence: where we are, what is next',
   "Target end" DATE, "Repository" URL,
-  "Source" URL COMMENT 'Where the project came from; empty for pasted text, email or a local file')
+  "Source" URL COMMENT 'Where the project came from; empty for pasted text, email or a local file',
+  "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude',
+  "Claude project" RICH_TEXT COMMENT 'The claude.ai project its dashboard chats open in: <name> — <project id>; empty = none')
 
 -- Milestones
 CREATE TABLE ("Name" TITLE,
   "Project" RELATION('<projects>', DUAL 'Milestones'),
   "Status" SELECT('Planned':gray, 'In progress':blue, 'Paused':yellow, 'Done':green, 'Dropped':brown),
   "Dates" DATE COMMENT 'Agreed with the client; drives the Gantt',
-  "Finished" DATE COMMENT 'The day it was actually done')
+  "Finished" DATE COMMENT 'The day it was actually done',
+  "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude')
 
 -- Tasks
 CREATE TABLE ("Name" TITLE,
@@ -46,7 +49,8 @@ CREATE TABLE ("Name" TITLE,
   "Status" SELECT('Planned':gray, 'In progress':blue, 'Waiting':yellow, 'Done':green, 'Dropped':brown),
   "Dates" DATE COMMENT 'Agreed with the client, like milestone dates; empty for steps planned only for myself',
   "Waiting on" RICH_TEXT COMMENT 'Who has to act; empty = on me',
-  "Finished" DATE COMMENT 'The day it was actually done')
+  "Finished" DATE COMMENT 'The day it was actually done',
+  "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude')
 
 -- Problems
 CREATE TABLE ("Name" TITLE, "Project" RELATION('<projects>'),
@@ -55,7 +59,8 @@ CREATE TABLE ("Name" TITLE, "Project" RELATION('<projects>'),
   "Waiting on" RICH_TEXT,
   "Milestone" RELATION('<milestones>') COMMENT 'Which milestone this affects, if any',
   "Task" RELATION('<tasks>') COMMENT 'Which task this affects, if any',
-  "Note" RICH_TEXT, "Opened" DATE, "Resolved on" DATE)
+  "Note" RICH_TEXT, "Opened" DATE, "Resolved on" DATE,
+  "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude')
 ```
 
 Then the computed columns, with `notion-update-data-source` `statements`, one `ADD COLUMN` per call (without the trailing `;`), in this order (formulas that reach into another database are rejected by the API, so statuses from other databases come in through rollups):
