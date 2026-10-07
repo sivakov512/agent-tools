@@ -380,7 +380,7 @@
   .tl-b.box:hover { filter: brightness(1.08); box-shadow: none; }
   .tl-b.box.hov { box-shadow: 0 6px 18px rgba(0, 0, 0, .28); } /* the lift wins over the plain hover */
   .tl-strip { position: absolute; left: 8px; right: 8px; bottom: 4px; height: 4px; }
-  .tl-seg { position: absolute; top: 0; height: 4px; border-radius: 2px; cursor: pointer; background: var(--border-2); }
+  .tl-seg { position: absolute; height: 4px; border-radius: 2px; cursor: pointer; background: var(--border-2); }
   .tl-seg.prog { background: var(--accent); } .tl-seg.late { background: var(--critical); } .tl-seg.wait { background: var(--warn); } .tl-seg.done, .tl-seg.doneLate { background: var(--good); } .tl-seg.paused { background: var(--paused); }
   .tl-seg.prog, .tl-seg.late, .tl-seg.wait { z-index: 1; } /* the work under way stays on top where tiny segments touch */
   .tl-seg:hover { box-shadow: 0 0 0 2px var(--surface); }
@@ -530,6 +530,7 @@
   }
   function rel(v) { if (Array.isArray(v)) return v.map(cleanUrl); try { var a = JSON.parse(v || "[]"); return Array.isArray(a) ? a.map(cleanUrl) : []; } catch (e) { return []; } }
   function key(u) { var m = /([0-9a-f]{32})/i.exec(nodash(u)); return m ? m[1].toLowerCase() : String(u); }
+  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : null; }
   function plural(n, one, many) { return n + " " + (n === 1 ? one : (many || one + "s")); }
   function saveOpen() { try { localStorage.setItem("pt.tlOpen", JSON.stringify(S.tlOpen)); } catch (e) {} }
 
@@ -562,15 +563,15 @@
   function stateOfItem(it, pausedUp) {
     if (it.status === "Done") return it.late > 0 ? "doneLate" : "done";
     if (pausedUp) return "paused";
-    if (it.start == null) return "nodate";
     if (it.late > 0) return "late";
-    if (it.status === "Waiting") return "wait";
-    return it.status === "In progress" ? "prog" : "plan";
+    if (it.status === "Waiting") return "wait"; // waiting or under way shows so, dated or not
+    if (it.status === "In progress") return "prog";
+    return it.start == null ? "nodate" : "plan";
   }
   function msOf(row, project) {
     var start = dnum(row["date:Dates:start"]), end = dnum(row["date:Dates:end"]);
     if (end == null) end = start;
-    var m = { kind: "ms", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, tasks: [], chat: row.Chat || "" };
+    var m = { kind: "ms", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, tasks: [], chat: row.Chat || "", order: num(row.Order) };
     var paused = m.status === "Paused" || project.status === "Paused";
     m.late = lateOf(m, paused); m.state = stateOfItem(m, paused); m.paused = paused && m.status !== "Done";
     return m;
@@ -579,7 +580,7 @@
     var start = dnum(row["date:Dates:start"]), end = dnum(row["date:Dates:end"]);
     if (end == null) end = start;
     var mk = rel(row.Milestone).map(key)[0] || null, ms = mk ? msByKey[mk] : null;
-    var k = { kind: "task", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", waiting: clean(row["Waiting on"]), start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, mk: ms ? mk : null, ms: ms || null, chat: row.Chat || "" };
+    var k = { kind: "task", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", waiting: clean(row["Waiting on"]), start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, mk: ms ? mk : null, ms: ms || null, chat: row.Chat || "", order: num(row.Order) };
     var paused = project.status === "Paused" || (ms && ms.status === "Paused");
     k.late = lateOf(k, paused); k.state = stateOfItem(k, paused); k.paused = paused && k.status !== "Done";
     return k;
@@ -697,6 +698,7 @@
       var tasks = r[1].map(function (row) { return taskOf(row, p, byKey); }).filter(function (k) { return k.status !== "Dropped"; });
       tasks.forEach(function (k) { if (k.ms) k.ms.tasks.push(k); });
       msList.forEach(function (m) { m.tasks = sortItems(m.tasks); });
+      msList = sortItems(msList);
       S.plan[p.key] = { ms: msList, tasks: tasks };
     }, function (err) { if (!(S.plan[p.key] && S.plan[p.key].ms) || isDenial(err)) S.plan[p.key] = { err: err }; });
   }
@@ -748,7 +750,12 @@
   function dueItems() { var t = todayNum(); return openItems().filter(function (x) { return !(x.late > 0) && x.end != null && x.end - t <= 7; }).sort(function (a, b) { return a.end - b.end || (a.kind === "ms" ? -1 : 1); }); }
   function ageOf(x) { var t = todayNum(); if (x.kind === "problem") return x.opened == null ? null : t - x.opened; return x.start != null && x.start <= t ? t - x.start : null; }
   function ageCls(a) { return a == null ? "" : a >= 14 ? "crit" : a >= 7 ? "warn" : ""; }
-  function sortItems(list) { return list.slice().sort(function (a, b) { return (a.start == null ? 1e9 : a.start) - (b.start == null ? 1e9 : b.start) || (a.end || 0) - (b.end || 0); }); }
+  function sortItems(list) { // the plan's own order (`Order`) when both have one — it holds even without dates — else by dates
+    return list.slice().sort(function (a, b) {
+      if (a.order != null && b.order != null && a.order !== b.order) return a.order - b.order;
+      return (a.start == null ? 1e9 : a.start) - (b.start == null ? 1e9 : b.start) || (a.end || 0) - (b.end || 0) || (a.order == null ? 1e9 : a.order) - (b.order == null ? 1e9 : b.order);
+    });
+  }
   function worstLate(p) { return itemsOf(p).filter(function (x) { return isOpen(x) && x.late > 0; }).reduce(function (a, x) { return Math.max(a, x.late); }, 0); }
   function nextEnd(p) { return itemsOf(p).filter(function (x) { return isOpen(x) && !x.paused; }).reduce(function (a, x) { return Math.min(a, x.end == null ? todayNum() + 30 : x.end); }, 1e9); }
   function blockersOf(p) { return liveProblems().filter(function (i) { return i.pk === p.key && i.type === "Blocker"; }); }
@@ -922,7 +929,7 @@
     host.addEventListener("click", function (e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
   }
   // sizes on the timeline, in px
-  var TL = { pad: 8, head: 24, box: 34, gap: 8, lane: 21, flat: 30, row: 46, minBox: 8, narrowBox: 60, keepName: 64, ph: 14 };
+  var TL = { pad: 8, head: 24, box: 34, seg: 6, gap: 8, lane: 21, flat: 30, row: 46, minBox: 8, narrowBox: 60, keepName: 64, chipMin: 64, ph: 30 }; // ph: days an undated milestone's placeholder card spans
   function pack(bars) { var lanes = []; bars.forEach(function (g) { var i = 0; while (lanes[i] != null && lanes[i] >= g.start) i++; lanes[i] = g.end; g.lane = i; }); return lanes.length; }
   function needsPlaceholder(m) { return OPEN_MS[m.status] || m.status === "Paused"; } // a Done or Dropped milestone without dates is not drawn
   function grow(e) { // under the cursor a bar or chip widens to show its whole name, above its neighbours
@@ -984,18 +991,31 @@
     return { start: Math.min.apply(null, d.map(function (k) { return k.start; })), end: Math.max.apply(null, d.map(function (k) { return k.end; })), nodate: true };
   }
   function kidsIn(m, sp) { return (m.tasks || []).filter(function (k) { return k.start != null && k.end >= sp.start && k.start <= sp.end; }); }
-  function taskTitle(k) { return k.name + " · " + (k.start == null ? "no dates" : range(k.start, k.end)) + (k.status === "Waiting" && k.waiting ? " · waiting on " + k.waiting : ""); }
+  function datedIn(m, sp) { return kidsIn(m, sp).map(function (k) { return { m: k, start: Math.max(k.start, sp.start), end: Math.min(k.end, sp.end) }; }); } // clipped to the card
+  // Tasks without dates are normal — only the milestone is promised — so they sit in the card after the dated ones, in a grid:
+  // as many per line as fit at TL.chipMin each (so each can be pointed at and shows its first word), the rest on more lines.
+  function undatedOf(m) { return (m.tasks || []).filter(function (k) { return k.start == null; }); }
+  function perLine(widthPx) { return Math.max(1, Math.floor((widthPx - 4) / (TL.chipMin + 4))); }
+  function tipOf(x) { // the hover tip: state and dates (the name is on the bar already)
+    var d = x.start == null ? (x.kind === "ms" ? "no dates yet" : "no dates") : range(x.start, x.end), ph = planPhrase(x)[0];
+    if (x.status === "Done") return ph.charAt(0).toUpperCase() + ph.slice(1) + " · " + d;
+    if (x.paused) return (x.kind === "task" && x.ms && x.ms.status === "Paused" ? "Paused with its milestone" : "Paused") + " · " + d;
+    var st = x.status === "Waiting" ? (x.waiting ? "Waiting on " + x.waiting : "Waiting") : x.status || "Planned";
+    return st + " · " + d + (x.late > 0 ? " · " + days(x.late) + " late" : x.start != null && !/^(waiting|no dates|in progress)/.test(ph) ? " · " + ph : "");
+  }
   function drawRow(r, lab, p, ax) {
     var X = ax.X, LW = ax.LW, t = ax.t, ms = msList(p) || [], tasks = taskList(p) || [];
+    var PH = Math.max(TL.ph, Math.ceil((TL.chipMin + 11) / ax.px)); // an undated milestone's placeholder: a month, never narrower than one task chip
     // dated tasks drawn as bars of their own: those without a milestone, and those wholly outside their milestone's span
     var spans = {}; ms.forEach(function (m) { spans[key(m.url)] = spanOf(m); });
     var bars = tasks.filter(function (k) { if (k.start == null) return false; if (!k.ms) return true; var sp = spans[key(k.ms.url)]; return !sp || k.end < sp.start || k.start > sp.end; })
       .map(function (k) { return { m: k, start: k.start, end: k.end }; });
-    var hasTasks = ms.some(function (m) { var sp = spans[key(m.url)]; return sp && kidsIn(m, sp).length; }), open = !!S.tlOpen[p.key] && hasTasks;
+    var drawn = function (m) { return spans[key(m.url)] || needsPlaceholder(m); }; // a milestone that gets a card
+    var hasTasks = ms.some(function (m) { return drawn(m) && (m.tasks || []).some(function (k) { return k.start == null || spans[key(m.url)] && kidsIn(m, spans[key(m.url)]).indexOf(k) >= 0; }); }), open = !!S.tlOpen[p.key] && hasTasks;
     function bar(g, top, cls) {
       var m = g.m, x0 = X(g.start), x1 = X(g.end + 1);
       var b = btn("tl-b " + (cls || "") + " " + (m.state === "plan" ? "" : m.state), null, function () { openProject(p, key(m.url)); });
-      b.appendChild(el("span", "tl-bn", m.name)); b.title = taskTitle(m);
+      b.appendChild(el("span", "tl-bn", m.name)); b.title = tipOf(m);
       b.style.left = (LW + x0) + "px"; b.style.width = Math.max(x1 - x0 - 3, 6) + "px"; b.style.top = top + "px";
       r.appendChild(hoverable(b, true)); return b;
     }
@@ -1007,26 +1027,37 @@
       b.appendChild(hd);
       b.style.left = (LW + x0) + "px"; b.style.width = Math.max(x1 - x0 - 3, TL.minBox) + "px"; b.style.top = top + "px"; b.style.height = hgt + "px";
       if (x1 - x0 < TL.narrowBox) b.classList.add("narrow"); // too small for ◆, name and ?: the ? stays, the rest shows under the cursor
-      b.title = m.name + " · " + (undated ? "no dates yet" + (sp.placeholder ? "" : ", drawn over its tasks") : range(m.start, m.end));
+      b.title = tipOf(m);
       r.appendChild(hoverable(b, true)); return { bar: b, x0: x0, sp: sp };
     }
-    function strip(b, m) { // closed: the milestone's tasks as one segmented line inside its card
-      var kids = kidsIn(m, b.sp); if (!kids.length) return false;
-      var tr = el("span", "tl-strip");
-      kids.forEach(function (k) {
-        var x0 = X(Math.max(k.start, b.sp.start)) - b.x0, x1 = X(Math.min(k.end, b.sp.end) + 1) - b.x0;
-        var sg = el("span", "tl-seg " + (k.state === "plan" ? "" : k.state)); sg.style.left = Math.max(x0 - TL.pad, 0) + "px"; sg.style.width = Math.max(x1 - x0 - 3, 3) + "px";
-        sg.title = taskTitle(k); sg.addEventListener("click", function (e) { e.stopPropagation(); openProject(p, key(k.url)); });
-        tr.appendChild(sg);
-      });
+    function stripLanes(m, sp) { var d = datedIn(m, sp), n = pack(d); return n + (undatedOf(m).length ? 1 : 0); }
+    function strip(b, m) { // closed: the milestone's tasks as segmented lines inside its card — dated ones by date (overlaps on lines above), undated ones sharing a line evenly
+      var dated = datedIn(m, b.sp), und = undatedOf(m); if (!dated.length && !und.length) return false;
+      var nd = pack(dated), lines = nd + (und.length ? 1 : 0), tr = el("span", "tl-strip"); tr.style.height = (lines * TL.seg - 2) + "px";
+      function seg(k, bottom) {
+        var sg = el("span", "tl-seg " + (k.state === "plan" || k.state === "nodate" ? "" : k.state)); sg.style.bottom = bottom + "px";
+        sg.title = k.name + " — " + tipOf(k); /* a segment shows no name, so its tip does */
+        sg.addEventListener("click", function (e) { e.stopPropagation(); openProject(p, key(k.url)); });
+        tr.appendChild(sg); return sg;
+      }
+      dated.forEach(function (g) { var x0 = X(g.start) - b.x0, x1 = X(g.end + 1) - b.x0, sg = seg(g.m, (lines - 1 - g.lane) * TL.seg); sg.style.left = Math.max(x0 - TL.pad, 0) + "px"; sg.style.width = Math.max(x1 - x0 - 3, 3) + "px"; });
+      und.forEach(function (k, i) { var sg = seg(k, 0); sg.style.left = (i / und.length * 100) + "%"; sg.style.width = "calc(" + (100 / und.length) + "% - 3px)"; }); // shares: they follow the card when it widens
       b.bar.appendChild(tr); return true;
     }
-    function chips(b, m, kids) { // opened up: the milestone's tasks as named chips inside its card (reachable by mouse; the card itself takes focus)
-      kids.forEach(function (g) {
-        var k = g.m, x0 = X(g.start) - b.x0, x1 = X(g.end + 1) - b.x0;
-        var c = el("span", "tl-chip " + (k.state === "plan" ? "" : k.state), k.name); c.style.left = Math.max(x0 + 3, 4) + "px"; c.style.width = Math.max(x1 - x0 - 7, 6) + "px"; c.style.top = (TL.head + g.lane * TL.lane) + "px";
-        c.title = taskTitle(k); c.addEventListener("click", function (e) { e.stopPropagation(); openProject(p, key(k.url)); });
-        b.bar.appendChild(hoverable(c));
+    function chipLines(m, sp) { var d = pack(datedIn(m, sp)), u = undatedOf(m).length, w = X(sp.end + 1) - X(sp.start) - 3; return d + (u ? Math.ceil(u / perLine(w)) : 0); }
+    function chips(b, m) { // opened up: the milestone's tasks as named chips inside its card (reachable by mouse; the card itself takes focus)
+      function chip(k, top) {
+        var c = el("span", "tl-chip " + (k.state === "plan" || k.state === "nodate" ? "" : k.state), k.name); c.style.top = top + "px";
+        c.title = tipOf(k); c.addEventListener("click", function (e) { e.stopPropagation(); openProject(p, key(k.url)); });
+        b.bar.appendChild(hoverable(c)); return c;
+      }
+      var dated = datedIn(m, b.sp), nd = pack(dated);
+      dated.forEach(function (g) { var x0 = X(g.start) - b.x0, x1 = X(g.end + 1) - b.x0, c = chip(g.m, TL.head + g.lane * TL.lane); c.style.left = Math.max(x0 + 3, 4) + "px"; c.style.width = Math.max(x1 - x0 - 7, 6) + "px"; });
+      var und = undatedOf(m), per = Math.min(und.length, perLine(X(b.sp.end + 1) - X(b.sp.start) - 3)); // as chipLines counted
+      und.forEach(function (k, i) { // the grid, in shares of the card: each line shares the card among its chips (a short last line too), and stretches when the card widens under the cursor
+        var line = Math.floor(i / per), inLine = Math.min(per, und.length - line * per), col = i % per;
+        var c = chip(k, TL.head + (nd + line) * TL.lane);
+        c.style.left = "calc(" + (col * 100 / inLine) + "% + 3px)"; c.style.width = "calc(" + (100 / inLine) + "% - 7px)";
       });
     }
     function glab(text, y, go) { var g = btn("tl-glab", text, go); g.title = text; g.style.top = (y + 1) + "px"; lab.appendChild(g); }
@@ -1034,13 +1065,13 @@
     if (!ms.length) { // tasks only: the dated ones are the row; a task without dates is not drawn
       var nl = pack(bars); bars.forEach(function (g) { bar(g, TL.pad + g.lane * TL.flat); }); h = Math.max(nl, 1) * TL.flat + 16;
     } else if (!open) { // one card per milestone, its tasks as a strip
-      var BH = hasTasks ? TL.box : TL.head, HL = BH + TL.gap, ph = t;
-      var items = ms.map(function (m) { var sp = spans[key(m.url)]; return sp ? { m: m, start: sp.start, end: sp.end, sp: sp } : null; }).filter(Boolean);
-      ms.filter(function (m) { return !spans[key(m.url)] && needsPlaceholder(m); }).forEach(function (m) { items.push({ m: m, start: ph, end: ph + TL.ph - 1, sp: { start: ph, end: ph + TL.ph - 1, nodate: true, placeholder: true } }); ph += TL.ph; });
+      var segLanes = Math.max.apply(null, [1].concat(ms.filter(drawn).map(function (m) { return stripLanes(m, spans[key(m.url)] || { start: 0, end: PH - 1 }); })));
+      var BH = hasTasks ? TL.box + (segLanes - 1) * TL.seg : TL.head, HL = BH + TL.gap, ph = t;
+      var items = ms.map(function (m) { var sp = spans[key(m.url)]; return sp ? { m: m, start: sp.start, end: sp.end, sp: sp } : null; }).filter(Boolean); // dated cards
+      ms.filter(function (m) { return !spans[key(m.url)] && needsPlaceholder(m); }).forEach(function (m) { items.push({ m: m, start: ph, end: ph + PH - 1, sp: { start: ph, end: ph + PH - 1, nodate: true, placeholder: true } }); ph += PH; });
       var n = pack(items);
       items.forEach(function (g) {
         var top = TL.pad + g.lane * HL, mid = top + (BH - TL.head) / 2;
-        if (g.sp.placeholder) { box(g.m, g.sp, mid, TL.head); return; }
         var b = box(g.m, g.sp, top, BH);
         if (!strip(b, g.m)) { b.bar.style.height = TL.head + "px"; b.bar.style.top = mid + "px"; }
       });
@@ -1052,9 +1083,9 @@
         var sp = spans[key(m.url)];
         if (!sp && !needsPlaceholder(m)) return;
         glab(m.name, y, function () { openProject(p, key(m.url)); });
-        if (!sp) { box(m, { start: ph2, end: ph2 + TL.ph - 1, nodate: true, placeholder: true }, y, TL.head); ph2 += TL.ph; y += TL.head + TL.gap; return; }
-        var kids = kidsIn(m, sp).map(function (k) { return { m: k, start: Math.max(k.start, sp.start), end: Math.min(k.end, sp.end) }; }), lanes = pack(kids);
-        var bh = TL.head + lanes * TL.lane + (lanes ? 4 : 0), b = box(m, sp, y, bh); chips(b, m, kids);
+        if (!sp) { sp = { start: ph2, end: ph2 + PH - 1, nodate: true, placeholder: true }; ph2 += PH; }
+        var lanes = chipLines(m, sp);
+        var bh = TL.head + lanes * TL.lane + (lanes ? 4 : 0), b = box(m, sp, y, bh); chips(b, m);
         y += bh + TL.gap;
       });
       if (bars.length) {
