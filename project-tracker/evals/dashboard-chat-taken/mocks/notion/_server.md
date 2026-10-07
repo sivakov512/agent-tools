@@ -28,6 +28,7 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 	problems: `20000000-0000-4000-8000-000000000003`
 	dashboard: `https://claude.ai/artifact/d0000000-0000-4000-8000-000000000001`
 	dashboard_version: 99.0.0
+	schema: 2
 </details>
 <tabs>
 	<tab>
@@ -62,8 +63,8 @@ A view is queried with `data: {mode: "view", view_url: "https://app.notion.com/p
 
 Schemas:
 - Projects: Name (title), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Claude project (text), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
-- Milestones: Name (title), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Chat (url), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
-- Tasks: Name (title), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Chat (url), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
+- Milestones: Name (title), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Order (number), Chat (url), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
+- Tasks: Name (title), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Order (number), Chat (url), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
 - Problems: Name (title), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Note (text), Opened (date), Resolved on (date), Chat (url). `Chat` is empty on every row at the start, except task 0103, whose `Chat` is `https://claude.ai/code/session_01EvalOtherChat` (an earlier chat about it).
 
 ## Projects
@@ -104,6 +105,8 @@ Its page (fetch of the row id) contains:
 ```
 
 Fetching a linked-view block `60000000…00NN` lists its views: block …11 → view `70000000-0000-4000-8000-000000000011` "Plan" (milestones, timeline); …12 → two views, first `70000000-…-000000000012` "Tasks" (tasks, table, grouped by Milestone; Status in Planned, In progress, Waiting, Done), then `70000000-…-000000000015` "Timeline" (the same tasks as a timeline by Dates); …13 → view `70000000-…-000000000013` "Schedule" (milestones, table); …14 → view `70000000-…-000000000014` "Problems" (Status in Open, Waiting). Querying them returns this project's rows.
+
+`Order` is set on every milestone and task: 1, 2, … in the order each list below gives them (milestones per project, tasks per milestone; tasks without a milestone per project).
 
 Milestones of Energy meter (id — name — status — Dates):
 - `3000…0110` Firmware on the dev board — In progress — 2026-09-15 → 2026-11-13. Body: `- **Sep 15** — Started with the Zigbee stack bring-up.`

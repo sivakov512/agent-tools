@@ -28,6 +28,7 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 	problems: `20000000-0000-4000-8000-000000000003`
 	dashboard: `https://claude.ai/artifact/d0000000-0000-4000-8000-000000000001`
 	dashboard_version: 99.0.0
+	schema: 2
 </details>
 <tabs>
 	<tab>
@@ -104,6 +105,8 @@ Its page (fetch of the row id) contains:
 ```
 
 Fetching a linked-view block `60000000…00NN` lists its views: block …11 → view `70000000-0000-4000-8000-000000000011` "Plan" (milestones, timeline); …12 → two views, first `70000000-…-000000000012` "Tasks" (tasks, table, grouped by Milestone; Status in Planned, In progress, Waiting, Done), then `70000000-…-000000000015` "Timeline" (the same tasks as a timeline by Dates); …13 → view `70000000-…-000000000013` "Schedule" (milestones, table); …14 → view `70000000-…-000000000014` "Problems" (Status in Open, Waiting). Querying them returns this project's rows.
+
+`Order` is set on every milestone and task: 1, 2, … in the order each list below gives them (milestones per project, tasks per milestone; tasks without a milestone per project).
 
 Milestones of Energy meter (id — name — status — Dates):
 - `3000…0110` Firmware on the dev board — In progress — 2026-09-15 → 2026-11-20. Body: `- **Sep 15** — Started with the Zigbee stack bring-up.` then `- **Oct 5** — Pushed by the Sleep modes move, Nov 13 → Nov 20.`
