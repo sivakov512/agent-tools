@@ -5,6 +5,6 @@ focus: 'last_message'
 - Client Pawtronics; Source https://www.upwork.com/ab/f/contracts/777123.
 - Milestones only, one per contract stage: Schematic is Done ending Sep 20; Layout is In progress; Firmware and Pilot support are Planned.
 - It asks the user for the missing end dates instead of inventing them.
-- The only task proposed is "Milestone 3 funded" (Waiting on Pawtronics, under Firmware); no problems are proposed, and nothing about IP or respin quotes becomes a task or a problem.
+- No tasks and no problems are proposed: nothing about funding, payment, IP or respin quotes becomes a task or a problem, and no milestone carries an amount.
 
 Judge only these claims. Different wording, ordering, extra harmless detail and extra read calls are fine. Answer FAIL only if one of the claims above is clearly false.

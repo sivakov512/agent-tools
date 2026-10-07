@@ -6,4 +6,4 @@ runs: 3
 tags: [state]
 append_system_prompt: 'The current date is Friday, 9 October 2026. The date shown elsewhere in the environment is wrong for this session — use 2026-10-09 as today.'
 ---
-Brightbrush is on hold until the client funds the next milestone.
+Brightbrush is on hold until the client's budget review is done.

@@ -53,22 +53,22 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 
 Fetching a database URL lists its data source with the schema below and its views as `<view url="view://<id>">{"name":…,"type":…,…}</view>`:
 
-- Projects database `40000000…0001` — data source `20000000…0001`; view `50000000-0000-4000-8000-000000000001` "Active" (Status in Active, Paused).
+- Projects database `40000000…0001` — data source `20000000…0001`; views `50000000-0000-4000-8000-000000000001` "Active" (Status in Active, Paused) and `50000000-…-000000000009` "Closed" (Status in Done, Removed; Target end newest first).
 - Milestones database `40000000…0002` — data source `20000000…0002`; views `50000000-…-000000000002` "Next up" (Status in Planned, In progress, Paused; grouped by Project) and `50000000-…-000000000003` "Timeline" (same filter, timeline by Dates).
-- Tasks database `40000000…0004` — data source `20000000…0004`; views `50000000-…-000000000006` "Waiting on" (Status = Waiting; grouped by Waiting on) and `50000000-…-000000000007` "Timeline" (Status in Planned, In progress, Waiting; timeline by Dates).
+- Tasks database `40000000…0004` — data source `20000000…0004`; views `50000000-…-000000000008` "All" (the default view: Status in Planned, In progress, Waiting; grouped by Project), `50000000-…-000000000006` "Waiting on" (Status = Waiting; grouped by Waiting on) and `50000000-…-000000000007` "Timeline" (Status in Planned, In progress, Waiting; timeline by Dates).
 - Problems database `40000000…0003` — data source `20000000…0003`; views `50000000-…-000000000004` "Open" (Status in Open, Waiting; grouped by Type) and `50000000-…-000000000005` "Recently resolved" (Status = Resolved, newest first).
 
 A view is queried with `data: {mode: "view", view_url: "https://app.notion.com/p/<database or block id without dashes>?v=<view id without dashes>"}` and returns `{"results":[{…row properties…, "url":"https://app.notion.com/p/<row id>"}],"has_more":false}` with dates as `date:<Prop>:start` / `date:<Prop>:end`, relations as JSON arrays of page URLs, `Late, days`, `Open late` and the rollups as opaque formula references.
 
 Schemas:
-- Projects: Name (title), Client (text), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Claude project (text), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
+- Projects: Name (title), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Claude project (text), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
 - Milestones: Name (title), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Chat (url), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
 - Tasks: Name (title), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Chat (url), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
 - Problems: Name (title), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Note (text), Opened (date), Resolved on (date), Chat (url). `Chat` is empty on every row at the start.
 
 ## Projects
 
-**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Client Northwind; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-08; Summary "Firmware on the dev board in progress, due Nov 13; real CT readings over Zigbee due Oct 9."
+**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Client Northwind; Origin Direct; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-08; Summary "Firmware on the dev board in progress, due Nov 13; real CT readings over Zigbee due Oct 9."
 
 Its page (fetch of the row id) contains:
 
@@ -103,7 +103,7 @@ Its page (fetch of the row id) contains:
 </tabs>
 ```
 
-Fetching a linked-view block `60000000…00NN` lists one view: block …11 → view `70000000-0000-4000-8000-000000000011` "Plan" (milestones, timeline); …12 → view `70000000-…-000000000012` "Tasks" (tasks, timeline, grouped by Milestone; Status in Planned, In progress, Waiting, Done); …13 → view `70000000-…-000000000013` "Schedule" (milestones, table); …14 → view `70000000-…-000000000014` "Problems" (Status in Open, Waiting). Querying them returns this project's rows.
+Fetching a linked-view block `60000000…00NN` lists its views: block …11 → view `70000000-0000-4000-8000-000000000011` "Plan" (milestones, timeline); …12 → two views, first `70000000-…-000000000012` "Tasks" (tasks, table, grouped by Milestone; Status in Planned, In progress, Waiting, Done), then `70000000-…-000000000015` "Timeline" (the same tasks as a timeline by Dates); …13 → view `70000000-…-000000000013` "Schedule" (milestones, table); …14 → view `70000000-…-000000000014` "Problems" (Status in Open, Waiting). Querying them returns this project's rows.
 
 Milestones of Energy meter (id — name — status — Dates):
 - `3000…0110` Firmware on the dev board — In progress — 2026-09-15 → 2026-11-13. Body: `- **Sep 15** — Started with the Zigbee stack bring-up.`
@@ -127,20 +127,20 @@ Problems of Energy meter:
 - `3000…0204` Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0111 — Task 0105 — Note "+3 weeks if the second board run misses it" — Opened 2026-09-22
 - `3000…0206` Zigbee binding error — Blocker — Resolved — Milestone 0110 — Task 0102 — Opened 2026-09-22 — Resolved on 2026-10-02 — Note "Fixed with a custom converter."
 
-**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Client Brightbrush Ltd; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Summary "Layout in progress, due Oct 20; firmware waits for milestone 3 to be funded." Same page layout, with this callout and no Notes lines below the gray placeholder:
+**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Client Brightbrush Ltd; Origin Upwork; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Summary "Layout in progress, due Oct 20; firmware starts Oct 20, once the spec is approved." Same page layout, with this callout and no Notes lines below the gray placeholder:
 
 ```
 <callout icon="🔵" color="blue_bg">
 	**Now:** Layout — due Oct 20
-	**Waiting on:** Milestone 3 funded (Brightbrush Ltd)
+	**Waiting on:** Firmware spec approved by Brightbrush Ltd (Brightbrush Ltd)
 </callout>
 ```
 
-Linked-view blocks `60000000…0021` Plan, `…0022` Tasks, `…0023` Schedule, `…0024` Problems; views `70000000…0021/22/23/24`, same kinds as for Energy meter.
-- Milestone `3000…0301` Schematic — Done — 2026-09-01 → 2026-09-18 — Finished 2026-09-18. Body: `Contract milestone 1 · $500. Done when the schematic PDF is delivered.`
-- Milestone `3000…0302` Layout — In progress — 2026-09-18 → 2026-10-20. Body: `Contract milestone 2 · $700. Done when the Gerbers are delivered.`
-- Milestone `3000…0303` Firmware — Planned — 2026-10-20 → 2026-11-10. Body: `Contract milestone 3 · $800. Done when the firmware runs on the prototype.`
-- Task `3000…0401` Milestone 3 funded — milestone 0303 — Waiting — no Dates — Waiting on Brightbrush Ltd. Body: `- **Sep 18** — Asked Brightbrush Ltd to fund milestone 3.`
+Linked-view blocks `60000000…0021` Plan, `…0022` Tasks (views `70000000…0022` "Tasks" table, then `…0025` "Timeline"), `…0023` Schedule, `…0024` Problems; views `70000000…0021/22/23/24`, same kinds as for Energy meter.
+- Milestone `3000…0301` Schematic — Done — 2026-09-01 → 2026-09-18 — Finished 2026-09-18. Body: `Contract milestone 1. Done when the schematic PDF is delivered.`
+- Milestone `3000…0302` Layout — In progress — 2026-09-18 → 2026-10-20. Body: `Contract milestone 2. Done when the Gerbers are delivered.`
+- Milestone `3000…0303` Firmware — Planned — 2026-10-20 → 2026-11-10. Body: `Contract milestone 3. Done when the firmware runs on the prototype.`
+- Task `3000…0401` Firmware spec approved by Brightbrush Ltd — milestone 0303 — Waiting — no Dates — Waiting on Brightbrush Ltd. Body: `- **Sep 18** — Sent the firmware spec to Brightbrush Ltd for approval.`
 - No problems.
 
 ## What each read returns (strict)
@@ -148,14 +148,15 @@ Linked-view blocks `60000000…0021` Plan, `…0022` Tasks, `…0023` Schedule, 
 - `notion-fetch` of a database, data source or linked-view block returns its schema and its views only — **never rows**. Rows come only from `notion-query-data-sources` in view mode.
 - `notion-fetch` of a row id returns that page: properties and body (for milestones and tasks, the history lines).
 - View queries apply the view's filter exactly. At the start of the run they return:
-  - Projects "Active" (5000…0001): Energy meter, Brightbrush.
+  - Projects "Active" (5000…0001): Energy meter, Brightbrush. "Closed" (…0009): no rows.
   - Milestones "Next up" (…0002) and "Timeline" (…0003): every milestone not Done — 0110, 0111, 0302, 0303. Never 0301.
+  - Tasks "All" (…0008): every task not Done — 0102–0106, 0201, 0202, 0203, 0205, 0401. Never 0101.
   - Tasks "Waiting on" (…0006): 0201, 0202, 0203, 0401.
   - Tasks "Timeline" (…0007): every task not Done — 0102–0106, 0201, 0202, 0203, 0205, 0401. Never 0101.
   - Problems "Open" (…0004): 0204 only.
   - Problems "Recently resolved" (…0005): 0206 only.
-  - Energy meter "Plan" (7000…0011) and "Schedule" (…0013): milestones 0110, 0111. "Tasks" (…0012): tasks 0101–0106, 0201, 0202, 0203, 0205. "Problems" (…0014): 0204.
-  - Brightbrush "Plan" (…0021) and "Schedule" (…0023): 0301–0303. "Tasks" (…0022): 0401. "Problems" (…0024): no rows.
+  - Energy meter "Plan" (7000…0011) and "Schedule" (…0013): milestones 0110, 0111. "Tasks" (…0012) and "Timeline" (…0015): tasks 0101–0106, 0201, 0202, 0203, 0205. "Problems" (…0014): 0204.
+  - Brightbrush "Plan" (…0021) and "Schedule" (…0023): 0301–0303. "Tasks" (…0022) and "Timeline" (…0025): 0401. "Problems" (…0024): no rows.
   After writes, later queries reflect them.
 
 ## Write calls
