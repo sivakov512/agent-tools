@@ -10,7 +10,7 @@ claude plugin eval . --runs 1 --ablation none --scaffold --trust-plugin --judge-
 
 - One case: `--case progress`. By tag: `--tag create` (create, update, dates, tasks, problems, notes, state, plan, corrections, read, contracts, commands, setup, upgrade, chat, routine, negative).
 - `--model sonnet` pins the model under test. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
-- One full run is 41 agent runs, about 27 minutes at `-j 2` and roughly $20 of API usage (`--runs 3` for a stability check triples that). Raise `-j` only on a machine with spare cores and memory — too many parallel runs get killed and show up as harness errors, not as failures.
+- One full run is 43 agent runs, about 27 minutes at `-j 2` and roughly $20 of API usage (`--runs 3` for a stability check triples that). Raise `-j` only on a machine with spare cores and memory — too many parallel runs get killed and show up as harness errors, not as failures.
 - `--scaffold` is needed for `new-from-file` (its `scaffold.sh` writes the estimate file into the sandbox).
 
 What is checked:
@@ -19,6 +19,8 @@ What is checked:
 - **Per scenario** — the exact Notion writes (which page, which property, which dates) via `tool_used` graders, plus an LLM judge over the mock calls or the final message for the parts regexes cannot pin down.
 - `unrelated` — a question that has nothing to do with projects must not touch Notion.
 - `upgrade-detect` — a workspace with only a 0.x tracker (config with `open_items`): the agent must not write to it and must offer the upgrade.
+- `schema-update` — the shared workspace as release 1.0.0 built it (no `schema` line, no `Order`): the agent brings it to schema 2 without asking — adds `Order`, numbers the rows, re-sorts the views, writes `schema: 2` last — then answers the status question.
+- `reorder` — "Hardware comes before Firmware — swap them": `Order` is renumbered without a preview, the dates stay, and the reply offers to move them because they now contradict the order.
 
 Layout (callout, tabs, views) is checked structurally here but a mock cannot render Notion; after changing the page markup, also run the skill once against a scratch page in a real workspace and look at it.
 
@@ -29,12 +31,12 @@ evals/
 ├── mocks/notion/          the shared fake workspace (_server.md, below)
 ├── <case>/prompt.md       what the user says; frontmatter: turns, allowed tools, runs, tags, today (append_system_prompt)
 ├── <case>/graders/*.md    checks
-└── <case>/mocks/…         case-specific fakes (empty and half-built trackers for setup; a moved plan for undo; a 0.x tracker for upgrade-detect; a task that already has a chat for dashboard-chat-taken / -new; mail; Upwork)
+└── <case>/mocks/…         case-specific fakes (empty and half-built trackers for setup; a moved plan for undo; a 0.x tracker for upgrade-detect; a schema-1 tracker for schema-update; a task that already has a chat for dashboard-chat-taken / -new; mail; Upwork)
 ```
 
 ## The shared workspace
 
-`mocks/notion/_server.md` is a 1.0 tracker: root page **Client work** (`10000000-…-0001`) with the config toggle and four tabs, plus a decoy page with another tool's config callout. Today in it is Fri 2026-10-09. Ids graders match on:
+`mocks/notion/_server.md` is a schema-2 tracker (config line `schema: 2`; every milestone and task has `Order`, 1, 2, … in the order listed below): root page **Client work** (`10000000-…-0001`) with the config toggle and four tabs, plus a decoy page with another tool's config callout. Today in it is Fri 2026-10-09. Ids graders match on:
 
 | What | Ids |
 |---|---|
