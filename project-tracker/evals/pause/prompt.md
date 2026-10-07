@@ -6,4 +6,4 @@ runs: 3
 tags: [dates]
 append_system_prompt: 'The current date is Friday, 9 October 2026. The date shown elsewhere in the environment is wrong for this session — use 2026-10-09 as today.'
 ---
-Real readings on the energy meter are on hold — we're waiting on Northwind for the gateway firmware.
+The energy meter firmware on the dev board is on hold — we're waiting on Northwind for the gateway firmware.
