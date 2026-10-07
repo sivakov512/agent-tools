@@ -50,10 +50,20 @@
   .app { max-width: 1440px; margin: 0 auto; padding-inline: 24px; padding-block: 24px 40px; }
   .hdr { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; margin-bottom: 18px; }
   .hdr h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
-  .tabs { display: inline-flex; gap: 2px; padding: 2px; background: var(--surface-2); border-radius: 7px; }
+  /* the origin filter: a dropdown, since a user may add any number of Origin options */
+  .tabs { position: relative; display: inline-flex; }
   .tabs:empty { display: none; }
-  .tabs button { border: 0; background: transparent; padding: 4px 11px; border-radius: 5px; color: var(--ink-2); cursor: pointer; font-size: 13px; white-space: nowrap; }
-  .tabs button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+  .tabs > button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface-2); padding: 4px 10px 4px 11px; border-radius: 7px; color: var(--ink); cursor: pointer; font-size: 13px; white-space: nowrap; }
+  .tabs > button:hover { border-color: var(--line-2); }
+  .tabs > button .n { color: var(--ink-3); }
+  .tabs > button svg { width: 10px; height: 10px; stroke: var(--ink-3); fill: none; stroke-width: 1.8; }
+  .dd-m { position: absolute; top: calc(100% + 4px); left: 0; z-index: 30; min-width: 180px; max-height: 60vh; overflow: auto; padding: 4px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0, 0, 0, .18); }
+  .dd-m button { display: flex; width: 100%; align-items: center; gap: 10px; border: 0; background: none; padding: 6px 10px; border-radius: 5px; font-size: 13px; color: var(--ink); text-align: left; cursor: pointer; white-space: nowrap; }
+  .dd-m button:hover { background: var(--surface-2); }
+  .dd-m button .n { margin-left: auto; color: var(--ink-3); }
+  .dd-m button[aria-checked="true"] { font-weight: 600; }
+  .dd-m button[aria-checked="true"]::before { content: "\2713"; color: var(--accent); width: 12px; }
+  .dd-m button[aria-checked="false"]::before { content: ""; width: 12px; }
   .hdr .sp { flex: 1; }
   .live { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-3); white-space: nowrap; }
   .ldot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); flex: none; }
@@ -794,11 +804,17 @@
     var kinds = {}; (S.projects || []).forEach(function (p) { kinds[p.origin] = (kinds[p.origin] || 0) + 1; });
     var ks = ORIGINS.filter(function (k) { return kinds[k]; }).concat(Object.keys(kinds).filter(function (k) { return ORIGINS.indexOf(k) < 0; }));
     if (S.origin !== "All" && !kinds[S.origin] && S.projects) S.origin = "All";
-    var tb = $("tabs"); clear(tb);
-    if (ks.length > 1) ["All"].concat(ks).forEach(function (k) {
-      var b = btn("", k === "All" ? "All projects" : k, function () { S.origin = k; try { localStorage.setItem("pt.origin", k); } catch (e) {} S.tlView = null; paint(); });
-      b.setAttribute("aria-pressed", String(S.origin === k)); tb.appendChild(b);
+    var tb = $("tabs"); clear(tb); if (ks.length < 2) return;
+    var total = (S.projects || []).length, lab = function (k) { return k === "All" ? "All projects" : k; }, cnt = function (k) { return k === "All" ? total : kinds[k]; };
+    var b = btn("", null), menu = el("div", "dd-m"); menu.hidden = true; menu.setAttribute("role", "menu");
+    b.appendChild(span(lab(S.origin))); b.appendChild(span(String(cnt(S.origin)), "n")); b.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.8 5 6.8 8 3.8"/></svg>');
+    b.setAttribute("aria-haspopup", "menu"); b.setAttribute("aria-expanded", "false"); b.title = "Which projects to show, by Origin";
+    b.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; menu.hidden = !on; b.setAttribute("aria-expanded", String(on)); });
+    ["All"].concat(ks).forEach(function (k) {
+      var o = btn("", null, function () { S.origin = k; try { localStorage.setItem("pt.origin", k); } catch (e) {} S.tlView = null; paint(); });
+      o.setAttribute("role", "menuitemradio"); o.setAttribute("aria-checked", String(S.origin === k)); o.appendChild(span(lab(k))); o.appendChild(span(String(cnt(k)), "n")); menu.appendChild(o);
     });
+    tb.appendChild(b); tb.appendChild(menu);
   }
   function goTo(id) { var t = $(id); if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }
   function renderPills() {
@@ -1240,7 +1256,7 @@
     mb.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; document.querySelectorAll(".chat-m").forEach(function (m) { m.hidden = true; }); menu.hidden = !on; mb.setAttribute("aria-expanded", String(on)); });
     w.appendChild(mb); w.appendChild(menu); return w;
   }
-  document.addEventListener("click", function () { document.querySelectorAll(".chat-m").forEach(function (m) { if (!m.hidden) { m.hidden = true; m.parentNode.querySelector(".more").setAttribute("aria-expanded", "false"); } }); });
+  document.addEventListener("click", function () { document.querySelectorAll(".dd-m").forEach(function (m) { if (!m.hidden) { m.hidden = true; m.parentNode.querySelector("[aria-expanded]").setAttribute("aria-expanded", "false"); } }); document.querySelectorAll(".chat-m").forEach(function (m) { if (!m.hidden) { m.hidden = true; m.parentNode.querySelector(".more").setAttribute("aria-expanded", "false"); } }); });
   function fixChat(err) { return err && err.chat ? chatLink(newChatUrl(err.chat), "Fix it in a chat with Claude") : null; }
   function errBox(text, err) { var d = el("div", "err", text + errText(err)); var c = fixChat(err); if (c) { c.style.display = "block"; c.style.marginTop = "6px"; c.style.fontWeight = "500"; d.appendChild(c); } return d; }
   function facts(host, pairs) {
