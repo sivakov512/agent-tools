@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.12.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.11.0...upwork-pulse-v0.12.0) (2026-10-07)
+
+
+### Features
+
+* **upwork-pulse:** dashboard chats open with the job's name and load the skill by name ([6dfcc88](https://github.com/sivakov512/agent-tools/commit/6dfcc882063a4c1b44efd90be9e0717aa58e7c2e))
+
+
+### Bug Fixes
+
+* **upwork-pulse:** strict-YAML skill description, short Client: chat title ([e08913f](https://github.com/sivakov512/agent-tools/commit/e08913fbf0fc6f25c99522a36815c309da0696c0))
+
 ## [0.11.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.10.0...upwork-pulse-v0.11.0) (2026-10-07)
 
 
