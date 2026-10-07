@@ -11,6 +11,7 @@ The scope or structure changes. `Dates` are the commitment, so every change here
    - **Turn a stage into a milestone with tasks** (a phase that grew steps, or a milestone that was really a step of a bigger one): create the new milestone, set the existing rows' `Milestone` to it, keep their histories; nothing is deleted.
    - **Drop** a milestone or several tasks: they become `Dropped`; a dropped milestone's open tasks are dropped with it (say so). The rest does not move unless the user says so. The one task the user names is a removal, without a preview (**Removing**).
    - **Rename**: change `Name` in place, with a history line — the history and links stay.
+   - **Order**: an added milestone or task takes the `Order` after the last one, or the place the user names (the rows after it shift by one); split and merged items take the place of what they replace. A reorder alone is not a plan change (SKILL.md → **Order**).
    - **Split, merge**: the new items cover the old dates unless the user says otherwise; the replaced ones become `Dropped`.
    - **Pull in** (finished early): the following items keep their dates unless the user says the earlier dates are agreed with the client or that this project runs on their own plan — finishing early is recorded by `Finished`, it does not change what was promised. When they do move: everything starting on or after the old end, by the same amount, unless the user says only some move.
    - **Clear dates** ("everything after the demo has no dates yet, I'll re-plan"): `Dates` → empty on the items named, each with a history line keeping the old dates (`- **Oct 6** — Dates cleared for re-planning: Nov 13 – Dec 4 → none.`). Milestones without dates show under **Needs dates** on the dashboard until new ones are agreed. If the last milestone loses its dates, `Target end` is emptied too, with a line in `Notes` keeping the old one (`**Oct 6** — Target end Jul 31, 2027 → none: re-planning after the demo.`).
@@ -30,3 +31,9 @@ The Notion API cannot delete pages; say so in one line, then do the equivalent w
 `Removed` and `Dropped` are outside every view, overview and report, so nothing of it shows as live or as progress. Reply with what was set, and that the user can delete the pages by hand if they want them gone.
 
 **Restoring** ("bring the test project back"): find it with `notion-search`, read the removal line in its `Notes` tab, and put the project and every row listed there back to the status recorded; then the callout. Rows dropped for another reason stay dropped. A single problem, task or milestone comes back the same way, from `removed (was X)` in its `Note` or `Dropped (was X)` in its history; drop the suffix from the note and add a history line `Restored`.
+
+## Undo of an earlier change — "undo the delay I reported last week"
+
+SKILL.md (**Undo**) covers a change made in this conversation. One made earlier is a reconstruction: first make sure which change is meant (ask unless the user named it). Rebuild the old values from what Notion shows — history lines record date moves as `Mar 6 → Mar 13`, pause and removal lines record the previous status — then show what you would restore and ask. A value recorded nowhere is asked for, not guessed. On yes, restore as for an undo in this conversation.
+
+Notion's version history (••• → Version history) is the user's last resort; the API cannot restore versions.

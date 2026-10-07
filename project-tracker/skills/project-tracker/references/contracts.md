@@ -2,7 +2,7 @@
 
 Used with `new-project.md`: this file replaces its extraction and date rules (steps 2–3); confirmation, creation and the project page are as there. Also used for **resync**, at the end.
 
-A contract in a freelance or project platform already has most of what a tracker needs: a title, a client, a list of stages with states. It also carries a lot that is not plan: legal terms, billing, payments, platform metadata. The goal is the same page a pasted plan would give — no more rows than the contract has real stages. A contract project is **milestones only**: one milestone per stage — names, dates and what "done" means; tasks appear later, when the user adds them or breaks a stage into tasks (`plan-changes.md`). Money is not tracked: amounts and payment states go stale and are not project management.
+A contract in a freelance or project platform already has most of what a tracker needs: a title, a client, a list of stages with states. It also carries a lot that is not plan: legal terms, billing, payments, platform metadata. The goal is the same page a pasted plan would give — no more rows than the contract has real stages. A contract project is **milestones only**: one milestone per stage — names, dates and what "done" means; tasks appear later, when the user adds them or breaks a stage into tasks (`plan-changes.md`).
 
 ## General mapping (any service)
 
@@ -11,7 +11,7 @@ A contract in a freelance or project platform already has most of what a tracker
 | Contract title, or the product name the description uses if it is clearer | Project `Name` (short: the product or deliverable, not the job-post headline) |
 | Client company named in the description; else the service's client name | Project `Client` |
 | The service | Project `Origin` (`Upwork`) |
-| Each stage / milestone, in order | One Milestone, named with the stage's own short title (the part before the colon or dash) |
+| Each stage / milestone, in order | One Milestone, named with the stage's own short title (the part before the colon or dash); `Order` = its number in the contract (at creation; a stage added at resync takes its place as `plan-changes.md` → **Order** says) |
 | Stage description | First line of the milestone page body: `Contract milestone N. <one-sentence "done when" from the description>` |
 | Stage state | Milestone `Status` and dates (below) |
 | Explicit dependencies in the terms ("Milestones 1 and 2 run in parallel") | Start dates |
@@ -31,7 +31,7 @@ Tasks and problems — no tasks; problems only these:
 
 Later news from the user about the client's side — the client has not funded the next stage, an approval is pending — is an ordinary fact: a Waiting task or a Blocker waiting on the client, by SKILL.md's usual rules (**A task or a problem**).
 
-Ignore entirely: amounts, funding and payment states, IP and work-for-hire clauses, billing-at-cost rules, platform metadata (IDs, invitation counts, trial flags), messages and chat history, time logs, proposal text, profile data. The project must not carry noise from the platform.
+Ignore entirely: amounts, funding and payment states (they go stale and are not project management), IP and work-for-hire clauses, billing-at-cost rules, platform metadata (IDs, invitation counts, trial flags), messages and chat history, time logs, proposal text, profile data. The project must not carry noise from the platform.
 
 ## Project fields and page
 
@@ -49,7 +49,7 @@ Contract link for `Source`: `https://www.upwork.com/ab/f/contracts/<contract id>
 Tools: `list_accounts` (get `org_uid`), `list_contracts` with `action: "search"` (`contract_statuses: ["ACTIVE"]`) to find the contract, then `action: "get"` with the contract id. Everything needed is in `contractDetails`:
 
 - `title`, `offer.description` (client and product name, terms), `clientOrganization.name`, `startDate`.
-- `offer.milestones[]`: `sequenceId`, `description` ("Title: details. Done: …"), `state`, `submissions[].submissionDateTime`, `dueDateTime` when set. Amounts are ignored.
+- `offer.milestones[]`: `sequenceId`, `description` ("Title: details. Done: …"), `state`, `submissions[].submissionDateTime`, `dueDateTime` when set.
 
 State mapping: `Paid`, `Submitted`, `SubmittedForReview` → Done; `Active` → In progress; any other state → Planned.
 

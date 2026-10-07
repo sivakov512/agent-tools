@@ -49,11 +49,11 @@ Otherwise, in this order — the page comes before the rows, so an interrupted a
 
 1. The Projects row: `Status` Active, `Target end` = the end of the last milestone, empty if that one has no dates yet (without milestones: the end the source gives for the work, else empty — ongoing work has no end), `Source` = the source's URL if it is a shared web document, else empty; `Repository` only if the user gave one; `Claude project` as confirmed (`<name> — <project id>`), empty for none or when not asked.
 2. The project page's views and tabs (below).
-3. Milestones (new rows, `Project` = the row) with their `Dates`.
-4. Tasks (`Project` = the row, `Milestone` = its milestone).
+3. Milestones (new rows, `Project` = the row) with their `Dates` and `Order` 1, 2, … in the source's order.
+4. Tasks (`Project` = the row, `Milestone` = its milestone, `Order` 1, 2, … within their milestone in the source's order).
 5. Problems, `Opened` = the source date.
 6. The status callout at the start of the page (`insert_content`, `position: {"type": "start"}`), now that the counts are known.
-7. A source without a URL (pasted text, an email, a local file) goes into the `Notes` tab as a sub-page `Mon D — Source: <subject or short description>` (Mon D = the source date), as for long notes in SKILL.md, so the original plan stays with the project.
+7. A source without a URL (pasted text, an email, a local file) goes into the `Notes` tab as a sub-page `Mon D — Source: <subject or short description>` (Mon D = the source date), as for long notes (`notes.md`), so the original plan stays with the project.
 
 Reply with what was created, and remind the user to switch the `Plan` timeline and the Tasks tab's `Timeline` view to **Quarter** or **Month** once — the API cannot set the zoom; Notion remembers it. On the first project, also the helper-property hiding from `setup.md` step 8, now that there are pages to click it on.
 
@@ -65,8 +65,8 @@ Views — `notion-create-view` with `parent_page_id` = the project page, in this
 
 ```
 Plan       timeline  data source <milestones>  FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Paused", "Done"); TIMELINE BY "Dates"; SORT BY "Dates" ASC; SHOW "Name", "Status", "Late, days"
-Tasks      table     data source <tasks>       FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Waiting", "Done"); GROUP BY "Milestone"; SORT BY "Dates" ASC; SHOW "Name", "Status", "Dates", "Waiting on", "Late, days"
-Schedule   table     data source <milestones>  FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Paused", "Done"); SORT BY "Dates" ASC; SHOW "Name", "Status", "Dates", "Finished", "Late, days"
+Tasks      table     data source <tasks>       FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Waiting", "Done"); GROUP BY "Milestone"; SORT BY "Order" ASC, "Dates" ASC; SHOW "Name", "Status", "Dates", "Waiting on", "Late, days"
+Schedule   table     data source <milestones>  FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Paused", "Done"); SORT BY "Order" ASC, "Dates" ASC; SHOW "Name", "Status", "Dates", "Finished", "Late, days"
 Problems   table     data source <problems>    FILTER "Project" = "<page id>"; FILTER "Status" IN ("Open", "Waiting"); SORT BY "Type" ASC; SHOW "Name", "Type", "Status", "Waiting on", "Milestone", "Task"
 ```
 
@@ -76,7 +76,7 @@ Then the Gantt as a second view of the `Tasks` block — `notion-create-view` wi
 Timeline   timeline  data source <tasks>       FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Waiting", "Done"); TIMELINE BY "Dates"; GROUP BY "Milestone"; SORT BY "Dates" ASC; SHOW "Name", "Status", "Waiting on", "Late, days"
 ```
 
-The table comes first because a timeline hides tasks without dates; the dashboard reads the view named `Tasks`. Create the block with the table (`notion-create-view`, `parent_page_id` = the project page), then add the timeline to the same block: `notion-create-view` with `database_id` = that block's id (from the page fetch, `<database url=…>`) — it becomes the block's second view.
+The table comes first because a timeline hides tasks without dates; the dashboard reads the view named `Tasks`. Notion orders the milestone groups itself; the rows inside follow `Order`. Create the block with the table (`notion-create-view`, `parent_page_id` = the project page), then add the timeline to the same block: `notion-create-view` with `database_id` = that block's id (from the page fetch, `<database url=…>`) — it becomes the block's second view.
 
 Tabs — fetch the page, then `update_content` with `old_str` = the four `<database …>` lines, `new_str` = the same lines, unchanged, wrapped like this (an existing view's url moves it; it does not copy):
 

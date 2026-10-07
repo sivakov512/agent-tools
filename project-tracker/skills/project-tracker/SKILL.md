@@ -1,6 +1,6 @@
 ---
 name: project-tracker
-description: Keeps client project plans in Notion current from plain chat. Use whenever the user reports progress ("finished X", "parts arrived"), a delay, blocker, risk or open question ("the supplier slipped a week") or that one is resolved; asks how a project is going, what is on them this week, what is due or whom to chase; wants a weekly report; wants a note, call, email or file saved to a project; says a project, milestone or task is paused, finished, resumed or should be removed; changes, corrects or undoes the plan or a record; wants a project synced with its contract; wants a new project from a plan, email, file or an Upwork contract; wants the tracker set up or upgraded; opens a Claude chat from the tracker's dashboard (a first message ending "(Project Tracker, <url>). Load it.") or says where a project's chats open. Trigger even without the words Notion, plan or tracker — any statement about a project's state updates the tracker.
+description: Keeps client project plans in Notion current from plain chat, in whatever language the user writes. Use whenever the user reports progress ("finished X", "закончил прошивку"), a delay, blocker, risk or open question or that one is resolved; asks how a project is going ("как дела с X?"), what is on them this week, what is due or whom to chase; wants a weekly report; wants a note, call, email or file saved to a project; pauses, finishes, resumes or removes a project, milestone or task; changes, reorders, corrects or undoes the plan or a record; wants a project synced with its contract; wants a new project from a plan, email, file or an Upwork contract; wants the tracker set up or upgraded; opens a chat from the tracker's dashboard (a first message ending "(Project Tracker, <url>). Load it.") or says where a project's chats open. Trigger even without the words Notion, plan or tracker.
 ---
 
 # Project tracker
@@ -9,14 +9,15 @@ The user runs projects for clients. The plan, its progress, slips and open probl
 
 ## The tracker
 
-A root page — its name is the user's choice at setup, `Project tracker` by default — with four databases. A project is planned at whichever level fits the work: **milestones only** (a contract's stages), **milestones with tasks** (a long project whose stages break into steps of days or weeks), or **tasks only** (ongoing work with no promised stages, such as support).
+A root page, named as the user likes, with four databases. A project is planned at whichever level fits the work: **milestones only** (a contract's stages), **milestones with tasks** (a long project whose stages break into steps of days or weeks), or **tasks only** (ongoing work with no promised stages, such as support).
 
-- **Projects** — `Name`, `Client`, `Origin` (where the work comes from: Upwork / Direct / Personal by default — the user may add their own options, and the dashboard groups by them), `Status` (Active / Paused / Done / Removed), `Summary` (one sentence: where we are, what is next — never lateness or "on track", which would go stale), `Target end`, `Repository`, `Source` (link to where the project came from — a platform contract or a shared document; empty for pasted text, email, local files), `Chat` and `Claude project` (below), `Late, days` (computed by Notion: the worst lateness among the project's open milestones and tasks). `Milestones`, `Tasks`, `Milestones late`, `Tasks late` are helpers; never write them.
-- **Milestones** — the stages the client was promised: `Name`, `Project`, `Status` (Planned / In progress / Paused / Done / Dropped), `Dates` (the dates agreed with the client; they draw the Gantt), `Finished` (the day it was actually done), `Late, days` (computed), `Tasks` (its tasks; shown on the milestone page). A milestone's page body is its **history**: dated lines `- **Mar 4** — …`, newest at the bottom. That is where the "why" lives. `Project status` and `Open late` are helpers; never write them.
-- **Tasks** — steps of days or weeks: `Name`, `Project` (always), `Milestone` (the stage it belongs to; empty for a project without milestones), `Status` (Planned / In progress / Waiting / Done / Dropped), `Dates` (agreed with the client, like a milestone's; empty for a step the user plans only for themselves), `Waiting on`, `Finished`, `Late, days` (computed). The page body is the task's history, as for milestones. `Project status`, `Milestone status`, `Open late` are helpers; never write them.
+- **Projects** — `Name`, `Client`, `Origin` (Upwork / Direct / Personal, or an option the user adds), `Status` (Active / Paused / Done / Removed), `Summary` (one sentence: where we are, what is next — never lateness or "on track", which would go stale), `Target end`, `Repository`, `Source` (the contract or shared document it came from; empty for pasted text, email, local files), `Chat` and `Claude project` (below), `Late, days` (computed). `Milestones`, `Tasks`, `Milestones late`, `Tasks late` are helpers; never write them.
+- **Milestones** — the stages the client was promised: `Name`, `Project`, `Status` (Planned / In progress / Paused / Done / Dropped), `Dates` (the dates agreed with the client; they draw the Gantt), `Finished` (the day it was actually done), `Order` (its place in the plan, below), `Late, days` (computed), `Tasks` (its tasks; shown on the milestone page). A milestone's page body is its **history**: dated lines `- **Mar 4** — …`, newest at the bottom. That is where the "why" lives. `Project status` and `Open late` are helpers; never write them.
+- **Tasks** — steps of days or weeks: `Name`, `Project` (always), `Milestone` (the stage it belongs to; empty for a project without milestones), `Status` (Planned / In progress / Waiting / Done / Dropped), `Dates` (agreed with the client, like a milestone's; empty for a step the user plans only for themselves), `Waiting on`, `Finished`, `Order` (its place within its milestone), `Late, days` (computed). The page body is the task's history, as for milestones. `Project status`, `Milestone status`, `Open late` are helpers; never write them.
 - **Problems** (config key `problems`) — only what was not in the plan: `Name`, `Project`, `Type` (Blocker / Risk / Question), `Status` (Open / Waiting / Resolved / Dropped), `Waiting on`, `Milestone`, `Task`, `Note`, `Opened`, `Resolved on`.
-- `Chat`, on all four: the link of the Claude chat about that row, written by that chat when the dashboard opens it (`references/chats.md`); empty until then. Never write it in any other case.
-- `Claude project`, on Projects: the claude.ai project the dashboard opens that project's chats in, `<name> — <project id>`; empty = none. Set at creation or when the user asks (`references/chats.md`).
+- `Chat` (all four) and `Claude project` (Projects) — the row's Claude chat and the claude.ai project its chats open in: written only as `references/chats.md` says.
+
+**Order.** The plan has a strict order even where it has no dates: `Order` 1, 2, … numbers a project's milestones, and each milestone's tasks (a project's tasks without a milestone among themselves). It is set when rows are created, in the source's or the user's order — for a contract, its milestone numbers; a new row goes last unless the user says where ("after the layout"; the rows after it shift by one) — and changed only when the user reorders ("bring-up comes after firmware"): renumber the rows that move, without a preview, with a history line on the row that moved (`- **Oct 9** — Moved after Firmware in the plan.`). `Dates` do not follow a reorder: if they now contradict the order, say so and offer the move, which happens only once agreed. Views and the dashboard sort by it, so order is never left to dates or to Notion. Only a tracker at `schema: 2` has the column; below it (an update that failed), rows are written without `Order`.
 
 **A task or a problem.** One question: *would this be in the plan if everything went as intended?*
 
@@ -26,15 +27,15 @@ A root page — its name is the user's choice at setup, `Project tracker` by def
 
 **How big a task is.** A task deserves its own line in a weekly report: days or weeks of work, or a handover worth chasing. Anything smaller — "flashed the dev board", "wrote the driver" — is progress: a history line on the task or milestone it belongs to, never a new row. A task row is created only when the user asks for one ("add a task…"), from an imported plan, or in a plan change the user approved.
 
-**Dates are always agreed.** Every date in the tracker — a milestone's or a task's — is one the client was given. A step the user plans only for themselves gets no dates: it is a task without `Dates`, placed by its milestone and its history. A date that is not agreed yet is not written into `Dates`: it goes into the history (`- **Oct 6** — Proposed to Fjord Labs: Oct 20 – Oct 31, not agreed yet.`) or, when someone has to confirm it, into a Question waiting on them. `Dates` move only when the user says the new dates are agreed with the client (or that the project runs on the user's own plan), and every move is written into the item's history as `old → new` — moving them silently would erase the lateness they exist to show. A task whose agreed dates would run past its milestone's end means the milestone's end moves too — shown as part of the same change and agreed with it, never done silently.
+**Dates are always agreed.** Every date in the tracker — a milestone's or a task's — is one the client was given. A step the user plans only for themselves is a task without `Dates`, placed by its milestone and `Order`. A date that is not agreed yet is not written into `Dates`: it goes into the history (`- **Oct 6** — Proposed to Fjord Labs: Oct 20 – Oct 31, not agreed yet.`) or, when someone has to confirm it, into a Question waiting on them. `Dates` move only when the user says the new dates are agreed with the client (or that the project runs on the user's own plan), and every move is written into the item's history as `old → new` — moving them silently would erase the lateness they exist to show. A task whose agreed dates would run past its milestone's end means the milestone's end moves too — shown as part of the same change and agreed with it, never done silently.
 
-**How lateness works.** Lateness is measured against `Dates` — on milestones and on tasks alike — and Notion computes it live, so nothing you write about lateness can go stale. A Done item is late by `Finished` − end of `Dates` (negative = early). An open (Planned, In progress, Waiting) item whose end has passed is late by today − end, growing every day. A Paused milestone, a task of a Paused milestone, or anything in a Paused project is not late: the work is stopped, not overrun. `Late, days` on the project is the worst of its open milestones and open tasks. The API returns formula values as opaque references, so when you need a number, compute it from the dates by the same rule.
+**How lateness works.** Lateness is measured against `Dates` — on milestones and on tasks alike — and Notion computes it live, so nothing you write about lateness can go stale. A Done item is late by `Finished` − end of `Dates` (negative = early). An open (Planned, In progress, Waiting) item whose end has passed is late by today − end, growing every day. Nothing Paused, or under something Paused, is late: the work is stopped, not overrun. `Late, days` on the project is the worst of its open milestones and open tasks. The API returns formula values as opaque references, so when you need a number, compute it from the dates by the same rule.
 
 **How the levels move together.** When work starts on a task — it becomes In progress, or a work task becomes Done — its milestone, if Planned, becomes In progress at once, with a history line. A handover (a quote, a sign-off, files) waiting or done does not start the work by itself: when it is done, its milestone becomes In progress only if the milestone has no dates or its start has come; otherwise it stays Planned until then. A task stuck on a Blocker keeps its status; the linked Blocker is what shows it. When the last open task of a milestone that was already under way is Done, ask whether the milestone is done too — never close it on your own; when that same change only started the milestone (a sign-off that lets the work begin), there is nothing to ask. When a milestone is Done while it still has open tasks, ask what happens to them (Done or Dropped). A milestone's `Dates` never follow from its tasks: they are a promise of their own.
 
 `Removed` and `Dropped` are for things the user threw away; views, counts, overviews and reports look only at the other ("live") statuses.
 
-The root page starts with a collapsed gray config toggle (the four data source IDs), then tabs: `Projects` (`Active` — Active and Paused; `Closed` — Done and Removed), `Milestones` (`Next up`, `Timeline` — Planned, In progress, Paused), `Tasks` (`All` — open tasks: Planned, In progress, Waiting, by project; `Waiting on` — Waiting, by party; `Timeline` — open tasks), `Problems` (`Open` — Open and Waiting; `Recently resolved` — resolved in the last 30 days). A **project page is the project's row in Projects**: a status callout, then tabs `Plan` (Gantt of milestones), `Tasks` (table view `Tasks` — every live task, Done included, by milestone — then view `Timeline`, its Gantt), `Schedule` (milestones: dates, finished, lateness), `Problems`, `Notes`. A milestone page shows its tasks above its history.
+The root page holds the config toggle, then the views you read: Projects `Active` (Active, Paused) and `Closed`; Milestones `Next up` (open); Tasks `All` (open) and `Waiting on`; Problems `Open` (Open, Waiting) and `Recently resolved`. A **project page is the project's row in Projects**: the status callout, then tabs `Plan` (Gantt), `Tasks` (view `Tasks`: every live task, by milestone), `Schedule` (milestones), `Problems`, `Notes`. The full spec is `references/setup.md`.
 
 ## Rules that protect the data
 
@@ -45,7 +46,7 @@ The root page starts with a collapsed gray config toggle (the four data source I
 - **Never guess a date or a duration.** A date is stated by the user or the source, or follows from a fixed rule in these files. Anything else — "done last week", a delay with no size, a new milestone without a date — ask one short question covering everything missing. A task may have no dates at all; do not ask for one unless the user is planning dates with the client.
 - **Write what was said, nothing more.** History, notes and reports carry the user's or the source's facts; no added causes, details or commitments on the user's behalf.
 - **`Waiting on` is a concrete name** — a person, a vendor, or the client as written in the project's `Client` field; empty means it is on the user. The `Waiting on` views group by it across projects, so "client" would lump different clients together.
-- **Recording a fact vs replanning.** A date or state the user states — an item finished, a task waiting on someone, a corrected date, a problem resolved, a pause, the one task the user asked to add or drop — is recorded directly. Changing the plan — moving dates the user did not name, adding or dropping milestones, adding or dropping more than the one task the user named, creating a project — is shown first and done on the user's yes, because it rewrites many rows on your reading of their words. Removing a project, or the one task or problem the user names, is not a replan: the user named exactly what should go (`references/plan-changes.md`).
+- **Recording a fact vs replanning.** A date or state the user states — an item finished, a task waiting on someone, a corrected date, a problem resolved, a pause, the one task the user asked to add or drop — is recorded directly. Changing the plan — moving dates the user did not name, adding or dropping milestones, adding or dropping more than the one task the user named, creating a project — is shown first and done on the user's yes, because it rewrites many rows on your reading of their words. Removing a project, or the one task or problem the user names, is not a replan: the user named exactly what should go (`references/plan-changes.md`). A Tracker update (`references/setup.md`) is neither: it is structural, changes no date or status, and runs without asking.
 
 ## Finding things
 
@@ -56,6 +57,7 @@ The root page starts with a collapsed gray config toggle (the four data source I
 - None → the tracker is not set up (see **Other scenarios**).
 - A config with `open_items` and no `tasks` is a tracker made by version 0.x: say so and offer the upgrade (`references/upgrade.md`) before anything else; do not write to it with the rules of this version.
 - A current tracker plus an unretired 0.x one with the same title → the upgrade was interrupted: offer to finish it (`references/upgrade.md`).
+- A current config (it has `tasks`) whose `schema` is below 2 (no line = 1) → `references/setup.md` → **Tracker update** first, without asking, then the request.
 
 A project: query the `Active` view and match by meaning ("the rain gauge" → "Weather station", "the masts" → "Weather station" whose repository is `wx_mast`). A Done project: the `Closed` view. A Removed one only when the user names it or asks to bring it back. A milestone, task or open problem: the project's `Schedule` / `Tasks` / `Problems` views; a Resolved problem ("it came back, not fixed"): the root `Recently resolved` view, older ones by `notion-search`. All by meaning, and a task before a milestone when the words name a step ("the demo firmware" is the task *Demo firmware*, not the milestone *Demo prototype*). With one candidate there is nothing to ask; with several plausible ones, ask.
 
@@ -67,7 +69,7 @@ Tool names are the Notion MCP tools (`notion-fetch`, `notion-query-data-sources`
 
 **Reading a view.** Database views: fetch the database (its `<database url=…>` on the root page) → it lists `<view url="view://<id>">` → query `data: {mode: "view", view_url: "https://app.notion.com/p/<database id>?v=<view id without dashes>"}`. Project page views: fetch the project page → each tab holds `<database url="https://…/p/<block id>" data-source-url="collection://…">` → fetch that block → its view id → the same query with the block id. Rows come with `url` (page id) and dates as `date:<Prop>:start` / `:end`.
 
-**New row** (milestone, task, problem): `notion-create-pages` with `parent: {data_source_id: <id from the config>}`, the properties below, and optionally `content` for the page body (a first history line).
+**New row** (milestone, task, problem): `notion-create-pages` with `parent: {data_source_id: <id from the config>}`, the properties below (`Order` included, for a milestone or task), and optionally `content` for the page body (a first history line).
 
 **Properties** (`notion-update-page`, `command: "update_properties"`, or on create): date range `"date:Dates:start": "2026-03-02", "date:Dates:end": "2026-03-20"` — always both ends; single dates (`Finished`, `Target end`, `Opened`, `Resolved on`) start only; relation `["<page id>"]`; select as the option name; checkbox `"__YES__"` / `"__NO__"`; clearing a value `null` (both date ends).
 
@@ -102,18 +104,17 @@ Tool names are the Notion MCP tools (`notion-fetch`, `notion-query-data-sources`
 **Undo** ("undo that", "revert", "put it back") takes back a change; it is not a new fact.
 
 - Made in this conversation: you have the old values. Check that each field still holds what you wrote — if the user edited it since, show that and ask. Otherwise restore without asking: old property values back; history or note lines that recorded the change removed (`update_content` with the line as `old_str`, empty `new_str` — plain text lines only; a sub-page or file you added stays, and you tell the user they can delete it by hand); milestones, tasks and problems you created → Dropped, a project you created → Removed. Then step 2 and a was → now reply.
-- Made earlier: first make sure which change is meant (ask unless the user named it). Rebuild the old values from what Notion shows — history lines record date moves as `Mar 6 → Mar 13`, pause and removal lines record the previous status — then show what you would restore and ask, since this is a reconstruction. A value recorded nowhere is asked for, not guessed.
-- Notion's version history (••• → Version history) is the user's last resort; the API cannot restore versions.
+- Made earlier: a reconstruction, shown and asked first — `references/plan-changes.md` → **Undo of an earlier change**.
 
 ## Frequent scenarios
 
 ### Progress — "finished the demo firmware", "calibration passes", "Dana signed"
 
-Find the item: a task first when the words name a step or a handover, else the milestone. If what the user reports *is* its result, it is done; if it is a step towards it, it is progress; when unsure, record progress and ask whether to close it. Append a history line in the user's words, in English. If done: `Status` Done, `Finished` = the day it was done (today unless the user says otherwise); `Dates` stay — `Finished` against them is the record of how it went. Then the levels, as **How the levels move together** says. Whatever was done — a task or a milestone — if the next one in the same chain starts now (its start is today or earlier, or the user says they are on it), set it In progress, with a history line. A progress line about a milestone with an In-progress task goes on that task.
+Find the item: a task first when the words name a step or a handover, else the milestone. If what the user reports *is* its result, it is done; if it is a step towards it, it is progress; when unsure, record progress and ask whether to close it. Append a history line in the user's words, in English. If done: `Status` Done, `Finished` = the day it was done (today unless the user says otherwise); `Dates` stay — `Finished` against them is the record of how it went. Then the levels, as **How the levels move together** says. Whatever was done — a task or a milestone — if the next one by `Order` in the same milestone (or the next milestone) starts now (its start is today or earlier, or the user says they are on it), set it In progress, with a history line. A progress line about a milestone with an In-progress task goes on that task.
 
 ### Tasks — "add a task: order a debugger", "sent the RFQ, now waiting on the labs", "Kestrel replied"
 
-- **New**: the user named it, so create it without a preview, named in the user's words — `Project`, `Milestone` (the stage it serves, by meaning; the In-progress one if the words fit it; none in a project without milestones), `Status` Planned, `Dates` only if the user gave them as agreed with the client (otherwise none, and no question). First history line `- **Oct 6** — Added.` plus the reason if given. One plausible milestone → no question; several → ask.
+- **New**: the user named it, so create it without a preview, named in the user's words — `Project`, `Milestone` (the stage it serves, by meaning; the In-progress one if the words fit it; none in a project without milestones), `Status` Planned, `Order` after the milestone's last task, `Dates` only if the user gave them as agreed with the client (otherwise none, and no question). First history line `- **Oct 6** — Added.` plus the reason if given. One plausible milestone → no question; several → ask.
 - **Waiting**: the user did their part and someone else has to act → `Status` Waiting, `Waiting on` the party, history line with what was sent. Back to In progress when the user has work on it again; Done when the result is in. Every message about it ("they asked for the block diagram", "sent the full package") is a history line on the task — the task's page is its log.
 - **Dates proposed, not agreed** ("I'll suggest Oct 20–31 for the enclosure"): no `Dates`; a history line with the proposal and, if the client has to confirm, a Question waiting on them. When they agree, the dates go in.
 
@@ -127,13 +128,9 @@ The delayed item is a task when the words name a step, else a milestone. When th
 
 If an open Risk described exactly this, resolve it with `Note` "fired, +3 days".
 
-### Pause — "the enclosure test is on hold until Kestrel sends the parts", "resume the enclosure test"
+### Pause — "the enclosure test is on hold until the parts arrive", "the project is on hold"
 
-A milestone stops for a reason outside the work — it is not late while it waits, and neither are its tasks. Set `Status` Paused and add `- **Mar 10** — Paused (was In progress): waiting on Kestrel for parts.` If someone else has to act, so that it shows up in "who to chase": a Waiting task for exactly that already exists → name it in the pause line; otherwise open a Blocker waiting on whoever must act (`Waiting on` Kestrel), linked to the milestone. A pause without a reason is allowed: write `no reason given` and ask for it in your reply. The pause is a fact the user reported, so record it first; then, in the same reply, ask whether later milestones wait on this one — those that do are paused the same way, the rest carry on (several milestones can be In progress).
-
-Tasks are not paused on their own: a task that cannot move because someone else has to act is Waiting; one the user set aside stays Planned with a history line saying why.
-
-Resume: the status recorded in the pause line comes back, for this milestone and those paused with it. Ask how much work is left and whether the new dates are agreed with the client. Agreed → move `Dates` from today as an agreed delay, and push the milestones that waited on it only where the new end runs past their start (pulling them earlier is a separate plan change): `- **Mar 24** — Resumed after 14 days; moved with Fjord Labs. Mar 20 → Apr 1.` Not agreed → `Dates` stay, the history says `Resumed after 14 days; new dates not agreed yet`, and tell the user the milestone counts as late from its old date. Offer to resolve the problem or finish the task it was waiting on.
+A milestone or project stopped for a reason outside the work gets `Status` Paused and a dated line with the reason and the previous status (`- **Mar 10** — Paused (was In progress): waiting on Kestrel for parts.`). A paused item, and everything under it, is never late. Read `references/state.md` before writing: whom to chase, later milestones, resuming, a project's other states.
 
 ### Problems — new, resolved, changed
 
@@ -145,69 +142,36 @@ Changed ("Dana isn't the one, the client decides", "this risk is now a blocker")
 
 The fact was different from what was recorded. Fix exactly that: `Finished`, the milestone or task a line belongs to, the milestone a task belongs to, an item reopened (a reopened milestone or task loses its `Finished`, a reopened problem its `Resolved on`). Edit the wrong history line in place rather than adding one, so the history stays true. `Dates` that were simply entered wrong (never agreed otherwise) are fixed directly with `- **Mar 24** — Corrected: Mar 20 → Mar 22 (entered wrong).`; a real change of an agreed date is a delay. Other items keep their dates — if they look like they should move too, say so and offer.
 
-### Project state and fields — "put the project on hold", "that one is finished", "the repo is …"
-
-Paused / Done / Active → project `Status`, a dated line in `Notes` with the reason if given and the previous status (`**Mar 3** — Paused (was Active): client budget review.`), and the callout. While a project is Paused nothing in it counts as late. Resuming it: ask whether its dates move; agreed → move them as for an agreed delay; not agreed → they stay, and items past their dates count as late again. Done with milestones or tasks still open: ask whether to close them — they stay in the views until closed. Other fields (client, origin, repository, source): set them; a new `Origin` value becomes a new option of the select. Removing a project: `references/plan-changes.md`.
-
 ### Notes and files — "save the call notes", "attach the datasheet"
 
-Anything about the project that is not plan, progress, a task or a problem goes into the project's `Notes` tab, oldest first below the tab's gray placeholder line:
-
-- Short note: `update_content` with `old_str` = the tab's last line, `new_str` = that line plus `**Mon D** — text` at the same indentation.
-- Long text (call notes, a spec, an email thread): `notion-create-pages` with the project page as parent, title `Mon D — <subject>`; it lands as a `<page …>` line at the end of the project page, so move it into the tab with one `update_content` holding two `content_updates`: that `<page …>` line → empty, and the tab's last line → that line plus the same `<page url="…">…</page>` line. Notion rejects the page line appearing twice, so both edits go in the same call.
-- File: upload with the file-upload tool and add its `suggested_markdown` like a short note, with one line saying what it is.
+Anything about the project that is not plan, progress, a task or a problem goes into the project's `Notes` tab, oldest first below the tab's gray placeholder line. A short note: `update_content` with `old_str` = the tab's last line, `new_str` = that line plus `**Mon D** — text` at the same indentation. Long text (call notes, a spec, an email thread) and files: `references/notes.md`.
 
 Correspondence that belongs to one task (the emails of an RFQ) goes into that task's history instead. Your summaries are in English; pasted material stays as pasted. If the note also reports progress or a problem, handle that as its own scenario — unless the user asked only to save it ("just note it"); then save only and mention what it seems to imply.
 
 ### Status — "how is X going?", "how are the masts?"
 
-Query the project's `Schedule`, `Tasks` and `Problems` views. Answer in four parts: **Now** (the In-progress milestones and their due dates, each with its current tasks); **Late** (every open milestone and task past its end, by how many days, and those finished late in the last two weeks — computed from the dates as Notion does; "nothing late" if none); **Blocked / waiting / on hold** (blockers first, then whom the project waits on and since when, paused milestones with reason and since when, open risks and questions in one line); **Next** (one or two milestones or tasks with dates). With no project named and several active, give the overview instead.
-
-### My week — "what's on me this week?", "what do I have to do?"
-
-Across the active projects, from today through Sunday (on Friday to Sunday, through the next Sunday): the tasks and milestones the user has to move — not Waiting, `Waiting on` empty — grouped by project:
-
-- **Overdue**: items past their end.
-- **Due this week**: items whose end falls in the window.
-- **In progress**: what is underway without a date in the window.
-- **Starting**: Planned items whose start falls in the window.
-- **Decide**: Questions and Blockers that are on the user.
-
-Then one short line of whom to chase (Waiting items, oldest first). Undated Planned tasks are listed only under an In-progress milestone or in a project without milestones, as "no date".
-
-### Overview — "what's burning?", "who do I chase?", "what got done this week?"
-
-From the root views `Next up`, `Open` (problems), `Recently resolved`, and the Tasks views `All` and `Waiting on`; Done milestones and tasks are in no root view, so what closed this week comes from the active projects' `Schedule` and `Tasks` views. Only projects in `Active` count — skip rows of other projects. The criteria are the dashboard's:
-
-- Late and due soon: open milestones and tasks past their end (with days late), then those ending in the next 7 days, by project — nothing paused is late.
-- On hold: paused milestones, with reason and how long.
-- Chase: Waiting tasks and problems waiting on someone, grouped by who, oldest first (a problem's age counts from `Opened`; a task's from the start of its `Dates`, or, without dates, from the history line that set it Waiting).
-- On you: tasks with empty `Waiting on` that are in progress, start or end in the next 7 days, or have no dates under the In-progress milestone or in a project without milestones; Blockers and Questions with empty `Waiting on`. Risks are not on you: the open ones go in one line of their own.
-- Closed this week: milestones and tasks done and problems resolved in the last 7 days, today included — when there are any.
-
-If the config has a `dashboard` line, end with its link: the same picture, live.
+Query the project's `Schedule`, `Tasks` and `Problems` views. Answer in four parts: **Now** (the In-progress milestones and their due dates, each with its current tasks); **Late** (every open milestone and task past its end, by how many days, and those finished late in the last two weeks — computed from the dates as Notion does; "nothing late" if none); **Blocked / waiting / on hold** (blockers first, then whom the project waits on and since when, paused milestones with reason and since when, open risks and questions in one line); **Next** (the next one or two milestones or tasks by `Order`, with their dates if they have them). With no project named and several active, give the overview instead (`references/report.md` → **Overview**).
 
 ## Dashboard updates
 
-`assets/dashboard.html` starts with `<!-- dashboard-version: N -->`, N being the plugin's version (`x.y.z`), stamped by every release — never edited by hand; read only that first line. The config's `dashboard_version` is the version the user's dashboard was last published from (no line = 1; a whole number predates `x.y.z` and is older than any). In a conversation with the user — never in a scheduled or unattended run — answer what was asked first; then, once per conversation and only if `dashboard_skip` is not N, end with one short line in the user's language:
-
-- **No `dashboard` line in the config**: what the dashboard is, in a few words, and whether to publish it now.
-- **`dashboard_version` below N**: the dashboard has an update to N — what is new, in a few words, from the dashboard entries between the two versions in the plugin's `CHANGELOG.md` (plugin root, next to `skills/`; none or no file → just the version) — and whether to update it now.
-
-Yes → `references/dashboard.md` → Publish (an update keeps the link and sets `dashboard_version` to N). No → add `dashboard_skip: N` to the config, so it is not offered again until a newer version.
+In a conversation with the user (never a scheduled or unattended run), once per conversation and after answering what was asked: when the config has no `dashboard` line, or its `dashboard_version` is below N (a missing line or a whole number is older than any `x.y.z`) — N being the version on the first line of `assets/dashboard.html` (read only that line) — and `dashboard_skip` is not N, end with the one-line offer `references/dashboard.md` → **Versions** describes.
 
 ## Other scenarios — read the file first
 
 | When | Read |
 |---|---|
 | A first message `<Project / Milestone / Task / Problem>: <name> … (Project Tracker, <url>). Load it.`, or a request to change where a project's chats open | `references/chats.md`, before anything else |
-| Set up the tracker, the root page is missing, or an existing tracker lacks something (views, tabs, columns) | `references/setup.md` |
+| Set up the tracker, the root page is missing, or an existing tracker lacks something (views, tabs, columns); a config `schema` below 2 | `references/setup.md` |
+| A milestone or project paused or resumed; a project finished, reopened, or its fields set (client, origin, repository, source) | `references/state.md` |
+| Long text (call notes, a spec, an email thread) or a file to save to a project | `references/notes.md` |
+| Undo of a change made in an earlier conversation | `references/plan-changes.md` → **Undo of an earlier change** |
 | A tracker made by version 0.x (config has `open_items`), or the user asks to upgrade or migrate it | `references/upgrade.md` |
 | New project from a plan, estimate, email, file or document | `references/new-project.md` |
 | New project from a platform contract (Upwork) | `references/new-project.md` and `references/contracts.md` |
 | Resync a project with its contract | `references/contracts.md` |
 | Add, drop, rename, split or merge milestones; break a milestone into tasks; finish early and pull the plan in; remove or restore a project or item | `references/plan-changes.md` |
+| What is on the user this week; across projects: what is late or burning, whom to chase, what got done; a status question with no project named and several active | `references/report.md` → **Reading the tracker** |
 | Weekly report or client update | `references/report.md` |
-| Publish, update or change the dashboard | `references/dashboard.md` |
+| Publish, update or change the dashboard; the dashboard offer is due (**Dashboard updates**) | `references/dashboard.md` |
 
 If something does not fit the model (say, a second client on one project), ask once rather than inventing a field.
