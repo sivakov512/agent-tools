@@ -22,15 +22,23 @@ Today is 2026-10-09.
 <summary>⚙️ **Config** — read by the `project-tracker` skill; edit if the databases move</summary>
 	projects: `20000000-0000-4000-8000-000000000001`
 	milestones: `20000000-0000-4000-8000-000000000002`
+	tasks: `20000000-0000-4000-8000-000000000004`
 </details>
 <database url="https://app.notion.com/p/40000000000040008000000000000001" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000001">Projects</database>
 <database url="https://app.notion.com/p/40000000000040008000000000000002" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000002">Milestones</database>
+<database url="https://app.notion.com/p/40000000000040008000000000000004" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000004">Tasks</database>
 </content>
 </page>
 ```
 
-Existing databases (no rows in either):
-- Projects `40000000…0001`, data source `20000000-0000-4000-8000-000000000001`, schema: Name (title), Client (text), Status (select Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Milestones (relation, reverse of Milestones.Project), Late, days (rollup max of Milestones.Open late). One view `50000000-0000-4000-8000-000000000001` "Active" (table, filter Status in Active, Paused), already configured.
-- Milestones `40000000…0002`, data source `20000000-0000-4000-8000-000000000002`, schema: Name, Project (two-way relation → Projects), Phase (select General), Status (Planned / In progress / Paused / Done / Dropped), Dates (date), Finished (date), Project status (rollup), Late, days (formula), Open late (formula). Views `50000000-…-000000000002` "Next up" (table, filter Status in Planned, In progress, Paused, grouped by Project) and `50000000-…-000000000003` "Timeline" (timeline by Dates), both configured.
+Existing databases (no rows in any of them), each already inline:
+- Projects `40000000…0001`, data source `20000000-0000-4000-8000-000000000001`, schema: Name (title), Client (text), Status (select Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup max of Milestones.Open late), Tasks late (rollup max of Tasks.Open late), Late, days (formula). One view `50000000-0000-4000-8000-000000000001` "Active" (table, filter Status in Active, Paused), already configured. Page layout already set (full width).
+- Milestones `40000000…0002`, data source `20000000-0000-4000-8000-000000000002`, schema: Name, Project (two-way relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date), Finished (date), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula). Views `50000000-…-000000000002` "Next up" (table, filter Status in Planned, In progress, Paused, grouped by Project) and `50000000-…-000000000003` "Timeline" (timeline by Dates), both configured. Page layout already set (full width, Status pinned, Tasks shown).
+- Tasks `40000000…0004`, data source `20000000-0000-4000-8000-000000000004`, schema: Name, Project (two-way relation → Projects), Milestone (two-way relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date), Waiting on (text), Finished (date), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula). Views `50000000-…-000000000006` "Waiting on" (table, filter Status = Waiting, grouped by Waiting on) and `50000000-…-000000000007` "Timeline" (timeline by Dates, filter Status in Planned, In progress, Waiting), both configured. Page layout already set (full width, Status pinned).
 
-There is no Issues database and no tabs block yet.
+There is no Problems database, no `problems` line in the config, no tabs block and no `dashboard` line yet.
+
+A fetch of each existing data source shows its `<page-layout>`:
+- Projects: `{"main":[{"type":"cover"},{"type":"title"},{"type":"properties"},{"type":"editor"},{"type":"discussions"}],"format":{"pageFullWidth":true}}`
+- Milestones: `{"main":[{"type":"cover"},{"type":"title","pinnedProperties":["Status"]},{"type":"properties"},{"type":"views","relation":"Tasks"},{"type":"editor"},{"type":"discussions"}],"format":{"pageFullWidth":true}}`
+- Tasks: `{"main":[{"type":"cover"},{"type":"title","pinnedProperties":["Status"]},{"type":"properties"},{"type":"editor"},{"type":"discussions"}],"format":{"pageFullWidth":true}}`

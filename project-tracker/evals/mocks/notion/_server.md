@@ -24,7 +24,10 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 <summary>⚙️ **Config** — read by the `project-tracker` skill; edit if the databases move</summary>
 	projects: `20000000-0000-4000-8000-000000000001`
 	milestones: `20000000-0000-4000-8000-000000000002`
-	open_items: `20000000-0000-4000-8000-000000000003`
+	tasks: `20000000-0000-4000-8000-000000000004`
+	problems: `20000000-0000-4000-8000-000000000003`
+	dashboard: `https://claude.ai/artifact/d0000000-0000-4000-8000-000000000001`
+	dashboard_version: 99.0.0
 </details>
 <tabs>
 	<tab>
@@ -32,12 +35,16 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 		<database url="https://app.notion.com/p/40000000000040008000000000000001" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000001">Projects</database>
 	</tab>
 	<tab>
-		All plans
+		Milestones
 		<database url="https://app.notion.com/p/40000000000040008000000000000002" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000002">Milestones</database>
 	</tab>
 	<tab>
-		Issues
-		<database url="https://app.notion.com/p/40000000000040008000000000000003" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000003">Issues</database>
+		Tasks
+		<database url="https://app.notion.com/p/40000000000040008000000000000004" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000004">Tasks</database>
+	</tab>
+	<tab>
+		Problems
+		<database url="https://app.notion.com/p/40000000000040008000000000000003" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000003">Problems</database>
 	</tab>
 </tabs>
 </content>
@@ -47,26 +54,29 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 Fetching a database URL lists its data source with the schema below and its views as `<view url="view://<id>">{"name":…,"type":…,…}</view>`:
 
 - Projects database `40000000…0001` — data source `20000000…0001`; view `50000000-0000-4000-8000-000000000001` "Active" (Status in Active, Paused).
-- Milestones database `40000000…0002` — data source `20000000…0002`; views `50000000-…-000000000002` "Next up" (Status in Planned, In progress, Paused; grouped by Project) and `50000000-…-000000000003` "Timeline".
-- Issues database `40000000…0003` — data source `20000000…0003`; views `50000000-…-000000000004` "Waiting on" (Status in Open, Waiting; grouped by Waiting on) and `50000000-…-000000000005` "Recently resolved" (Status = Resolved, newest first).
+- Milestones database `40000000…0002` — data source `20000000…0002`; views `50000000-…-000000000002` "Next up" (Status in Planned, In progress, Paused; grouped by Project) and `50000000-…-000000000003` "Timeline" (same filter, timeline by Dates).
+- Tasks database `40000000…0004` — data source `20000000…0004`; views `50000000-…-000000000006` "Waiting on" (Status = Waiting; grouped by Waiting on) and `50000000-…-000000000007` "Timeline" (Status in Planned, In progress, Waiting; timeline by Dates).
+- Problems database `40000000…0003` — data source `20000000…0003`; views `50000000-…-000000000004` "Open" (Status in Open, Waiting; grouped by Type) and `50000000-…-000000000005` "Recently resolved" (Status = Resolved, newest first).
 
-A view is queried with `data: {mode: "view", view_url: "https://app.notion.com/p/<database or block id without dashes>?v=<view id without dashes>"}` and returns `{"results":[{…row properties…, "url":"https://app.notion.com/p/<row id>"}],"has_more":false}` with dates as `date:<Prop>:start` / `date:<Prop>:end`, relations as JSON arrays of page URLs, `Late, days` as an opaque formula reference.
+A view is queried with `data: {mode: "view", view_url: "https://app.notion.com/p/<database or block id without dashes>?v=<view id without dashes>"}` and returns `{"results":[{…row properties…, "url":"https://app.notion.com/p/<row id>"}],"has_more":false}` with dates as `date:<Prop>:start` / `date:<Prop>:end`, relations as JSON arrays of page URLs, `Late, days`, `Open late` and the rollups as opaque formula references.
 
 Schemas:
-- Projects: Name (title), Client (text), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Milestones (relation, reverse of Milestones.Project), Late, days (rollup).
-- Milestones: Name, Project (relation → Projects), Phase (select: General, Firmware on the dev board, Hardware, Design, Firmware), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Late, days (formula), Project status (rollup), Open late (formula).
-- Issues: Name, Project (relation), Type (Blocker / Risk / Question / Task), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Note (text), Opened (date), Resolved on (date).
+- Projects: Name (title), Client (text), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
+- Milestones: Name (title), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
+- Tasks: Name (title), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
+- Problems: Name (title), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Note (text), Opened (date), Resolved on (date).
 
 ## Projects
 
-**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Client Northwind; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-08; Summary "Real CT readings over Zigbee in progress, due Oct 9; dev-board firmware due Nov 13."
+**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Client Northwind; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-08; Summary "Firmware on the dev board in progress, due Nov 13; real CT readings over Zigbee due Oct 9."
 
 Its page (fetch of the row id) contains:
 
 ```
 <callout icon="🔵" color="blue_bg">
-	**Now:** Real readings from the CT sensor over Zigbee — due Oct 9
-	**Blocked on:** CI runner (Marko) · RFQ review (Northwind) · Invoice from Acme (Acme)
+	**Now:** Firmware on the dev board — due Nov 13 → Real readings from the CT sensor over Zigbee, due Oct 9
+	**Waiting on:** CI runner set up (Marko) · RFQ reviewed (Northwind) · Invoice received from Acme (Acme)
+	**Open:** 1 risk
 </callout>
 <tabs>
 	<tab>
@@ -74,12 +84,16 @@ Its page (fetch of the row id) contains:
 		<database url="https://app.notion.com/p/60000000000040008000000000000011" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000002"></database>
 	</tab>
 	<tab>
-		Schedule
-		<database url="https://app.notion.com/p/60000000000040008000000000000012" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000002"></database>
+		Tasks
+		<database url="https://app.notion.com/p/60000000000040008000000000000012" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000004"></database>
 	</tab>
 	<tab>
-		Open items
-		<database url="https://app.notion.com/p/60000000000040008000000000000013" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000003"></database>
+		Schedule
+		<database url="https://app.notion.com/p/60000000000040008000000000000013" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000002"></database>
+	</tab>
+	<tab>
+		Problems
+		<database url="https://app.notion.com/p/60000000000040008000000000000014" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000003"></database>
 	</tab>
 	<tab>
 		Notes
@@ -89,43 +103,59 @@ Its page (fetch of the row id) contains:
 </tabs>
 ```
 
-Fetching a linked-view block `60000000…00NN` lists one view: block …11 → view `70000000-0000-4000-8000-000000000011` "Plan" (timeline); …12 → view `70000000-…-000000000012` "Schedule"; …13 → view `70000000-…-000000000013` "Open items" (Status in Open, Waiting). Querying them returns this project's rows.
+Fetching a linked-view block `60000000…00NN` lists one view: block …11 → view `70000000-0000-4000-8000-000000000011` "Plan" (milestones, timeline); …12 → view `70000000-…-000000000012` "Tasks" (tasks, timeline, grouped by Milestone; Status in Planned, In progress, Waiting, Done); …13 → view `70000000-…-000000000013` "Schedule" (milestones, table); …14 → view `70000000-…-000000000014` "Problems" (Status in Open, Waiting). Querying them returns this project's rows.
 
-Milestones of Energy meter (id — name — phase — status — Dates):
-- `3000…0101` Zigbee stack configured — Firmware on the dev board — Done — 2026-09-15 → 2026-09-22 — Finished 2026-09-22
-- `3000…0102` Real readings from the CT sensor over Zigbee — Firmware on the dev board — In progress — 2026-09-22 → 2026-10-09
-- `3000…0103` Sleep modes and sampling with the processor asleep — Firmware on the dev board — Planned — 2026-10-09 → 2026-11-06
-- `3000…0104` Power measured, module fixed — Firmware on the dev board — Planned — 2026-11-06 → 2026-11-13
-- `3000…0105` Board designed, first boards ordered — Hardware — Planned — 2026-11-13 → 2026-12-04
-- `3000…0106` First prototype working on the custom board — Hardware — Planned — 2026-12-04 → 2027-01-08
+Milestones of Energy meter (id — name — status — Dates):
+- `3000…0110` Firmware on the dev board — In progress — 2026-09-15 → 2026-11-13. Body: `- **Sep 15** — Started with the Zigbee stack bring-up.`
+- `3000…0111` Hardware — Planned — 2026-11-13 → 2027-01-08. Body empty.
 
-Each milestone page body is its history, e.g. 0102: `- **Sep 22** — Started after the stack bring-up.`
+Tasks of Energy meter (id — name — milestone — status — Dates — Waiting on):
+- `3000…0101` Zigbee stack configured — 0110 — Done — 2026-09-15 → 2026-09-22 — Finished 2026-09-22
+- `3000…0102` Real readings from the CT sensor over Zigbee — 0110 — In progress — 2026-09-22 → 2026-10-09
+- `3000…0103` Sleep modes and sampling with the processor asleep — 0110 — Planned — 2026-10-09 → 2026-11-06
+- `3000…0104` Power measured, module fixed — 0110 — Planned — 2026-11-06 → 2026-11-13
+- `3000…0105` Board designed, first boards ordered — 0111 — Planned — 2026-11-13 → 2026-12-04
+- `3000…0106` First prototype working on the custom board — 0111 — Planned — 2026-12-04 → 2027-01-08
+- `3000…0201` CI runner set up — 0110 — Waiting — no Dates — Waiting on Marko
+- `3000…0202` RFQ reviewed — 0111 — Waiting — no Dates — Waiting on Northwind
+- `3000…0203` Invoice received from Acme — 0111 — Waiting — no Dates — Waiting on Acme
+- `3000…0205` Laboratory found — 0111 — Planned — no Dates — Waiting on empty
 
-Issues of Energy meter:
-- `3000…0201` CI runner — Task — Waiting — Waiting on Marko — Opened 2026-09-22
-- `3000…0202` RFQ review — Task — Waiting — Northwind — Opened 2026-09-22
-- `3000…0203` Invoice from Acme — Task — Waiting — Acme — Opened 2026-09-22
-- `3000…0204` Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0105 — Note "+3 weeks if the second board run misses it" — Opened 2026-09-22
-- `3000…0205` Find a laboratory — Task — Open — empty — Opened 2026-09-22
-- `3000…0206` Zigbee binding error — Blocker — Resolved — Milestone 0102 — Opened 2026-09-22 — Resolved on 2026-10-02 — Note "Fixed with a custom converter."
+Each task page body is its history: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Sep 22** — Asked Marko to set up a CI runner for the firmware.`; 0202 `- **Sep 22** — Sent the RFQ to Northwind for review.`; 0203 `- **Sep 22** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; the others are empty.
 
-**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Client Brightbrush Ltd; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10. Same page layout (callout 🔵 blue_bg: "**Now:** Layout — due Oct 20", "**Blocked on:** Fund milestone 3 (Brightbrush Ltd)"); linked-view blocks `60000000…0021/22/23`, views `70000000…0021/22/23`.
-- `3000…0301` Schematic — General — Done — 2026-09-01 → 2026-09-18 — Finished 2026-09-18
-- `3000…0302` Layout — General — In progress — 2026-09-18 → 2026-10-20
-- `3000…0303` Firmware — General — Planned — 2026-10-20 → 2026-11-10
-- Issue `3000…0401` Fund milestone 3 — Task — Waiting — Brightbrush Ltd — Opened 2026-09-18
+Problems of Energy meter:
+- `3000…0204` Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0111 — Task 0105 — Note "+3 weeks if the second board run misses it" — Opened 2026-09-22
+- `3000…0206` Zigbee binding error — Blocker — Resolved — Milestone 0110 — Task 0102 — Opened 2026-09-22 — Resolved on 2026-10-02 — Note "Fixed with a custom converter."
+
+**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Client Brightbrush Ltd; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Summary "Layout in progress, due Oct 20; firmware waits for milestone 3 to be funded." Same page layout, with this callout and no Notes lines below the gray placeholder:
+
+```
+<callout icon="🔵" color="blue_bg">
+	**Now:** Layout — due Oct 20
+	**Waiting on:** Milestone 3 funded (Brightbrush Ltd)
+</callout>
+```
+
+Linked-view blocks `60000000…0021` Plan, `…0022` Tasks, `…0023` Schedule, `…0024` Problems; views `70000000…0021/22/23/24`, same kinds as for Energy meter.
+- Milestone `3000…0301` Schematic — Done — 2026-09-01 → 2026-09-18 — Finished 2026-09-18. Body: `Contract milestone 1 · $500. Done when the schematic PDF is delivered.`
+- Milestone `3000…0302` Layout — In progress — 2026-09-18 → 2026-10-20. Body: `Contract milestone 2 · $700. Done when the Gerbers are delivered.`
+- Milestone `3000…0303` Firmware — Planned — 2026-10-20 → 2026-11-10. Body: `Contract milestone 3 · $800. Done when the firmware runs on the prototype.`
+- Task `3000…0401` Milestone 3 funded — milestone 0303 — Waiting — no Dates — Waiting on Brightbrush Ltd. Body: `- **Sep 18** — Asked Brightbrush Ltd to fund milestone 3.`
+- No problems.
 
 ## What each read returns (strict)
 
 - `notion-fetch` of a database, data source or linked-view block returns its schema and its views only — **never rows**. Rows come only from `notion-query-data-sources` in view mode.
-- `notion-fetch` of a row id returns that page: properties and body (for milestones, the history lines).
+- `notion-fetch` of a row id returns that page: properties and body (for milestones and tasks, the history lines).
 - View queries apply the view's filter exactly. At the start of the run they return:
-  - Projects "Active" (…0001): Energy meter, Brightbrush.
-  - Milestones "Next up" (…0002) and "Timeline" (…0003): every milestone not Done — Energy meter 0102–0106, Brightbrush 0302–0303. Never 0101 or 0301.
-  - Issues "Waiting on" (…0004): every issue not Resolved — 0201, 0202, 0203, 0204 (Waiting on empty), 0205 (Waiting on empty), 0401.
-  - Issues "Recently resolved" (…0005): 0206 only.
-  - Energy meter "Plan" (7000…0011) and "Schedule" (…0012): milestones 0101–0106. "Open items" (…0013): 0201–0205.
-  - Brightbrush "Plan"/"Schedule" (…0021/…0022): 0301–0303. "Open items" (…0023): 0401.
+  - Projects "Active" (5000…0001): Energy meter, Brightbrush.
+  - Milestones "Next up" (…0002) and "Timeline" (…0003): every milestone not Done — 0110, 0111, 0302, 0303. Never 0301.
+  - Tasks "Waiting on" (…0006): 0201, 0202, 0203, 0401.
+  - Tasks "Timeline" (…0007): every task not Done — 0102–0106, 0201, 0202, 0203, 0205, 0401. Never 0101.
+  - Problems "Open" (…0004): 0204 only.
+  - Problems "Recently resolved" (…0005): 0206 only.
+  - Energy meter "Plan" (7000…0011) and "Schedule" (…0013): milestones 0110, 0111. "Tasks" (…0012): tasks 0101–0106, 0201, 0202, 0203, 0205. "Problems" (…0014): 0204.
+  - Brightbrush "Plan" (…0021) and "Schedule" (…0023): 0301–0303. "Tasks" (…0022): 0401. "Problems" (…0024): no rows.
   After writes, later queries reflect them.
 
 ## Write calls
@@ -133,4 +163,4 @@ Issues of Energy meter:
 Linked views created with `notion-create-view` and `parent_page_id` are appended at the end of that page as `<database url="https://app.notion.com/p/<new block id>" inline="true" data-source-url="collection://…"></database>` lines. A page has no `<tabs>` block until the agent writes one; never invent content the agent did not write.
 
 
-Every status option listed in the schemas (including Paused, Dropped and Removed) is valid, so property updates that set one succeed. Tabs, callouts, toggles (`<details>`), pages and databases are all supported block types in `insert_content` and `update_content`; never answer that a block type is unsupported. Create/update/insert calls succeed and return `{"page_id":"<id>"}` or, for create-pages, `{"pages":[{"id":…,"url":…}]}`. `notion-update-page` with `update_content` fails with "No matches found" if `old_str` is not in the page's current content exactly. `notion-create-database` returns a new database url and `collection://…` data source id. `notion-create-view` returns a new view id. `notion-create-file-upload` returns `{"upload_url":"https://upload.example/…","suggested_markdown":"<file src=\"file-upload://abc123\">name</file>"}`.
+Every status option listed in the schemas (including Paused, Waiting, Dropped and Removed) is valid, so property updates that set one succeed. Tabs, callouts, toggles (`<details>`), pages and databases are all supported block types in `insert_content` and `update_content`; never answer that a block type is unsupported. Create/update/insert calls succeed and return `{"page_id":"<id>"}` or, for create-pages, `{"pages":[{"id":…,"url":…}]}`. `notion-update-page` with `update_content` fails with "No matches found" if `old_str` is not in the page's current content exactly. `notion-create-database` returns a new database url and `collection://…` data source id. `notion-create-view` returns a new view id. `notion-create-file-upload` returns `{"upload_url":"https://upload.example/…","suggested_markdown":"<file src=\"file-upload://abc123\">name</file>"}`.

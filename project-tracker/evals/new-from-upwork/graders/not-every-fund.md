@@ -3,4 +3,4 @@ type: 'regex'
 flags: 'i'
 match: 'not_contains'
 ---
-Fund milestone 4
+Milestone 4 funded|Fund milestone 4
