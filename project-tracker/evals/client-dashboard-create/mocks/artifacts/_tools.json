@@ -1,0 +1,22 @@
+{
+ "tools": [
+  {
+   "name": "Artifact",
+   "description": "Publishes an HTML file as a private claude.ai artifact, or reads, lists or deletes one. action: publish (default) | read | list | delete. publish takes file_path (the page) and optionally files (a map {published path: local source path} of supporting files served next to the page), title, icon, description, capabilities; with url it updates that artifact in place (files passed are replaced, others kept). read takes url and returns the page. delete takes url and permanently deletes the artifact (the user confirms in the tool).",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "action": { "type": "string", "enum": ["publish", "read", "list", "delete"] },
+     "file_path": { "type": "string" },
+     "files": { "type": "object" },
+     "url": { "type": "string" },
+     "title": { "type": "string" },
+     "icon": { "type": "string" },
+     "description": { "type": "string" },
+     "capabilities": { "type": "object" }
+    },
+    "additionalProperties": true
+   }
+  }
+ ]
+}

@@ -65,11 +65,11 @@ Schemas:
 - Projects: Name (title), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Claude project (text), Client dashboard (url), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
 - Milestones: Name (title), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Order (number), Chat (url), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
 - Tasks: Name (title), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Order (number), Chat (url), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
-- Problems: Name (title), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Note (text), Opened (date), Resolved on (date), Chat (url). `Chat` is empty on every row at the start, except task 0103, whose `Chat` is `https://claude.ai/code/session_01EvalOtherChat` (an earlier chat about it).
+- Problems: Name (title), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Note (text), Opened (date), Resolved on (date), Chat (url). `Chat` is empty on every row at the start.
 
 ## Projects
 
-**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Client Northwind; Origin Direct; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-08; Summary "Firmware on the dev board in progress, due Nov 13; real CT readings over Zigbee due Oct 9."
+**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Client Northwind; Origin Direct; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Client dashboard https://claude.ai/artifact/Cl1entDashN0rthw1nd01; Target end 2027-01-08; Summary "Firmware on the dev board in progress, due Nov 13; real CT readings over Zigbee due Oct 9."
 
 Its page (fetch of the row id) contains:
 
@@ -115,7 +115,7 @@ Milestones of Energy meter (id — name — status — Dates):
 Tasks of Energy meter (id — name — milestone — status — Dates — Waiting on):
 - `3000…0101` Zigbee stack configured — 0110 — Done — 2026-09-15 → 2026-09-22 — Finished 2026-09-22
 - `3000…0102` Real readings from the CT sensor over Zigbee — 0110 — In progress — 2026-09-22 → 2026-10-09
-- `3000…0103` Sleep modes and sampling with the processor asleep — 0110 — Planned — 2026-10-09 → 2026-11-06 — Chat https://claude.ai/code/session_01EvalOtherChat
+- `3000…0103` Sleep modes and sampling with the processor asleep — 0110 — Planned — 2026-10-09 → 2026-11-06
 - `3000…0104` Power measured, module fixed — 0110 — Planned — 2026-11-06 → 2026-11-13
 - `3000…0105` Board designed, first boards ordered — 0111 — Planned — 2026-11-13 → 2026-12-04
 - `3000…0106` First prototype working on the custom board — 0111 — Planned — 2026-12-04 → 2027-01-08
