@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.0.0...project-tracker-v1.1.0) (2026-10-07)
+
+
+### Features
+
+* **project-tracker:** dashboard draws undated tasks, plan order, status hover tips ([de29d00](https://github.com/sivakov512/agent-tools/commit/de29d00aac16e14c51b0ac0263792b2d7ed82fda))
+* **project-tracker:** plan order, schema updates, slimmer SKILL.md ([07ac275](https://github.com/sivakov512/agent-tools/commit/07ac275a809563032bc3bbc532d6ed76a65199c5))
+
 ## [1.0.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v0.3.3...project-tracker-v1.0.0) (2026-10-07)
 
 
