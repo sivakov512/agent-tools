@@ -725,8 +725,8 @@
   function chatLink(jobId, title, ctx) { // the bar's link to the job's chat: open it, or start it with the job named first (the app titles a chat from its first message)
     ctx = ctx || {};
     var card = cardFor(jobId), sid = chatSid(card), a;
-    // "Job: <title>" or "Conversation: <client>" first, for the chat's title; then the ids to load and the skill that loads them; what to do next is the user's to say
-    var q = (jobId ? "Job: " : "Conversation: ") + clean(title || (card && card.Title) || "Upwork") + " — Upwork Pulse";
+    // "Job: <title>" or "Client: <client>" first, for the chat's title; then the ids to load and the skill that loads them; what to do next is the user's to say
+    var q = (jobId ? "Job: " : "Client: ") + clean(title || (card && card.Title) || "Upwork") + " — Upwork Pulse";
     if (jobId) q += ", job #" + String(jobId).slice(-6) + " (Job ID " + jobId + ")";
     if (ctx.contract) q += ", contract " + ctx.contract;
     if (!jobId && ctx.room) q += ", Upwork room " + ctx.room;
