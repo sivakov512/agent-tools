@@ -271,7 +271,21 @@
   .facts dt { color: var(--ink-3); }
   .facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
   .xh { font-size: 12.5px; font-weight: 600; color: var(--ink-3); }
-  .actions { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13.5px; }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; font-size: 13.5px; }
+  /* Claude chat: one per row, the same look as in Upwork Pulse; ▾ beside it when the chat exists, to start it over */
+  .chat { position: relative; display: inline-flex; align-items: stretch; border-radius: 6px; background: var(--accent-soft); font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .chat > a { display: inline-flex; align-items: center; gap: 3px; padding: 4px 10px; border-radius: 6px; color: var(--accent); text-decoration: none; }
+  .chat > a::before { content: "\2733"; font-size: .85em; margin-right: 2px; }
+  .chat > a .arr { opacity: .7; }
+  .chat > a:hover, .chat > .more:hover { filter: brightness(1.08); }
+  .chat.split > a { border-radius: 6px 0 0 6px; padding-right: 8px; }
+  .chat > .more { border: 0; border-left: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); background: none; color: var(--accent); padding: 0 7px; border-radius: 0 6px 6px 0; cursor: pointer; display: grid; place-items: center; }
+  .chat > .more svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .chat-m { position: absolute; top: calc(100% + 4px); left: 0; z-index: 30; min-width: 220px; padding: 4px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0, 0, 0, .18); }
+  .chat-m a { display: block; padding: 7px 10px; border-radius: 5px; color: var(--ink); text-decoration: none; font-weight: 500; white-space: normal; }
+  .chat-m a .d { display: block; font-size: 12px; font-weight: 400; color: var(--ink-3); margin-top: 1px; }
+  .chat-m a:hover { background: var(--surface-2); }
+  .dr-bar .chat { flex: none; } .dr-bar .chat-m { left: auto; right: 0; }
 
   /* page text from Notion */
   .md { font-size: 14px; line-height: 1.6; color: var(--ink); max-width: 68ch; }
@@ -436,6 +450,7 @@
 <aside class="drawer" id="drawer" aria-label="Project" aria-hidden="true">
   <div class="dr-bar">
     <span class="ttl" id="drTitle"></span>
+    <span id="drChat"></span>
     <a class="ext" id="drNotion" href="#" target="_blank" rel="noopener">Open in Notion ↗</a>
     <span class="kbd-hint">↑ ↓ projects</span>
     <button class="icon-btn" id="drPrev" type="button" aria-label="Previous project" title="Previous project (↑)"><svg class="ico" viewBox="0 0 16 16"><path d="M3.5 10 8 5.5 12.5 10"/></svg></button>
@@ -524,7 +539,7 @@
   function msOf(row, project) {
     var start = dnum(row["date:Dates:start"]), end = dnum(row["date:Dates:end"]);
     if (end == null) end = start;
-    var m = { kind: "ms", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, tasks: [] };
+    var m = { kind: "ms", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, tasks: [], chat: row.Chat || "" };
     var paused = m.status === "Paused" || project.status === "Paused";
     m.late = lateOf(m, paused); m.state = stateOfItem(m, paused); m.paused = paused && m.status !== "Done";
     return m;
@@ -533,7 +548,7 @@
     var start = dnum(row["date:Dates:start"]), end = dnum(row["date:Dates:end"]);
     if (end == null) end = start;
     var mk = rel(row.Milestone).map(key)[0] || null, ms = mk ? msByKey[mk] : null;
-    var k = { kind: "task", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", waiting: clean(row["Waiting on"]), start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, mk: ms ? mk : null, ms: ms || null };
+    var k = { kind: "task", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", waiting: clean(row["Waiting on"]), start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, mk: ms ? mk : null, ms: ms || null, chat: row.Chat || "" };
     var paused = project.status === "Paused" || (ms && ms.status === "Paused");
     k.late = lateOf(k, paused); k.state = stateOfItem(k, paused); k.paused = paused && k.status !== "Done";
     return k;
@@ -601,16 +616,16 @@
     return fetchText(ROOT_PAGE, STRUCT).then(function (txt) {
       var ids = {};
       ["projects", "milestones", "tasks", "problems", "open_items"].forEach(function (k) { var m = new RegExp("\\b" + k + ":\\s*`?([0-9a-f-]{32,36})").exec(txt); if (m) ids[k] = m[1]; });
-      if (ids.open_items && !ids.tasks) throw { code: "config", message: "This tracker was made by version 0.x of the skill. Ask Claude in chat to upgrade it." };
-      if (!ids.projects || !ids.problems) throw { code: "config", message: "The tracker's config toggle is missing database IDs. Run setup in chat to fix it." };
+      if (ids.open_items && !ids.tasks) throw { code: "config", message: "This tracker was made by version 0.x of the skill. Ask Claude in chat to upgrade it.", chat: "Upgrade my project tracker to the new version." };
+      if (!ids.projects || !ids.problems) throw { code: "config", message: "The tracker's config toggle is missing database IDs. Run setup in chat to fix it.", chat: "Set up the project tracker: its config is missing database IDs." };
       var dbs = {}, re = /<database url="([^"]+)"[^>]*data-source-url="\{*collection:\/\/([0-9a-f-]+)\}*"/g, m;
       while ((m = re.exec(txt))) dbs[m[2]] = cleanUrl(m[1]);
       var pdb = dbs[ids.projects], qdb = dbs[ids.problems];
-      if (!pdb || !qdb) throw { code: "config", message: "The Projects or Problems database is not on the tracker page. Run setup in chat to fix it." };
+      if (!pdb || !qdb) throw { code: "config", message: "The Projects or Problems database is not on the tracker page. Run setup in chat to fix it.", chat: "Set up the project tracker: a database is missing from its page." };
       S.rootUrl = "https://app.notion.com/p/" + nodash(ROOT_PAGE); paintLive();
       return Promise.all([fetchText(pdb, STRUCT), fetchText(qdb, STRUCT)]).then(function (t) {
         var pv = viewsOf(t[0]), qv = viewsOf(t[1]);
-        if (!pv["Active"] || !qv["Open"]) throw { code: "config", message: "The tracker's views are missing (Active, Open). Run setup in chat to fix them." };
+        if (!pv["Active"] || !qv["Open"]) throw { code: "config", message: "The tracker's views are missing (Active, Open). Run setup in chat to fix them.", chat: "Set up the project tracker: its views are missing." };
         S.cfg = { active: viewUrl(pdb, pv["Active"]), open: viewUrl(qdb, qv["Open"]), resolved: qv["Recently resolved"] ? viewUrl(qdb, qv["Recently resolved"]) : null };
         return S.cfg;
       });
@@ -665,7 +680,7 @@
         S.projects = rows.map(function (r) {
           var p = old[key(r.url)] || { kind: "project" };
           p.url = cleanUrl(r.url); p.key = key(r.url); p.name = clean(r.Name) || "Untitled"; p.client = clean(r.Client); p.status = r.Status || "";
-          p.summary = clean(r.Summary); p.target = dnum(r["date:Target end:start"]); p.repo = r.Repository || ""; p.source = r.Source || ""; p.origin = originOf(r);
+          p.summary = clean(r.Summary); p.target = dnum(r["date:Target end:start"]); p.repo = r.Repository || ""; p.source = r.Source || ""; p.chat = r.Chat || ""; p.cproj = claudeProject(r["Claude project"]); p.origin = originOf(r);
           return p;
         }).filter(function (p) { return p.status === "Active" || p.status === "Paused"; });
         S.projErr = null; render();
@@ -693,7 +708,7 @@
   function itemIndex() { var o = {}; (S.projects || []).forEach(function (p) { itemsOf(p).forEach(function (x) { o[key(x.url)] = x; }); }); return o; }
   function isOpen(x) { return x.kind === "ms" ? !!OPEN_MS[x.status] : !!OPEN_TASK[x.status]; }
   function problemOf(r) {
-    return { kind: "problem", url: cleanUrl(r.url), name: clean(r.Name) || "Untitled", type: r.Type || "", status: r.Status || "", waiting: clean(r["Waiting on"]), note: clean(r.Note), noteRaw: r.Note || "", opened: dnum(r["date:Opened:start"]), resolvedOn: dnum(r["date:Resolved on:start"]), pk: rel(r.Project).map(key)[0], mk: rel(r.Milestone).map(key)[0], tk: rel(r.Task).map(key)[0] };
+    return { kind: "problem", url: cleanUrl(r.url), name: clean(r.Name) || "Untitled", type: r.Type || "", status: r.Status || "", waiting: clean(r["Waiting on"]), note: clean(r.Note), noteRaw: r.Note || "", opened: dnum(r["date:Opened:start"]), resolvedOn: dnum(r["date:Resolved on:start"]), pk: rel(r.Project).map(key)[0], mk: rel(r.Milestone).map(key)[0], tk: rel(r.Task).map(key)[0], chat: r.Chat || "" };
   }
   function liveProblems() { var pk = projByKey(); return (S.problems || []).map(problemOf).filter(function (i) { return pk[i.pk] && (i.status === "Open" || i.status === "Waiting"); }); }
   function allProblems() { return (S.problems || []).map(problemOf).concat((S.resolved || []).map(problemOf)); }
@@ -1085,7 +1100,7 @@
     ];
     keep(host, function () {
       clear(host); var n = 0;
-      if (S.problemsErr && !S.problems) host.appendChild(el("div", "err", "Problems didn't load. " + errText(S.problemsErr)));
+      if (S.problemsErr && !S.problems) host.appendChild(errBox("Problems didn't load. ", S.problemsErr));
       groups.forEach(function (g) { if (!g[2].length) return; n += g[2].length; gh(host, g[0], g[2].length, g[1]); g[2].forEach(function (x) { host.appendChild(g[3](x)); }); });
       if (!n) host.appendChild(el("div", "empty", "Nothing needs you right now."));
       $("moveCount").textContent = n ? String(n) : "";
@@ -1095,7 +1110,7 @@
     var host = $("waitList");
     keep(host, function () {
       clear(host);
-      if (S.problemsErr && !S.problems) host.appendChild(el("div", "err", "Problems didn't load. " + errText(S.problemsErr)));
+      if (S.problemsErr && !S.problems) host.appendChild(errBox("Problems didn't load. ", S.problemsErr));
       var w = []; projs().forEach(function (p) { w = w.concat(waitingOf(p)); });
       var groups = {}; w.forEach(function (x) { (groups[x.waiting || "Someone"] = groups[x.waiting || "Someone"] || []).push(x); });
       function since(x) { var a = ageOf(x); return a == null ? -1 : a; }
@@ -1195,6 +1210,39 @@
     }
     return root;
   }
+  // ---------- Claude chats: one per project, milestone, task or problem, its link kept in the row's `Chat` ----------
+  // Desktop: the Claude app's own link (artifacts let claude:// out there). Phone: the web, since iOS keeps claude.ai links in the browser.
+  var MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "") || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent || ""));
+  var KIND = { project: "project", ms: "milestone", task: "task", problem: "problem" }, TITLE = { project: "Project", ms: "Milestone", task: "Task", problem: "Problem" };
+  function chatSid(u) { var m = /session_([A-Za-z0-9]+)/.exec(String(u || "")); return m ? m[1] : null; }
+  function claudeProject(v) { // the Projects field `Claude project`: "<name> — <project id>"
+    var m = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i.exec(String(v || ""));
+    return m ? { id: m[1].toLowerCase(), name: clean(String(v).replace(m[0], "").replace(/[\s—–·:-]+$/, "")) || "Claude project" } : null;
+  }
+  function newChatUrl(q, cp) { // the web takes the tracker project's claude.ai project; the app's own link has no way to name one
+    return MOBILE ? "https://claude.ai/new?mode=cowork&surface=cowork" + (cp ? "&project=" + cp.id : "") + "&q=" + encodeURIComponent(q) : "claude://cowork/new?q=" + encodeURIComponent(q);
+  }
+  function chatQ(x, kind, again) { // "Task: <name>" first, since the app titles a chat from its first message; then its page — only what to load, what to do next is the user's to say
+    var pr = kind === "project" ? null : x.project || projByKey()[x.pk];
+    return TITLE[kind] + ": " + x.name + (pr ? " — " + pr.name : "") + " (Project Tracker, " + x.url + "). " + (again ? "Its old chat is gone: this is its chat from now on. " : "") + "Load it.";
+  }
+  function chatLink(href, text, title) { var a = link(href, text); a.appendChild(el("span", "arr", " ↗")); if (title) a.title = title; a.addEventListener("click", function (e) { e.stopPropagation(); }); return a; }
+  function chatBtn(x, kind) { // open the row's chat; with no chat yet, start it — that chat writes its own link back to the row
+    var sid = chatSid(x.chat), w = el("span", "chat" + (sid ? " split" : "")), pr = kind === "project" ? x : x.project || projByKey()[x.pk], cp = pr ? pr.cproj : null;
+    if (!sid) { w.appendChild(chatLink(newChatUrl(chatQ(x, kind, false), cp), "Claude chat", "Start a chat with Claude about this " + KIND[kind] + "; every later click opens the same chat")); return w; }
+    w.appendChild(chatLink(MOBILE ? "https://claude.ai/cowork/cse_" + sid : "claude://claude.ai/code/session_" + sid, "Claude chat", "This " + KIND[kind] + "'s chat with Claude"));
+    var mb = btn("more", null); mb.innerHTML = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.8 5 6.8 8 3.8"/></svg>';
+    mb.setAttribute("aria-label", "More chat options"); mb.setAttribute("aria-expanded", "false");
+    var menu = el("div", "chat-m"); menu.hidden = true;
+    var nw = chatLink(newChatUrl(chatQ(x, kind, true), cp), "New chat"); nw.appendChild(span("For when the old one is deleted or too long: the new chat becomes this " + KIND[kind] + "'s chat.", "d"));
+    nw.addEventListener("click", function () { menu.hidden = true; mb.setAttribute("aria-expanded", "false"); });
+    menu.appendChild(nw);
+    mb.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; document.querySelectorAll(".chat-m").forEach(function (m) { m.hidden = true; }); menu.hidden = !on; mb.setAttribute("aria-expanded", String(on)); });
+    w.appendChild(mb); w.appendChild(menu); return w;
+  }
+  document.addEventListener("click", function () { document.querySelectorAll(".chat-m").forEach(function (m) { if (!m.hidden) { m.hidden = true; m.parentNode.querySelector(".more").setAttribute("aria-expanded", "false"); } }); });
+  function fixChat(err) { return err && err.chat ? chatLink(newChatUrl(err.chat), "Fix it in a chat with Claude") : null; }
+  function errBox(text, err) { var d = el("div", "err", text + errText(err)); var c = fixChat(err); if (c) { c.style.display = "block"; c.style.marginTop = "6px"; c.style.fontWeight = "500"; d.appendChild(c); } return d; }
   function facts(host, pairs) {
     var dl = el("dl", "facts");
     pairs.forEach(function (x) { if (x[1] == null || x[1] === "") return; dl.appendChild(el("dt", "", x[0])); var dd = el("dd"); if (typeof x[1] === "string") dd.textContent = x[1]; else dd.appendChild(x[1]); dl.appendChild(dd); });
@@ -1254,21 +1302,21 @@
     facts(x, [["Dates", m.start == null ? "none yet, so it can't show as due or late" : range(m.start, m.end) + ", " + plural(m.end - m.start + 1, "day")], ["Status", m.status + (m.project.status === "Paused" && m.status !== "Done" ? " (project paused)" : "")], m.status === "Done" ? ["Result", span(w[0], w[1])] : ["", ""]]);
     problemLines(x, problemsOn(key(m.url), "mk"), "Problems on this milestone");
     pageBody(x, m.url, { title: "History", history: true, empty: "No history yet." });
-    actions(x, [link(m.url, "Open in Notion ↗", "ext")]);
+    actions(x, [chatBtn(m, "ms"), link(m.url, "Open in Notion ↗", "ext")]);
   }
   function taskBody(x, k) {
     var w = whenOf(k);
-    facts(x, [["Dates", k.start == null ? "none" : range(k.start, k.end)], ["Status", k.status + (k.status === "Waiting" && k.waiting ? " on " + k.waiting : "")], ["Milestone", k.ms ? k.ms.name : ""], [k.status === "Done" ? "Result" : "Timing", span(w[0], w[1])]]);
+    facts(x, [["Dates", k.start == null ? "none" : range(k.start, k.end)], ["Status", k.status + (k.status === "Waiting" && k.waiting ? " on " + k.waiting : "")], ["Milestone", k.ms ? k.ms.name : "none"], [k.status === "Done" ? "Result" : "Timing", span(w[0], w[1])]]);
     problemLines(x, problemsOn(key(k.url), "tk"), "Problems on this task");
     pageBody(x, k.url, { title: "History", history: true, empty: "No history yet." });
-    actions(x, [link(k.url, "Open in Notion ↗", "ext")]);
+    actions(x, [chatBtn(k, "task"), link(k.url, "Open in Notion ↗", "ext")]);
   }
   function problemBody(x, i) {
     var idx = itemIndex(), ms = idx[i.mk], tk = idx[i.tk], a = ageOf(i);
     facts(x, [["Waiting on", i.waiting || (i.status === "Resolved" ? "" : "you")], ["Milestone", ms ? ms.name : ""], ["Task", tk ? tk.name : ""], ["Opened", i.opened != null ? fmt(i.opened, true) + (i.status !== "Resolved" && a != null ? ", " + days(a) + " ago" : "") : ""], ["Resolved", i.resolvedOn != null ? fmt(i.resolvedOn, true) : ""]]);
     if (i.noteRaw) x.appendChild(renderMd(String(i.noteRaw).split(" · ").join("\n\n")));
     pageBody(x, i.url, {});
-    actions(x, [link(i.url, "Open in Notion ↗", "ext")]);
+    actions(x, [chatBtn(i, "problem"), link(i.url, "Open in Notion ↗", "ext")]);
   }
   function taskRow(k) { return acc({ k: key(k.url), tsk: true, dot: itemDot(k), title: k.name, line: phraseEl([planPhrase(k)]), right: k.start == null ? "" : range(k.start, k.end), expand: function (x) { taskBody(x, k); } }); }
   S.grp = {}; // milestone groups the viewer opened or closed in this visit
@@ -1295,7 +1343,7 @@
     keep(host, function () {
       clear(host);
       if (!p) { host.appendChild(el("div", "dr-in muted", "This project is no longer in the active list.")); return; }
-      $("drTitle").textContent = p.name; $("drNotion").href = p.url; paintNav();
+      $("drTitle").textContent = p.name; $("drNotion").href = p.url; clear($("drChat")); $("drChat").appendChild(chatBtn(p, "project")); paintNav();
       var ms0 = msList(p), tk0 = taskList(p), info = S.pageInfo[p.key] || { notes: [], noteLines: [], notePages: [] }, st = stateOfProject(p), f = focusOf(p);
       // head: who, name, state, summary
       var hd = el("header", "dr-head");
@@ -1332,7 +1380,8 @@
       stat(ms0 && ms0.length ? "Milestones" : "Tasks", ms0 ? done + " / " + strip.length : "—", pr, ms0 ? "plan" : null);
       stat("Open items", S.problemsErr && !S.problems ? "?" : String(openProbs.length + waitTasks.length), null, "items");
       body.appendChild(stats);
-      var lk = el("div", "dr-links"); if (p.repo) lk.appendChild(link(p.repo, "Repository ↗", "ext")); if (p.source) lk.appendChild(link(p.source, p.origin === "Upwork" ? "Upwork contract ↗" : "Source ↗", "ext"));
+      var lk = el("div", "dr-links"); if (p.repo) lk.appendChild(link(p.repo, "Repository ↗", "ext")); if (p.source) lk.appendChild(link(p.source, p.origin === "Upwork" ? "Upwork contract ↗" : "Source ↗", "ext")); if (p.cproj) { var cpl = link("https://claude.ai/project/" + p.cproj.id, "Claude project: " + p.cproj.name + " ↗", "ext"); cpl.title = "The claude.ai project this project's chats open in (on the phone and the web)"; lk.appendChild(cpl); }
+      else { var cpn = span("Claude project: none", "muted"); cpn.title = "This project's chats open outside claude.ai projects. To set one, tell Claude in a chat: \u201copen its chats in <project link>\u201d"; lk.appendChild(cpn); }
       var nn = info.noteLines.length + info.notePages.length;
       lk.appendChild(btn("ext lb", "Notes" + (nn ? " (" + nn + ")" : "") + " ↓", function () { var s2 = $("drBody").querySelector('.dsec[data-sec="notes"]'); if (!s2) return; if (s2.classList.contains("folded")) setFold(s2, false); s2.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }));
       body.appendChild(lk);
@@ -1340,7 +1389,7 @@
       // open items: problems by what they ask of the user, plus the tasks waiting on someone
       if (openProbs.length || waitTasks.length || (S.problemsErr && !S.problems)) {
         var b1 = dsec(body, "items", "Open items", openProbs.length + waitTasks.length);
-        if (S.problemsErr && !S.problems) b1.appendChild(el("div", "err", "Problems didn't load. " + errText(S.problemsErr)));
+        if (S.problemsErr && !S.problems) b1.appendChild(errBox("Problems didn't load. ", S.problemsErr));
         var groups = [
           ["Blocking", openProbs.filter(function (i) { return i.type === "Blocker"; })],
           ["On you", openProbs.filter(function (i) { return i.type === "Question" && !i.waiting; })],

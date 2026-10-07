@@ -10,7 +10,7 @@ Pasted → use it. Pointed to → fetch it with whatever tools the session has (
 
 Only what the source says — no risks, milestones or tasks of your own. Follow the rules literally so the same source always gives the same rows.
 
-- **Project** — name (the product or deliverable), client, `Origin`: `Upwork` for an Upwork contract, `Personal` with no client, else `Direct` — or the option the user names.
+- **Project** — name (the product or deliverable), client, `Origin`: `Upwork` for an Upwork contract, `Personal` with no client, else `Direct` — or the option the user names; `Claude project` as the user gives it (SKILL.md → *Claude project*).
 - **Milestones and tasks** — by the source's structure:
   - **Section headings with items under them** → each heading is a milestone, named in sentence case without dates or durations ("SITE INSTALLATION — until June 5" → `Site installation`); each item under it is a task of that milestone, named with the source's wording minus the date.
   - **A heading with no items** → a milestone with no tasks.
@@ -39,7 +39,7 @@ A milestone with no date in the source and none following from these rules is as
 
 ## 4. Confirm
 
-Show: which source you used (email subject and date, or document name), the project and client, the milestones with their dates and, under each, its tasks with dates, then the problems. Ask for missing milestone dates in the same message. Wait for OK — this creates many rows, and a wrong assumption means a cleanup.
+Show: which source you used (email subject and date, or document name), the project and client, the milestones with their dates and, under each, its tasks with dates, then the problems. Ask for missing milestone dates in the same message, and which claude.ai project the project's chats from the dashboard should open in — this conversation's project as the default when it is in one ("its chats will open in **<name>** — or another project's link, or none?"), else "a project's link, or none?". Wait for OK — this creates many rows, and a wrong assumption means a cleanup.
 
 ## 5. Create
 
@@ -47,7 +47,7 @@ First check `Active` for a project of this name. If one exists, an earlier attem
 
 Otherwise, in this order — the page comes before the rows, so an interrupted attempt can always be resumed through the project's own views:
 
-1. The Projects row: `Status` Active, `Target end` = the end of the last milestone, empty if that one has no dates yet (without milestones: the end the source gives for the work, else empty — ongoing work has no end), `Source` = the source's URL if it is a shared web document, else empty; `Repository` only if the user gave one.
+1. The Projects row: `Status` Active, `Target end` = the end of the last milestone, empty if that one has no dates yet (without milestones: the end the source gives for the work, else empty — ongoing work has no end), `Source` = the source's URL if it is a shared web document, else empty; `Repository` only if the user gave one; `Claude project` as confirmed (`<name> — <project id>`), empty for none.
 2. The project page's views and tabs (below).
 3. Milestones (new rows, `Project` = the row) with their `Dates`.
 4. Tasks (`Project` = the row, `Milestone` = its milestone).
