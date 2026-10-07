@@ -18,6 +18,10 @@
         {
           "type": "generic",
           "path": "skills/project-tracker/assets/dashboard.html"
+        },
+        {
+          "type": "generic",
+          "path": "skills/project-tracker/assets/client.html"
         }
       ]
     },
