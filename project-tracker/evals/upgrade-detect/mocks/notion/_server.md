@@ -109,11 +109,11 @@ Issues of Energy meter:
 - `3000…0205` Find a laboratory — Task — Open — empty — Opened 2026-09-22
 - `3000…0206` Zigbee binding error — Blocker — Resolved — Milestone 0102 — Opened 2026-09-22 — Resolved on 2026-10-02 — Note "Fixed with a custom converter."
 
-**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Client Brightbrush Ltd; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10. Same page layout (callout 🔵 blue_bg: "**Now:** Layout — due Oct 20", "**Blocked on:** Fund milestone 3 (Brightbrush Ltd)"); linked-view blocks `60000000…0021/22/23`, views `70000000…0021/22/23`.
+**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Client Brightbrush Ltd; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10. Same page layout (callout 🔵 blue_bg: "**Now:** Layout — due Oct 20", "**Blocked on:** Firmware spec approval (Brightbrush Ltd)"); linked-view blocks `60000000…0021/22/23`, views `70000000…0021/22/23`.
 - `3000…0301` Schematic — General — Done — 2026-09-01 → 2026-09-18 — Finished 2026-09-18
 - `3000…0302` Layout — General — In progress — 2026-09-18 → 2026-10-20
 - `3000…0303` Firmware — General — Planned — 2026-10-20 → 2026-11-10
-- Issue `3000…0401` Fund milestone 3 — Task — Waiting — Brightbrush Ltd — Opened 2026-09-18
+- Issue `3000…0401` Firmware spec approval — Task — Waiting — Brightbrush Ltd — Opened 2026-09-18
 
 ## What each read returns (strict)
 

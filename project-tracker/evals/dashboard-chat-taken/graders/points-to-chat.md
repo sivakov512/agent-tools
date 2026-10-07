@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-flags: 'i'
+flags: ''
 match: 'contains'
 ---
-Milestone 3 funded
+session_01EvalOtherChat

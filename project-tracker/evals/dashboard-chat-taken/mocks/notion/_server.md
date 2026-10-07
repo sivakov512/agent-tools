@@ -61,20 +61,20 @@ Fetching a database URL lists its data source with the schema below and its view
 A view is queried with `data: {mode: "view", view_url: "https://app.notion.com/p/<database or block id without dashes>?v=<view id without dashes>"}` and returns `{"results":[{…row properties…, "url":"https://app.notion.com/p/<row id>"}],"has_more":false}` with dates as `date:<Prop>:start` / `date:<Prop>:end`, relations as JSON arrays of page URLs, `Late, days`, `Open late` and the rollups as opaque formula references.
 
 Schemas:
-- Projects: Name (title), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
-- Milestones: Name (title), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
-- Tasks: Name (title), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
-- Problems: Name (title), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Note (text), Opened (date), Resolved on (date).
+- Projects: Name (title), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Claude project (text), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
+- Milestones: Name (title), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Chat (url), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
+- Tasks: Name (title), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Chat (url), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
+- Problems: Name (title), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Note (text), Opened (date), Resolved on (date), Chat (url). `Chat` is empty on every row at the start, except task 0103, whose `Chat` is `https://claude.ai/code/session_01EvalOtherChat` (an earlier chat about it).
 
 ## Projects
 
-**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Client Northwind; Origin Direct; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-15; Summary "Firmware on the dev board in progress, due Nov 20; sleep modes moved a week with Northwind on vendor samples."
+**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Client Northwind; Origin Direct; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-08; Summary "Firmware on the dev board in progress, due Nov 13; real CT readings over Zigbee due Oct 9."
 
 Its page (fetch of the row id) contains:
 
 ```
 <callout icon="🔵" color="blue_bg">
-	**Now:** Firmware on the dev board — due Nov 20 → Real readings from the CT sensor over Zigbee, due Oct 9
+	**Now:** Firmware on the dev board — due Nov 13 → Real readings from the CT sensor over Zigbee, due Oct 9
 	**Waiting on:** CI runner set up (Marko) · RFQ reviewed (Northwind) · Invoice received from Acme (Acme)
 	**Open:** 1 risk
 </callout>
@@ -106,22 +106,22 @@ Its page (fetch of the row id) contains:
 Fetching a linked-view block `60000000…00NN` lists its views: block …11 → view `70000000-0000-4000-8000-000000000011` "Plan" (milestones, timeline); …12 → two views, first `70000000-…-000000000012` "Tasks" (tasks, table, grouped by Milestone; Status in Planned, In progress, Waiting, Done), then `70000000-…-000000000015` "Timeline" (the same tasks as a timeline by Dates); …13 → view `70000000-…-000000000013` "Schedule" (milestones, table); …14 → view `70000000-…-000000000014` "Problems" (Status in Open, Waiting). Querying them returns this project's rows.
 
 Milestones of Energy meter (id — name — status — Dates):
-- `3000…0110` Firmware on the dev board — In progress — 2026-09-15 → 2026-11-20. Body: `- **Sep 15** — Started with the Zigbee stack bring-up.` then `- **Oct 5** — Pushed by the Sleep modes move, Nov 13 → Nov 20.`
-- `3000…0111` Hardware — Planned — 2026-11-20 → 2027-01-15. Body: `- **Oct 5** — Pushed by the Sleep modes move, Nov 13 – Jan 8 → Nov 20 – Jan 15.`
+- `3000…0110` Firmware on the dev board — In progress — 2026-09-15 → 2026-11-13. Body: `- **Sep 15** — Started with the Zigbee stack bring-up.`
+- `3000…0111` Hardware — Planned — 2026-11-13 → 2027-01-08. Body empty.
 
 Tasks of Energy meter (id — name — milestone — status — Dates — Waiting on):
 - `3000…0101` Zigbee stack configured — 0110 — Done — 2026-09-15 → 2026-09-22 — Finished 2026-09-22
 - `3000…0102` Real readings from the CT sensor over Zigbee — 0110 — In progress — 2026-09-22 → 2026-10-09
-- `3000…0103` Sleep modes and sampling with the processor asleep — 0110 — Planned — 2026-10-09 → 2026-11-13
-- `3000…0104` Power measured, module fixed — 0110 — Planned — 2026-11-13 → 2026-11-20
-- `3000…0105` Board designed, first boards ordered — 0111 — Planned — 2026-11-20 → 2026-12-11
-- `3000…0106` First prototype working on the custom board — 0111 — Planned — 2026-12-11 → 2027-01-15
+- `3000…0103` Sleep modes and sampling with the processor asleep — 0110 — Planned — 2026-10-09 → 2026-11-06 — Chat https://claude.ai/code/session_01EvalOtherChat
+- `3000…0104` Power measured, module fixed — 0110 — Planned — 2026-11-06 → 2026-11-13
+- `3000…0105` Board designed, first boards ordered — 0111 — Planned — 2026-11-13 → 2026-12-04
+- `3000…0106` First prototype working on the custom board — 0111 — Planned — 2026-12-04 → 2027-01-08
 - `3000…0201` CI runner set up — 0110 — Waiting — no Dates — Waiting on Marko
 - `3000…0202` RFQ reviewed — 0111 — Waiting — no Dates — Waiting on Northwind
 - `3000…0203` Invoice received from Acme — 0111 — Waiting — no Dates — Waiting on Acme
 - `3000…0205` Laboratory found — 0111 — Planned — no Dates — Waiting on empty
 
-Each task page body is its history: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Sep 22** — Asked Marko to set up a CI runner for the firmware.`; 0202 `- **Sep 22** — Sent the RFQ to Northwind for review.`; 0203 `- **Sep 22** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; 0103 `- **Oct 5** — Moved with Northwind: vendor samples late. Nov 6 → Nov 13.`; 0104 `- **Oct 5** — Pushed by the Sleep modes move, Nov 6 – Nov 13 → Nov 13 – Nov 20.`; 0105 `- **Oct 5** — Pushed by the Sleep modes move, Nov 13 – Dec 4 → Nov 20 – Dec 11.`; 0106 `- **Oct 5** — Pushed by the Sleep modes move, Dec 4 – Jan 8 → Dec 11 – Jan 15.`
+Each task page body is its history: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Sep 22** — Asked Marko to set up a CI runner for the firmware.`; 0202 `- **Sep 22** — Sent the RFQ to Northwind for review.`; 0203 `- **Sep 22** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; the others are empty.
 
 Problems of Energy meter:
 - `3000…0204` Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0111 — Task 0105 — Note "+3 weeks if the second board run misses it" — Opened 2026-09-22
