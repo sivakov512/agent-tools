@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.1.0...project-tracker-v1.2.0) (2026-10-07)
+
+
+### Features
+
+* **project-tracker:** client dashboards ([56ffd60](https://github.com/sivakov512/agent-tools/commit/56ffd60597e5d007a397dda14e96d4812c90b6a4))
+
 ## [1.1.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.0.0...project-tracker-v1.1.0) (2026-10-07)
 
 
