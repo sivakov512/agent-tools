@@ -32,7 +32,8 @@ CREATE TABLE ("Name" TITLE, "Client" RICH_TEXT,
   "Target end" DATE, "Repository" URL,
   "Source" URL COMMENT 'Where the project came from; empty for pasted text, email or a local file',
   "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude',
-  "Claude project" RICH_TEXT COMMENT 'The claude.ai project its dashboard chats open in: <name> — <project id>; empty = none')
+  "Claude project" RICH_TEXT COMMENT 'The claude.ai project its dashboard chats open in: <name> — <project id>; empty = none',
+  "Client dashboard" URL COMMENT 'The client dashboard that shows it; set by Claude')
 
 -- Milestones
 CREATE TABLE ("Name" TITLE,
@@ -87,7 +88,7 @@ ADD COLUMN "Late, days" FORMULA('if(empty(prop("Milestones late")) and empty(pro
 
 Projects ↔ Milestones, Projects ↔ Tasks and Milestones ↔ Tasks are two-way because the project's `Late, days` and the milestone page's task list need the reverse side; Problems point at projects, milestones and tasks one way only, so pages do not grow another backlink list.
 
-Existing databases (an interrupted setup, or a pre-release 1.0 tracker): fetch each data source and add what is missing — the computed columns as above, and these plain columns: `Origin`, `Chat` and `Claude project`, which only pre-release 1.0 trackers lack, and `Order`, which schema 1 lacks (one call per data source, statements joined by `;`):
+Existing databases (an interrupted setup, or a pre-release 1.0 tracker): fetch each data source and add what is missing — the computed columns as above, and these plain columns: `Origin`, `Chat` and `Claude project`, which only pre-release 1.0 trackers lack, `Order`, which schema 1 lacks, and `Client dashboard`, which schema 2 lacks (one call per data source, statements joined by `;`):
 
 ```sql
 -- on <projects>
@@ -100,9 +101,12 @@ ADD COLUMN "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set b
 
 -- on <milestones>, <tasks>, each
 ADD COLUMN "Order" NUMBER COMMENT 'Position in the plan (1, 2, …), so the order holds without dates; set by Claude'
+
+-- on <projects>
+ADD COLUMN "Client dashboard" URL COMMENT 'The client dashboard that shows it; set by Claude'
 ```
 
-A tracker that already has rows and lacks `Order` is brought up by **Tracker update** (after step 8), which also numbers the rows.
+A tracker that already has rows and lacks `Order` or `Client dashboard` is brought up by **Tracker update** (after step 8), which also numbers the rows.
 
 Make every database inline so it renders on the page: `notion-update-data-source`, `is_inline: true`.
 
@@ -127,11 +131,11 @@ The config toggle gets the four data source IDs and the structure's version, `sc
 	milestones: `<milestones>`
 	tasks: `<tasks>`
 	problems: `<problems>`
-	schema: 2
+	schema: 3
 </details>
 ```
 
-Add the missing lines with `update_content` — `old_str` from the fetch (for an empty toggle, `</summary>\n</details>`), lines indented one tab. Never a second toggle. `schema: 2` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
+Add the missing lines with `update_content` — `old_str` from the fetch (for an empty toggle, `</summary>\n</details>`), lines indented one tab. Never a second toggle. `schema: 3` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
 
 ## 4. Views on the databases
 
@@ -190,7 +194,7 @@ What was created or added (or that everything was already in place), the dashboa
 
 - **Recently resolved**: Problems tab → `Recently resolved` → Filter → `Resolved on` → *is within* → *Past month*, so the view stays short.
 - **Full width** on the tracker page itself (••• → Full width) — without it Notion folds each tab's second view (`Closed`, `Timeline`, `Recently resolved`) into a dropdown. Project, milestone and task pages are already full width.
-- After the first project exists — **hide properties**, once for the whole database (the API cannot set property visibility): on any project page, click `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*, and `Chat`, `Claude project` → *Hide when empty*; on any milestone page, `Project status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on any task page, `Project status`, `Milestone status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on any problem page, `Chat` → *Hide when empty*. The helpers exist only to compute lateness, and `Order` shows in the sorting; `Chat` and `Claude project` are set later, from the dashboard and on request. (new-project.md repeats this, and the timeline zoom, when it creates the first project.)
+- After the first project exists — **hide properties**, once for the whole database (the API cannot set property visibility): on any project page, click `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*, and `Chat`, `Claude project`, `Client dashboard` → *Hide when empty*; on any milestone page, `Project status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on any task page, `Project status`, `Milestone status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on any problem page, `Chat` → *Hide when empty*. The helpers exist only to compute lateness, and `Order` shows in the sorting; `Chat` and `Claude project` are set later, from the dashboard and on request. (new-project.md repeats this, and the timeline zoom, when it creates the first project.)
 
 Next step: a new project.
 
@@ -198,7 +202,7 @@ Next step: a new project.
 
 Not a numbered step, so a setup run from the top never reaches it: SKILL.md (**Finding things**) starts it, or step 3 on a tracker that has rows.
 
-The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **2**. A tracker below it is brought up by the skill itself, in the first conversation that finds it, before the request — installing the newer plugin is the user's go for it; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose step 3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again. If a step fails, stop the update, say in one line what failed, and handle the request without writing `Order` — views and the dashboard fall back to `Dates`; the next conversation tries again.
+The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **3**. A tracker below it is brought up by the skill itself, in the first conversation that finds it, before the request — installing the newer plugin is the user's go for it; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose step 3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again. Steps run in order (a schema-1 tracker gets 1 → 2, then 2 → 3, in one go). If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards; the next conversation tries again.
 
 **1 → 2: `Order`.**
 1. Milestones and Tasks get `Order` (`ADD COLUMN` as in step 2, skipped where it exists).
@@ -206,4 +210,10 @@ The config's `schema` is the structure the tracker was built with; no `schema` l
 3. Views sort by it (`notion-update-view`; the filters stay): root `Next up` and every project's `Schedule` and `Tasks` (the table) → `CLEAR SORT; SORT BY "Order" ASC, "Dates" ASC`; root Tasks `All` → `CLEAR SORT; SORT BY "Dates" ASC, "Order" ASC` (step 4 says why).
 4. Write `schema: 2` in the config toggle (the line replaced, or added as its last line, tab-indented) — last, so an interrupted update is found again.
 
-A future step goes here as **2 → 3**, and the number above moves with it.
+**2 → 3: `Client dashboard`.**
+1. Projects get `Client dashboard` (`ADD COLUMN` as in step 2, skipped where it exists). Nothing to fill: it is set when a client dashboard is made (`references/client-dashboards.md`).
+2. Write `schema: 3` in the config toggle, as above — last.
+
+The closing line names what is new for the user: client dashboards, and that `Client dashboard` is best set to *Hide when empty* on a project page (the API cannot).
+
+A future step goes here as **3 → 4**, and the number above moves with it.
