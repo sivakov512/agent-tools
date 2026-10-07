@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.2.0...project-tracker-v1.3.0) (2026-10-07)
+
+
+### Features
+
+* **project-tracker:** short work-style names, contract milestones 1:1, history without forward references ([d4d73ab](https://github.com/sivakov512/agent-tools/commit/d4d73ab1b47828e7e96b0a0c9149153c8d62284f))
+
 ## [1.2.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.1.0...project-tracker-v1.2.0) (2026-10-07)
 
 
