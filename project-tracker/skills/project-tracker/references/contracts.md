@@ -11,7 +11,7 @@ A contract in a freelance or project platform already has most of what a tracker
 | Contract title, or the product name the description uses if it is clearer | Project `Name` (short: the product or deliverable, not the job-post headline) |
 | Client company named in the description; else the service's client name | Project `Client` |
 | The service | Project `Origin` (`Upwork`) |
-| Each stage / milestone, in order | One Milestone, named with the stage's own short title (the part before the colon or dash); `Order` = its number in the contract (at creation; a stage added at resync takes its place as `plan-changes.md` → **Order** says) |
+| Each stage / milestone, in order | One Milestone, named with the stage's own short title (the part before the colon or dash) exactly as the contract writes it — never shortened or reworded, so it matches the platform one to one; `Order` = its number in the contract (at creation; a stage added at resync takes its place as `plan-changes.md` → **Order** says) |
 | Stage description | First line of the milestone page body: `Contract milestone N. <one-sentence "done when" from the description>` |
 | Stage state | Milestone `Status` and dates (below) |
 | Explicit dependencies in the terms ("Milestones 1 and 2 run in parallel") | Start dates |

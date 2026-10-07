@@ -12,7 +12,7 @@ Only what the source says — no risks, milestones or tasks of your own. Follow 
 
 - **Project** — name (the product or deliverable), client, `Origin`: `Upwork` for an Upwork contract, `Personal` with no client, else `Direct` — or the option the user names; `Claude project` as the user gives it (`chats.md` → Claude project).
 - **Milestones and tasks** — by the source's structure:
-  - **Section headings with items under them** → each heading is a milestone, named in sentence case without dates or durations ("SITE INSTALLATION — until June 5" → `Site installation`); each item under it is a task of that milestone, named with the source's wording minus the date.
+  - **Section headings with items under them** → each heading is a milestone, named in sentence case without dates or durations ("SITE INSTALLATION — until June 5" → `Site installation`); each item under it is a task of that milestone, named as SKILL.md **Names** says — a short noun for the work ("Board designed, first boards ordered — December 4" → `Board design & first order`), the source's longer wording kept as its first history line when it says more.
   - **A heading with no items** → a milestone with no tasks.
   - **No headings, a flat list** → each item is a milestone; there are no tasks.
   - **Ongoing work with no stages** ("support the hub", "monthly maintenance") → a project without milestones; each listed item is a task.
@@ -25,7 +25,7 @@ Only what the source says — no risks, milestones or tasks of your own. Follow 
   - an undecided either/or → Question; `Waiting on` = who decides, by default the `Client` value;
   - "missing X would cost N", "N is an assumption until Y" → Risk, Open; consequence in `Note`; linked to the milestone (and task) it threatens.
 
-  Short noun-phrase names from the source; a waiting task is named by its result ("Lab quotes received"). Commercial terms, IP clauses, billing rules and background are neither tasks nor problems.
+  Names as SKILL.md **Names** says; a waiting task is named by what is awaited ("Lab quotes"). Commercial terms, IP clauses, billing rules and background are neither tasks nor problems.
 
 ## 3. Dates
 
