@@ -128,6 +128,11 @@
   .tl-months { position: sticky; top: 0; z-index: 4; height: 32px; background: var(--surface); border-bottom: 1px solid var(--line); }
   .tl-month { position: absolute; top: 0; height: 100%; padding: 8px 0 0 8px; border-left: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); white-space: nowrap; }
   .tl-grid { position: absolute; top: 32px; bottom: 0; border-left: 1px solid var(--line); pointer-events: none; }
+  .tl-wk { position: absolute; top: 0; height: 100%; padding: 9px 0 0 4px; font-size: 11px; color: var(--ink-3); opacity: .8; white-space: nowrap; }
+  .tl-grid.wk { border-left: 1px dashed var(--line-2); }
+  .tl-grid.day { border-left: 1px dotted var(--line-2); opacity: .6; }
+  .tl-grid.yr { border-left-color: color-mix(in srgb, var(--ink-3) 45%, transparent); }
+  .tl-month.yr { color: var(--ink-2); font-weight: 600; }
   .tl-today { position: absolute; top: 32px; bottom: 0; width: 2px; background: var(--accent); opacity: .7; z-index: 1; pointer-events: none; }
   .tl-today-l { position: absolute; top: 8px; z-index: 5; font-size: 11.5px; font-weight: 600; color: var(--accent); background: var(--surface); padding: 0 4px; transform: translateX(-50%); pointer-events: none; }
   .tl-row { position: relative; border-bottom: 1px solid var(--line); }
@@ -142,7 +147,7 @@
   .tl-b.prog { background: var(--accent); color: var(--on-accent); }
   .tl-b.late { background: var(--crit); color: var(--on-accent); }
   .tl-b.done, .tl-b.doneLate { background: var(--good-soft); color: var(--good); }
-  .tl-b.paused { background: repeating-linear-gradient(135deg, var(--hatch) 0 4px, var(--surface-2) 4px 8px); color: var(--ink-2); }
+  .tl-b.paused { background: color-mix(in srgb, var(--bar) 55%, var(--surface)); color: var(--ink-3); }
   .tl-b.nodate { background: transparent; box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink-3); }
   .tl-fail { position: absolute; top: 13px; font-size: 13px; color: var(--crit); white-space: nowrap; }
 
@@ -262,7 +267,7 @@
   .arow.flash { animation: flash 1.4s ease-out; }
   @keyframes flash { 0% { box-shadow: inset 3px 0 0 var(--accent); background: var(--accent-soft); } 100% { box-shadow: inset 3px 0 0 transparent; background: transparent; } }
   @media (prefers-reduced-motion: reduce) { .arow.flash { animation: none; } }
-  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 16px; font-size: 13.5px; }
+  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 16px; font-size: 13.5px; margin: 0; }
   .facts dt { color: var(--ink-3); }
   .facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
   .xh { font-size: 12.5px; font-weight: 600; color: var(--ink-3); }
@@ -316,6 +321,76 @@
     .acc-x { padding-left: 16px; }
     .tl-scroll { max-height: none; }
   }
+
+  /* ---------- tasks: thin marks under a milestone, lanes when a project is opened up, nested rows on the project page ---------- */
+  .tl-label .car { border: 0; background: none; padding: 0; width: 16px; height: 18px; display: grid; place-items: center; cursor: pointer; color: var(--ink-3); flex: none; }
+  .tl-label .car .chev { transition: transform .15s; }
+  .tl-label .car[aria-expanded="true"] .chev { transform: rotate(90deg); }
+  .tl-label .car:hover .chev { stroke: var(--ink); }
+  .tl-label .car.none { visibility: hidden; }
+  .tl-b.task { height: 17px; line-height: 17px; font-size: 11.5px; border-radius: 4px; padding: 0 6px; }
+  .tl-b .tl-bn { display: block; overflow: hidden; text-overflow: ellipsis; }
+  /* a milestone as a card: one even fill of fine diagonal stripes in its state's tint, ◆ and the name on top, its tasks below — no outlines anywhere.
+     Every fill is opaque (mixed into the surface), so a box or chip widened on hover covers what is under it instead of showing through. */
+  .tl-b.box { padding: 0; border-radius: 8px; color: var(--ink-2); box-shadow: none; overflow: visible; --st: var(--ink-2); --st-soft: color-mix(in srgb, var(--ink) 11%, var(--surface));
+    background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--st-soft) 90%, var(--surface)) 0 5px, color-mix(in srgb, var(--st-soft) 50%, var(--surface)) 5px 10px); }
+  .tl-b.box.prog { --st: var(--accent); --st-soft: var(--accent-soft); }
+  .tl-b.box.late { --st: var(--crit); --st-soft: var(--crit-soft); }
+  .tl-b.box.done, .tl-b.box.doneLate { --st: var(--good); --st-soft: var(--good-soft); }
+  .tl-b.box.paused { --st: var(--ink-3); --st-soft: color-mix(in srgb, var(--ink) 7%, var(--surface)); }
+  .tl-b.box .tl-bh { position: absolute; top: 0; left: 0; right: 0; height: 24px; display: flex; align-items: center; gap: 7px; padding: 0 9px; background: none; color: var(--st); font-weight: 600; }
+  .tl-b.box .tl-bn { flex: 1; min-width: 0; line-height: 24px; }
+  .tl-ms { flex: none; width: 6px; height: 6px; border-radius: 1.5px; background: currentColor; transform: rotate(45deg); opacity: .85; }
+  .tl-b.box.paused .tl-ms { width: 6px; height: 8px; border-radius: 0; background: none; border: solid currentColor; border-width: 0 2px; transform: none; } /* ❚❚, since stripes are every milestone's fill */
+  .tl-b.box.narrow:not(.hov) .tl-ms { display: none; }
+  .tl-b.box.narrow:not(.hov) .tl-bh { padding: 0 5px; gap: 4px; }
+  .tl-q { flex: none; font-size: 10.5px; font-weight: 600; color: var(--ink-3); opacity: .55; }
+  .tl-b.box.nodate { --st: var(--ink-2); --st-soft: color-mix(in srgb, var(--ink) 9%, var(--surface)); }
+  .tl-b.box.nodate .tl-bh { font-weight: 500; }
+  .tl-b.box:hover { filter: brightness(1.08); box-shadow: none; }
+  .tl-strip { position: absolute; left: 8px; right: 8px; bottom: 4px; height: 4px; }
+  .tl-seg { position: absolute; top: 0; height: 4px; border-radius: 2px; cursor: pointer; background: var(--line-2); }
+  .tl-seg.prog { background: var(--accent); } .tl-seg.late, .tl-seg.doneLate { background: var(--crit); } .tl-seg.wait { background: var(--warn); } .tl-seg.done { background: var(--good); } .tl-seg.paused { background: var(--hatch); }
+  .tl-seg:hover { box-shadow: 0 0 0 2px var(--surface); }
+  .tl-chip { position: absolute; height: 18px; line-height: 18px; padding: 0 7px; border-radius: 5px; font-size: 11.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; background: color-mix(in srgb, var(--ink) 16%, var(--surface)); color: var(--ink); }
+  .tl-chip.prog { background: var(--accent); color: var(--on-accent); } .tl-chip.late { background: var(--crit); color: var(--on-accent); }
+  .tl-chip.wait { background: var(--warn-soft); color: var(--warn); } .tl-chip.done, .tl-chip.doneLate { background: color-mix(in srgb, var(--good) 26%, var(--surface)); color: var(--good); }
+  .tl-chip.paused { color: var(--ink-2); }
+  .tl-chip:hover { filter: brightness(1.12); }
+  .tl-b, .tl-chip { transition: width .12s ease-out, left .12s ease-out; }
+  .tl-b.hov, .tl-chip.hov { z-index: 2; box-shadow: 0 6px 18px rgba(0, 0, 0, .28); } /* above other bars, below the sticky names and months */
+  .tl-chip.hov { z-index: 3; }
+  @media (prefers-reduced-motion: reduce) { .tl-b, .tl-chip { transition: none; } }
+  .tl-label .tl-glab { position: absolute; left: 44px; right: 12px; border: 0; background: none; padding: 0; text-align: left; font-size: 12.5px; font-weight: 400; line-height: 22px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+  .tl-label .tl-glab:hover { color: var(--accent); }
+  .tl-b.wait { background: var(--warn-soft); color: var(--warn); }
+  .pc-now .sub { grid-column: 2; font-size: 13.5px; line-height: 1.4; color: var(--ink-2); margin-top: 3px; padding-left: 10px; border-left: 2px solid var(--line); }
+  .pc-now .sub .w { display: block; font-size: 12.5px; color: var(--ink-3); }
+  .pc-now .sub .w.crit { color: var(--crit); } .pc-now .sub .w.warn { color: var(--warn); }
+  .arow.tsk > .acc-h { padding-left: 34px; }
+  .arow.tsk > .acc-h .t { font-size: 14px; font-weight: 400; }
+  .arow.tsk > .acc-x { padding-left: 54px; }
+  .tt.Task { background: var(--accent-soft); color: var(--accent); }
+  .mgrp { border-bottom: 1px solid var(--line); }
+  .dsec-b > .mgrp:last-child { border-bottom: 0; }
+  .mgrp > .mh .t { font-weight: 600; }
+  .mgrp > .mh .chev { margin-top: 4px; transition: transform .15s; }
+  .mgrp.open > .mh .chev { transform: rotate(90deg); }
+  .mgrp.open > .mh { background: var(--surface-2); }
+  .mgrp-b { border-top: 1px solid var(--line); }
+  .mdet { padding: 14px 16px 18px 36px; background: var(--surface-2); }
+  .mdet > * + * { margin-top: 12px; }
+  .mtl { display: flex; align-items: baseline; gap: 8px; padding: 7px 16px 7px 36px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+  .mtl .n { margin-left: auto; font-weight: 400; text-transform: none; letter-spacing: 0; }
+  .mgrp.flash { animation: flash 1.4s ease-out; }
+  @media (max-width: 860px) { .mdet, .mtl { padding-left: 16px; } }
+  .mgrp-b > .arow:last-child { border-bottom: 0; }
+  .fr .ct { margin-top: 8px; padding-left: 10px; border-left: 2px solid var(--line); font-size: 13.5px; }
+  .fr .ct .go2 { border: 0; background: none; padding: 0; text-align: left; cursor: pointer; font: inherit; font-weight: 500; color: var(--ink); }
+  .fr .ct .go2:hover { color: var(--accent); }
+  .ext.lb { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; }
+  .tt.Waiting { background: var(--warn-soft); color: var(--warn); }
+  @media (max-width: 860px) { .arow.tsk > .acc-h { padding-left: 24px; } .arow.tsk > .acc-x { padding-left: 24px; } }
 </style>
 
 <div class="app">
@@ -328,7 +403,6 @@
     <button class="obtn" id="refreshBtn" type="button" title="Refresh from Notion">Refresh</button>
     <a class="obtn" id="notionLink" href="#" target="_blank" rel="noopener" hidden>Notion ↗</a>
   </header>
-
 
   <div class="grid">
     <div class="main">
@@ -381,19 +455,21 @@
   var STRUCT = { staleTime: 300000, gcTime: 86400000 }; // pages, databases, view ids: change rarely
   var DATA = { staleTime: 60000, gcTime: 86400000 };    // rows and page bodies
   var POLL = 600000;
-  var OPEN = { "Planned": 1, "In progress": 1 };
+  var OPEN_MS = { "Planned": 1, "In progress": 1 };
+  var OPEN_TASK = { "Planned": 1, "In progress": 1, "Waiting": 1 };
   var ORIGINS = ["Upwork", "Direct", "Personal"];
+  var SPANS = { "1": 31, "3": 91, "6": 182, "12": 365 }; // timeline zoom: days in view
 
-  var S = { cfg: null, projects: null, projErr: null, ms: {}, pageInfo: {}, issues: null, issuesErr: null, resolved: null, resolvedErr: null, lastUpdate: 0, range: "3", origin: "All", tlView: null, shown: false };
-  try { var r0 = localStorage.getItem("pt.range"); if (r0 === "3" || r0 === "6" || r0 === "all") S.range = r0; } catch (e) {}
+  var S = { cfg: null, projects: null, projErr: null, plan: {}, pageInfo: {}, problems: null, problemsErr: null, resolved: null, resolvedErr: null, lastUpdate: 0, range: "3", origin: "All", tlView: null, tlOpen: {}, shown: false };
+  try { var r0 = localStorage.getItem("pt.range"); if (SPANS[r0] || r0 === "all") S.range = r0; } catch (e) {}
   try { var o0 = localStorage.getItem("pt.origin"); if (o0) S.origin = o0; } catch (e) {}
+  try { var t0 = JSON.parse(localStorage.getItem("pt.tlOpen") || "{}"); if (t0 && typeof t0 === "object") S.tlOpen = t0; } catch (e) {}
 
   var $ = function (id) { return document.getElementById(id); };
   function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
   function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
   function link(href, text, cls) { var a = el("a", cls || "", text); if (href) { a.href = href; a.target = "_blank"; a.rel = "noopener"; } return a; }
   function btn(cls, text, onClick) { var b = el("button", cls, text); b.type = "button"; if (onClick) b.addEventListener("click", onClick); return b; }
-  function sep() { return el("span", "sep", "·"); }
   function nodash(id) { return String(id || "").replace(/-/g, ""); }
   function cleanUrl(u) { return String(u || "").replace(/^\{\{|\}\}$/g, "").split("?")[0]; }
   function unesc(s) { return String(s).replace(/\\([$~*_`#\[\]()>|-])/g, "$1"); }
@@ -409,6 +485,7 @@
   function rel(v) { if (Array.isArray(v)) return v.map(cleanUrl); try { var a = JSON.parse(v || "[]"); return Array.isArray(a) ? a.map(cleanUrl) : []; } catch (e) { return []; } }
   function key(u) { var m = /([0-9a-f]{32})/i.exec(nodash(u)); return m ? m[1].toLowerCase() : String(u); }
   function plural(n, one, many) { return n + " " + (n === 1 ? one : (many || one + "s")); }
+  function saveOpen() { try { localStorage.setItem("pt.tlOpen", JSON.stringify(S.tlOpen)); } catch (e) {} }
 
   // ---------- dates: whole days in the viewer's local calendar ----------
   function dnum(s) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s || "")); return m ? Math.round(Date.UTC(+m[1], +m[2] - 1, +m[3]) / DAY) : null; }
@@ -419,7 +496,7 @@
   function fmt(n, withYear) { if (n == null) return "—"; var d = new Date(n * DAY), s = MON[d.getUTCMonth()] + " " + d.getUTCDate(); return (withYear || yr(n) !== yr(todayNum())) ? s + ", " + yr(n) : s; }
   function soon(n) { var t = todayNum(); if (n === t) return "today"; if (n === t + 1) return "tomorrow"; if (n > t && n - t < 7) return WD[new Date(n * DAY).getUTCDay()] + " " + fmt(n); return fmt(n); }
   function range(a, b) {
-    if (a == null) return "no agreed dates"; if (b == null || a === b) return fmt(a);
+    if (a == null) return "no dates"; if (b == null || a === b) return fmt(a);
     var da = new Date(a * DAY), db = new Date(b * DAY);
     if (da.getUTCMonth() === db.getUTCMonth() && da.getUTCFullYear() === db.getUTCFullYear()) return MON[da.getUTCMonth()] + " " + da.getUTCDate() + "–" + db.getUTCDate() + (yr(b) !== yr(todayNum()) ? ", " + yr(b) : "");
     return fmt(a) + " – " + fmt(b);
@@ -427,23 +504,44 @@
   function days(n) { return n + " d"; }
   function hhmm(ms) { var d = new Date(ms); return (d.getHours() < 10 ? "0" : "") + d.getHours() + ":" + (d.getMinutes() < 10 ? "0" : "") + d.getMinutes(); }
 
-  // ---------- the lateness rule, same as the Notion formula ----------
+  // ---------- the lateness rule, same as the Notion formulas ----------
+  // Every date in the tracker is agreed with the client, on milestones and tasks alike, so both count.
+  function lateOf(it, pausedUp) {
+    var t = todayNum();
+    if (it.status === "Dropped" || it.end == null) return null;
+    if (it.status === "Done") return it.finished == null ? null : it.finished - it.end;
+    if (pausedUp) return null;
+    return t > it.end ? t - it.end : 0;
+  }
+  function stateOfItem(it, pausedUp) {
+    if (it.status === "Done") return it.late > 0 ? "doneLate" : "done";
+    if (pausedUp) return "paused";
+    if (it.start == null) return "nodate";
+    if (it.late > 0) return "late";
+    if (it.status === "Waiting") return "wait";
+    return it.status === "In progress" ? "prog" : "plan";
+  }
   function msOf(row, project) {
     var start = dnum(row["date:Dates:start"]), end = dnum(row["date:Dates:end"]);
     if (end == null) end = start;
-    var m = { kind: "ms", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", phase: row.Phase || "", start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project };
-    var t = todayNum(), paused = m.status === "Paused" || project.status === "Paused";
-    if (m.status === "Dropped" || end == null) m.late = null;
-    else if (m.status === "Done") m.late = m.finished == null ? null : m.finished - end;
-    else if (paused) m.late = null;
-    else m.late = t > end ? t - end : 0;
-    m.state = m.status === "Done" ? (m.late > 0 ? "doneLate" : "done") : paused ? "paused" : m.start == null ? "nodate" : m.late > 0 ? "late" : m.status === "In progress" ? "prog" : "plan";
+    var m = { kind: "ms", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, tasks: [] };
+    var paused = m.status === "Paused" || project.status === "Paused";
+    m.late = lateOf(m, paused); m.state = stateOfItem(m, paused); m.paused = paused && m.status !== "Done";
     return m;
+  }
+  function taskOf(row, project, msByKey) {
+    var start = dnum(row["date:Dates:start"]), end = dnum(row["date:Dates:end"]);
+    if (end == null) end = start;
+    var mk = rel(row.Milestone).map(key)[0] || null, ms = mk ? msByKey[mk] : null;
+    var k = { kind: "task", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", waiting: clean(row["Waiting on"]), start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, mk: ms ? mk : null, ms: ms || null };
+    var paused = project.status === "Paused" || (ms && ms.status === "Paused");
+    k.late = lateOf(k, paused); k.state = stateOfItem(k, paused); k.paused = paused && k.status !== "Done";
+    return k;
   }
   // where a project comes from: an Origin property if the tracker has one, else from Source and Client
   function originOf(r) {
-    var o = clean(r.Origin || "");
-    if (o) return /upwork/i.test(o) ? "Upwork" : /personal|own|pet/i.test(o) ? "Personal" : /direct|client/i.test(o) ? "Direct" : o;
+    var o = clean(r.Origin || ""); // the Projects select, with whatever options the user added
+    if (o) return o;
     if (/upwork\.com/i.test(r.Source || "")) return "Upwork";
     if (!clean(r.Client)) return "Personal";
     return "Direct";
@@ -464,7 +562,6 @@
     }
   }
   function isDenial(err) { return err && /^(needs_reauth|server_not_connected|selection_required|blocked_by_policy|approval_required|not_in_manifest|consent_required|not_granted|capability_disabled|capability_removed)$/.test(err.code); }
-  function errBox(host, err) { clear(host); host.appendChild(el("div", "err", errText(err))); }
 
   // ---------- Notion access ----------
   var MCP = null;
@@ -503,17 +600,18 @@
   function loadConfig() { // root page → config IDs → databases → views by name
     return fetchText(ROOT_PAGE, STRUCT).then(function (txt) {
       var ids = {};
-      ["projects", "milestones", "open_items"].forEach(function (k) { var m = new RegExp(k + ":\\s*`?([0-9a-f-]{32,36})").exec(txt); if (m) ids[k] = m[1]; });
-      if (!ids.projects || !ids.open_items) throw { code: "config", message: "The tracker's config toggle is missing database IDs. Run setup in chat to fix it." };
+      ["projects", "milestones", "tasks", "problems", "open_items"].forEach(function (k) { var m = new RegExp("\\b" + k + ":\\s*`?([0-9a-f-]{32,36})").exec(txt); if (m) ids[k] = m[1]; });
+      if (ids.open_items && !ids.tasks) throw { code: "config", message: "This tracker was made by version 0.x of the skill. Ask Claude in chat to upgrade it." };
+      if (!ids.projects || !ids.problems) throw { code: "config", message: "The tracker's config toggle is missing database IDs. Run setup in chat to fix it." };
       var dbs = {}, re = /<database url="([^"]+)"[^>]*data-source-url="\{*collection:\/\/([0-9a-f-]+)\}*"/g, m;
       while ((m = re.exec(txt))) dbs[m[2]] = cleanUrl(m[1]);
-      var pdb = dbs[ids.projects], idb = dbs[ids.open_items];
-      if (!pdb || !idb) throw { code: "config", message: "The Projects or Issues database is not on the tracker page. Run setup in chat to fix it." };
+      var pdb = dbs[ids.projects], qdb = dbs[ids.problems];
+      if (!pdb || !qdb) throw { code: "config", message: "The Projects or Problems database is not on the tracker page. Run setup in chat to fix it." };
       S.rootUrl = "https://app.notion.com/p/" + nodash(ROOT_PAGE); paintLive();
-      return Promise.all([fetchText(pdb, STRUCT), fetchText(idb, STRUCT)]).then(function (t) {
-        var pv = viewsOf(t[0]), iv = viewsOf(t[1]);
-        if (!pv["Active"] || !iv["Waiting on"]) throw { code: "config", message: "The tracker's views are missing (Active, Waiting on). Run setup in chat to fix them." };
-        S.cfg = { active: viewUrl(pdb, pv["Active"]), waiting: viewUrl(idb, iv["Waiting on"]), resolved: iv["Recently resolved"] ? viewUrl(idb, iv["Recently resolved"]) : null };
+      return Promise.all([fetchText(pdb, STRUCT), fetchText(qdb, STRUCT)]).then(function (t) {
+        var pv = viewsOf(t[0]), qv = viewsOf(t[1]);
+        if (!pv["Active"] || !qv["Open"]) throw { code: "config", message: "The tracker's views are missing (Active, Open). Run setup in chat to fix them." };
+        S.cfg = { active: viewUrl(pdb, pv["Active"]), open: viewUrl(qdb, qv["Open"]), resolved: qv["Recently resolved"] ? viewUrl(qdb, qv["Recently resolved"]) : null };
         return S.cfg;
       });
     });
@@ -522,7 +620,7 @@
   function parseProjectPage(txt) { // status callout notes + the Notes tab
     var info = { notes: [], noteLines: [], notePages: [] };
     var c = /<callout[^>]*>([\s\S]*?)<\/callout>/.exec(txt);
-    if (c) c[1].split("\n").forEach(function (line) { var l = clean(line); if (l && !/^(Now|Blocked on):/i.test(l)) info.notes.push(l); });
+    if (c) c[1].split("\n").forEach(function (line) { var l = clean(line); if (l && !/^(Now|Blocked on|Waiting on|Open):/i.test(l)) info.notes.push(l); });
     var n = /<tab>\s*\n\s*Notes\s*\n([\s\S]*?)<\/tab>/.exec(txt);
     if (n) n[1].split("\n").forEach(function (line) {
       var l = line.replace(/^\t+/, ""); if (!l.trim()) return;
@@ -533,21 +631,28 @@
     });
     return info;
   }
-
-  function loadProject(p) { // project page → callout, Notes tab, Schedule view → milestones, Done included
+  function tabView(txt, tab, want) { // a project page tab → its linked view block → the view's rows
+    var m = new RegExp("<tab>\\s*" + tab + "\\s*<database url=\"([^\"]+)\"").exec(txt);
+    if (!m) return Promise.reject({ code: "config", message: "No " + tab + " tab on this project page. Ask Claude in chat to fix the page." });
+    var block = cleanUrl(m[1]);
+    return fetchText(block, STRUCT).then(function (bt) {
+      var v = viewsOf(bt), id = v[want] || v[Object.keys(v)[0]];
+      if (!id) throw { code: "config", message: "The project's " + tab + " view was not found." };
+      return queryView(viewUrl(block, id), 3);
+    });
+  }
+  function loadProject(p) { // project page → callout, Notes tab, Schedule (milestones) and Tasks (tasks) views, Done included
     return fetchText(p.url, DATA).then(function (txt) {
       S.pageInfo[p.key] = parseProjectPage(txt);
-      var sch = /<tab>\s*Schedule\s*<database url="([^"]+)"/.exec(txt) || /<tab>\s*Plan\s*<database url="([^"]+)"/.exec(txt);
-      if (!sch) throw { code: "config", message: "No Schedule tab on this project page." };
-      var block = cleanUrl(sch[1]);
-      return fetchText(block, STRUCT).then(function (bt) {
-        var v = viewsOf(bt), id = v["Schedule"] || v["Plan"] || v[Object.keys(v)[0]];
-        if (!id) throw { code: "config", message: "The project's Schedule view was not found." };
-        return queryView(viewUrl(block, id), 3);
-      });
-    }).then(function (rows) {
-      S.ms[p.key] = { list: rows.map(function (r) { return msOf(r, p); }).filter(function (m) { return m.status !== "Dropped"; }) };
-    }, function (err) { if (!(S.ms[p.key] && S.ms[p.key].list) || isDenial(err)) S.ms[p.key] = { err: err }; });
+      return Promise.all([tabView(txt, "Schedule", "Schedule"), tabView(txt, "Tasks", "Tasks")]);
+    }).then(function (r) {
+      var msList = r[0].map(function (row) { return msOf(row, p); }).filter(function (m) { return m.status !== "Dropped"; });
+      var byKey = {}; msList.forEach(function (m) { byKey[key(m.url)] = m; });
+      var tasks = r[1].map(function (row) { return taskOf(row, p, byKey); }).filter(function (k) { return k.status !== "Dropped"; });
+      tasks.forEach(function (k) { if (k.ms) k.ms.tasks.push(k); });
+      msList.forEach(function (m) { m.tasks = sortItems(m.tasks); });
+      S.plan[p.key] = { ms: msList, tasks: tasks };
+    }, function (err) { if (!(S.plan[p.key] && S.plan[p.key].ms) || isDenial(err)) S.plan[p.key] = { err: err }; });
   }
 
   var loading = false;
@@ -566,11 +671,11 @@
         S.projErr = null; render();
         return Promise.all(S.projects.map(function (p) { return loadProject(p).then(render); }));
       }, function (err) { S.projErr = err; if (isDenial(err)) S.projects = null; render(); });
-      var iP = queryView(cfg.waiting, 3).then(function (rows) { S.issues = rows; S.issuesErr = null; render(); }, function (err) { S.issuesErr = err; if (isDenial(err)) S.issues = null; render(); });
+      var qP = queryView(cfg.open, 3).then(function (rows) { S.problems = rows; S.problemsErr = null; render(); }, function (err) { S.problemsErr = err; if (isDenial(err)) S.problems = null; render(); });
       var rP = cfg.resolved ? queryView(cfg.resolved, 1).then(function (rows) { S.resolved = rows; S.resolvedErr = null; render(); }, function (err) { S.resolvedErr = err; render(); }) : Promise.resolve();
-      return Promise.all([pP, iP, rP]);
+      return Promise.all([pP, qP, rP]);
     }, function (err) {
-      S.projErr = S.issuesErr = err; if (err.code !== "config") S.cfg = null; render();
+      S.projErr = S.problemsErr = err; if (err.code !== "config") S.cfg = null; render();
     }).then(function () { loading = false; render(); }, function () { loading = false; render(); });
   }
 
@@ -579,78 +684,482 @@
   function projs() { return (S.projects || []).filter(shown); }
   function allProjByKey() { var o = {}; (S.projects || []).forEach(function (p) { o[p.key] = p; }); return o; }
   function projByKey() { var o = {}; projs().forEach(function (p) { o[p.key] = p; }); return o; }
-  function loadedAll() { return !!S.projects && projs().every(function (p) { return S.ms[p.key]; }); }
-  function msOfProjects(list) { var out = []; list.forEach(function (p) { var d = S.ms[p.key]; if (d && d.list) out = out.concat(d.list); }); return out; }
-  function allMs() { return msOfProjects(projs()); }
-  function msIndex() { var o = {}; msOfProjects(S.projects || []).forEach(function (m) { o[key(m.url)] = m; }); return o; }
-  function issueOf(r) {
-    return { kind: "issue", url: cleanUrl(r.url), name: clean(r.Name) || "Untitled", type: r.Type || "", status: r.Status || "", waiting: clean(r["Waiting on"]), note: clean(r.Note), noteRaw: r.Note || "", opened: dnum(r["date:Opened:start"]), resolvedOn: dnum(r["date:Resolved on:start"]), pk: rel(r.Project).map(key)[0], mk: rel(r.Milestone).map(key)[0] };
+  function loadedAll() { return !!S.projects && projs().every(function (p) { return S.plan[p.key]; }); }
+  function planOf(p) { var d = S.plan[p.key]; return d && d.ms ? d : null; }
+  function msList(p) { var d = planOf(p); return d ? d.ms : null; }
+  function taskList(p) { var d = planOf(p); return d ? d.tasks : null; }
+  function itemsOf(p) { var d = planOf(p); return d ? d.ms.concat(d.tasks) : []; }
+  function allItems() { var out = []; projs().forEach(function (p) { out = out.concat(itemsOf(p)); }); return out; }
+  function itemIndex() { var o = {}; (S.projects || []).forEach(function (p) { itemsOf(p).forEach(function (x) { o[key(x.url)] = x; }); }); return o; }
+  function isOpen(x) { return x.kind === "ms" ? !!OPEN_MS[x.status] : !!OPEN_TASK[x.status]; }
+  function problemOf(r) {
+    return { kind: "problem", url: cleanUrl(r.url), name: clean(r.Name) || "Untitled", type: r.Type || "", status: r.Status || "", waiting: clean(r["Waiting on"]), note: clean(r.Note), noteRaw: r.Note || "", opened: dnum(r["date:Opened:start"]), resolvedOn: dnum(r["date:Resolved on:start"]), pk: rel(r.Project).map(key)[0], mk: rel(r.Milestone).map(key)[0], tk: rel(r.Task).map(key)[0] };
   }
-  function liveIssues() { var pk = projByKey(); return (S.issues || []).map(issueOf).filter(function (i) { return pk[i.pk] && (i.status === "Open" || i.status === "Waiting"); }); }
-  function allIssues() { return (S.issues || []).map(issueOf).concat((S.resolved || []).map(issueOf)); }
-  function openMs() { return allMs().filter(function (m) { return OPEN[m.status] && m.state !== "paused"; }); }
-  function lateMs() { return openMs().filter(function (m) { return m.late > 0; }).sort(function (a, b) { return b.late - a.late; }); }
-  function dueMs() { var t = todayNum(); return openMs().filter(function (m) { return !(m.late > 0) && m.end != null && m.end - t <= 7; }).sort(function (a, b) { return a.end - b.end; }); }
-  function ageOf(i) { return i.opened == null ? null : todayNum() - i.opened; }
+  function liveProblems() { var pk = projByKey(); return (S.problems || []).map(problemOf).filter(function (i) { return pk[i.pk] && (i.status === "Open" || i.status === "Waiting"); }); }
+  function allProblems() { return (S.problems || []).map(problemOf).concat((S.resolved || []).map(problemOf)); }
+  function openItems() { return allItems().filter(function (x) { return isOpen(x) && !x.paused; }); }
+  function lateItems() { return openItems().filter(function (x) { return x.late > 0; }).sort(function (a, b) { return b.late - a.late; }); }
+  function dueItems() { var t = todayNum(); return openItems().filter(function (x) { return !(x.late > 0) && x.end != null && x.end - t <= 7; }).sort(function (a, b) { return a.end - b.end || (a.kind === "ms" ? -1 : 1); }); }
+  function ageOf(x) { var t = todayNum(); if (x.kind === "problem") return x.opened == null ? null : t - x.opened; return x.start != null && x.start <= t ? t - x.start : null; }
   function ageCls(a) { return a == null ? "" : a >= 14 ? "crit" : a >= 7 ? "warn" : ""; }
-  function msList(p) { var d = S.ms[p.key]; return d && d.list ? d.list : null; }
-  function sortMs(list) { return list.slice().sort(function (a, b) { return (a.start == null ? 1e9 : a.start) - (b.start == null ? 1e9 : b.start) || (a.end || 0) - (b.end || 0); }); }
-  function worstLate(p) { return (msList(p) || []).filter(function (m) { return OPEN[m.status] && m.late > 0; }).reduce(function (a, m) { return Math.max(a, m.late); }, 0); }
-  function nextEnd(p) { return (msList(p) || []).filter(function (m) { return OPEN[m.status]; }).reduce(function (a, m) { return Math.min(a, m.end == null ? todayNum() + 30 : m.end); }, 1e9); }
-  function blockersOf(p) { return liveIssues().filter(function (i) { return i.pk === p.key && i.type === "Blocker"; }); }
+  function sortItems(list) { return list.slice().sort(function (a, b) { return (a.start == null ? 1e9 : a.start) - (b.start == null ? 1e9 : b.start) || (a.end || 0) - (b.end || 0); }); }
+  function worstLate(p) { return itemsOf(p).filter(function (x) { return isOpen(x) && x.late > 0; }).reduce(function (a, x) { return Math.max(a, x.late); }, 0); }
+  function nextEnd(p) { return itemsOf(p).filter(function (x) { return isOpen(x) && !x.paused; }).reduce(function (a, x) { return Math.min(a, x.end == null ? todayNum() + 30 : x.end); }, 1e9); }
+  function blockersOf(p) { return liveProblems().filter(function (i) { return i.pk === p.key && i.type === "Blocker"; }); }
+  function waitingOf(p) { // tasks waiting on someone and problems (not risks) with a name in Waiting on
+    var tk = (taskList(p) || []).filter(function (k) { return k.status === "Waiting" && !k.paused; });
+    var pr = liveProblems().filter(function (i) { return i.pk === p.key && i.waiting && i.type !== "Risk"; });
+    return tk.concat(pr);
+  }
   function sortedProjects() {
-    var blocked = {}; liveIssues().forEach(function (i) { if (i.type === "Blocker") blocked[i.pk] = 1; });
+    var blocked = {}; liveProblems().forEach(function (i) { if (i.type === "Blocker") blocked[i.pk] = 1; });
     return projs().slice().sort(function (a, b) {
-      var fa = S.ms[a.key] && S.ms[a.key].err ? 1 : 0, fb = S.ms[b.key] && S.ms[b.key].err ? 1 : 0;
+      var fa = S.plan[a.key] && S.plan[a.key].err ? 1 : 0, fb = S.plan[b.key] && S.plan[b.key].err ? 1 : 0;
       return (a.status === "Paused") - (b.status === "Paused") || fb - fa || (blocked[b.key] || 0) - (blocked[a.key] || 0) || worstLate(b) - worstLate(a) || nextEnd(a) - nextEnd(b) || a.name.localeCompare(b.name);
     });
   }
-  function focusOf(p) { // the milestone that matters most right now, and what comes next
-    var list = sortMs(msList(p) || []), t = todayNum();
-    var now = list.filter(function (m) { return m.status === "In progress" || m.status === "Paused"; });
-    var overdue = list.filter(function (m) { return m.status === "Planned" && m.late > 0; });
-    var next = list.filter(function (m) { return m.status === "Planned" && !(m.late > 0) && (m.start == null || m.start >= t || !now.length); })[0];
-    return { now: now, overdue: overdue, next: next, head: overdue[0] || now.filter(function (m) { return m.late > 0; })[0] || now[0] || next };
+  function currentTask(list) { // the task that matters most right now among a milestone's (or a project's loose) tasks
+    var open = sortItems(list.filter(function (k) { return isOpen(k); })), t = todayNum();
+    return open.filter(function (k) { return k.late > 0; })[0] || open.filter(function (k) { return k.status === "In progress"; })[0]
+      || open.filter(function (k) { return k.status === "Waiting"; })[0] || open.filter(function (k) { return k.start != null && k.start <= t; })[0] || open[0] || null;
+  }
+  function focusOf(p) { // the milestone (or, without milestones, the task) that matters most right now, and what comes next
+    var ms = sortItems(msList(p) || []), t = todayNum(), loose = (taskList(p) || []).filter(function (k) { return !k.ms; });
+    var base = ms.length ? ms : loose;
+    var now = base.filter(function (m) { return m.status === "In progress" || m.status === "Paused" || m.status === "Waiting"; });
+    var overdue = base.filter(function (m) { return m.status === "Planned" && m.late > 0; });
+    var next = base.filter(function (m) { return m.status === "Planned" && !(m.late > 0) && (m.start == null || m.start >= t || !now.length); })[0];
+    var head = overdue[0] || now.filter(function (m) { return m.late > 0; })[0] || now.filter(function (m) { return !m.paused; })[0] || now[0] || next;
+    return { now: now, overdue: overdue, next: next, head: head, task: head && head.kind === "ms" ? currentTask(head.tasks) : null, byTasks: !ms.length };
   }
   function whenOf(m) {
     var t = todayNum();
     if (m.status === "Done") return [m.finished != null ? "done " + fmt(m.finished) + (m.late > 0 ? ", " + days(m.late) + " late" : m.late < 0 ? ", " + days(-m.late) + " early" : "") : "done", m.late > 0 ? "crit" : ""];
-    if (m.state === "paused") return ["paused", ""];
-    if (m.start == null) return ["no agreed dates yet", ""];
+    if (m.paused) return [m.kind === "task" && m.ms && m.ms.status === "Paused" ? "its milestone is paused" : "paused", ""];
+    if (m.start == null) return [m.kind === "task" ? (m.status === "Waiting" && m.waiting ? "waiting on " + m.waiting : "no dates") : "no dates yet", ""];
     if (m.late > 0) return [days(m.late) + " late · was due " + fmt(m.end), "crit"];
-    var left = m.end - t;
-    if (m.status === "In progress" || m.start <= t) return ["due " + soon(m.end) + " · " + (left === 0 ? "today" : days(left) + " left"), left <= 7 ? "warn" : ""];
+    var left = m.end - t, w = m.status === "Waiting" && m.waiting ? " · waiting on " + m.waiting : "";
+    if (m.status === "In progress" || m.status === "Waiting" || m.start <= t) return ["due " + soon(m.end) + (left === 0 ? "" : " · " + days(left) + " left") + w, left <= 7 ? "warn" : ""];
     return ["starts " + soon(m.start) + " · due " + fmt(m.end), ""];
   }
-  function originTag(p) { return el("span", "origin", p.origin); }
-  function projMeta(host, p, extra) {
-    host.appendChild(document.createTextNode(p.name + " "));
-    host.appendChild(originTag(p));
-    (extra || []).forEach(function (x) { if (!x) return; host.appendChild(sep()); host.appendChild(typeof x === "string" ? document.createTextNode(x) : x); });
-  }
-  function stateOf(m) {
-    if (m.status === "Done") return m.late > 0 ? ["Done · " + days(m.late) + " late", "late"] : ["Done", "ok"];
-    if (m.state === "paused") return ["Paused", "warn"];
-    if (m.state === "nodate") return [m.status + " · no dates", "plain"];
-    if (m.late > 0) return [days(m.late) + " late", "late"];
-    if (m.status === "In progress") return ["In progress", "prog"];
-    return ["Planned", "plain"];
-  }
-  function keepScroll(host, fn) { var y = host.scrollTop; fn(); host.scrollTop = y; } // updates never jump a list back to the top
+  function keep(host, fn) { var y = host.scrollTop; fn(); host.scrollTop = y; } // updates never jump a list back to the top
+  function span(text, cls) { return el("span", cls || "", text); }
 
-  // ---------- rendering Notion page text ----------
+  // a project's state, said the same way everywhere
+  function stateOfProject(p) {
+    var d = S.plan[p.key];
+    if (d && d.err) return { text: "Not loaded", cls: "crit", dot: "crit" };
+    if (!d) return { text: "", cls: "", dot: "" };
+    if (p.status === "Paused") return { text: "Paused", cls: "", dot: "paused" };
+    var blk = blockersOf(p).length, worst = worstLate(p), t = todayNum(), f = focusOf(p);
+    if (blk) return { text: "Blocked", cls: "crit", dot: "crit" };
+    if (worst) return { text: days(worst) + " late", cls: "crit", dot: "crit" };
+    var started = itemsOf(p).filter(function (x) { return isOpen(x) && !x.paused && x.end != null && (x.status !== "Planned" || x.start <= t); });
+    var near = started.reduce(function (a, x) { return Math.min(a, x.end - t); }, 1e9);
+    if (near <= 7) return { text: near === 0 ? "Due today" : "Due in " + days(near), cls: "warn", dot: "warn" };
+    if (!f.head) return { text: itemsOf(p).length ? "All done" : "No plan yet", cls: "", dot: "good" };
+    if (!itemsOf(p).some(function (x) { return isOpen(x) && x.end != null; })) return { text: "No dates", cls: "", dot: "ring" };
+    return { text: "On track", cls: "good", dot: "acc" };
+  }
+  function planPhrase(m) {
+    var t = todayNum();
+    if (m.status === "Done") return [m.finished != null ? "done " + fmt(m.finished) + (m.late > 0 ? ", " + days(m.late) + " late" : m.late < 0 ? ", " + days(-m.late) + " early" : m.late === 0 ? ", on time" : "") : "done", m.late > 0 ? "crit" : "good"];
+    if (m.paused) return ["paused", ""];
+    if (m.status === "Waiting") { var w = m.waiting ? "waiting on " + m.waiting : "waiting"; if (m.late > 0) return [w + " · " + days(m.late) + " late", "crit"]; return [w, "warn"]; }
+    if (m.start == null) return [m.kind === "task" ? (m.status === "In progress" ? "in progress" : "no dates") : "no dates yet", m.status === "In progress" ? "acc" : ""];
+    if (m.late > 0) return [days(m.late) + " late", "crit"];
+    if (m.status === "In progress" || m.start <= t) { var l = m.end - t; return [l === 0 ? "due today" : days(l) + " left", l <= 7 ? "warn" : "acc"]; }
+    return ["starts in " + days(m.start - t), ""];
+  }
+  function itemDot(m) { return m.state === "done" || m.state === "doneLate" ? "good" : m.state === "late" ? "crit" : m.state === "prog" ? "acc" : m.state === "wait" ? "warn" : m.state === "paused" ? "paused" : m.state === "nodate" ? "ring" : ""; }
+  function failures() { return projs().filter(function (p) { return S.plan[p.key] && S.plan[p.key].err; }); }
+
+  // ---------- the header ----------
+  function renderHeader() {
+    var kinds = {}; (S.projects || []).forEach(function (p) { kinds[p.origin] = (kinds[p.origin] || 0) + 1; });
+    var ks = ORIGINS.filter(function (k) { return kinds[k]; }).concat(Object.keys(kinds).filter(function (k) { return ORIGINS.indexOf(k) < 0; }));
+    if (S.origin !== "All" && !kinds[S.origin] && S.projects) S.origin = "All";
+    var tb = $("tabs"); clear(tb);
+    if (ks.length > 1) ["All"].concat(ks).forEach(function (k) {
+      var b = btn("", k === "All" ? "All projects" : k, function () { S.origin = k; try { localStorage.setItem("pt.origin", k); } catch (e) {} S.tlView = null; paint(); });
+      b.setAttribute("aria-pressed", String(S.origin === k)); tb.appendChild(b);
+    });
+  }
+  function goTo(id) { var t = $(id); if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }
+  function renderPills() {
+    var host = $("pills"); clear(host);
+    if (S.projErr && !S.projects) { host.appendChild(el("span", "pl crit", "Couldn't read the tracker")); return; }
+    var probs = S.problems ? liveProblems() : [], noIss = S.problemsErr && !S.problems, noPlan = S.shown && failures().length > 0; // never a confident 0 for data that was not read
+    [[probs.filter(function (i) { return i.type === "Blocker"; }).length, "blocked", "crit", noIss, "Problems marked Blocker"],
+     [lateItems().length, "overdue", "crit", noPlan, "Milestones and tasks past their end date"],
+     [dueItems().length, "due soon", "warn", noPlan, "Milestones and tasks that end within the next 7 days"]].forEach(function (c) {
+      var b = el("button", "pl" + (c[0] && c[2] ? " " + c[2] : "")); b.type = "button";
+      b.appendChild(el("b", "", !S.shown ? "–" : c[3] ? (c[0] ? c[0] + "+" : "?") : String(c[0]))); b.appendChild(document.createTextNode(c[1]));
+      b.title = c[3] ? "Part of the data did not load, so this count may be incomplete." : c[4];
+      b.addEventListener("click", function () { goTo("moveP"); });
+      host.appendChild(b);
+    });
+  }
+
+  // ---------- project cards ----------
+  function renderCards() {
+    var host = $("cards"), ps = sortedProjects(); clear(host);
+    var act = ps.filter(function (p) { return p.status !== "Paused"; }).length;
+    $("projCount").textContent = ps.length ? act + " active" + (ps.length - act ? ", " + (ps.length - act) + " paused" : "") : "";
+    ps.forEach(function (p) { host.appendChild(card(p)); });
+  }
+  function onYouOf(p) { return moveGroups().onYou.filter(function (x) { return (x.pk || (x.project && x.project.key)) === p.key; }).length; }
+  function card(p) {
+    var c = btn("pc", null, function () { openProject(p); }), st = stateOfProject(p), f = focusOf(p), d = S.plan[p.key];
+    var top = el("div", "pc-top"), nm = el("div"); nm.style.minWidth = "0";
+    nm.appendChild(el("div", "pc-name", p.name)); nm.appendChild(el("div", "pc-who", [p.client, p.origin].filter(Boolean).join(" · ")));
+    top.appendChild(nm); if (st.text) top.appendChild(el("span", "pill " + st.cls, st.text)); c.appendChild(top);
+    var ms0 = msList(p) || [], tk0 = taskList(p) || [], strip = ms0.length ? ms0 : tk0;
+    if (d && d.err) c.appendChild(el("div", "crit", "Its plan didn't load. " + errText(d.err)));
+    else if (f.head) {
+      var now = el("div", "pc-now"), w = whenOf(f.head);
+      var label = f.head === f.next ? "Next" : f.head.late > 0 && f.head.status === "Planned" ? "Overdue" : f.head.paused ? "Paused" : f.head.status === "Waiting" ? "Waiting" : "Now";
+      now.appendChild(el("span", "lab" + (label === "Overdue" ? " crit" : ""), label)); now.appendChild(el("span", "t", f.head.name));
+      now.appendChild(el("span", "w " + (w[1] || ""), w[0]));
+      if (f.task) { var sb = el("span", "sub"), tw = whenOf(f.task); sb.appendChild(span(f.task.name)); sb.appendChild(el("span", "w " + (tw[1] || ""), tw[0])); now.appendChild(sb); }
+      c.appendChild(now);
+      var blk = blockersOf(p)[0];
+      if (blk) { var b2 = el("div", "pc-now"); b2.appendChild(el("span", "lab crit", "Blocked")); b2.appendChild(el("span", "t", blk.name)); b2.appendChild(el("span", "w crit", blk.waiting ? "waiting on " + blk.waiting : "on you")); c.appendChild(b2); }
+    } else if (d) c.appendChild(el("div", "muted", strip.length ? "Everything is done." : "No plan yet."));
+    var foot = el("div", "pc-foot");
+    if (strip.length) { var pr = el("div", "prog"); sortItems(strip).forEach(function (m) { pr.appendChild(el("i", m.state === "plan" ? "" : m.state)); }); foot.appendChild(pr); }
+    var capn = el("div", "pc-cap"), done = strip.filter(function (m) { return m.status === "Done"; }).length;
+    if (strip.length) capn.appendChild(span(done + " of " + strip.length + (ms0.length ? " milestones" : " tasks") + " done"));
+    if (p.target != null) capn.appendChild(span("ends " + fmt(p.target)));
+    var rk = liveProblems().filter(function (i) { return i.pk === p.key && i.type === "Risk"; }).length, wt = waitingOf(p).length, on = onYouOf(p);
+    var cnt = [on ? on + " on you" : "", wt ? wt + " waiting" : "", rk ? plural(rk, "risk") : ""].filter(Boolean).join(" · ");
+    if (cnt) capn.appendChild(span(cnt, "r"));
+    foot.appendChild(capn); c.appendChild(foot);
+    return c;
+  }
+
+  // ---------- timeline ----------
+  var CHEV = '<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+  function buildTimelineChrome() {
+    var seg = $("range");
+    [["1", "1 month"], ["3", "3 months"], ["6", "6 months"], ["12", "Year"], ["all", "All"]].forEach(function (r) { var b = btn("", r[1], function () { S.range = r[0]; try { localStorage.setItem("pt.range", r[0]); } catch (e) {} paintRange(); renderGantt(true); }); b.dataset.r = r[0]; seg.appendChild(b); });
+    paintRange();
+    $("todayBtn").addEventListener("click", function () { renderGantt(true); });
+    var info = $("info"), ib = btn("icon-btn", null), pop = el("div", "pop"); ib.innerHTML = '<svg class="ico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></svg>';
+    ib.setAttribute("aria-label", "What the colours mean"); ib.setAttribute("aria-expanded", "false"); pop.hidden = true;
+    var lg = el("div", "lg");
+    [["var(--accent)", "In progress"], ["var(--bar)", "Planned"], ["var(--warn-soft)", "Waiting on someone"], ["var(--crit)", "Past its end date"], ["color-mix(in srgb, var(--bar) 55%, var(--surface))", "Paused (❚❚ on a milestone), never counted as late"], ["var(--good-soft)", "Done"], ["transparent", "No dates yet, drawn from today"]].forEach(function (x, i) { var sw = el("span", "sw"); sw.style.background = x[0]; if (i === 6) sw.style.boxShadow = "inset 0 0 0 1px var(--line-2)"; lg.appendChild(sw); lg.appendChild(span(x[1])); });
+    pop.appendChild(lg); pop.appendChild(el("div", "", "A milestone is a striped card over its dates in its state's colour: ◆ and its name, its tasks below — a line when closed, named chips when ▸ opens the project. A grey card with ? has no dates yet: it is drawn over its tasks, or from today if it has none. Drag or scroll sideways to move in time. Click anything to read the details."));
+    ib.addEventListener("click", function (e) { e.stopPropagation(); pop.hidden = !pop.hidden; ib.setAttribute("aria-expanded", String(!pop.hidden)); });
+    document.addEventListener("click", function (e) { if (!pop.hidden && !info.contains(e.target)) { pop.hidden = true; ib.setAttribute("aria-expanded", "false"); } });
+    info.appendChild(ib); info.appendChild(pop);
+    dragPan($("tlScroll"));
+    $("tlScroll").addEventListener("scroll", function () { stickNames(); }, { passive: true });
+  }
+  function paintRange() { var bs = $("range").querySelectorAll("button"); for (var i = 0; i < bs.length; i++) bs[i].setAttribute("aria-pressed", String(bs[i].dataset.r === S.range)); }
+  function dragPan(host) { // a mouse drags the chart; touch and trackpads scroll natively
+    var drag = null, moved = false;
+    host.addEventListener("pointerdown", function (e) { if (e.pointerType !== "mouse" || e.button !== 0 || e.target.closest(".tl-label")) return; drag = { x: e.clientX, l: host.scrollLeft }; moved = false; });
+    window.addEventListener("pointermove", function (e) { if (!drag) return; if (Math.abs(e.clientX - drag.x) > 4) { moved = true; host.classList.add("dragging"); } if (moved) host.scrollLeft = drag.l - (e.clientX - drag.x); });
+    window.addEventListener("pointerup", function () { drag = null; host.classList.remove("dragging"); });
+    host.addEventListener("click", function (e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+  }
+  function pack(bars) { var lanes = []; bars.forEach(function (g) { var i = 0; while (lanes[i] != null && lanes[i] >= g.start) i++; lanes[i] = g.end; g.lane = i; }); return lanes.length; }
+  function placeholders(list, from) { // open milestones without dates: outlined, from today, two weeks each
+    var nd = from, out = [];
+    list.forEach(function (m) { out.push({ m: m, start: nd, end: nd + 13, nodate: true }); nd += 14; });
+    return out;
+  }
+  function grow(e) { // under the cursor a bar or chip widens to show its whole name, above its neighbours
+    var b = e.currentTarget, inner = b.classList.contains("tl-chip") ? b : b.querySelector(".tl-bn") || b;
+    var need = inner.scrollWidth - inner.clientWidth;
+    b.classList.add("hov");
+    if (need <= 1 || b.dataset.w != null) return;
+    b.dataset.w = b.style.width; b.dataset.l = b.style.left;
+    var w = b.offsetWidth + need + 6, par = b.offsetParent, maxW = par ? par.scrollWidth : 0, left = b.offsetLeft;
+    if (!b.classList.contains("tl-chip") && maxW && left + w > maxW) b.style.left = Math.max(0, maxW - w) + "px";
+    b.style.width = w + "px";
+  }
+  function shrink(e) {
+    var b = e.currentTarget; b.classList.remove("hov");
+    if (b.dataset.w == null) return;
+    b.style.width = b.dataset.w; b.style.left = b.dataset.l; delete b.dataset.w; delete b.dataset.l;
+  }
+  function hoverable(n) { n.addEventListener("mouseenter", grow); n.addEventListener("mouseleave", shrink); n.addEventListener("focus", grow); n.addEventListener("blur", shrink); return n; }
+  function renderGantt(toToday) {
+    var host = $("tlScroll"), t = todayNum(), ps = sortedProjects();
+    if (!ps.length) { clear(host); var e0 = el("div", "empty", (S.projects || []).length ? "No projects of this kind." : "Nothing scheduled yet."); e0.style.padding = "16px 18px"; host.appendChild(e0); S.tlView = null; return; }
+    var a = t - 30, b = t + 120;
+    ps.forEach(function (p) { itemsOf(p).forEach(function (m) { if (m.start != null && m.start - 7 < a) a = m.start - 7; if (m.end != null && m.end + 14 > b) b = m.end + 14; }); });
+    var narrow = window.innerWidth <= 640, LW = narrow ? 130 : 220, vw = host.clientWidth || 700;
+    var avail = Math.max(vw, 320) - LW - 2, spanD = SPANS[S.range] || (b - a);
+    var px = Math.max(avail / spanD, narrow ? 4.5 : 0), W = Math.round((b - a) * px);
+    function X(n) { return Math.round((n - a) * px); }
+    var keepDay = S.tlView ? S.tlView.a + host.scrollLeft / S.tlView.px : null;
+    var tl = el("div", "tl"); tl.style.width = Math.max(LW + W, vw) + "px"; tl.style.setProperty("--lw", LW + "px");
+    var months = el("div", "tl-months"), hl = el("div", "tl-label"); hl.style.height = "100%"; hl.style.borderBottom = "0"; months.appendChild(hl);
+    // the grid: days (dotted) in the month view, weeks (dashed, Mondays numbered) in the month and quarter views, months always;
+    // a month is labelled by its short name, January by its year instead, so no label ever needs the year spelled out
+    var near = function (n, w) { return X(t) - X(n) > -8 && X(t) - X(n) < w; }; // the Today tag sits there instead
+    var mstarts = []; // a finer line never sits on or just beside a month line, where it would read as that line drawn twice, off by a little
+    for (var ms0 = new Date(a * DAY), mc = Date.UTC(ms0.getUTCFullYear(), ms0.getUTCMonth(), 1) / DAY; mc < b; ms0 = new Date(mc * DAY), mc = Date.UTC(ms0.getUTCFullYear(), ms0.getUTCMonth() + 1, 1) / DAY) if (mc >= a) mstarts.push(mc);
+    var byMonth = function (n) { return mstarts.some(function (m) { return Math.abs(X(n) - X(m)) < Math.min(30, Math.max(14, 2.5 * px)); }); };
+    if (S.range === "1") for (var dy = a; dy < b; dy++) { if (mstarts.indexOf(dy) >= 0 || new Date(dy * DAY).getUTCDay() === 1) continue; var dg = el("div", "tl-grid day"); dg.style.left = (LW + X(dy)) + "px"; tl.appendChild(dg); }
+    if (S.range === "1" || S.range === "3") {
+      for (var wk = a + ((8 - new Date(a * DAY).getUTCDay()) % 7); wk < b; wk += 7) {
+        if (byMonth(wk)) continue;
+        var wg = el("div", "tl-grid wk"); wg.style.left = (LW + X(wk)) + "px"; tl.appendChild(wg);
+        var wd = new Date(wk * DAY), md = wd.getUTCDate(), dim = new Date(Date.UTC(wd.getUTCFullYear(), wd.getUTCMonth() + 1, 0)).getUTCDate();
+        if (near(wk, 30) || (md - 1) * px < 34 || (dim - md + 1) * px < 20) continue; // no label on top of Today or of a month's name
+        var wl = el("div", "tl-wk", String(new Date(wk * DAY).getUTCDate())); wl.style.left = (LW + X(wk)) + "px"; months.appendChild(wl);
+      }
+    }
+    var d0 = new Date(a * DAY), cur = Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth(), 1) / DAY, freeX = -1e9;
+    while (cur < b) {
+      var dd = new Date(cur * DAY), nxt = Date.UTC(dd.getUTCFullYear(), dd.getUTCMonth() + 1, 1) / DAY, jan = dd.getUTCMonth() === 0;
+      if (cur >= a) {
+        var lab = jan ? String(dd.getUTCFullYear()) : MON[dd.getUTCMonth()], fits = X(cur) >= freeX && (nxt - cur) * px > 18 && !near(cur, 48);
+        if (fits) freeX = X(cur) + lab.length * 7 + 12; // the next label starts after this one ends
+        var mk = el("div", "tl-month" + (jan ? " yr" : ""), fits ? lab : "");
+        mk.style.left = (LW + X(cur)) + "px"; months.appendChild(mk);
+        var g = el("div", "tl-grid" + (jan ? " yr" : "")); g.style.left = (LW + X(cur)) + "px"; tl.appendChild(g);
+      }
+      cur = nxt;
+    }
+    var tlab = el("div", "tl-today-l", "Today"); tlab.style.left = (LW + X(t) + 1) + "px"; months.appendChild(tlab);
+    tl.appendChild(months);
+    function barEl(r, p, g, top, cls) {
+      var m = g.m, x0 = X(g.start), x1 = X(g.end + 1);
+      var bar = btn("tl-b " + (cls || "") + " " + (g.nodate ? "nodate" : m.state === "plan" ? "" : m.state), null, function () { openProject(p, key(m.url)); });
+      bar.appendChild(el("span", "tl-bn", m.name));
+      bar.style.left = (LW + x0) + "px"; bar.style.width = Math.max(x1 - x0 - 3, 6) + "px"; bar.style.top = top + "px";
+      bar.title = m.name + " · " + (g.nodate ? (m.kind === "task" ? "no dates" : "no dates yet") : range(m.start, m.end)) + (m.kind === "task" && m.waiting && m.status === "Waiting" ? " · waiting on " + m.waiting : "");
+      r.appendChild(hoverable(bar)); return bar;
+    }
+    function spanOf(m) { // where a milestone sits on the axis: its dates, else the span of its dated tasks (drawn dashed), else nowhere
+      if (m.start != null) return { start: m.start, end: m.end };
+      var d = (m.tasks || []).filter(function (k) { return k.start != null; });
+      if (!d.length) return null;
+      return { start: Math.min.apply(null, d.map(function (k) { return k.start; })), end: Math.max.apply(null, d.map(function (k) { return k.end; })), nodate: true };
+    }
+    function boxEl(r, p, m, sp, top, hgt) { // a milestone as a container: tinted by its state, its tasks drawn inside it
+      var x0 = X(sp.start), x1 = X(sp.end + 1);
+      var undated = m.start == null, bar = btn("tl-b box " + (undated ? "nodate " : "") + (m.state === "plan" || m.state === "nodate" ? "" : m.state) + (hgt <= 24 ? " solo" : ""), null, function () { openProject(p, key(m.url)); });
+      var hd = el("span", "tl-bh"); hd.appendChild(el("span", "tl-ms")); hd.appendChild(el("span", "tl-bn", m.name));
+      if (undated) { var q = el("span", "tl-q", "?"); q.title = "No dates yet"; hd.appendChild(q); }
+      bar.appendChild(hd);
+      bar.style.left = (LW + x0) + "px"; bar.style.width = Math.max(x1 - x0 - 3, 8) + "px"; bar.style.top = top + "px"; bar.style.height = hgt + "px";
+      if (x1 - x0 < 60) bar.classList.add("narrow"); // too small for ◆, name and ?: the ? stays, the rest shows under the cursor
+      bar.title = m.name + " · " + (undated ? "no dates yet" + (sp.placeholder ? "" : ", drawn over its tasks") : range(m.start, m.end));
+      r.appendChild(hoverable(bar)); return { bar: bar, x0: x0, sp: sp };
+    }
+    function kidsIn(m, sp) { return (m.tasks || []).filter(function (k) { return k.start != null && k.end >= sp.start && k.start <= sp.end; }); }
+    function taskTitle(k) { return k.name + " · " + range(k.start, k.end) + (k.status === "Waiting" && k.waiting ? " · waiting on " + k.waiting : ""); }
+    function stripIn(b, p, m) { // collapsed: the milestone's tasks as one segmented line inside its box
+      var kids = kidsIn(m, b.sp); if (!kids.length) return false;
+      var tr = el("span", "tl-strip");
+      kids.forEach(function (k) {
+        var x0 = X(Math.max(k.start, b.sp.start)) - b.x0, x1 = X(Math.min(k.end, b.sp.end) + 1) - b.x0;
+        var sg = el("span", "tl-seg " + (k.state === "plan" ? "" : k.state)); sg.style.left = Math.max(x0 - 8, 0) + "px"; sg.style.width = Math.max(x1 - x0 - 3, 3) + "px";
+        sg.title = taskTitle(k); sg.addEventListener("click", function (e) { e.stopPropagation(); openProject(p, key(k.url)); });
+        tr.appendChild(sg);
+      });
+      b.bar.appendChild(tr); return true;
+    }
+    function chipsIn(b, p, m, top0) { // opened up: the milestone's tasks as named chips inside its box
+      var kids = kidsIn(m, b.sp).map(function (k) { return { m: k, start: Math.max(k.start, b.sp.start), end: Math.min(k.end, b.sp.end) }; }), n = pack(kids);
+      kids.forEach(function (g) {
+        var k = g.m, x0 = X(g.start) - b.x0, x1 = X(g.end + 1) - b.x0;
+        var c = el("span", "tl-chip " + (k.state === "plan" ? "" : k.state), k.name); c.style.left = Math.max(x0 + 3, 4) + "px"; c.style.width = Math.max(x1 - x0 - 7, 6) + "px"; c.style.top = (top0 + g.lane * 21) + "px";
+        c.title = taskTitle(k); c.addEventListener("click", function (e) { e.stopPropagation(); openProject(p, key(k.url)); });
+        b.bar.appendChild(hoverable(c));
+      });
+      return n;
+    }
+    ps.forEach(function (p) {
+      var st = stateOfProject(p), ms = msList(p) || [], tasks = taskList(p) || [], loose = tasks.filter(function (k) { return !k.ms; });
+      var hasTasks = ms.some(function (m) { var sp = spanOf(m); return sp && kidsIn(m, sp).length; }), open = !!S.tlOpen[p.key] && hasTasks;
+      var r = el("div", "tl-row"), H = 30, h = 0;
+      var lab = el("div", "tl-label"), car = btn("car" + (hasTasks ? "" : " none"), null, function (e) { e.stopPropagation(); if (S.tlOpen[p.key]) delete S.tlOpen[p.key]; else S.tlOpen[p.key] = 1; saveOpen(); renderGantt(false); });
+      car.addEventListener("mousedown", function (e) { e.preventDefault(); }); // focusing it would scroll the chart back to its start
+      if (!hasTasks) { car.disabled = true; car.setAttribute("aria-hidden", "true"); car.tabIndex = -1; }
+      car.innerHTML = CHEV; car.setAttribute("aria-expanded", String(open)); car.setAttribute("aria-label", open ? "Hide tasks" : "Show tasks"); car.title = open ? "Hide tasks" : "Show tasks";
+      lab.appendChild(car); lab.appendChild(el("span", "dot " + st.dot));
+      var nb = btn("", p.name, function () { openProject(p); }); nb.title = p.name; lab.appendChild(nb); r.appendChild(lab);
+      if (S.plan[p.key] && S.plan[p.key].err) { var fn = el("div", "tl-fail", "Plan didn't load. Refresh to retry."); fn.style.left = (LW + Math.max(0, X(t - 14)) + 8) + "px"; r.appendChild(fn); }
+      var looseBars = loose.filter(function (k) { return k.start != null; }).map(function (k) { return { m: k, start: k.start, end: k.end }; });
+      if (!ms.length) { // a project without milestones: its dated tasks are the row (a task without dates is not drawn)
+        var nl = pack(looseBars); looseBars.forEach(function (g) { barEl(r, p, g, 8 + g.lane * H); }); h = Math.max(nl, 1) * H + 16;
+      } else if (!open) { // one box per milestone; a strip inside shows its tasks
+        var BH = hasTasks ? 34 : 24, HL = BH + 8;
+        var items = ms.map(function (m) { var sp = spanOf(m); return sp ? { m: m, start: sp.start, end: sp.end, sp: sp } : null; }).filter(Boolean);
+        items = items.concat(placeholders(ms.filter(function (m) { return !spanOf(m) && (OPEN_MS[m.status] || m.status === "Paused"); }), t));
+        var n = pack(items);
+        items.forEach(function (g) {
+          if (g.nodate && !g.sp) { boxEl(r, p, g.m, { start: g.start, end: g.end, nodate: true, placeholder: true }, 8 + g.lane * HL + (BH - 24) / 2, 24); return; }
+          var b = boxEl(r, p, g.m, g.sp, 8 + g.lane * HL, BH);
+          if (!stripIn(b, p, g.m)) { b.bar.style.height = "24px"; b.bar.style.top = (8 + g.lane * HL + (BH - 24) / 2) + "px"; b.bar.classList.add("solo"); }
+        });
+        var nl0 = pack(looseBars); looseBars.forEach(function (g) { barEl(r, p, g, 8 + n * HL + g.lane * 21, "task"); });
+        h = Math.max(n, 1) * HL + 8 + nl0 * 21;
+      } else { // opened up: each milestone on its own line, a taller box with its tasks inside; its name also in the left column
+        var y = 36, ph = t;
+        sortItems(ms).forEach(function (m) {
+          var gl = btn("tl-glab", m.name, function () { openProject(p, key(m.url)); }); gl.title = m.name; gl.style.top = (y + 1) + "px"; lab.appendChild(gl);
+          var sp = spanOf(m);
+          if (!sp) { boxEl(r, p, m, { start: ph, end: ph + 13, nodate: true, placeholder: true }, y, 24); ph += 14; y += 32; return; }
+          var lanes = pack(kidsIn(m, sp).map(function (k) { return { start: Math.max(k.start, sp.start), end: Math.min(k.end, sp.end) }; }));
+          var bh = 24 + lanes * 21 + (lanes ? 4 : 0), b = boxEl(r, p, m, sp, y, bh); chipsIn(b, p, m, 24);
+          y += bh + 8;
+        });
+        if (looseBars.length) {
+          var gl2 = btn("tl-glab", "Other tasks", function () { openProject(p); }); gl2.style.top = (y + 1) + "px"; lab.appendChild(gl2);
+          var nl3 = pack(looseBars); looseBars.forEach(function (g) { barEl(r, p, g, y + g.lane * 21, "task"); }); y += nl3 * 21 + 8;
+        }
+        h = y + 2;
+      }
+      r.style.height = Math.max(h, 46) + "px";
+      tl.appendChild(r);
+    });
+    var td = el("div", "tl-today"); td.style.left = (LW + X(t)) + "px"; tl.appendChild(td);
+    clear(host); host.appendChild(tl);
+    host.scrollLeft = toToday || keepDay == null ? Math.max(0, X(t - (S.range === "1" ? 5 : 14))) : Math.max(0, Math.round((keepDay - a) * px));
+    S.tlView = { a: a, px: px, lw: LW };
+    stickNames();
+  }
+  function stickNames() { // a box that starts left of the visible part keeps its name in view
+    var host = $("tlScroll"), v = S.tlView; if (!v) return;
+    var edge = host.scrollLeft + v.lw, bs = host.querySelectorAll(".tl-b.box");
+    for (var i = 0; i < bs.length; i++) {
+      var b = bs[i], hd = b.firstChild, d = Math.max(0, Math.min(edge - b.offsetLeft, b.offsetWidth - 64));
+      hd.style.paddingLeft = d > 0 ? (8 + d) + "px" : "";
+    }
+  }
+
+  // ---------- right column ----------
+  function item(o) { // one line in a list; opens its project with the item in view
+    var b = btn("it", null, o.go);
+    b.appendChild(el("span", "mk " + (o.mark || "")));
+    var mid = el("span"); mid.style.minWidth = "0"; mid.appendChild(el("span", "t", o.title)); mid.firstChild.style.display = "block";
+    var s = el("span", "s", o.sub); s.style.display = "block"; mid.appendChild(s); b.appendChild(mid);
+    b.appendChild(el("span", "m " + (o.cls || ""), o.meta || ""));
+    return b;
+  }
+  function problemItem(i, o) {
+    var p = allProjByKey()[i.pk];
+    return item({ mark: o.mark, title: i.name, sub: [p ? p.name : "", o.sub].filter(Boolean).join(" · "), meta: o.meta, cls: o.cls, go: function () { if (p) openProject(p, key(i.url)); } });
+  }
+  function planItem(m, o) {
+    var where = m.kind === "task" && m.ms ? m.project.name + " · " + m.ms.name : m.project.name;
+    return item({ mark: o.mark, title: m.name, sub: [where, o.sub].filter(Boolean).join(" · "), meta: o.meta, cls: o.cls, go: function () { openProject(m.project, key(m.url)); } });
+  }
+  function anyItem(x, o) { return x.kind === "problem" ? problemItem(x, o) : planItem(x, o); }
+  function gh(host, title, n, cls) { var h = el("div", "gh" + (cls ? " " + cls : "")); h.appendChild(span(title)); if (n != null) h.appendChild(span(String(n), "n")); host.appendChild(h); }
+  function moveGroups() { // what asks for an action now, each thing once
+    var t = todayNum(), probs = S.problems ? liveProblems() : [], seen = {};
+    function once(x) { var k = key(x.url); if (seen[k]) return false; seen[k] = 1; return true; }
+    var blocked = probs.filter(function (i) { return i.type === "Blocker"; }).sort(function (a, b) { return (ageOf(b) || 0) - (ageOf(a) || 0); }).filter(once);
+    var overdue = lateItems().filter(once), due = dueItems().filter(once);
+    var tasksOnMe = allItems().filter(function (k) {
+      if (k.kind !== "task" || !isOpen(k) || k.paused || k.status === "Waiting" || k.waiting) return false;
+      if (k.status === "In progress") return true;
+      if (k.start != null) return k.start <= t + 7;
+      return !k.ms || k.ms.status === "In progress"; // an undated step of the work under way
+    }).sort(function (a, b) { return (a.status === "In progress" ? 0 : 1) - (b.status === "In progress" ? 0 : 1) || (a.start == null ? 1e9 : a.start) - (b.start == null ? 1e9 : b.start); });
+    var questions = probs.filter(function (i) { return !i.waiting && i.type === "Question"; }).sort(function (a, b) { return (a.opened || 1e9) - (b.opened || 1e9); });
+    var onYou = tasksOnMe.concat(questions).filter(once);
+    var needs = allItems().filter(function (m) { return m.kind === "ms" && OPEN_MS[m.status] && m.start == null && !m.paused; }).filter(once);
+    return { blocked: blocked, overdue: overdue, due: due, onYou: onYou, needs: needs };
+  }
+  function renderMove() {
+    var host = $("moveList"), mg = moveGroups();
+    var groups = [
+      ["Blocked", "crit", mg.blocked, function (i) { return problemItem(i, { mark: "crit", sub: i.waiting ? "waiting on " + i.waiting : "on you", meta: ageOf(i) != null ? days(ageOf(i)) : "", cls: "crit" }); }],
+      ["Overdue", "crit", mg.overdue, function (m) { return planItem(m, { mark: "crit", sub: (m.kind === "task" && m.status === "Waiting" && m.waiting ? "waiting on " + m.waiting + " · " : "") + "was due " + fmt(m.end), meta: days(m.late) + " late", cls: "crit" }); }],
+      ["Due soon", "warn", mg.due, function (m) { return planItem(m, { mark: "warn", sub: m.status === "Planned" ? "not started" : m.status === "Waiting" && m.waiting ? "waiting on " + m.waiting : "", meta: soon(m.end), cls: "warn" }); }],
+      ["On you", "", mg.onYou, function (x) {
+        if (x.kind === "problem") { var a = ageOf(x); return problemItem(x, { sub: "decide", meta: a != null ? days(a) : "", cls: ageCls(a) }); }
+        return planItem(x, { sub: x.status === "In progress" ? "in progress" : "", meta: x.start == null ? "no date" : x.start > todayNum() ? "starts " + soon(x.start) : "due " + soon(x.end) });
+      }],
+      ["Needs dates", "", mg.needs, function (m) { return planItem(m, { sub: m.status === "In progress" ? "in progress" : "planned", meta: "" }); }]
+    ];
+    keep(host, function () {
+      clear(host); var n = 0;
+      if (S.problemsErr && !S.problems) host.appendChild(el("div", "err", "Problems didn't load. " + errText(S.problemsErr)));
+      groups.forEach(function (g) { if (!g[2].length) return; n += g[2].length; gh(host, g[0], g[2].length, g[1]); g[2].forEach(function (x) { host.appendChild(g[3](x)); }); });
+      if (!n) host.appendChild(el("div", "empty", "Nothing needs you right now."));
+      $("moveCount").textContent = n ? String(n) : "";
+    });
+  }
+  function renderWaiting() {
+    var host = $("waitList");
+    keep(host, function () {
+      clear(host);
+      if (S.problemsErr && !S.problems) host.appendChild(el("div", "err", "Problems didn't load. " + errText(S.problemsErr)));
+      var w = []; projs().forEach(function (p) { w = w.concat(waitingOf(p)); });
+      var groups = {}; w.forEach(function (x) { (groups[x.waiting || "Someone"] = groups[x.waiting || "Someone"] || []).push(x); });
+      function since(x) { var a = ageOf(x); return a == null ? -1 : a; }
+      var parties = Object.keys(groups).map(function (k) { var g = groups[k].sort(function (a, b) { return since(b) - since(a); }); return { k: k, g: g, oldest: since(g[0]) }; })
+        .sort(function (a, b) { return b.oldest - a.oldest || a.k.localeCompare(b.k); });
+      $("waitCount").textContent = w.length ? String(w.length) : "";
+      if (!parties.length) { if (!(S.problemsErr && !S.problems)) host.appendChild(el("div", "empty", "No one to chase.")); return; }
+      parties.forEach(function (pt) {
+        gh(host, pt.k, pt.g.length > 1 ? pt.g.length : null, "");
+        pt.g.forEach(function (x) {
+          var a = ageOf(x), late = x.kind === "task" && x.late > 0;
+          host.appendChild(anyItem(x, { mark: late ? "crit" : ageCls(a), sub: x.kind === "problem" ? (x.type === "Blocker" ? "blocks you" : x.type.toLowerCase()) : late ? days(x.late) + " late" : x.end != null ? "due " + fmt(x.end) : "", meta: a != null ? days(a) : "", cls: late ? "crit" : ageCls(a) }));
+        });
+      });
+    });
+  }
+  function renderDone() {
+    var t = todayNum(), pk = projByKey(), out = [];
+    allItems().forEach(function (m) { if (m.status === "Done" && m.finished != null && t - m.finished <= 7) out.push({ x: m, when: m.finished }); });
+    (S.resolved || []).map(problemOf).forEach(function (i) { if (pk[i.pk] && i.status === "Resolved" && i.resolvedOn != null && t - i.resolvedOn <= 7) out.push({ x: i, when: i.resolvedOn }); });
+    out.sort(function (a, b) { return b.when - a.when; });
+    $("doneCount").textContent = out.length ? String(out.length) : "";
+    var host = $("doneList"); clear(host);
+    if (S.resolvedErr && !S.resolved) host.appendChild(el("div", "err", "Resolved problems didn't load. " + errText(S.resolvedErr)));
+    if (!out.length) { host.appendChild(el("div", "empty", "Nothing finished in the last 7 days.")); return; }
+    out.forEach(function (o) { var x = o.x; host.appendChild(anyItem(x, { sub: x.kind === "problem" ? "resolved" : x.kind === "ms" ? "milestone" : "task", meta: fmt(o.when), cls: "good" })); });
+  }
+
+  // ---------- the project page ----------
+  S.open = {}; S.body = {}; S.dr = null;
+  function pageBody(host, url, opts) { // fetched when it opens, kept so later paints never flash
+    opts = opts || {};
+    var box = el("div"); host.appendChild(box);
+    function paint() {
+      clear(box); var c = S.body[url];
+      if (!c || (c.txt == null && !c.err)) { box.appendChild(el("div", "skel")); box.lastChild.style.width = "70%"; box.appendChild(el("div", "skel")); box.lastChild.style.width = "45%"; return; }
+      if (c.err && c.txt == null) { box.appendChild(el("div", "crit", errText(c.err))); return; }
+      var tx = contentOf(c.txt).trim();
+      if (!tx) { box.hidden = !opts.empty; if (opts.empty) { if (opts.title) box.appendChild(el("div", "xh", opts.title)); box.appendChild(el("div", "muted", opts.empty)); } return; }
+      box.hidden = false;
+      if (opts.title) box.appendChild(el("div", "xh", opts.title));
+      var md = renderMd(tx, opts); if (opts.title) md.style.marginTop = "6px"; box.appendChild(md);
+    }
+    paint();
+    var c = S.body[url];
+    if (!c || (!c.busy && Date.now() - (c.at || 0) > 60000)) {
+      S.body[url] = c = c || {}; c.busy = true;
+      fetchText(url, DATA).then(function (txt) { S.body[url] = { txt: txt, at: Date.now() }; if (box.isConnected) paint(); },
+        function (err) { S.body[url] = { txt: c.txt, err: err, at: Date.now() }; if (box.isConnected) paint(); });
+    }
+  }
   function inline(host, s) { // **bold**, *italic*, `code`, [text](url), page mentions, dates
     s = String(s).replace(/\{color="[^"]*"\}/g, "").replace(/<\/?(span|u|br)[^>]*>/g, "");
-    var re = /\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)|<mention-page url="([^"]+)"[^>]*>([^<]*)<\/mention-page>|<mention-date start="([^"]+)"[^>]*\/?>(?:<\/mention-date>)?|<mention-[a-z]+[^>]*>([^<]*)<\/mention-[a-z]+>|\*([^*\s][^*]*)\*/g, last = 0, m;
+    var re = /\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)|<mention-page url="([^"]+)"[^>]*>([^<]*)<\/mention-page>|<mention-page url="([^"]+)"[^>]*\/>|<mention-date start="([^"]+)"[^>]*\/?>(?:<\/mention-date>)?|<mention-[a-z]+[^>]*>([^<]*)<\/mention-[a-z]+>|\*([^*\s][^*]*)\*/g, last = 0, m;
     while ((m = re.exec(s))) {
       if (m.index > last) host.appendChild(document.createTextNode(unesc(s.slice(last, m.index))));
       if (m[1] != null) host.appendChild(el("b", "", unesc(m[1])));
       else if (m[2] != null) host.appendChild(el("code", "", m[2]));
       else if (m[3] != null) { if (/^https?:/.test(m[4])) host.appendChild(link(m[4], unesc(m[3]))); else host.appendChild(document.createTextNode(unesc(m[3]))); }
-      else if (m[5] != null) { host.appendChild(link(cleanUrl(m[5]), clean(m[6]) || "page")); }
-      else if (m[7] != null) host.appendChild(document.createTextNode(fmt(dnum(m[7]), true)));
-      else if (m[8] != null) host.appendChild(document.createTextNode(m[8]));
-      else if (m[9] != null) host.appendChild(el("i", "", unesc(m[9])));
+      else if (m[5] != null) host.appendChild(link(cleanUrl(m[5]), clean(m[6]) || "page"));
+      else if (m[7] != null) { var it = itemIndex()[key(m[7])]; host.appendChild(link(cleanUrl(m[7]), it ? it.name : "page")); }
+      else if (m[8] != null) host.appendChild(document.createTextNode(fmt(dnum(m[8]), true)));
+      else if (m[9] != null) host.appendChild(document.createTextNode(m[9]));
+      else if (m[10] != null) host.appendChild(el("i", "", unesc(m[10])));
       last = re.lastIndex;
     }
     if (last < s.length) host.appendChild(document.createTextNode(unesc(s.slice(last))));
@@ -679,274 +1188,19 @@
       if (li) {
         var tag = /\d/.test(li[1]) ? "ol" : "ul";
         if (!list || listTag !== tag) { list = el(tag, opts.history && tag === "ul" ? "hist" : ""); listTag = tag; box.appendChild(list); }
-        var item = el("li"); inline(item, li[2].replace(/^\[[ x]\]\s*/, "")); list.appendChild(item); continue;
+        var itm = el("li"); inline(itm, li[2].replace(/^\[[ x]\]\s*/, "")); list.appendChild(itm); continue;
       }
       if (/^>\s?/.test(l)) { endList(); var q = el("blockquote"); inline(q, l.replace(/^>\s?/, "")); box.appendChild(q); continue; }
       endList(); var p = el("p"); inline(p, l); box.appendChild(p);
     }
     return root;
   }
-
-  // ---------- small pieces ----------
-  var CHEV = '<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
-  function span(text, cls) { return el("span", cls || "", text); }
   function facts(host, pairs) {
     var dl = el("dl", "facts");
     pairs.forEach(function (x) { if (x[1] == null || x[1] === "") return; dl.appendChild(el("dt", "", x[0])); var dd = el("dd"); if (typeof x[1] === "string") dd.textContent = x[1]; else dd.appendChild(x[1]); dl.appendChild(dd); });
     if (dl.childNodes.length) host.appendChild(dl);
   }
   function actions(host, items) { var a = el("div", "actions"); items.forEach(function (x) { if (x) a.appendChild(x); }); if (a.childNodes.length) host.appendChild(a); }
-  function keep(host, fn) { var y = host.scrollTop; fn(); host.scrollTop = y; }
-  function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
-
-  // a project's state, said the same way everywhere
-  function stateOfProject(p) {
-    var d = S.ms[p.key];
-    if (d && d.err) return { text: "Not loaded", cls: "crit", dot: "crit" };
-    if (!d) return { text: "", cls: "", dot: "" };
-    if (p.status === "Paused") return { text: "Paused", cls: "", dot: "paused" };
-    var blk = blockersOf(p).length, worst = worstLate(p), h = focusOf(p).head, t = todayNum();
-    if (blk) return { text: "Blocked", cls: "crit", dot: "crit" };
-    if (worst) return { text: days(worst) + " late", cls: "crit", dot: "crit" };
-    if (!h) return { text: d.list.length ? "All done" : "No plan yet", cls: "", dot: "good" };
-    if (h.start == null) return { text: "No dates", cls: "", dot: "ring" };
-    if ((h.status === "In progress" || h.start <= t) && h.end - t <= 7) return { text: h.end === t ? "Due today" : "Due in " + days(h.end - t), cls: "warn", dot: "warn" };
-    return { text: "On track", cls: "good", dot: "acc" };
-  }
-  function planPhrase(m) {
-    var t = todayNum();
-    if (m.status === "Done") return [m.finished != null ? "done " + fmt(m.finished) + (m.late > 0 ? ", " + days(m.late) + " late" : m.late < 0 ? ", " + days(-m.late) + " early" : ", on time") : "done", m.late > 0 ? "crit" : "good"];
-    if (m.state === "paused") return ["paused", ""];
-    if (m.start == null) return ["no agreed dates yet", ""];
-    if (m.late > 0) return [days(m.late) + " late", "crit"];
-    if (m.status === "In progress" || m.start <= t) { var l = m.end - t; return [l === 0 ? "due today" : days(l) + " left", l <= 7 ? "warn" : "acc"]; }
-    return ["starts in " + days(m.start - t), ""];
-  }
-  function msDot(m) { return m.state === "done" || m.state === "doneLate" ? "good" : m.state === "late" ? "crit" : m.state === "prog" ? "acc" : m.state === "paused" ? "paused" : m.state === "nodate" ? "ring" : ""; }
-  function failures() { return projs().filter(function (p) { return S.ms[p.key] && S.ms[p.key].err; }); }
-
-  // ---------- the page header and the sentence ----------
-  function renderHeader() {
-    var kinds = {}; (S.projects || []).forEach(function (p) { kinds[p.origin] = (kinds[p.origin] || 0) + 1; });
-    var ks = ORIGINS.filter(function (k) { return kinds[k]; }).concat(Object.keys(kinds).filter(function (k) { return ORIGINS.indexOf(k) < 0; }));
-    if (S.origin !== "All" && !kinds[S.origin] && S.projects) S.origin = "All";
-    var tb = $("tabs"); clear(tb);
-    if (ks.length > 1) ["All"].concat(ks).forEach(function (k) {
-      var b = btn("", k === "All" ? "All projects" : k, function () { S.origin = k; try { localStorage.setItem("pt.origin", k); } catch (e) {} S.tlView = null; paint(); });
-      b.setAttribute("aria-pressed", String(S.origin === k)); tb.appendChild(b);
-    });
-  }
-  function goTo(id) { var t = $(id); if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }
-  function renderPills() {
-    var host = $("pills"); clear(host);
-    if (S.projErr && !S.projects) { host.appendChild(el("span", "pl crit", "Couldn't read the tracker")); return; }
-    var issues = S.issues ? liveIssues() : [], noIss = S.issuesErr && !S.issues, noMs = S.shown && failures().length > 0; // never a confident 0 for data that was not read
-    // a fixed set, always visible: what is overdue or about to be. On you / waiting are the counts on the panels to the right.
-    [[issues.filter(function (i) { return i.type === "Blocker"; }).length, "blocked", "crit", "moveP", noIss, "Open items marked Blocker"],
-     [lateMs().length, "overdue", "crit", "moveP", noMs, "Milestones past their agreed end date"],
-     [dueMs().length, "due soon", "warn", "moveP", noMs, "Milestones that end within the next 7 days"]].forEach(function (c) {
-      var b = el("button", "pl" + (c[0] && c[2] ? " " + c[2] : "")); b.type = "button";
-      b.appendChild(el("b", "", !S.shown ? "–" : c[4] ? (c[0] ? c[0] + "+" : "?") : String(c[0]))); b.appendChild(document.createTextNode(c[1]));
-      b.title = c[4] ? "Part of the data did not load, so this count may be incomplete." : c[5];
-      b.addEventListener("click", function () { goTo(c[3]); });
-      host.appendChild(b);
-    });
-  }
-
-  // ---------- project cards ----------
-  function renderCards() {
-    var host = $("cards"), ps = sortedProjects(); clear(host);
-    var act = ps.filter(function (p) { return p.status !== "Paused"; }).length;
-    $("projCount").textContent = ps.length ? act + " active" + (ps.length - act ? ", " + (ps.length - act) + " paused" : "") : "";
-    ps.forEach(function (p) { host.appendChild(card(p)); });
-  }
-  function card(p) {
-    var c = btn("pc", null, function () { openProject(p); }), st = stateOfProject(p), list0 = msList(p) || [], f = focusOf(p);
-    var top = el("div", "pc-top"), nm = el("div"); nm.style.minWidth = "0";
-    nm.appendChild(el("div", "pc-name", p.name)); nm.appendChild(el("div", "pc-who", [p.client, p.origin].filter(Boolean).join(" · ")));
-    top.appendChild(nm); if (st.text) top.appendChild(el("span", "pill " + st.cls, st.text)); c.appendChild(top);
-    var d = S.ms[p.key];
-    if (d && d.err) c.appendChild(el("div", "crit", "Its plan didn't load. " + errText(d.err)));
-    else if (f.head) {
-      var now = el("div", "pc-now"), w = whenOf(f.head);
-      var label = f.head === f.next ? "Next" : f.head.late > 0 && f.head.status === "Planned" ? "Overdue" : f.head.status === "Paused" ? "Paused" : "Now";
-      now.appendChild(el("span", "lab" + (label === "Overdue" ? " crit" : ""), label)); now.appendChild(el("span", "t", f.head.name));
-      now.appendChild(el("span", "w " + (w[1] || ""), w[0])); c.appendChild(now);
-      var blk = blockersOf(p)[0];
-      if (blk) { var b2 = el("div", "pc-now"); b2.appendChild(el("span", "lab crit", "Blocked")); b2.appendChild(el("span", "t", blk.name)); b2.appendChild(el("span", "w crit", blk.waiting ? "waiting on " + blk.waiting : "on you")); c.appendChild(b2); }
-    } else if (d) c.appendChild(el("div", "muted", list0.length ? "Every milestone is done." : "No milestones yet."));
-    var foot = el("div", "pc-foot");
-    if (list0.length) { var pr = el("div", "prog"); sortMs(list0).forEach(function (m) { pr.appendChild(el("i", m.state === "plan" ? "" : m.state)); }); foot.appendChild(pr); }
-    var capn = el("div", "pc-cap"), done = list0.filter(function (m) { return m.status === "Done"; }).length;
-    if (list0.length) capn.appendChild(span(done + " of " + list0.length + " milestones done"));
-    if (p.target != null) capn.appendChild(span("ends " + fmt(p.target)));
-    var iss = liveIssues().filter(function (i) { return i.pk === p.key; }), rk = iss.filter(function (i) { return i.type === "Risk"; }).length, wt = iss.filter(function (i) { return i.waiting && i.type !== "Risk"; }).length, on = iss.length - rk - wt;
-    var cnt = [on ? on + " on you" : "", wt ? wt + " waiting" : "", rk ? plural(rk, "risk") : ""].filter(Boolean).join(" · ");
-    if (cnt) capn.appendChild(span(cnt, "r"));
-    foot.appendChild(capn); c.appendChild(foot);
-    return c;
-  }
-
-  // ---------- timeline ----------
-  function buildTimelineChrome() {
-    var seg = $("range");
-    [["3", "3 months"], ["6", "6 months"], ["all", "All"]].forEach(function (r) { var b = btn("", r[1], function () { S.range = r[0]; try { localStorage.setItem("pt.range", r[0]); } catch (e) {} paintRange(); renderGantt(true); }); b.dataset.r = r[0]; seg.appendChild(b); });
-    paintRange();
-    $("todayBtn").addEventListener("click", function () { renderGantt(true); });
-    var info = $("info"), ib = btn("icon-btn", null), pop = el("div", "pop"); ib.innerHTML = '<svg class="ico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></svg>';
-    ib.setAttribute("aria-label", "What the colours mean"); ib.setAttribute("aria-expanded", "false"); pop.hidden = true;
-    var lg = el("div", "lg");
-    [["var(--accent)", "In progress"], ["var(--bar)", "Planned"], ["var(--crit)", "Past its agreed date"], ["repeating-linear-gradient(135deg, var(--hatch) 0 3px, transparent 3px 6px)", "Paused, never counted as late"], ["var(--good-soft)", "Done"], ["transparent", "No agreed dates yet, drawn from today"]].forEach(function (x, i) { var sw = el("span", "sw"); sw.style.background = x[0]; if (i === 5) sw.style.boxShadow = "inset 0 0 0 1px var(--line-2)"; lg.appendChild(sw); lg.appendChild(span(x[1])); });
-    pop.appendChild(lg); pop.appendChild(el("div", "", "Bars are the dates agreed with the client. Drag or scroll sideways to move in time. Click a bar or a project to read the details."));
-    ib.addEventListener("click", function (e) { e.stopPropagation(); pop.hidden = !pop.hidden; ib.setAttribute("aria-expanded", String(!pop.hidden)); });
-    document.addEventListener("click", function (e) { if (!pop.hidden && !info.contains(e.target)) { pop.hidden = true; ib.setAttribute("aria-expanded", "false"); } });
-    info.appendChild(ib); info.appendChild(pop);
-    dragPan($("tlScroll"));
-  }
-  function paintRange() { var bs = $("range").querySelectorAll("button"); for (var i = 0; i < bs.length; i++) bs[i].setAttribute("aria-pressed", String(bs[i].dataset.r === S.range)); }
-  function dragPan(host) { // a mouse drags the chart; touch and trackpads scroll natively
-    var drag = null, moved = false;
-    host.addEventListener("pointerdown", function (e) { if (e.pointerType !== "mouse" || e.button !== 0 || e.target.closest(".tl-label")) return; drag = { x: e.clientX, l: host.scrollLeft }; moved = false; });
-    window.addEventListener("pointermove", function (e) { if (!drag) return; if (Math.abs(e.clientX - drag.x) > 4) { moved = true; host.classList.add("dragging"); } if (moved) host.scrollLeft = drag.l - (e.clientX - drag.x); });
-    window.addEventListener("pointerup", function () { drag = null; host.classList.remove("dragging"); });
-    host.addEventListener("click", function (e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
-  }
-  function renderGantt(toToday) {
-    var host = $("tlScroll"), t = todayNum(), ps = sortedProjects();
-    if (!ps.length) { clear(host); var e0 = el("div", "empty", (S.projects || []).length ? "No projects of this kind." : "Nothing scheduled yet."); e0.style.padding = "16px 18px"; host.appendChild(e0); S.tlView = null; return; }
-    var a = t - 30, b = t + 120;
-    ps.forEach(function (p) { (msList(p) || []).forEach(function (m) { if (m.start != null && m.start - 7 < a) a = m.start - 7; if (m.end != null && m.end + 14 > b) b = m.end + 14; }); });
-    var narrow = window.innerWidth <= 640, LW = narrow ? 130 : 220, vw = host.clientWidth || 700;
-    var avail = Math.max(vw, 320) - LW - 2, spanD = S.range === "3" ? 91 : S.range === "6" ? 182 : (b - a);
-    var px = Math.max(avail / spanD, narrow ? 4.5 : 0), W = Math.round((b - a) * px);
-    function X(n) { return Math.round((n - a) * px); }
-    var keepDay = S.tlView ? S.tlView.a + host.scrollLeft / S.tlView.px : null;
-    var tl = el("div", "tl"); tl.style.width = Math.max(LW + W, vw) + "px"; tl.style.setProperty("--lw", LW + "px");
-    var months = el("div", "tl-months"), hl = el("div", "tl-label"); hl.style.height = "100%"; hl.style.borderBottom = "0"; months.appendChild(hl);
-    var d0 = new Date(a * DAY), cur = Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth(), 1) / DAY;
-    while (cur < b) {
-      var dd = new Date(cur * DAY), nxt = Date.UTC(dd.getUTCFullYear(), dd.getUTCMonth() + 1, 1) / DAY;
-      if (cur >= a) {
-        var nearToday = X(t) - X(cur) > -8 && X(t) - X(cur) < 64; // the Today tag sits there instead
-        var mk = el("div", "tl-month", (nxt - cur) * px > 44 && !nearToday ? MON[dd.getUTCMonth()] + (dd.getUTCMonth() === 0 || cur - a < 32 ? " " + dd.getUTCFullYear() : "") : "");
-        mk.style.left = (LW + X(cur)) + "px"; months.appendChild(mk);
-        var g = el("div", "tl-grid"); g.style.left = (LW + X(cur)) + "px"; tl.appendChild(g);
-      }
-      cur = nxt;
-    }
-    var tlab = el("div", "tl-today-l", "Today"); tlab.style.left = (LW + X(t) + 1) + "px"; months.appendChild(tlab);
-    tl.appendChild(months);
-    var H = 28;
-    ps.forEach(function (p) {
-      var st = stateOfProject(p);
-      var bars = (msList(p) || []).filter(function (m) { return m.start != null; }).sort(function (x, y) { return x.start - y.start; }).map(function (m) { return { m: m, start: m.start, end: m.end }; });
-      var nd = t;
-      (msList(p) || []).filter(function (m) { return m.start == null && (OPEN[m.status] || m.status === "Paused"); }).forEach(function (m) { bars.push({ m: m, start: nd, end: nd + 13, nodate: true }); nd += 14; });
-      var lanes = [];
-      bars.forEach(function (g) { var i = 0; while (lanes[i] != null && lanes[i] >= g.start) i++; lanes[i] = g.end; g.lane = i; });
-      var r = el("div", "tl-row"); r.style.height = (Math.max(lanes.length, 1) * H + 16) + "px";
-      var lab = el("div", "tl-label"); lab.appendChild(el("span", "dot " + st.dot));
-      var nb = btn("", p.name, function () { openProject(p); }); nb.title = p.name; lab.appendChild(nb); r.appendChild(lab);
-      if (S.ms[p.key] && S.ms[p.key].err) { var fn = el("div", "tl-fail", "Plan didn't load. Refresh to retry."); fn.style.left = (LW + Math.max(0, X(t - 14)) + 8) + "px"; r.appendChild(fn); }
-      bars.forEach(function (g) {
-        var m = g.m, x0 = X(g.start), x1 = X(g.end + 1);
-        var bar = btn("tl-b " + (g.nodate ? "nodate" : m.state === "plan" ? "" : m.state), m.name, function () { openProject(p, key(m.url)); });
-        bar.style.left = (LW + x0) + "px"; bar.style.width = Math.max(x1 - x0 - 3, 6) + "px"; bar.style.top = (8 + g.lane * H) + "px";
-        bar.title = m.name + " · " + (g.nodate ? "no agreed dates yet" : range(m.start, m.end));
-        r.appendChild(bar);
-      });
-      tl.appendChild(r);
-    });
-    var td = el("div", "tl-today"); td.style.left = (LW + X(t)) + "px"; tl.appendChild(td);
-    clear(host); host.appendChild(tl);
-    host.scrollLeft = toToday || keepDay == null ? Math.max(0, X(t - 14)) : Math.max(0, Math.round((keepDay - a) * px));
-    S.tlView = { a: a, px: px };
-  }
-
-  // ---------- right column ----------
-  function item(o) { // one line in a list; opens its project with the item in view
-    var b = btn("it", null, o.go);
-    b.appendChild(el("span", "mk " + (o.mark || "")));
-    var mid = el("span"); mid.style.minWidth = "0"; mid.appendChild(el("span", "t", o.title)); mid.firstChild.style.display = "block";
-    var s = el("span", "s", o.sub); s.style.display = "block"; mid.appendChild(s); b.appendChild(mid);
-    b.appendChild(el("span", "m " + (o.cls || ""), o.meta || ""));
-    return b;
-  }
-  function issueItem(i, o) {
-    var p = allProjByKey()[i.pk];
-    return item({ mark: o.mark, title: i.name, sub: [p ? p.name : "", o.sub].filter(Boolean).join(" · "), meta: o.meta, cls: o.cls, go: function () { if (p) openProject(p, key(i.url)); } });
-  }
-  function msItem(m, o) { return item({ mark: o.mark, title: m.name, sub: [m.project.name, o.sub].filter(Boolean).join(" · "), meta: o.meta, cls: o.cls, go: function () { openProject(m.project, key(m.url)); } }); }
-  function gh(host, title, n, cls, right) { var h = el("div", "gh" + (cls ? " " + cls : "")); h.appendChild(span(title)); if (n != null) h.appendChild(span(String(n), "n")); if (right) { right.className += " r"; h.appendChild(right); } host.appendChild(h); }
-  function renderMove() {
-    var host = $("moveList"), t = todayNum(), issues = S.issues ? liveIssues() : [], order = { Question: 0, Task: 1, Risk: 2 };
-    var groups = [
-      ["Blocked", "crit", issues.filter(function (i) { return i.type === "Blocker"; }).sort(function (a, b) { return (ageOf(b) || 0) - (ageOf(a) || 0); }), function (i) { return issueItem(i, { mark: "crit", sub: i.waiting ? "waiting on " + i.waiting : "on you", meta: ageOf(i) != null ? days(ageOf(i)) : "", cls: "crit" }); }],
-      ["Overdue", "crit", lateMs(), function (m) { return msItem(m, { mark: "crit", sub: "was due " + fmt(m.end), meta: days(m.late) + " late", cls: "crit" }); }],
-      ["Due soon", "warn", dueMs(), function (m) { return msItem(m, { mark: "warn", sub: m.status === "Planned" ? "not started" : "", meta: soon(m.end), cls: "warn" }); }],
-      ["On you", "", issues.filter(function (i) { return !i.waiting && i.type !== "Blocker" && i.type !== "Risk"; }).sort(function (a, b) { return (order[a.type] == null ? 9 : order[a.type]) - (order[b.type] == null ? 9 : order[b.type]) || (a.opened || 1e9) - (b.opened || 1e9); }), function (i) { var a = ageOf(i); return issueItem(i, { sub: i.type, meta: a != null ? days(a) : "", cls: a >= 14 ? "crit" : a >= 7 ? "warn" : "" }); }],
-      ["Needs agreed dates", "", allMs().filter(function (m) { return OPEN[m.status] && m.start == null && m.project.status !== "Paused"; }), function (m) { return msItem(m, { sub: m.status === "In progress" ? "in progress" : "planned", meta: "" }); }]
-    ];
-    keep(host, function () {
-      clear(host); var n = 0;
-      if (S.issuesErr && !S.issues) host.appendChild(el("div", "err", "Open items didn't load. " + errText(S.issuesErr)));
-      groups.forEach(function (g) { if (!g[2].length) return; n += g[2].length; gh(host, g[0], g[2].length, g[1]); g[2].forEach(function (x) { host.appendChild(g[3](x)); }); });
-      if (!n) host.appendChild(el("div", "empty", "Nothing needs you right now."));
-      $("moveCount").textContent = n ? String(n) : "";
-    });
-  }
-  function renderWaiting() {
-    var host = $("waitList");
-    keep(host, function () {
-      clear(host);
-      if (S.issuesErr && !S.issues) { host.appendChild(el("div", "err", errText(S.issuesErr))); $("waitCount").textContent = ""; return; }
-      var w = liveIssues().filter(function (i) { return i.waiting; }), groups = {};
-      w.forEach(function (i) { (groups[i.waiting] = groups[i.waiting] || []).push(i); });
-      var parties = Object.keys(groups).map(function (k) { var g = groups[k].sort(function (a, b) { return (a.opened == null ? 1e9 : a.opened) - (b.opened == null ? 1e9 : b.opened); }); return { k: k, g: g, oldest: g[0].opened }; })
-        .sort(function (a, b) { return (a.oldest == null ? 1e9 : a.oldest) - (b.oldest == null ? 1e9 : b.oldest); });
-      $("waitCount").textContent = w.length ? String(w.length) : "";
-      if (!parties.length) { host.appendChild(el("div", "empty", "No one to chase.")); return; }
-      parties.forEach(function (pt) {
-        gh(host, pt.k, pt.g.length > 1 ? pt.g.length : null, "");
-        pt.g.forEach(function (i) { var a = ageOf(i); host.appendChild(issueItem(i, { mark: a >= 14 ? "crit" : a >= 7 ? "warn" : "", sub: i.type === "Blocker" ? "blocks you" : "", meta: a != null ? days(a) : "", cls: a >= 14 ? "crit" : a >= 7 ? "warn" : "" })); });
-      });
-    });
-  }
-  function renderDone() {
-    var t = todayNum(), pk = projByKey(), out = [];
-    allMs().forEach(function (m) { if (m.status === "Done" && m.finished != null && t - m.finished <= 7) out.push({ ms: m, when: m.finished }); });
-    (S.resolved || []).map(issueOf).forEach(function (i) { if (pk[i.pk] && i.status === "Resolved" && i.resolvedOn != null && t - i.resolvedOn <= 7) out.push({ is: i, when: i.resolvedOn }); });
-    out.sort(function (a, b) { return b.when - a.when; });
-    $("doneCount").textContent = out.length ? String(out.length) : "";
-    var host = $("doneList"); clear(host);
-    if (S.resolvedErr && !S.resolved) host.appendChild(el("div", "err", "Resolved items didn't load. " + errText(S.resolvedErr)));
-    if (!out.length) { host.appendChild(el("div", "empty", "Nothing finished in the last 7 days.")); return; }
-    out.forEach(function (x) { host.appendChild(x.ms ? msItem(x.ms, { sub: "milestone", meta: fmt(x.when), cls: "good" }) : issueItem(x.is, { sub: "resolved", meta: fmt(x.when), cls: "good" })); });
-  }
-
-  // ---------- the project page ----------
-  S.open = {}; S.body = {}; S.dr = null;
-  function pageBody(host, url, opts) { // fetched when it opens, kept so later paints never flash
-    opts = opts || {};
-    var box = el("div"); host.appendChild(box);
-    function paint() {
-      clear(box); var c = S.body[url];
-      if (!c || (c.txt == null && !c.err)) { box.appendChild(el("div", "skel")); box.lastChild.style.width = "70%"; box.appendChild(el("div", "skel")); box.lastChild.style.width = "45%"; return; }
-      if (c.err && c.txt == null) { box.appendChild(el("div", "crit", errText(c.err))); return; }
-      var tx = contentOf(c.txt).trim();
-      if (!tx) { box.hidden = !opts.empty; if (opts.empty) { if (opts.title) box.appendChild(el("div", "xh", opts.title)); box.appendChild(el("div", "muted", opts.empty)); } return; }
-      box.hidden = false;
-      if (opts.title) box.appendChild(el("div", "xh", opts.title));
-      var md = renderMd(tx, opts); if (opts.title) md.style.marginTop = "6px"; box.appendChild(md);
-    }
-    paint();
-    var c = S.body[url];
-    if (!c || (!c.busy && Date.now() - (c.at || 0) > 60000)) {
-      S.body[url] = c = c || {}; c.busy = true;
-      fetchText(url, DATA).then(function (txt) { S.body[url] = { txt: txt, at: Date.now() }; if (box.isConnected) paint(); },
-        function (err) { S.body[url] = { txt: c.txt, err: err, at: Date.now() }; if (box.isConnected) paint(); });
-    }
-  }
   function subPage(u, title) {
     var k = "sub:" + key(u), d = el("div", "sub" + (S.open[k] ? " open" : ""));
     var b = btn("", null); b.insertAdjacentHTML("beforeend", CHEV); b.appendChild(span(title)); b.setAttribute("aria-expanded", String(!!S.open[k]));
@@ -957,11 +1211,11 @@
     d.appendChild(b); d.appendChild(body); return d;
   }
   function acc(o) { // a row in the project page that opens below itself
-    var k = "d:" + o.k, on0 = !!S.open[k], r = el("div", "arow" + (on0 ? " open" : "")); r.dataset.k = o.k;
+    var k = "d:" + o.k, on0 = !!S.open[k], r = el("div", "arow" + (o.tsk ? " tsk" : "") + (on0 ? " open" : "")); r.dataset.k = o.k;
     var h = btn("acc-h", null); h.setAttribute("aria-expanded", String(on0));
     h.appendChild(el("span", "dot " + (o.dot || "")));
     var mid = el("span"); mid.style.minWidth = "0"; var t = el("span", "t", o.title); t.style.display = "block"; mid.appendChild(t);
-    if (o.sub) { o.sub.style.display = "block"; mid.appendChild(o.sub); }
+    if (o.line) { o.line.style.display = "block"; mid.appendChild(o.line); }
     h.appendChild(mid); h.appendChild(el("span", "r", o.right || "")); h.insertAdjacentHTML("beforeend", CHEV);
     var x = el("div", "acc-x"); x.hidden = !on0; if (on0) o.expand(x);
     h.addEventListener("click", function () { var on = !S.open[k]; if (on) S.open[k] = 1; else delete S.open[k]; r.classList.toggle("open", on); h.setAttribute("aria-expanded", String(on)); if (on && !x.firstChild) o.expand(x); x.hidden = !on; });
@@ -987,29 +1241,62 @@
     s.classList.toggle("folded", fold); s.querySelector(".dsec-h").setAttribute("aria-expanded", String(!fold)); s.querySelector(".dsec-b").hidden = fold;
   }
   function typeTag(t) { return el("span", "tt " + (t || ""), t || "Item"); }
-  function phraseEl(parts) { var s = el("span", "s"); parts.forEach(function (p, i) { if (!p || !p[0]) return; if (s.childNodes.length) s.appendChild(document.createTextNode(" · ")); s.appendChild(span(p[0], p[1] || "")); }); return s; }
+  function phraseEl(parts) { var s = el("span", "s"); parts.forEach(function (p) { if (!p || !p[0]) return; if (s.childNodes.length) s.appendChild(document.createTextNode(" · ")); s.appendChild(span(p[0], p[1] || "")); }); return s; }
+  function problemsOn(k, field) { return allProblems().filter(function (i) { return i[field] === k && i.status !== "Dropped"; }); }
+  function problemLines(x, list, title) {
+    if (!list.length) return;
+    var bx = el("div"); bx.appendChild(el("div", "xh", title));
+    list.forEach(function (i) { var l = el("div"); l.style.marginTop = "4px"; l.appendChild(span(i.type + ": ", "muted")); l.appendChild(document.createTextNode(i.name)); l.appendChild(span(" · " + (i.status === "Resolved" ? "resolved" : i.waiting ? "waiting on " + i.waiting : "on you"), "muted")); bx.appendChild(l); });
+    x.appendChild(bx);
+  }
   function msBody(x, m) {
-    var w = whenOf(m);
-    facts(x, [["Agreed dates", m.start == null ? "not agreed yet, so it can't show as due or late" : range(m.start, m.end) + ", " + plural(m.end - m.start + 1, "day")], ["Status", m.status + (m.project.status === "Paused" && m.status !== "Done" ? " (project paused)" : "")], [m.status === "Done" ? "Result" : "Timing", span(w[0], w[1])]]);
-    var iss = allIssues().filter(function (i) { return i.mk === key(m.url); });
-    if (iss.length) { var bx = el("div"); bx.appendChild(el("div", "xh", "Issues on this milestone")); iss.forEach(function (i) { var l = el("div"); l.style.marginTop = "4px"; l.appendChild(span(i.type + ": ", "muted")); l.appendChild(document.createTextNode(i.name)); l.appendChild(span(" · " + (i.status === "Resolved" ? "resolved" : i.waiting ? "waiting on " + i.waiting : "on you"), "muted")); bx.appendChild(l); }); x.appendChild(bx); }
+    var w = whenOf(m); // the group's header already says the timing and how many tasks are done
+    facts(x, [["Dates", m.start == null ? "none yet, so it can't show as due or late" : range(m.start, m.end) + ", " + plural(m.end - m.start + 1, "day")], ["Status", m.status + (m.project.status === "Paused" && m.status !== "Done" ? " (project paused)" : "")], m.status === "Done" ? ["Result", span(w[0], w[1])] : ["", ""]]);
+    problemLines(x, problemsOn(key(m.url), "mk"), "Problems on this milestone");
     pageBody(x, m.url, { title: "History", history: true, empty: "No history yet." });
     actions(x, [link(m.url, "Open in Notion ↗", "ext")]);
   }
-  function issueBody(x, i) {
-    var ms = msIndex()[i.mk], a = ageOf(i);
-    facts(x, [["Waiting on", i.waiting || (i.status === "Resolved" ? "" : "you")], ["Milestone", ms ? ms.name : ""], ["Opened", i.opened != null ? fmt(i.opened, true) + (i.status !== "Resolved" && a != null ? ", " + days(a) + " ago" : "") : ""], ["Resolved", i.resolvedOn != null ? fmt(i.resolvedOn, true) : ""]]);
+  function taskBody(x, k) {
+    var w = whenOf(k);
+    facts(x, [["Dates", k.start == null ? "none" : range(k.start, k.end)], ["Status", k.status + (k.status === "Waiting" && k.waiting ? " on " + k.waiting : "")], ["Milestone", k.ms ? k.ms.name : ""], [k.status === "Done" ? "Result" : "Timing", span(w[0], w[1])]]);
+    problemLines(x, problemsOn(key(k.url), "tk"), "Problems on this task");
+    pageBody(x, k.url, { title: "History", history: true, empty: "No history yet." });
+    actions(x, [link(k.url, "Open in Notion ↗", "ext")]);
+  }
+  function problemBody(x, i) {
+    var idx = itemIndex(), ms = idx[i.mk], tk = idx[i.tk], a = ageOf(i);
+    facts(x, [["Waiting on", i.waiting || (i.status === "Resolved" ? "" : "you")], ["Milestone", ms ? ms.name : ""], ["Task", tk ? tk.name : ""], ["Opened", i.opened != null ? fmt(i.opened, true) + (i.status !== "Resolved" && a != null ? ", " + days(a) + " ago" : "") : ""], ["Resolved", i.resolvedOn != null ? fmt(i.resolvedOn, true) : ""]]);
     if (i.noteRaw) x.appendChild(renderMd(String(i.noteRaw).split(" · ").join("\n\n")));
     pageBody(x, i.url, {});
     actions(x, [link(i.url, "Open in Notion ↗", "ext")]);
   }
+  function taskRow(k) { return acc({ k: key(k.url), tsk: true, dot: itemDot(k), title: k.name, line: phraseEl([planPhrase(k)]), right: k.start == null ? "" : range(k.start, k.end), expand: function (x) { taskBody(x, k); } }); }
+  S.grp = {}; // milestone groups the viewer opened or closed in this visit
+  function msGroup(m, openByDefault) { // a milestone and everything in it: opening it shows its details and history, then its tasks
+    var k = key(m.url), on = S.grp[k] != null ? S.grp[k] : openByDefault, g = el("div", "mgrp" + (on ? " open" : "")), tdn = m.tasks.filter(function (x) { return x.status === "Done"; }).length;
+    var h = btn("acc-h mh", null); h.setAttribute("aria-expanded", String(on));
+    h.appendChild(el("span", "dot " + itemDot(m)));
+    var mid = el("span"); mid.style.minWidth = "0"; var t = el("span", "t", m.name); t.style.display = "block"; mid.appendChild(t);
+    var ln = phraseEl([planPhrase(m), m.tasks.length ? [tdn + " of " + plural(m.tasks.length, "task") + " done", ""] : null]); ln.style.display = "block"; mid.appendChild(ln);
+    h.appendChild(mid); h.appendChild(el("span", "r", m.start == null ? "" : range(m.start, m.end))); h.insertAdjacentHTML("beforeend", CHEV);
+    var b = el("div", "mgrp-b"); b.hidden = !on;
+    var det = el("div", "mdet"); b.appendChild(det);
+    function fill() { if (!det.firstChild) msBody(det, m); }
+    if (on) fill();
+    if (m.tasks.length) { var tl = el("div", "mtl"); tl.appendChild(span("Tasks")); tl.appendChild(span(String(m.tasks.length), "n")); b.appendChild(tl); }
+    m.tasks.forEach(function (x) { b.appendChild(taskRow(x)); });
+    g._fill = fill;
+    h.addEventListener("click", function () { setGroup(g, k, !g.classList.contains("open")); });
+    g.dataset.g = k; g.appendChild(h); g.appendChild(b); return g;
+  }
+  function setGroup(g, k, on) { S.grp[k] = on; if (on && g._fill) g._fill(); g.classList.toggle("open", on); g.querySelector(".mh").setAttribute("aria-expanded", String(on)); g.querySelector(".mgrp-b").hidden = !on; }
   function renderDrawer() {
     var host = $("drBody"), p = S.dr ? allProjByKey()[S.dr.pid] : null; if (!S.dr) return;
     keep(host, function () {
       clear(host);
       if (!p) { host.appendChild(el("div", "dr-in muted", "This project is no longer in the active list.")); return; }
       $("drTitle").textContent = p.name; $("drNotion").href = p.url; paintNav();
-      var list0 = msList(p), info = S.pageInfo[p.key] || { notes: [], noteLines: [], notePages: [] }, st = stateOfProject(p), f = focusOf(p);
+      var ms0 = msList(p), tk0 = taskList(p), info = S.pageInfo[p.key] || { notes: [], noteLines: [], notePages: [] }, st = stateOfProject(p), f = focusOf(p);
       // head: who, name, state, summary
       var hd = el("header", "dr-head");
       hd.appendChild(el("div", "dr-who", [p.client, p.origin].filter(Boolean).join(" · ")));
@@ -1018,62 +1305,74 @@
       host.appendChild(hd);
       var body = el("div", "dr-in"); host.appendChild(body);
       if (info.notes.length) { var q = el("div", "dr-note"), nh = el("div", "nh"); nh.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></svg>'; nh.appendChild(span("Status")); q.appendChild(nh); info.notes.forEach(function (x) { q.appendChild(el("div", "", x)); }); body.appendChild(q); }
-      // where it stands
-      if (list0) {
+      // where it stands: the milestone under way with its current task, what is late, what is paused, the next milestone, blockers
+      if (ms0) {
         var fc = el("div", "focus");
-        var line = function (label, cls, name, when, wcls, k) { var r = el("div", "fr"); r.appendChild(el("span", "fl " + cls, label)); var c = el("div"); c.appendChild(btn("go", name, function () { reveal(k); })); if (when) c.appendChild(el("div", "w " + (wcls || ""), when)); r.appendChild(c); fc.appendChild(r); };
+        var line = function (label, cls, name, when, wcls, k) { var r = el("div", "fr"); r.appendChild(el("span", "fl " + cls, label)); var c = el("div"); c.appendChild(btn("go", name, function () { reveal(k); })); if (when) c.appendChild(el("div", "w " + (wcls || ""), when)); r.appendChild(c); fc.appendChild(r); return c; };
         f.overdue.forEach(function (m) { line("Overdue", "crit", m.name, whenOf(m)[0], "crit", key(m.url)); });
-        f.now.forEach(function (m) { var w = whenOf(m); line(m.status === "Paused" ? "Paused" : "Now", m.late > 0 ? "crit" : "now", m.name, w[0], w[1], key(m.url)); });
-        if (f.next) line("Next", "", f.next.name, whenOf(f.next)[0], "", key(f.next.url));
+        f.now.forEach(function (m) {
+          var w = whenOf(m), c = line(m.paused ? "Paused" : m.status === "Waiting" ? "Waiting" : "Now", m.paused ? "" : m.late > 0 ? "crit" : "now", m.name, w[0], w[1], key(m.url));
+          var ct = m.kind === "ms" && !m.paused ? currentTask(m.tasks) : null;
+          if (ct) { var tw = whenOf(ct), sub = el("div", "ct"); sub.appendChild(span("Current task: ", "muted")); sub.appendChild(btn("go2", ct.name, function () { reveal(key(ct.url)); })); sub.appendChild(el("div", "w " + (tw[1] || ""), tw[0])); c.appendChild(sub); }
+        });
+        if (f.next) line("Next", "", f.next.name, (f.byTasks ? "next task · " : "next milestone · ") + whenOf(f.next)[0], "", key(f.next.url));
         blockersOf(p).forEach(function (i) { line("Blocked", "crit", i.name, i.waiting ? "waiting on " + i.waiting : "on you", "crit", key(i.url)); });
         if (fc.childNodes.length) body.appendChild(fc);
       }
       // numbers
-      var openIss = allIssues().filter(function (i) { return i.pk === p.key && (i.status === "Open" || i.status === "Waiting"); });
-      var stats = el("div", "stats"), done = list0 ? list0.filter(function (m) { return m.status === "Done"; }).length : 0;
+      var openProbs = allProblems().filter(function (i) { return i.pk === p.key && (i.status === "Open" || i.status === "Waiting"); });
+      var waitTasks = (tk0 || []).filter(function (k) { return k.status === "Waiting" && !k.paused; });
+      var strip = ms0 && ms0.length ? ms0 : tk0 || [], stats = el("div", "stats"), done = strip.filter(function (m) { return m.status === "Done"; }).length;
       function stat(k, v, sub, sec) { // a tile with a section behind it is a button that opens and scrolls to it
         var c = sec ? btn("stat go", null, function () { var s = $("drBody").querySelector('.dsec[data-sec="' + sec + '"]'); if (!s) return; if (s.classList.contains("folded")) setFold(s, false); s.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }) : el("div", "stat");
         var kk = el("div", "k", k); if (sec) kk.appendChild(span("↓", "arr")); c.appendChild(kk); c.appendChild(el("div", "v", v)); if (sub) c.appendChild(sub); stats.appendChild(c);
       }
       stat("Ends", p.target != null ? fmt(p.target, true) : "—");
-      var pr = null; if (list0 && list0.length) { pr = el("div", "prog"); pr.style.marginTop = "8px"; sortMs(list0).forEach(function (m) { pr.appendChild(el("i", m.state === "plan" ? "" : m.state)); }); }
-      stat("Milestones", list0 ? done + " / " + list0.length : "—", pr, list0 ? "plan" : null);
-      stat("Open items", S.issuesErr && !S.issues ? "?" : String(openIss.length), null, "items");
+      var pr = null; if (strip.length) { pr = el("div", "prog"); pr.style.marginTop = "8px"; sortItems(strip).forEach(function (m) { pr.appendChild(el("i", m.state === "plan" ? "" : m.state)); }); }
+      stat(ms0 && ms0.length ? "Milestones" : "Tasks", ms0 ? done + " / " + strip.length : "—", pr, ms0 ? "plan" : null);
+      stat("Open items", S.problemsErr && !S.problems ? "?" : String(openProbs.length + waitTasks.length), null, "items");
       body.appendChild(stats);
-      var lk = el("div", "dr-links"); if (p.repo) lk.appendChild(link(p.repo, "Repository ↗", "ext")); if (p.source) lk.appendChild(link(p.source, p.origin === "Upwork" ? "Upwork contract ↗" : "Source ↗", "ext")); if (lk.childNodes.length) body.appendChild(lk);
+      var lk = el("div", "dr-links"); if (p.repo) lk.appendChild(link(p.repo, "Repository ↗", "ext")); if (p.source) lk.appendChild(link(p.source, p.origin === "Upwork" ? "Upwork contract ↗" : "Source ↗", "ext"));
+      var nn = info.noteLines.length + info.notePages.length;
+      lk.appendChild(btn("ext lb", "Notes" + (nn ? " (" + nn + ")" : "") + " ↓", function () { var s2 = $("drBody").querySelector('.dsec[data-sec="notes"]'); if (!s2) return; if (s2.classList.contains("folded")) setFold(s2, false); s2.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }));
+      body.appendChild(lk);
 
-      // open items, grouped by what they ask of the user
-      if (openIss.length || (S.issuesErr && !S.issues)) {
-        var b1 = dsec(body, "items", "Open items", openIss.length);
-        if (S.issuesErr && !S.issues) b1.appendChild(el("div", "err", "Open items didn't load. " + errText(S.issuesErr)));
+      // open items: problems by what they ask of the user, plus the tasks waiting on someone
+      if (openProbs.length || waitTasks.length || (S.problemsErr && !S.problems)) {
+        var b1 = dsec(body, "items", "Open items", openProbs.length + waitTasks.length);
+        if (S.problemsErr && !S.problems) b1.appendChild(el("div", "err", "Problems didn't load. " + errText(S.problemsErr)));
         var groups = [
-          ["Blocking", openIss.filter(function (i) { return i.type === "Blocker"; })],
-          ["On you", openIss.filter(function (i) { return i.type !== "Blocker" && i.type !== "Risk" && !i.waiting; })],
-          ["Waiting on others", openIss.filter(function (i) { return i.type !== "Blocker" && i.type !== "Risk" && i.waiting; })],
-          ["Risks to keep in mind", openIss.filter(function (i) { return i.type === "Risk"; })]
+          ["Blocking", openProbs.filter(function (i) { return i.type === "Blocker"; })],
+          ["On you", openProbs.filter(function (i) { return i.type === "Question" && !i.waiting; })],
+          ["Waiting on others", waitTasks.concat(openProbs.filter(function (i) { return i.type === "Question" && i.waiting; }))],
+          ["Risks to keep in mind", openProbs.filter(function (i) { return i.type === "Risk"; })]
         ];
         groups.forEach(function (g) {
           if (!g[1].length) return;
           var gt = el("div", "grp-t"); gt.appendChild(span(g[0])); gt.appendChild(span(String(g[1].length), "n")); b1.appendChild(gt);
-          g[1].sort(function (x, y) { return (x.opened || 1e9) - (y.opened || 1e9); }).forEach(function (i) {
-            var a = ageOf(i), sub = el("span", "s"); sub.appendChild(typeTag(i.type)); if (i.waiting) sub.appendChild(document.createTextNode(" " + i.waiting));
-            b1.appendChild(acc({ k: key(i.url), dot: i.type === "Blocker" ? "crit" : i.type === "Risk" ? "warn" : i.waiting ? "ring" : "acc", title: i.name, sub: sub, right: a != null ? days(a) : "", expand: function (x) { issueBody(x, i); } }));
+          g[1].sort(function (x, y) { return (ageOf(y) || 0) - (ageOf(x) || 0); }).forEach(function (i) {
+            var a = ageOf(i), sub = el("span", "s");
+            if (i.kind === "task") { sub.appendChild(typeTag("Task")); sub.appendChild(document.createTextNode(" " + (i.waiting || "") + (i.end != null ? " · due " + fmt(i.end) : ""))); b1.appendChild(acc({ k: "w:" + key(i.url), dot: i.late > 0 ? "crit" : "warn", title: i.name, line: sub, right: a != null ? days(a) : "", expand: function (x) { taskBody(x, i); } })); return; }
+            sub.appendChild(typeTag(i.type)); if (i.waiting) sub.appendChild(document.createTextNode(" " + i.waiting));
+            b1.appendChild(acc({ k: key(i.url), dot: i.type === "Blocker" ? "crit" : i.type === "Risk" ? "warn" : i.waiting ? "ring" : "acc", title: i.name, line: sub, right: a != null ? days(a) : "", expand: function (x) { problemBody(x, i); } }));
           });
         });
       }
 
-      // plan, by phase
-      var b2 = dsec(body, "plan", "Milestones", null, list0 && list0.length ? span(done + " of " + list0.length + " done", "muted") : null);
-      if (!list0) b2.appendChild(el("div", S.ms[p.key] && S.ms[p.key].err ? "err" : "empty", S.ms[p.key] && S.ms[p.key].err ? "The plan didn't load. " + errText(S.ms[p.key].err) : "Loading…"));
-      else if (!list0.length) b2.appendChild(el("div", "empty", "No milestones yet. Send Claude the plan in chat."));
+      // the plan: milestones with their tasks under them; tasks without a milestone at the end
+      var tdone = (tk0 || []).filter(function (k) { return k.status === "Done"; }).length;
+      var b2 = dsec(body, "plan", "Plan", null, ms0 && ms0.length ? span(done + " of " + ms0.length + " milestones done", "muted") : tk0 && tk0.length ? span(tdone + " of " + tk0.length + " tasks done", "muted") : null);
+      var dErr = S.plan[p.key] && S.plan[p.key].err;
+      if (!ms0) b2.appendChild(el("div", dErr ? "err" : "empty", dErr ? "The plan didn't load. " + errText(dErr) : "Loading…"));
+      else if (!ms0.length && !tk0.length) b2.appendChild(el("div", "empty", "No plan yet. Send Claude the plan in chat."));
       else {
-        var sorted = sortMs(list0), ph = {}, phOrder = []; sorted.forEach(function (m) { var k2 = m.phase || ""; if (!ph[k2]) { ph[k2] = []; phOrder.push(k2); } ph[k2].push(m); });
-        var multi = phOrder.length > 1, last = null;
-        sorted.forEach(function (m) {
-          var pk2 = m.phase || "";
-          if (multi && pk2 !== last) { var gt = el("div", "grp-t"); gt.appendChild(span(pk2 || "Other")); var dn = ph[pk2].filter(function (x) { return x.status === "Done"; }).length; gt.appendChild(span(dn + " / " + ph[pk2].length, "n")); b2.appendChild(gt); last = pk2; }
-          b2.appendChild(acc({ k: key(m.url), dot: msDot(m), title: m.name, sub: phraseEl([planPhrase(m)]), right: m.start == null ? "" : range(m.start, m.end), expand: function (x) { msBody(x, m); } }));
-        });
+        var head = f.head;
+        sortItems(ms0).forEach(function (m) { b2.appendChild(msGroup(m, m.status === "In progress" || (m.late > 0 && OPEN_MS[m.status]) || m === head)); });
+        var loose = sortItems(tk0.filter(function (k) { return !k.ms; }));
+        if (loose.length) {
+          if (ms0.length) { var gt2 = el("div", "grp-t"); gt2.appendChild(span("Other tasks")); gt2.appendChild(span(String(loose.length), "n")); b2.appendChild(gt2); }
+          loose.forEach(function (k) { var r = taskRow(k); if (!ms0.length) r.classList.remove("tsk"); b2.appendChild(r); });
+        }
       }
 
       // notes
@@ -1084,8 +1383,11 @@
     });
   }
   function reveal(k) { // open an item in the project page and bring it into view
-    var r = $("drBody").querySelector('.arow[data-k="' + k + '"]');
+    var host = $("drBody"), mg = host.querySelector('.mgrp[data-g="' + k + '"]');
+    if (mg) { if (!mg.classList.contains("open")) setGroup(mg, k, true); var sec0 = mg.closest(".dsec"); if (sec0 && sec0.classList.contains("folded")) setFold(sec0, false); mg.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); mg.classList.remove("flash"); void mg.offsetWidth; mg.classList.add("flash"); return; }
+    var r = host.querySelector('.arow[data-k="' + k + '"]') || host.querySelector('.arow[data-k="w:' + k + '"]');
     var sec = r && r.closest(".dsec"); if (sec && sec.classList.contains("folded")) setFold(sec, false); // a folded section opens for the item asked for
+    var grp = r && r.closest(".mgrp"); if (grp && !grp.classList.contains("open")) setGroup(grp, grp.dataset.g, true); // and so does a folded milestone
     if (r && !r.classList.contains("open")) r.querySelector(".acc-h").click();
     if (r) { r.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); r.classList.remove("flash"); void r.offsetWidth; r.classList.add("flash"); }
   }
@@ -1096,8 +1398,7 @@
     $("drawer").classList.add("on"); $("drawer").setAttribute("aria-hidden", "false"); $("scrim").classList.add("on");
     if (k) setTimeout(function () { reveal(k); }, same ? 0 : 240); else $("drClose").focus({ preventScroll: true });
   }
-  function navProjects() { return sortedProjects(); }
-  function navPos() { var ps = navProjects(), i = -1; ps.forEach(function (x, n) { if (S.dr && x.key === S.dr.pid) i = n; }); return { ps: ps, i: i }; }
+  function navPos() { var ps = sortedProjects(), i = -1; ps.forEach(function (x, n) { if (S.dr && x.key === S.dr.pid) i = n; }); return { ps: ps, i: i }; }
   function paintNav() {
     var n = navPos(); $("drPrev").disabled = n.i <= 0; $("drNext").disabled = n.i < 0 || n.i >= n.ps.length - 1;
     var p = n.ps[n.i]; if (p) $("drTitle").textContent = p.name + (n.ps.length > 1 ? " · " + (n.i + 1) + " of " + n.ps.length : "");
@@ -1133,7 +1434,7 @@
   }
   function ready() {
     if (S.projErr && !S.projects) return true;
-    return loadedAll() && (S.issues || S.issuesErr) && (!S.cfg || !S.cfg.resolved || S.resolved || S.resolvedErr);
+    return loadedAll() && (S.problems || S.problemsErr) && (!S.cfg || !S.cfg.resolved || S.resolved || S.resolvedErr);
   }
   var queued = false;
   function render() {
