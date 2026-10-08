@@ -12,7 +12,7 @@ Only what the source says — no risks, milestones or tasks of your own. Follow 
 
 - **Project** — name (the product or deliverable), client, `Origin`: `Upwork` for an Upwork contract, `Personal` with no client; a client the tracker already has projects for (plainly the same client) takes the `Origin` those projects have; else `Direct` — or the option the user names; `Claude project` as the user gives it (`chats.md` → Claude project).
 - **Milestones and tasks** — by the source's structure:
-  - **Section headings with items under them** → each heading is a milestone, named in sentence case without dates or durations ("SITE INSTALLATION — until June 5" → `Site installation`); each item under it is a task of that milestone, named as SKILL.md **Names** says — a short noun for the work ("Board designed, first boards ordered — December 4" → `Board design & first order`), the source's longer wording kept as its first history line when it says more.
+  - **Section headings with items under them** → each heading is a milestone, named in sentence case without dates or durations ("SITE INSTALLATION — until June 5" → `Site installation`); each item under it is a task of that milestone, named as SKILL.md **Names** says — a short noun for the work ("Board designed, first boards ordered — December 4" → `Board design & first order`), the source's longer wording kept as its description when it says more.
   - **A heading with no items** → a milestone with no tasks.
   - **No headings, a flat list** → each item is a milestone; there are no tasks.
   - **Ongoing work with no stages** ("support the hub", "monthly maintenance") → a project without milestones; each listed item is a task.

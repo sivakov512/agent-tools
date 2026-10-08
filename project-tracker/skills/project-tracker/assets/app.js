@@ -143,7 +143,7 @@
       return queryView(viewUrl(block, id), 3);
     });
   }
-  function loadProject(p) { // project page → callout, Notes tab, Schedule (milestones) and Tasks (tasks) views, Done included
+  function loadProject(p) { // project page → callout, its own parts, Schedule (milestones) and Tasks (tasks) views, Done included
     return fetchText(p.url, DATA).then(function (txt) {
       S.pageInfo[p.key] = parseProjectPage(txt);
       return Promise.all([tabView(txt, "Schedule", "Schedule"), tabView(txt, "Tasks", "Tasks")]);
