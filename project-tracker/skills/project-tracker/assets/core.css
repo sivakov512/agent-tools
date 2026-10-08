@@ -231,6 +231,18 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
   .acc-x { padding-left: 16px; }
   .tl-scroll { max-height: none; }
 }
+@media (max-width: 600px) { /* a phone's header: name with its buttons, the live line under it, then the filter and the pills, each a full row shared evenly */
+  .hdr { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "t r n" "l l l" "o o o" "p p p"; gap: 12px 8px; align-items: center; }
+  .hdr h1 { grid-area: t; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hdr .status { display: contents; }
+  .hdr .live { grid-area: l; margin-top: -6px; }
+  #refreshBtn { grid-area: r; } #notionLink { grid-area: n; }
+  .hdr .origin { grid-area: o; display: flex; }
+  .origin .seg { flex: 1; }
+  .origin .seg button { flex: 1 1 0; justify-content: center; min-width: 0; }
+  .hdr .pills { grid-area: p; flex-wrap: nowrap; }
+  .hdr .pills > * { flex: 1 1 0; justify-content: center; min-width: 0; }
+}
 
 /* ---------- timeline: the ▸ per project, task bars, milestone cards with their strips and chips ---------- */
 .tl-label .car { border: 0; background: none; padding: 0; width: 16px; height: 18px; display: grid; place-items: center; cursor: pointer; color: var(--text-mute); flex: none; }
