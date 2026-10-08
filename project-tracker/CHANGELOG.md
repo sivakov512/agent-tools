@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.0...project-tracker-v1.7.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **project-tracker:** schema update first, open-ended dates ([98ffeca](https://github.com/sivakov512/agent-tools/commit/98ffecac3298f36ea56d58646d9d2599c5b55899))
+
 ## [1.7.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.6.1...project-tracker-v1.7.0) (2026-10-08)
 
 
