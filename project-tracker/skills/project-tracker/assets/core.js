@@ -184,8 +184,13 @@
   // ---------- the timeline ----------
   var CHEV = '<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
   // sizes on the timeline, in px
-  var TL = { pad: 8, head: 24, box: 34, seg: 6, gap: 8, lane: 21, flat: 30, row: 46, minBox: 8, narrowBox: 60, keepName: 64, chipMin: 64, ph: 30 }; // ph: days an undated milestone's placeholder card spans
+  var TL = { pad: 8, head: 24, box: 34, seg: 6, gap: 8, lane: 21, flat: 30, row: 46, row2: 58, nameH: 30, nameIn: 74, minBox: 8, narrowBox: 60, keepName: 64, chipMin: 64, ph: 30 }; // ph: days an undated milestone's placeholder card spans
   function pack(bars) { var lanes = []; bars.forEach(function (g) { var i = 0; while (lanes[i] != null && lanes[i] >= g.start) i++; lanes[i] = g.end; g.lane = i; }); return lanes.length; }
+  var measurer = null;
+  function textW(s, font) { // how wide a text draws, in px, in the page's own font
+    if (!measurer) { measurer = document.createElement("canvas").getContext("2d"); measurer.fam = getComputedStyle(document.body).fontFamily; }
+    measurer.font = font + " " + measurer.fam; return Math.ceil(measurer.measureText(s).width);
+  }
   function needsPlaceholder(m) { return OPEN_MS[m.status] || m.status === "Paused"; } // a Done or Dropped milestone without dates is not drawn
   function grow(e) { // under the cursor a bar or chip widens to show its whole name, above its neighbours
     var b = e.currentTarget, inner = b.classList.contains("tl-chip") ? b : b.querySelector(".tl-bn") || b;
@@ -219,10 +224,8 @@
   }
   function kidsIn(m, sp) { return (m.tasks || []).filter(function (k) { return k.start != null && dEnd(k) >= sp.start && k.start <= sp.end; }); }
   function datedIn(m, sp) { return kidsIn(m, sp).map(function (k) { return { m: k, start: Math.max(k.start, sp.start), end: Math.min(dEnd(k), sp.end) }; }); } // clipped to the card
-  // Tasks without dates are normal — only the milestone is promised — so they sit in the card after the dated ones, in a grid:
-  // as many per line as fit at TL.chipMin each (so each can be pointed at and shows its first word), the rest on more lines.
+  // Tasks without dates are normal — only the milestone is promised — so they sit in the card after the dated ones
   function undatedOf(m) { return (m.tasks || []).filter(function (k) { return k.start == null; }); }
-  function perLine(widthPx) { return Math.max(1, Math.floor((widthPx - 4) / (TL.chipMin + 4))); }
 
   // The timeline of a page. ctx: the elements (host: the scrolling box; seg, today, info: the range buttons, Today and the legend's place),
   // range() and setRange(r), projects() in the order drawn, plan(p) ({ms, tasks} or nothing yet), err(p) (its plan failed to load),
@@ -324,23 +327,48 @@
         und.forEach(function (k, i) { var sg = seg(k, 0); sg.style.left = (i / und.length * 100) + "%"; sg.style.width = "calc(" + (100 / und.length) + "% - 3px)"; }); /* shares: they follow the card when it widens */
         b.bar.appendChild(tr); return true;
       }
-      function chipLines(m, sp) { var dd = pack(datedIn(m, sp)), u = undatedOf(m).length, w = X(sp.end + 1) - X(sp.start) - 3; return dd + (u ? Math.ceil(u / perLine(w)) : 0); }
+      // A dated chip spans its dates. A name that does not fit in it is written after it instead, on a faint plaque joined to it that starts with a short leader —
+      // always after, so the names read down the card in date order; near the card's end it runs past the card, into its line's empty space (an opened milestone has the line to itself).
+      // Lines are packed by what is drawn, name included, so no name is cut or runs into another chip.
+      function chipPlan(m, sp) {
+        var items = datedIn(m, sp).map(function (g) {
+          var l = Math.max(X(g.start) - X(sp.start) + 3, 4), w = Math.max(X(g.end + 1) - X(g.start) - 7, 8), tw = textW(g.m.name, "500 11.5px"), it = { m: g.m, l: l, w: w, tw: tw };
+          it.out = tw + 14 > w; it.start = l; it.end = it.out ? l + w + 15 + tw + 7 + 10 : l + w + 4; // a written name keeps clear of the next chip, so it is not read as that chip's
+          return it;
+        }).sort(function (a, b) { return a.start - b.start; });
+        return { items: items, n: pack(items) };
+      }
+      // Tasks without dates follow on lines of their own, each chip as wide as its name and as many to a line as fit, so none is cut short
+      // (a name wider than the whole card is the only one cut, and shows whole under the cursor).
+      function undatedPlan(m, sp) {
+        var cw = X(sp.end + 1) - X(sp.start) - 3, x = 4, line = 0;
+        var items = undatedOf(m).map(function (k) {
+          var w = Math.min(textW(k.name, "500 11.5px") + 15, Math.max(cw - 8, TL.chipMin));
+          if (x > 4 && x + w > cw - 4) { line++; x = 4; }
+          var it = { m: k, l: x, w: w, line: line }; x += w + 4; return it;
+        });
+        return { items: items, n: items.length ? line + 1 : 0 };
+      }
+      function chipLines(m, sp) { return chipPlan(m, sp).n + undatedPlan(m, sp).n; }
       function chips(b, m) { // opened up: the milestone's tasks as named chips inside its card (reachable by mouse; the card itself takes focus)
-        function chip(k, top) {
-          var c = el("span", "tl-chip " + (k.state === "plan" || k.state === "nodate" ? "" : k.state) + (k.openEnd ? " open" : ""), k.name); c.style.top = top + "px";
-          c.title = tipOf(k); c.addEventListener("click", function (e) { e.stopPropagation(); ctx.open(p, key(k.url)); });
+        function st(k) { return k.state === "plan" || k.state === "nodate" ? "" : k.state; }
+        function go(k) { return function (e) { e.stopPropagation(); ctx.open(p, key(k.url)); }; }
+        function chip(k, top, name) {
+          var c = el("span", "tl-chip " + st(k) + (k.openEnd ? " open" : ""), name ? k.name : null); c.style.top = top + "px";
+          c.title = tipOf(k); c.addEventListener("click", go(k));
           b.bar.appendChild(hoverable(c)); return c;
         }
-        var dated = datedIn(m, b.sp), nd = pack(dated);
-        dated.forEach(function (g) { var x0 = X(g.start) - b.x0, x1 = X(g.end + 1) - b.x0, c = chip(g.m, TL.head + g.lane * TL.lane); c.style.left = Math.max(x0 + 3, 4) + "px"; c.style.width = Math.max(x1 - x0 - 7, 6) + "px"; });
-        var und = undatedOf(m), per = Math.min(und.length, perLine(X(b.sp.end + 1) - X(b.sp.start) - 3)); /* as chipLines counted */
-        und.forEach(function (k, i) { /* the grid, in shares of the card: each line shares the card among its chips (a short last line too), and stretches when the card widens under the cursor */
-          var line = Math.floor(i / per), inLine = Math.min(per, und.length - line * per), col = i % per;
-          var c = chip(k, TL.head + (nd + line) * TL.lane);
-          c.style.left = "calc(" + (col * 100 / inLine) + "% + 3px)"; c.style.width = "calc(" + (100 / inLine) + "% - 7px)";
+        var plan = chipPlan(m, b.sp), nd = plan.n;
+        plan.items.forEach(function (g) {
+          var top = TL.head + g.lane * TL.lane, c = chip(g.m, top, !g.out); c.style.left = g.l + "px"; c.style.width = g.w + "px";
+          if (!g.out) return;
+          c.classList.add("tailed"); var o = el("span", "tl-cout " + st(g.m), g.m.name); o.style.top = top + "px"; o.style.left = (g.l + g.w) + "px";
+          o.title = c.title; o.addEventListener("click", go(g.m)); b.bar.appendChild(o);
+          [c, o].forEach(function (n) { n.addEventListener("mouseenter", function () { c.classList.add("lit"); o.classList.add("lit"); }); n.addEventListener("mouseleave", function () { c.classList.remove("lit"); o.classList.remove("lit"); }); }); // one thing under the cursor
         });
+        undatedPlan(m, b.sp).items.forEach(function (g) { var c = chip(g.m, TL.head + (nd + g.line) * TL.lane, true); c.style.left = g.l + "px"; c.style.width = g.w + "px"; });
       }
-      function glab(text, y, go) { var g = btn("tl-glab", text, go); g.title = text; g.style.top = (y + 1) + "px"; lab.appendChild(g); }
+      function glab(text, y, go) { if (ax.top) return; var g = btn("tl-glab", text, go); g.title = text; g.style.top = (y + 1) + "px"; lab.appendChild(g); }
       var h;
       if (!ms.length) { // tasks only: the dated ones are the row; a task without dates is not drawn
         var nl = pack(bars); bars.forEach(function (g) { bar(g, TL.pad + g.lane * TL.flat); }); h = Math.max(nl, 1) * TL.flat + 16;
@@ -357,8 +385,8 @@
         });
         var nl0 = pack(bars); bars.forEach(function (g) { bar(g, TL.pad + n * HL + g.lane * TL.lane, "task"); });
         h = Math.max(n, 1) * HL + TL.pad + nl0 * TL.lane;
-      } else { // opened up: each milestone on its own line, its name also in the left column
-        var y = 36, ph2 = t;
+      } else { // opened up: each milestone on its own line, its name also in the left column (on a phone, on its card only)
+        var y = ax.top ? TL.pad : ax.two ? 54 : 36, ph2 = t;
         sortItems(ms).forEach(function (m) {
           var sp = spans[key(m.url)];
           if (!sp && !needsPlaceholder(m)) return;
@@ -381,23 +409,26 @@
       if (!ps.length) { clear(host); host.appendChild(el("div", "empty tl-empty", ctx.empty())); view = null; return; }
       var a = t - 30, b = t + 120;
       ps.forEach(function (p) { var d = ctx.plan(p); (d ? d.ms.concat(d.tasks) : []).forEach(function (m) { if (m.start != null && m.start - 7 < a) a = m.start - 7; var e = m.start != null ? dEnd(m) : null; if (e != null && e + 14 > b) b = e + 14; }); });
-      var narrow = window.innerWidth <= 640, LW = narrow ? 130 : 220, vw = host.clientWidth || 700;
+      // a phone has no left column: each project's name is a line of its own above its bars, and the bars get the whole width
+      var narrow = window.innerWidth <= 640, LW = narrow ? 0 : 220, vw = host.clientWidth || 700;
       var spanD = SPANS[ctx.range()] || (b - a), px = Math.max((Math.max(vw, 320) - LW - 2) / spanD, narrow ? 4.5 : 0), W = Math.round((b - a) * px);
-      var ax = { a: a, b: b, t: t, px: px, LW: LW, X: function (n) { return Math.round((n - a) * px); } };
+      var ax = { a: a, b: b, t: t, px: px, LW: LW, top: narrow ? TL.nameH : 0, X: function (n) { return Math.round((n - a) * px); } };
       var keepDay = view ? view.a + host.scrollLeft / view.px : null;
-      var tl = el("div", "tl"); tl.style.width = Math.max(LW + W, vw) + "px"; tl.style.setProperty("--lw", LW + "px");
+      var tl = el("div", "tl" + (narrow ? " phone" : "")); tl.style.width = Math.max(LW + W, vw) + "px"; tl.style.setProperty("--lw", LW + "px"); tl.style.setProperty("--vw", vw + "px");
       drawAxis(tl, ax);
       ps.forEach(function (p) {
-        var st = ctx.state(p), r = el("div", "tl-row"), lab = el("div", "tl-label");
+        var st = ctx.state(p), r = el("div", "tl-row" + (narrow ? " top" : "")), lab = el("div", "tl-label"), area = narrow ? el("div", "tl-area") : r;
         var car = btn("car", null, function (e) { e.stopPropagation(); if (ctx.opened[p.key]) delete ctx.opened[p.key]; else ctx.opened[p.key] = 1; ctx.saveOpen(); render(false); });
         car.addEventListener("mousedown", function (e) { e.preventDefault(); }); // focusing it would scroll the chart back to its start
         car.innerHTML = CHEV; lab.appendChild(car); lab.appendChild(el("span", "dot " + st.dot));
-        var nb = btn("", p.name, function () { ctx.open(p); }); nb.title = p.name; lab.appendChild(nb); r.appendChild(lab);
-        if (ctx.err(p)) { var fn = el("div", "tl-fail", "Plan didn't load. Refresh to retry."); fn.style.left = (LW + Math.max(0, ax.X(t - 14)) + TL.pad) + "px"; r.appendChild(fn); }
-        var res = drawRow(r, lab, p, ax);
+        var nb = btn("nm", p.name, function () { ctx.open(p); }); nb.title = p.name; lab.appendChild(nb); r.appendChild(lab); if (narrow) r.appendChild(area);
+        ax.two = !narrow && textW(p.name, "500 13.5px") > LW - TL.nameIn; // the name takes two lines in the left column
+        if (ctx.err(p)) { var fn = el("div", "tl-fail", "Plan didn't load. Refresh to retry."); fn.style.left = (LW + Math.max(0, ax.X(t - 14)) + TL.pad) + "px"; area.appendChild(fn); }
+        var res = drawRow(area, lab, p, ax);
         if (!res.hasTasks) { car.classList.add("none"); car.disabled = true; car.setAttribute("aria-hidden", "true"); car.tabIndex = -1; }
         car.setAttribute("aria-expanded", String(res.open)); car.setAttribute("aria-label", res.open ? "Hide tasks" : "Show tasks"); car.title = res.open ? "Hide tasks" : "Show tasks";
-        r.style.height = Math.max(res.h, TL.row) + "px";
+        if (narrow) { area.style.height = Math.max(res.h, TL.row - 12) + "px"; r.style.height = (TL.nameH + Math.max(res.h, TL.row - 12)) + "px"; }
+        else r.style.height = Math.max(res.h, ax.two ? TL.row2 : TL.row) + "px";
         tl.appendChild(r);
       });
       var td = el("div", "tl-today"); td.style.left = (LW + ax.X(t)) + "px"; tl.appendChild(td);
