@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.13.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.12.0...upwork-pulse-v0.13.0) (2026-10-08)
+
+
+### Features
+
+* **upwork-pulse:** closed proposals show the ones after talks first, with how they ended ([b26fa86](https://github.com/sivakov512/agent-tools/commit/b26fa86f73341aed66124f2b76e044d88cf0a74a))
+* **upwork-pulse:** every scheduled run reports with a Log, like the hourly run ([2b2b4c9](https://github.com/sivakov512/agent-tools/commit/2b2b4c93545daf9a15cfebdebc9fa20461f6c109))
+
+
+### Bug Fixes
+
+* **upwork-pulse:** close proposals whose job was filled or closed ([3cc9772](https://github.com/sivakov512/agent-tools/commit/3cc97729857b74d8beea8f9c78dd25cdb580a628))
+
 ## [0.12.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.11.0...upwork-pulse-v0.12.0) (2026-10-07)
 
 
