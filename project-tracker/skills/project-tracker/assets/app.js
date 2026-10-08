@@ -347,7 +347,7 @@
       ["Due soon", "warn", mg.due, function (m) { return planItem(m, { mark: "warn", sub: m.status === "Planned" ? "not started" : m.status === "Waiting" && m.waiting ? "waiting on " + m.waiting : "", meta: soon(m.end), cls: "warn" }); }],
       ["On you", "", mg.onYou, function (x) {
         if (x.kind === "problem") { var a = ageOf(x); return problemItem(x, { sub: "decide", meta: ageLabel(x), cls: ageCls(a) }); }
-        return planItem(x, { sub: x.status === "In progress" ? "in progress" : "", meta: x.start == null ? "no date" : x.start > todayNum() ? "starts " + soon(x.start) : "due " + soon(x.end) });
+        return planItem(x, { sub: x.status === "In progress" ? "in progress" : "", meta: x.start == null ? "no date" : x.start > todayNum() ? "starts " + soon(x.start) : x.openEnd ? "no end date" : "due " + soon(x.end) });
       }],
     ];
     keep(host, function () {
