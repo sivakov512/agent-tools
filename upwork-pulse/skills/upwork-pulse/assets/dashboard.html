@@ -288,6 +288,12 @@
   .section-head > .tabs { margin-left: auto; }
   .section-head h2 { font-size: 15px; font-weight: 600; margin: 0; }
   .count { font-size: 13.5px; color: var(--text-mute); }
+  /* a list still being checked: a thin running line along the card's top edge, nothing that moves the layout */
+  .card.loading { position: relative; }
+  .card.loading::before { content: ""; position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 2px; pointer-events: none;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent) no-repeat; background-size: 40% 100%; animation: runline 1.3s ease-in-out infinite; }
+  @keyframes runline { from { background-position: -70% 0; } to { background-position: 170% 0; } }
+  @media (prefers-reduced-motion: reduce) { .card.loading::before { animation: none; background: var(--accent); opacity: .45; } }
   .section-head { position: relative; }
   .info { border: 0; background: transparent; padding: 2px; margin-left: 4px; cursor: pointer; color: var(--text-mute); line-height: 0; vertical-align: -2px; border-radius: 50%; }
   .info:hover, .info[aria-expanded="true"] { color: var(--accent); }
@@ -551,7 +557,7 @@
           <button class="tab" role="tab" id="tabPClosed" data-p="closed" aria-selected="false" type="button">Closed <span class="mono" id="cntPClosed"></span></button>
         </div>
       </div>
-      <div class="card"><div class="scroll" id="appliedList" style="max-height: 420px"><div class="note">Loading proposals…</div></div></div>
+      <div class="card" id="propCard"><div class="scroll" id="appliedList" style="max-height: 420px"><div class="note">Loading proposals…</div></div></div>
     </section>
   </div>
 </div>
@@ -2293,12 +2299,19 @@
   // a job per open proposal), so every Upwork call goes through one queue: a few at a time, the most needed first; a
   // throttled call waits as told and goes again, and its kind of call is paced from then on, instead of reading as "no chat"
   // or "no job" for the rest of the load.
-  var upQ = [], upBusy = 0, upSeq = 0, upHold = {}, upGap = {}, upTimer = null;
+  var upQ = [], upBusy = 0, upLive = 0, upSeq = 0, upHold = {}, upGap = {}, upTimer = null; // upLive: proposal checks in flight
   var UP_PAR = 4, UP_PACE = { jobs: 5200, all: 1100 }, UP_TRIES = 4;
   function upKind(tool) { return tool === "upwork__find_jobs" ? "jobs" : "all"; }
   function throttled(err) { return !!err && err.code === "tool_error" && /RATE_LIMIT_EXCEEDED/.test(String(err.message || "") + " " + JSON.stringify(err.result || "")); }
   function upCall(tool, input, opts, prio) { // prio: 0 first (default), higher later
-    return new Promise(function (ok, bad) { upQ.push({ tool: tool, input: input, opts: opts, prio: prio || 0, seq: upSeq++, tries: 0, ok: ok, bad: bad }); upPump(); });
+    var prop = tool === "upwork__find_jobs" || tool === "upwork__list_freelancer_proposals" || (input && input.action === "find_room");
+    return new Promise(function (ok, bad) { upQ.push({ tool: tool, input: input, opts: opts, prio: prio || 0, seq: upSeq++, tries: 0, prop: prop, ok: ok, bad: bad }); upPump(); });
+  }
+  // while the proposals are still being checked with Upwork, a line runs along the list's top edge — rows move between the tabs until it stops
+  function upStatus() {
+    var c = $("propCard"); if (!c) return;
+    var on = upLive > 0 || upQ.some(function (t) { return t.prop; });
+    c.classList.toggle("loading", on); c.setAttribute("aria-busy", on ? "true" : "false");
   }
   function upPump() {
     clearTimeout(upTimer); upTimer = null;
@@ -2307,15 +2320,16 @@
     for (var i = 0; i < upQ.length && upBusy < UP_PAR; ) {
       var t = upQ[i], k = upKind(t.tool);
       if ((upHold[k] || 0) > now) { wait = Math.min(wait, upHold[k] - now); i++; continue; }
-      upQ.splice(i, 1); upBusy++;
+      upQ.splice(i, 1); upBusy++; if (t.prop) upLive++;
       if (upGap[k]) upHold[k] = now + upGap[k];
       upRun(t);
     }
     if (upQ.length && wait < Infinity) upTimer = setTimeout(upPump, wait);
+    upStatus();
   }
   function upRun(t) {
-    MCP.callTool(UPWORK, t.tool, t.input, t.opts).then(function (res) { upBusy--; t.ok(res); upPump(); }, function (err) {
-      upBusy--;
+    MCP.callTool(UPWORK, t.tool, t.input, t.opts).then(function (res) { upBusy--; if (t.prop) upLive--; t.ok(res); upPump(); }, function (err) {
+      upBusy--; if (t.prop) upLive--;
       if (throttled(err) && t.tries < UP_TRIES) {
         var k = upKind(t.tool), m = /retry_after_seconds\D{0,4}(\d+)/.exec(String(err.message || "") + " " + JSON.stringify(err.result || ""));
         upHold[k] = Math.max(upHold[k] || 0, Date.now() + (m ? +m[1] : 5) * 1000 + Math.random() * 600);
