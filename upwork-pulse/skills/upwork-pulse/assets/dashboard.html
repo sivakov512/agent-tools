@@ -609,6 +609,7 @@
     milestones: {}, contractJobs: {}, runs: null, lastUpdate: 0, balance: null, invites: null, balanceErr: null, ptab: "waiting", prooms: {},
     questions: null, questionsErr: null,
     openProps: {}, sentByJob: {}, sentById: {}, writing: {}, // Proposals rows by Job ID / Proposal ID; writing: started here
+    jobs: {}, extra: {}, // Job ID → is the posting filled or closed; Proposal ID → a sent proposal no Upwork list returned
     saved: {} // Job ID → the row as this page last saved it, kept over loads for a few minutes
   };
   try { var sv = localStorage.getItem("fp.verdict"); if (sv === "Take" || sv === "Maybe" || sv === "Skipped") S.verdict = sv; } catch (e) {}
@@ -1887,17 +1888,18 @@
     var m = {}; (S.proposals || []).forEach(function (p) { var r = proposalRoom(p); if (r) m[r.id] = p; }); return m;
   }
   function owedRooms() {
-    var now = Date.now(), seen = {}, out = [];
+    var now = Date.now(), seen = {}, out = [], over = {};
+    (S.proposals || []).forEach(function (p) { var r = proposalRoom(p); if (r && shut(p)) over[r.id] = true; }); // a closed proposal's chat waits on nobody
     (S.rooms || []).forEach(function (r) {
       var yours = myTurn(r) || (r.numUnread || 0) > 0;
       if (!yours) return;
       var active = String(r.contractStatus || "").toUpperCase() === "ACTIVE";
-      if (!active && now - roomAct(r) >= QUIET_DAYS * DAY) return;
+      if (!active && (over[r.id] || now - roomAct(r) >= QUIET_DAYS * DAY)) return;
       seen[r.id] = true; out.push(r);
     });
     (S.proposals || []).forEach(function (p) {
       var r = proposalRoom(p);
-      if (r && !seen[r.id] && !p.closed && hasChat(r) && myTurn(r) && now - roomAct(r) < LIVE_DAYS * DAY) { seen[r.id] = true; out.push(r); }
+      if (r && !seen[r.id] && !shut(p) && hasChat(r) && myTurn(r) && now - roomAct(r) < LIVE_DAYS * DAY) { seen[r.id] = true; out.push(r); }
     });
     return out;
   }
@@ -2012,8 +2014,8 @@
     return function (body) {
       var nr = p && (S.appliedNotion[p.jobId] || S.leadsById[p.jobId]), sr = p && sentRowOf(p);
       var title = p ? p.title : clientOf(room) || clean(room.roomName) || "Chat";
-      var t = roomAct(room);
-      var x = drHead(body, [p ? "Proposal" : "Chat", clientOf(room) !== title ? clientOf(room) : "", turnChip(room), t ? "last message " + ago(Date.now() - t) + " ago" : ""], title, p && p.jobId);
+      var t = roomAct(room), over = p && shut(p);
+      var x = drHead(body, [p ? "Proposal" : "Chat", clientOf(room) !== title ? clientOf(room) : "", over ? el("span", "chip", over.label) : turnChip(room), t ? "last message " + ago(Date.now() - t) + " ago" : ""], title, p && p.jobId);
       if (p) setChat(chatLink(p.jobId, p.title));
       else { if (room.contractId) loadContractJob(room.contractId); if (!room.contractId || !S.contractJobs[room.contractId].busy) setChat(chatLink(room.contractId ? contractJob(room.contractId) : null, title, { contract: room.contractId, room: room.id })); }
       x.acts.appendChild(navLink(roomUrl(room.id), myTurn(room) ? "Reply on Upwork" : "Chat"));
@@ -2057,9 +2059,18 @@
   function myTurn(room) { return !!room && (room.awaiting_reply_from === "you" || (room.awaiting_reply_from == null && room.last_message_from_self === false)); }
   // One rule for the whole section: a proposal is shown while something happened on it in the last LIVE_DAYS.
   function hasChat(room) { return !!room && !!room.latestStory; }
+  // A proposal is over when Upwork closed it (declined, archived, withdrawn) or when its job is: Upwork leaves the proposal
+  // of a filled job open ("Invitation accepted", annotated OnHold), so the job's own state decides — hires reaching the
+  // number sought, or the posting closed. A proposal that became my contract is never over here.
+  function shut(p) {
+    if (p.closed) return { label: p.statusLabel, reason: p.reason, at: p.modified || p.created };
+    var j = S.jobs[p.jobId], room = proposalRoom(p);
+    if (!j || !j.over || p.status === "Offered" || (room && room.contractId)) return null;
+    return { label: j.hired ? "Job filled" : "Job closed", reason: j.hired ? "the client hired someone else" : "", at: Math.max(p.modified, p.created) };
+  }
   function classify(p, now) {
-    var live = LIVE_DAYS * DAY;
-    if (p.closed) return now - (p.modified || p.created) < live ? "closed" : null;
+    var live = LIVE_DAYS * DAY, s = shut(p);
+    if (s) return now - s.at < live ? "closed" : null;
     var room = proposalRoom(p);
     if (hasChat(room)) return now - roomAct(room) < live ? "discussing" : null;
     return now - p.created < live ? "waiting" : null;
@@ -2071,7 +2082,11 @@
     var now = Date.now();
     var groups = { waiting: [], discussing: [], closed: [] };
     // In talks: every proposal with a live chat, newest message first; whose turn it is shows on the row (Your move is where attention goes)
-    S.proposals.forEach(function (p) { var g = classify(p, now); if (g) groups[g].push(p); });
+    S.proposals.forEach(function (p) {
+      var g = classify(p, now); if (!g) return;
+      groups[g].push(p);
+      if (g !== "closed") fetchJob(p.jobId); // a listed open proposal: is its job still open?
+    });
     // A proposal chat whose proposal is not in the list (sent before the window): still a live discussion.
     var known = {};
     S.proposals.forEach(function (p) { var r = proposalRoom(p); if (r) known[r.id] = true; });
@@ -2083,7 +2098,7 @@
     renderSoon();
     var list = groups[S.ptab].slice();
     if (S.ptab === "discussing") list = list.concat(loose.map(function (r) { return { _room: r }; }));
-    var key = function (x) { return S.ptab === "discussing" ? roomAct(x._room || proposalRoom(x)) : S.ptab === "closed" ? (x.modified || x.created) : x.created; };
+    var key = function (x) { return S.ptab === "discussing" ? roomAct(x._room || proposalRoom(x)) : S.ptab === "closed" ? shut(x).at : x.created; };
     list.sort(function (a, b) { return key(b) - key(a); });
     clear(host);
     if (!list.length) {
@@ -2101,19 +2116,19 @@
   function metaSep(m) { if (m.childNodes.length) m.appendChild(el("span", "sep", "·")); }
   // Row: #id title ........ when   /   client · state · terms
   function proposalItem(p, now) {
-    var room = proposalRoom(p), tab = S.ptab, chat = room && room.latestStory;
+    var room = proposalRoom(p), tab = S.ptab, chat = room && room.latestStory, over = shut(p);
     var key = "p-" + p.id;
     var row = rowEl(key, tab === "closed" ? "weak" : "", function () { openDrawer(key, "appliedList", "Proposal", chat ? chatDrawer(room, p) : proposalDrawer(p)); });
     var s = row.s;
     var t = el("div", "t-title"); t.appendChild(titleWithId(p.jobId, p.title, p.url, "Open the job on Upwork")); s.appendChild(t);
     var right = tab === "discussing" && room ? "last message " + ago(now - roomAct(room)) + " ago"
-      : tab === "closed" ? "closed " + ago(now - (p.modified || p.created)) + " ago"
+      : tab === "closed" ? "closed " + ago(now - over.at) + " ago"
       : "sent " + ago(now - p.created) + " ago";
     var tr = el("span", "t-right", right); tr.title = "Sent " + new Date(p.created).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
     s.appendChild(tr);
     var m = el("div", "t-meta");
     if (room && clientOf(room)) m.appendChild(el("span", "", clientOf(room)));
-    if (p.closed) { metaSep(m); m.appendChild(el("span", "", p.statusLabel + (p.reason ? " — " + p.reason : ""))); }
+    if (over) { metaSep(m); m.appendChild(el("span", "", over.label + (over.reason ? " — " + over.reason : ""))); }
     else if (chat) { metaSep(m); m.appendChild(turnSpan(room)); }
     else { var rp = S.prooms[p.id]; if (rp && rp.err) { metaSep(m); m.appendChild(el("span", "", "Reply status unknown")); } else if (!rp || rp.pending) { metaSep(m); m.appendChild(el("span", "", "Checking replies…")); } }
     var extra = [];
@@ -2142,7 +2157,7 @@
   }
   function proposalFacts(host, p, nr, sr) { // the proposal on Upwork, last and folded like a lead's Facts: its state is in the drawer's header
     dsec(host, "Facts", "", null, true).appendChild(factsBox([
-      ["Status", p.closed ? p.statusLabel + (p.reason ? " — " + p.reason : "") : "Open"],
+      ["Status", shut(p) ? shut(p).label + (shut(p).reason ? " — " + shut(p).reason : "") : "Open"],
       ["Sent", p.created ? fmtWall(wallOf(p.created), true) + " (" + ago(Date.now() - p.created) + " ago)" : ""],
       ["My rate", p.rate && !sr ? p.rate.replace(/\.0$/, "") : ""], // with the Notion copy, the rate is shown under What you sent
       ["Connects", nr && nr.Connects != null ? nr.Connects + " to apply" + (sr && num(sr.Boost) ? " + " + sr.Boost + " boost" : p.bid ? " + " + p.bid + " boost" : "") : p.bid ? "boosted " + p.bid : ""],
@@ -2182,7 +2197,7 @@
     return function (body) {
       var nr = S.appliedNotion[p.jobId] || S.leadsById[p.jobId], sr = sentRowOf(p);
       var rp = S.prooms[p.id];
-      var state = p.closed ? el("span", "chip", p.statusLabel) : el("span", "chip", rp && rp.err ? "reply status unknown" : "no reply yet");
+      var over = shut(p), state = over ? el("span", "chip", over.label) : el("span", "chip", rp && rp.err ? "reply status unknown" : "no reply yet");
       var x = drHead(body, ["Proposal", state, "sent " + ago(Date.now() - p.created) + " ago"], p.title, p.jobId);
       proposalLinks(x, p, nr, sr);
       jobSections(x.inner, nr, p.jobId, true); // sent, no reply yet: what was sent is the point
@@ -2200,7 +2215,7 @@
   // one-line rule on each tab, from the same constants the grouping uses
   $("tabPWaiting").title = "Sent in the last " + LIVE_DAYS + " days, no reply yet";
   $("tabPDiscussing").title = "The client replied; a message in the last " + LIVE_DAYS + " days, newest first";
-  $("tabPClosed").title = "Declined, archived or withdrawn in the last " + LIVE_DAYS + " days";
+  $("tabPClosed").title = "Declined, archived or withdrawn, or the job filled or closed, in the last " + LIVE_DAYS + " days";
   $("tabPClosed").addEventListener("click", function () { setPTab("closed"); });
 
   function renderRuns() {
@@ -2331,6 +2346,7 @@
         if (p && p.State !== "Writing" && w > S.writing[id] - 60000) delete S.writing[id];
       });
       if ((S.leads || []).some(function (r) { return propState(r) === "Writing"; })) watchDrafts();
+      recoverProposals();
       renderLeads(); renderApplied(); refreshDrawer();
     }, function () {});
   }
@@ -2468,6 +2484,8 @@
   function loadProposals() {
     if (!MCP || proposalsLoading) return; proposalsLoading = true;
     var now = Date.now();
+    Object.keys(S.extra).forEach(function (id) { S.extra[id].stale = true; }); // read again, shown as they were meanwhile
+    Object.keys(S.jobs).forEach(function (id) { if (!S.jobs[id].over && !S.jobs[id].pending) delete S.jobs[id]; }); // a filled job stays filled
     Promise.all(PROPOSAL_SOURCES.map(function (src) {
       return loadProposalSource(src, now - (src.closed ? LIVE_DAYS : FETCH_DAYS) * DAY).then(function (list) { propParts[src.status] = list; }, function (err) {
         if (src.status === "Accepted") { S.proposalsErr = err; if (isDenial(err)) S.proposals = null; }
@@ -2479,11 +2497,46 @@
   }
   function mergeProposals() {
     var seen = {}, all = [];
-    PROPOSAL_SOURCES.forEach(function (src) { (propParts[src.status] || []).forEach(function (p) { if (!seen[p.id]) { seen[p.id] = true; all.push(p); } }); });
+    PROPOSAL_SOURCES.forEach(function (src) { (propParts[src.status] || []).forEach(function (p) { if (!seen[p.id]) { seen[p.id] = true; all.push(p); delete S.extra[p.id]; } }); });
+    Object.keys(S.extra).forEach(function (id) { var x = S.extra[id]; if (x.p && !seen[id]) { seen[id] = true; all.push(x.p); } });
     S.proposals = all;
     S.proposalsErr = null;
     S.proposals.forEach(function (p) { var r = S.prooms[p.id]; if (!p.closed && (!r || (!r.pending && !r.room))) fetchProposalRoom(p); }); // no room yet: the client may have opened one since
     renderApplied(); renderLeads();
+    recoverProposals();
+  }
+  // Upwork's list leaves some proposals out — the open ones it annotates OnHold, as it does when the client hires someone
+  // else — so their chats would look like chats without a proposal. Every proposal Notion has as sent in the window that no
+  // list returned is read on its own.
+  function recoverProposals() {
+    if (!S.proposals) return;
+    var have = {}, cutoff = Date.now() - FETCH_DAYS * DAY;
+    S.proposals.forEach(function (p) { if (!S.extra[p.id]) have[p.id] = true; }); // returned by a list
+    Object.keys(S.sentById).forEach(function (id) {
+      var x = S.extra[id], written = Date.parse(S.sentById[id]["date:Written:start"] || "");
+      if (have[id] || !/^\d+$/.test(id) || !(written >= cutoff) || (x && (x.pending || !x.stale))) return;
+      S.extra[id] = { pending: true, p: x && x.p };
+      MCP.callTool(UPWORK, "upwork__list_freelancer_proposals", { action: "get", org_uid: ORG, params: { id: id } }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
+        var vp = ((payloadOf(res) || {}).data || {}).vendorProposal, p = vp && vp.id ? mapProposal(vp, false) : null;
+        S.extra[id] = { p: p && p.status !== "Hired" ? p : null }; // a hire is a contract, shown under Contracts
+        var at = -1; S.proposals.forEach(function (q, i) { if (q.id === id) at = i; });
+        if (at >= 0) S.proposals.splice(at, 1);
+        if (S.extra[id].p) { S.proposals.push(S.extra[id].p); if (!S.extra[id].p.closed && !S.prooms[id]) fetchProposalRoom(S.extra[id].p); }
+        renderApplied(); renderLeads();
+      }, function () { S.extra[id] = { p: x && x.p }; });
+    });
+  }
+  // The posting behind an open proposal: filled (hires reach the number sought; 0 sought counts as 1) or closed.
+  function fetchJob(id) {
+    if (!id || S.jobs[id]) return;
+    S.jobs[id] = { pending: true };
+    MCP.callTool(UPWORK, "upwork__find_jobs", { action: "get", org_uid: ORG, params: { id: id } }, { cache: { staleTime: 3600000, gcTime: 86400000 } }).then(function (res) {
+      var jp = ((payloadOf(res) || {}).data || {}).marketplaceJobPosting;
+      if (!jp) { S.jobs[id] = { err: true }; return; }
+      var hired = num(((jp.activityStat || {}).jobActivity || {}).totalHired) || 0, sought = num((jp.contractTerms || {}).personsToHire) || 1;
+      S.jobs[id] = { hired: hired, over: hired >= sought || /^closed$/i.test((jp.workFlowState || {}).status || "") };
+      if (S.jobs[id].over) { renderApplied(); renderLeads(); }
+    }, function () { S.jobs[id] = { err: true }; }); // gone or private: nothing is known, the proposal stays as Upwork has it
   }
   function fetchProposalRoom(p) {
     S.prooms[p.id] = { pending: true };
@@ -2547,7 +2600,7 @@
       ["", "Your proposals from Upwork. A proposal stays here while something happens on it; after " + LIVE_DAYS + " quiet days it drops off."],
       ["Sent", "sent, no reply from the client yet."],
       ["In talks", "the client replied; newest message first. A chat where the next message is yours is marked Your turn and is in Your move as well."],
-      ["Closed", "declined, archived or withdrawn."],
+      ["Closed", "declined, archived or withdrawn, or the job is over: the client hired someone else or closed the posting. Upwork keeps such a proposal open, so the page checks the job itself."],
       ["Drawer", "the proposal's terms, What you sent — the copy kept in Notion's Proposals, synced from Upwork by the digests — and the job it was for."]
     ];
   });
