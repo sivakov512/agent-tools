@@ -16,7 +16,7 @@ Fetch **Run state**; find `PROCESSED_UNTIL: <ISO time>`.
 - No line, or unparseable → the last 70 minutes.
 - Longer than 24 h → only the last 24 h (older backlog is dropped; it shows only as the window in the log).
 
-Not longer than 2 h: process it whole, and once every card and the log are written — before §8 and the report — rewrite the line to now — `update_content` on that line only (Run state also holds the proposals sync's line), format `2026-09-20T14:00+02:00` in the config timezone.
+Not longer than 2 h: process it whole, and once every card and the log are written — before §8 and the report — rewrite the line to now — `update_content` on that line only (Run state also holds the proposals sync's line, and, while Upwork refuses job pages, the `DEFERRED:` and `JOB_PAGES_PAUSE:` lines of §4), format `2026-09-20T14:00+02:00` in the config timezone.
 
 Longer: work in 2-hour chunks, oldest first (search results arrive newest first — reverse them). After each chunk is fully written, rewrite the watermark to that chunk's end. Continue to now or to the budget — about 25 detailed job requests per run. At the budget: stop, log `partial`; the next run takes the rest. The watermark moves only after a fully written chunk; a run interrupted mid-chunk leaves it where it was.
 
@@ -39,7 +39,18 @@ No pending invitations → nothing about them anywhere, the report's Log include
 
 The default flags mean the same for everyone (the rules decide how much each weighs on the verdict): `no client history` — the client has never hired; `partially hired` — some of the people sought are hired, not all; `timezone lock` — a hard requirement on presence or working hours; `mandatory calls` — regular calls required; `budget mismatch` — a fixed budget far below the scope; `full-time` — 30+ hours a week or 6+ months, effectively a hire; `unfamiliar tech` — a tool, platform or part the user has not worked with. The user's own flags are defined in the rules.
 
-**`get` says not found, closed or private** for a posting the search just listed: the posting is gone — count it as rejected ("gone") in the log and go on. It never holds the watermark back: a gone posting stays gone, and holding the watermark for it would retry the same window every hour. Only an error of the call itself (timeout, rate limit, server error) leaves the chunk unfinished.
+**`get` says not found or closed** for a posting the search just listed: the posting is gone — count it as rejected ("gone") in the log and go on. It never holds the watermark back: a gone posting stays gone, and holding the watermark for it would retry the same window every hour.
+
+**Job pages refused.** `get` can answer PERMISSION ("This job can't be opened right now. It may be private or invite-only, or jobs are being opened too quickly"). Upwork gives this one answer both for a posting that went private and for job pages opened too fast, says no time for how long, and asks not to retry the same job — retrying makes the refusal last. So one such answer proves nothing about the posting; it is handled with a growing pause, kept in Run state on the line `JOB_PAGES_PAUSE: <ISO time until> <hours>`:
+- **Before the first job page of a run** (stage 2, an invitation's job, a deferred one): a `JOB_PAGES_PAUSE` time still ahead → open none in this run; every survivor goes straight to `DEFERRED` (below).
+- **The first PERMISSION of a run** → open no more job pages in this run, and write the pause: 1 hour from now with no line yet, else double the line's hours, at most 8 (1 → 2 → 4 → 8 → 8…), as `JOB_PAGES_PAUSE: <now + hours> <hours>` (`update_content` on the line; no line → `insert_content` at the end).
+- **A job page that opens** → remove the `JOB_PAGES_PAUSE` line, if there is one: pages are open again.
+- **The searches go on** whatever the pause: they open no job page and are not refused.
+- **An invitation's job is not deferred**: it stays without a card for now, and the next run lists the pending invitation again (§3).
+
+Every search survivor not opened — refused, or not tried because of the pause — goes to the `DEFERRED:` line in Run state, `DEFERRED: <job id>@<its publishedDateTime>, …` (the same edits), and the chunk counts as processed: the watermark moves as usual, so the window is not searched again, and nothing is lost.
+
+**Deferred postings** are opened once job pages are allowed again (no pause ahead): this run's own survivors first; after the first `get` that succeeds (or, with no survivor of its own, one `get` on the newest deferred one — the probe) take up to 5 deferred ones, newest first (a fresh posting is worth more: fewer proposals on it yet), through the already-seen check and stage 2 like this run's own. Each one opened, or gone, leaves the line (drop the line when it is empty). A refusal → the pause as above; they wait. A posting published more than 48 hours ago leaves the line unopened: log it as `deferred 48 h, dropped`. Only an error of the call itself (timeout, rate limit, server error) leaves the chunk unfinished.
 
 **Already seen** — checked once, before stage 2: a posting that has a card in `jobs_all` (any status; the view is newest `Found` first, so stop paging once `Found` is two days older than the queue start) → skip silently, not counted, not logged. (A posting the previous run rejected can come back in the 10-minute overlap; it is simply assessed again.)
 
@@ -97,7 +108,7 @@ Always, including empty runs: one row in `runs` per chunk, written once the chun
 
 After the log and the watermark, so a failure here never loses a card or a window. (Marking cards Applied is the proposals sync's job: `references/sync.md`.)
 
-Only with `auto_drafts: on`, and only when this run wrote at least one card or `jobs_inbox` shows a New card posted in the last 5 days without `Advice` (left by an earlier run, or found while drafts were off) — one read of `jobs_inbox` tells. Start a subagent with the Agent tool, `model: "opus"`, and this task: "Use the upwork-pulse skill in drafts mode on <root URL> for the cards <card URLs written by this run, if any>. You are the hourly run's subagent: write to Notion, no message, no push; return one line per card." Wait for it. Its lines tell you which cards got Apply. If the Agent tool is missing or the subagent fails, leave the cards as they are and go on: drafts mode also picks up New cards left without advice by an earlier run, up to 5 per run.
+Only with `auto_drafts: on`, and only when this run wrote at least one card or `jobs_inbox` shows a New card posted in the last 5 days without `Advice` (left by an earlier run, or found while drafts were off) — one read of `jobs_inbox` tells. Start a subagent with the Agent tool, `model: "opus"`, and this task: "Use the upwork-pulse skill in drafts mode on <root URL> for the cards <card URLs written by this run, if any, then the older ones that read showed: New, posted in the last 5 days (`Published`, else `Found`), no `Advice` — Take first, then Maybe, newest first within each, at most 5>. You are the hourly run's subagent: write to Notion, no message, no push; return one line per card." Wait for it. Its lines tell you which cards got Apply. If the Agent tool is missing or the subagent fails, leave the cards as they are and go on: drafts mode also picks up New cards left without advice by an earlier run, up to 5 per run.
 
 **Auto skip**, with `auto_skip: on` and `auto_drafts: on`, after the drafts step (whether or not a subagent ran): read `jobs_inbox` (fresh — the subagent may have just written advice). Every New card with `Advice` Skip and `Locked` unchecked gets one `update_properties`: `Status` Skipped, `Skipped by` auto, `Skip reason` = its `Advice why` (one line), `Decided on` = now. Whenever that advice was written — by this run, an earlier one, before auto skip was switched on — it counts: the switch means "skip what Claude advises to skip". A `Locked` card stays New whatever its advice (SKILL.md → *Locked*). Cards skipped here are not news (§9).
 
@@ -144,6 +155,7 @@ Advice **<apply|skip>** — <the reason from the subagent's line> · proposal re
 
 ## Log
 - Search: <N> in the window → <cards written> cards[, <gone> gone]
+- Deferred: <n> waiting — #<short id>, …[; job pages paused until HH:MM][; <m> dropped after 48 h]   ← Upwork would not open job pages (§4); only when the line is not empty
 - Invitations: <n> pending, <new> new card(s): #<short id>, …
 - Drafts: <n> advised — apply #<short id>, …; skip #<short id>, …
 - Auto skip: #<short id> <title, cut to 40 characters>, …
@@ -153,7 +165,7 @@ Advice **<apply|skip>** — <the reason from the subagent's line> · proposal re
 
 `<client's price>` is made from the columns: `$<Budget> fixed`, `$<Rate min>–<Rate max>/hr`, or `rate not stated`; money is written as money (`$8,400`). In the Client and Competition lines leave out a part whose column is empty or zero, and "verified" when it is not. `<short id>` is the last six digits of `Job ID`, as on the dashboard, so the user can refer to an item by its number in this message or by its id. Numbering runs across both sections; an empty section is left out; a horizontal rule between cards; `Client:` and `Competition:` labels not bold. `connects L` in the header is the sum over the listed cards.
 
-**The Log** follows SKILL.md → automatic mode — one line per process, only for what happened: `Search` always; `Invitations` only when there are pending ones; `Drafts` only when the subagent ran (its lines); `Auto skip` only when it skipped something; `Update` only when `skill_version` changed or the dashboard was republished (just the parts that happened); `Problems` only when a call failed or was blocked — the card or step, the error in a few words, and what stays undone for the next run. An hour with no cards is the header, the counts line and the Log alone.
+**The Log** follows SKILL.md → automatic mode — one line per process, only for what happened: `Search` always; `Deferred` while postings wait to be opened (a refused job page is not a `Problems` line: it is Upwork pacing, handled); `Invitations` only when there are pending ones; `Drafts` only when the subagent ran (its lines); `Auto skip` only when it skipped something; `Update` only when `skill_version` changed or the dashboard was republished (just the parts that happened); `Problems` only when a call failed or was blocked — the card or step, the error in a few words, and what stays undone for the next run. What this session cannot do by design is not a problem and is not mentioned anywhere in the report: no Artifact tool for the dashboard, no push tool, no Agent tool for drafts. An hour with no cards is the header, the counts line and the Log alone.
 
 Forbidden in the report: narration outside the Log ("Now I'll…", "All writes are done"), notes on a value (the client's price is exactly as built above — `rate not stated`, nothing in brackets), extra sections, draft proposal text, questions.
 

@@ -1,0 +1,246 @@
+{
+ "tools": [
+  {
+   "name": "notion-search",
+   "description": "Search the Notion workspace. Returns pages/databases with id, title, url.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "query": {
+      "type": "string"
+     },
+     "query_type": {
+      "type": "string"
+     },
+     "page_url": {
+      "type": "string"
+     },
+     "page_size": {
+      "type": "integer"
+     }
+    },
+    "additionalProperties": true,
+    "required": [
+     "query"
+    ]
+   }
+  },
+  {
+   "name": "notion-fetch",
+   "description": "Fetch a page, database, data source or view by URL or ID. Pages come back in Notion-flavored Markdown (<callout>, <tabs><tab>, <database url=\u2026 inline=\"true\" data-source-url=\u2026>, <page url=\u2026>). Databases list their data sources (collection://\u2026) with schema and their views (view://\u2026).",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": true,
+    "required": [
+     "id"
+    ]
+   }
+  },
+  {
+   "name": "notion-query-data-sources",
+   "description": "Query data. data.mode: \"view\" runs a saved view by view_url (no quota). data.mode \"sql\" (the DEFAULT when mode is omitted) and \"rows\" draw from a limited workspace quota.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "data": {
+      "type": "object",
+      "additionalProperties": true
+     }
+    },
+    "additionalProperties": true,
+    "required": [
+     "data"
+    ]
+   }
+  },
+  {
+   "name": "notion-create-pages",
+   "description": "Create pages. parent: {page_id} | {database_id} | {data_source_id}. pages: [{properties, content, icon}]. Dates as \"date:<Prop>:start\"/\"date:<Prop>:end\"; relations as arrays of page ids. Content is Notion-flavored Markdown: blocks such as <callout icon=\"\u2026\" color=\"\u2026\">, <tabs><tab>\u2026</tab></tabs>, <database url=\u2026>, <page url=\u2026> are written as literal tags, children indented with tabs; do not HTML-escape them.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "parent": {
+      "type": "object",
+      "additionalProperties": true
+     },
+     "pages": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "additionalProperties": true
+      }
+     }
+    },
+    "additionalProperties": true,
+    "required": [
+     "pages"
+    ]
+   }
+  },
+  {
+   "name": "notion-update-page",
+   "description": "Update a page. command: update_properties | update_content (content_updates: [{old_str,new_str}]) | replace_content (new_str) | insert_content (content, position). icon: emoji or \"none\". Content is Notion-flavored Markdown: blocks such as <callout icon=\"\u2026\" color=\"\u2026\">, <tabs><tab>\u2026</tab></tabs>, <database url=\u2026>, <page url=\u2026> are written as literal tags, children indented with tabs; do not HTML-escape them.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "page_id": {
+      "type": "string"
+     },
+     "command": {
+      "type": "string"
+     },
+     "properties": {
+      "type": "object",
+      "additionalProperties": true
+     },
+     "content_updates": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "additionalProperties": true
+      }
+     },
+     "new_str": {
+      "type": "string"
+     },
+     "content": {
+      "type": "string"
+     },
+     "position": {
+      "type": "object",
+      "additionalProperties": true
+     },
+     "icon": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": true,
+    "required": [
+     "page_id",
+     "command"
+    ]
+   }
+  },
+  {
+   "name": "notion-create-database",
+   "description": "Create a database from a SQL DDL CREATE TABLE statement (schema). Returns the new data source id (collection://\u2026).",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "parent": {
+      "type": "object",
+      "additionalProperties": true
+     },
+     "title": {
+      "type": "string"
+     },
+     "schema": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": true
+   }
+  },
+  {
+   "name": "notion-update-data-source",
+   "description": "Update a data source: statements (ALTER/ADD/RENAME COLUMN DDL), title, is_inline, in_trash.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "data_source_id": {
+      "type": "string"
+     },
+     "statements": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "is_inline": {
+      "type": "boolean"
+     }
+    },
+    "additionalProperties": true,
+    "required": [
+     "data_source_id"
+    ]
+   }
+  },
+  {
+   "name": "notion-create-view",
+   "description": "Create a view: database_id (a view tab on the database) or parent_page_id (a linked view appended to the page). type: table|timeline|board|\u2026; configure: DSL (FILTER, SORT BY, GROUP BY, TIMELINE BY, SHOW).",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "data_source_id": {
+      "type": "string"
+     },
+     "database_id": {
+      "type": "string"
+     },
+     "parent_page_id": {
+      "type": "string"
+     },
+     "name": {
+      "type": "string"
+     },
+     "type": {
+      "type": "string"
+     },
+     "configure": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": true,
+    "required": [
+     "data_source_id",
+     "name",
+     "type"
+    ]
+   }
+  },
+  {
+   "name": "notion-update-view",
+   "description": "Update a view's name or configuration DSL.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "view_id": {
+      "type": "string"
+     },
+     "name": {
+      "type": "string"
+     },
+     "configure": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": true,
+    "required": [
+     "view_id"
+    ]
+   }
+  },
+  {
+   "name": "notion-create-file-upload",
+   "description": "Create an upload URL for a local file; returns upload_url and suggested_markdown.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "filename": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": true,
+    "required": [
+     "filename"
+    ]
+   }
+  }
+ ]
+}

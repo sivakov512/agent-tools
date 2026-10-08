@@ -2634,7 +2634,9 @@
   }
   function jobLabel(jobId) { return MEM.jobs[jobId] ? MEM.jobs[jobId].label : "Client moved on"; }
   // How an on-hold proposal's job ended: its page, opened in the background, once per job and one at a time. When Upwork
-  // refuses ("opened too quickly"), no more job pages this load; the label stays "Client moved on" until a later load.
+  // refuses ("opened too quickly"), no job pages for an hour, across reloads (retrying makes the refusal last); the label
+  // stays "Client moved on" meanwhile.
+  if (MEM.jobsPausedUntil > Date.now()) S.jobsStop = true;
   function checkJob(p) {
     if (!p.jobId || MEM.jobs[p.jobId] || S.jobTried[p.jobId] || S.jobsStop) return;
     S.jobTried[p.jobId] = true;
@@ -2644,7 +2646,7 @@
       MEM.jobs[p.jobId] = { label: hired ? "Hired someone else" : "Job closed", at: Date.now() }; memSave();
       (S.proposals || []).forEach(function (q) { if (q.jobId === p.jobId && q.onHold) q.statusLabel = MEM.jobs[p.jobId].label; });
       renderApplied();
-    }, function (err) { if (/opened too quickly/i.test(String((err && err.message) || "") + JSON.stringify((err && err.result) || ""))) S.jobsStop = true; });
+    }, function (err) { if (/opened too quickly/i.test(String((err && err.message) || "") + JSON.stringify((err && err.result) || ""))) { S.jobsStop = true; MEM.jobsPausedUntil = Date.now() + 3600000; memSave(); } });
   }
   // A proposal's chat: remembered, or looked up once the client has opened one (Activated, Offered); a submitted proposal has none.
   function roomFor(p) {
