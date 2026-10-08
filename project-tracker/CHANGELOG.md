@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.6.0...project-tracker-v1.6.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **project-tracker:** dashboard header layout on phones ([459efc8](https://github.com/sivakov512/agent-tools/commit/459efc827c6415002fcd96dad4c8f4bea6df8fc6))
+
 ## [1.6.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.5.0...project-tracker-v1.6.0) (2026-10-08)
 
 
