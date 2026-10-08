@@ -23,7 +23,7 @@ Only what the source says — no risks, milestones or tasks of your own. Follow 
   - "I will do X once Y" → a task, Planned, under the milestone it serves;
   - something missing that stops work and nobody planned for ("the bench has no power analyzer — Ivan, please order one") → Blocker, Waiting, `Waiting on` = the person asked to act (none named → Open, `Waiting on` empty);
   - an undecided either/or → Question; `Waiting on` = who decides, by default the `Client` value;
-  - "missing X would cost N", "N is an assumption until Y" → Risk, Open; consequence in `Note`; linked to the milestone (and task) it threatens.
+  - "missing X would cost N", "N is an assumption until Y" → Risk, Open; consequence in `Summary`; linked to the milestone (and task) it threatens.
 
   Names as SKILL.md **Names** says; a waiting task is named by what is awaited ("Lab quotes"). Commercial terms, IP clauses, billing rules and background are neither tasks nor problems.
 
@@ -53,7 +53,8 @@ Otherwise, in this order — the page comes before the rows, so an interrupted a
 4. Tasks (`Project` = the row, `Milestone` = its milestone, `Order` 1, 2, … within their milestone in the source's order).
 5. Problems, `Opened` = the source date.
 6. The status callout at the start of the page (`insert_content`, `position: {"type": "start"}`), now that the counts are known.
-7. A source without a URL (pasted text, an email, a local file) goes into the `Notes` tab as a sub-page `Mon D — Source: <subject or short description>` (Mon D = the source date), as for long notes (`notes.md`), so the original plan stays with the project.
+7. The project's description (SKILL.md → **Pages**): the source's own statement of what the project is or delivers, if it has one — a paragraph, never the plan itself.
+8. A source without a URL (pasted text, an email, a local file) goes onto the project page as a sub-page `Mon D — Source: <subject or short description>` (Mon D = the source date), under `## Notes` or `## Private notes` by **Who sees what** (a source with prices the client was not given is private), as for long notes (`notes.md`), so the original plan stays with the project.
 
 Reply with what was created, and remind the user to switch the `Plan` timeline and the Tasks tab's `Timeline` view to **Quarter** or **Month** once — the API cannot set the zoom; Notion remembers it. On the first project, also the helper-property hiding from `setup.md` step 8, now that there are pages to click it on.
 
@@ -98,13 +99,9 @@ Tabs — fetch the page, then `update_content` with `old_str` = the four `<datab
 		Problems
 		<database url="<problems block url>" inline="true" data-source-url="collection://<problems>"></database>
 	</tab>
-	<tab>
-		Notes
-		Notes, files, docs and client correspondence for this project. Newest at the bottom. {color="gray"}
-	</tab>
 </tabs>
 ```
 
-Verify by fetch: the page's ancestor path goes through the Projects database; the body is the callout (once it is added), then one `<tabs>` block with the five tabs — Plan, Tasks, Schedule, Problems, Notes — no `icon=`, nothing after it. If a block came out in the wrong order, one `update_content` over both blocks puts them back. If the page already had some of this, keep it and add only what is missing — never a second callout, view or tabs block.
+Verify by fetch: the page's ancestor path goes through the Projects database; the body is the callout (once it is added), then one `<tabs>` block with the four tabs — Plan, Tasks, Schedule, Problems — no `icon=`, and after it only the parts of SKILL.md **Pages** (none yet on a new page, or the description and the source's sub-page). If a block came out in the wrong order, one `update_content` over both blocks puts them back. If the page already had some of this, keep it and add only what is missing — never a second callout, view or tabs block.
 
 Filters on formula columns are dropped by the API, so `Schedule` lists every live milestone; `Late, days` is the column to scan. A project without milestones keeps the same tabs: its `Plan` is simply empty.

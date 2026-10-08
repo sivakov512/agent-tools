@@ -40,7 +40,7 @@ If the config has a `dashboard` line, end with its link: the same picture, live.
 2. The project's `Tasks` view; fetch the tasks finished in the window, the In-progress and Waiting ones, open tasks past their end, and tasks whose `Dates` overlap the window — their history lines dated in the window. Tasks are the report's main lines: what was done, what is under way, what waits on whom.
 3. The project's `Problems` view — problems opened in the window and everything still waiting on someone.
 4. The root `Recently resolved` view — this project's problems resolved in the window. Resolved problems are often the main news.
-5. The `Notes` tab lines dated in the window.
+5. The project page's notes and history lines dated in the window; its private notes only as context for the user, never in a client email.
 
 **Write**: what was done, what is next (with dates), what is waiting on the client or a vendor (by name), what is late or on hold and why, and — if dates were moved with the client — which dates and why. Notes that a delay is "not agreed with the client yet", and dates only proposed, are for the user: mention them next to the draft, never in a client email. Plain prose from an engineer, not a dashboard export.
 

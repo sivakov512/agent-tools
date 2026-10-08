@@ -86,7 +86,7 @@
     return k;
   }
   function problemOf(r) {
-    return { kind: "problem", url: cleanUrl(r.url), name: clean(r.Name) || "Untitled", type: r.Type || "", status: r.Status || "", waiting: clean(r["Waiting on"]), note: clean(r.Note), noteRaw: r.Note || "", opened: dnum(r["date:Opened:start"]), resolvedOn: dnum(r["date:Resolved on:start"]), pk: rel(r.Project).map(key)[0], mk: rel(r.Milestone).map(key)[0], tk: rel(r.Task).map(key)[0], chat: r.Chat || "" };
+    return { kind: "problem", url: cleanUrl(r.url), name: clean(r.Name) || "Untitled", type: r.Type || "", status: r.Status || "", waiting: clean(r["Waiting on"]), summary: clean(r.Summary), opened: dnum(r["date:Opened:start"]), resolvedOn: dnum(r["date:Resolved on:start"]), pk: rel(r.Project).map(key)[0], mk: rel(r.Milestone).map(key)[0], tk: rel(r.Task).map(key)[0], chat: r.Chat || "" };
   }
   function buildPlan(p, msRows, taskRows) { // a project's Schedule and Tasks rows → its milestones, each with its tasks, and all its tasks
     var msList = msRows.map(function (row) { return msOf(row, p); }).filter(function (m) { return m.status !== "Dropped"; });
@@ -408,19 +408,22 @@
   function actions(host, items) { var a = el("div", "actions"); items.forEach(function (x) { if (x) a.appendChild(x); }); if (a.childNodes.length) host.appendChild(a); }
   function typeTag(t) { return el("span", "tt " + (t || ""), t || "Item"); }
   function phraseEl(parts) { var s = el("span", "s"); parts.forEach(function (p) { if (!p || !p[0]) return; if (s.childNodes.length) s.appendChild(document.createTextNode(" · ")); s.appendChild(span(p[0], p[1] || "")); }); return s; }
-  function problemLines(x, list, title, onUs) { // onUs: how a problem waiting on no one reads (on the user's page, "on you")
-    if (!list.length) return;
-    var bx = el("div"); bx.appendChild(el("div", "xh", title));
-    list.forEach(function (i) { var l = el("div", "pline"); l.appendChild(span(i.type + ": ", "muted")); l.appendChild(document.createTextNode(i.name)); l.appendChild(span(" · " + (i.status === "Resolved" ? "resolved" : i.waiting ? "waiting on " + i.waiting : onUs || "on you"), "muted")); bx.appendChild(l); });
-    x.appendChild(bx);
+  function problemLines(list, onUs) { // the problems on a milestone or task, as one of its page's parts; onUs: how a problem waiting on no one reads (on the user's page, "on you")
+    if (!list.length) return null;
+    var bx = el("div", "part"); bx.appendChild(el("div", "xh", "Problems"));
+    var ls = el("div", "plines after-xh");
+    list.forEach(function (i) { var l = el("div", "pline"); l.appendChild(typeTag(i.type)); l.appendChild(span(i.name, "pn")); l.appendChild(span(i.status === "Resolved" ? "resolved" : i.waiting ? "waiting on " + i.waiting : onUs || "on you", "muted")); ls.appendChild(l); });
+    bx.appendChild(ls); return bx;
   }
-  function msFacts(x, m) {
-    var w = whenOf(m); // the group's header already says the timing and how many tasks are done
-    facts(x, [["Dates", m.start == null ? "none yet, so it can't show as due or late" : range(m.start, m.end) + ", " + plural(m.end - m.start + 1, "day")], ["Status", m.status + (m.project.status === "Paused" && m.status !== "Done" ? " (project paused)" : "")], m.status === "Done" ? ["Result", span(w[0], w[1])] : ["", ""]]);
+  function meta(x, bits) { // the few facts the row's own header does not already say, on one quiet line
+    var d = el("div", "meta"); bits.filter(function (b) { return b != null && b !== ""; }).forEach(function (b, n) { if (n) d.appendChild(span(" · ", "sep")); d.appendChild(typeof b === "string" ? span(b) : b); });
+    if (d.childNodes.length) x.appendChild(d);
   }
-  function taskFacts(x, k) {
-    var w = whenOf(k);
-    facts(x, [["Dates", k.start == null ? "none" : range(k.start, k.end)], ["Status", k.status + (k.status === "Waiting" && k.waiting ? " on " + k.waiting : "")], ["Milestone", k.ms ? k.ms.name : "none"], [k.status === "Done" ? "Result" : "Timing", span(w[0], w[1])]]);
+  function msFacts(x, m) { // the group's header already says the dates, the timing and how many tasks are done
+    meta(x, [m.status + (m.project.status === "Paused" && m.status !== "Done" ? " (project paused)" : ""), m.start == null ? "no dates yet, so it can't show as due or late" : ""]);
+  }
+  function taskFacts(x, k) { // the row's header already says its dates and timing
+    meta(x, [k.status + (k.status === "Waiting" && k.waiting ? " on " + k.waiting : ""), k.ms ? "in " + k.ms.name : "", k.start == null ? "no dates" : ""]);
   }
   // the project at a glance, under its summary: when it ends and when it started, then what extra(pair) adds
   function projectSummary(p, plan, extra) {
@@ -436,7 +439,9 @@
     items: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 5.5v3M8 10.5v.1"/></svg>',
     resolved: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M5.6 8.2 7.3 9.9 10.5 6.4"/></svg>',
     plan: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h6M5 8h8.5M3.5 12h5"/></svg>',
-    notes: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 8h4M6 10.5h4"/></svg>'
+    notes: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 8h4M6 10.5h4"/></svg>',
+    private: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>',
+    history: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.2l2 1.3"/></svg>'
   };
 
   // The project page's pieces. ctx: ui (open: rows opened, grp: milestone groups opened or closed, col: sections folded — kept across repaints),
@@ -487,16 +492,17 @@
       g.dataset.g = k; g.appendChild(h); g.appendChild(b); return g;
     }
     function setGroup(g, k, on) { ui.grp[k] = on; if (on && g._fill) g._fill(); g.classList.toggle("open", on); g.querySelector(".mh").setAttribute("aria-expanded", String(on)); g.querySelector(".mgrp-b").hidden = !on; }
-    function projectHead(host, p, st, plan, extra) { // who, the name with its state, the summary, the project at a glance
+    function projectHead(host, p, st, plan, extra, desc) { // who, the name with its state, what the project is (its description), the project at a glance
       var hd = el("header", "dr-head");
       hd.appendChild(el("div", "dr-who", [p.client, p.origin].filter(Boolean).join(" · ")));
       var h = el("div", "dr-h1"); h.appendChild(el("h1", "", p.name)); if (st.text) h.appendChild(el("span", "pill " + st.cls, st.text)); hd.appendChild(h);
-      if (p.summary) hd.appendChild(el("p", "dr-lede", p.summary));
+      if (desc) { desc.classList.add("dr-lede"); hd.appendChild(desc); }
       hd.appendChild(projectSummary(p, plan, extra));
       host.appendChild(hd); return hd;
     }
-    function focusBlock(f, blockers) { // where it stands: the milestone under way with its current task, what is late, what is paused, the next milestone, blockers
+    function focusBlock(f, blockers, summary) { // where it stands: the summary, then the milestone under way with its current task, what is late, what is paused, the next milestone, blockers
       var fc = el("div", "focus");
+      if (summary) fc.appendChild(el("p", "fsum", summary));
       var line = function (label, cls, name, when, wcls, k) { var r = el("div", "fr"); r.appendChild(el("span", "fl " + cls, label)); var c = el("div"); c.appendChild(btn("go", name, function () { reveal(k); })); if (when) c.appendChild(el("div", "w " + (wcls || ""), when)); r.appendChild(c); fc.appendChild(r); return c; };
       f.overdue.forEach(function (m) { line("Overdue", "crit", m.name, whenOf(m)[0], "crit", key(m.url)); });
       f.now.forEach(function (m) {
@@ -542,6 +548,6 @@
     msOf: msOf, taskOf: taskOf, problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate,
     currentTask: currentTask, focusOf: focusOf, whenOf: whenOf, projectState: projectState, planPhrase: planPhrase, itemDot: itemDot, tipOf: tipOf,
     timeline: timeline,
-    facts: facts, actions: actions, typeTag: typeTag, phraseEl: phraseEl, problemLines: problemLines, msFacts: msFacts, taskFacts: taskFacts, page: page
+    facts: facts, actions: actions, typeTag: typeTag, phraseEl: phraseEl, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };
 })();

@@ -62,7 +62,7 @@ CREATE TABLE ("Name" TITLE, "Project" RELATION('<projects>'),
   "Waiting on" RICH_TEXT,
   "Milestone" RELATION('<milestones>') COMMENT 'Which milestone this affects, if any',
   "Task" RELATION('<tasks>') COMMENT 'Which task this affects, if any',
-  "Note" RICH_TEXT, "Opened" DATE, "Resolved on" DATE,
+  "Summary" RICH_TEXT COMMENT 'One sentence: what is wrong and what it would cost; once resolved, how it ended', "Opened" DATE, "Resolved on" DATE,
   "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude')
 ```
 
@@ -131,11 +131,11 @@ The config toggle gets the four data source IDs and the structure's version, `sc
 	milestones: `<milestones>`
 	tasks: `<tasks>`
 	problems: `<problems>`
-	schema: 3
+	schema: 4
 </details>
 ```
 
-Add the missing lines with `update_content` — `old_str` from the fetch (for an empty toggle, `</summary>\n</details>`), lines indented one tab. Never a second toggle. `schema: 3` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
+Add the missing lines with `update_content` — `old_str` from the fetch (for an empty toggle, `</summary>\n</details>`), lines indented one tab. Never a second toggle. `schema: 4` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
 
 ## 4. Views on the databases
 
@@ -150,7 +150,7 @@ Tasks       All                (default view)  FILTER "Status" IN ("Planned", "I
             Waiting on         table           FILTER "Status" = "Waiting"; GROUP BY "Waiting on"; SORT BY "Dates" ASC; SHOW "Name", "Project", "Milestone", "Dates"
             Timeline           timeline        FILTER "Status" IN ("Planned", "In progress", "Waiting"); TIMELINE BY "Dates"; GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Status"
 Problems    Open               (default view)  FILTER "Status" IN ("Open", "Waiting"); GROUP BY "Type"; SORT BY "Opened" ASC; SHOW "Name", "Project", "Status", "Waiting on", "Opened"
-            Recently resolved  table           FILTER "Status" = "Resolved"; SORT BY "Resolved on" DESC; SHOW "Name", "Project", "Type", "Resolved on", "Note"
+            Recently resolved  table           FILTER "Status" = "Resolved"; SORT BY "Resolved on" DESC; SHOW "Name", "Project", "Type", "Resolved on", "Summary"
 ```
 
 Tasks `All` sorts by `Dates` first: `Order` restarts per milestone, so across a project it only breaks ties. The view DSL takes only fixed dates, so `Recently resolved` gets its "past month" window by hand (checklist below); until then it lists every resolved problem, newest first.
@@ -202,7 +202,7 @@ Next step: a new project.
 
 Not a numbered step, so a setup run from the top never reaches it: SKILL.md (**Finding things**) starts it, or step 3 on a tracker that has rows.
 
-The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **3**. A tracker below it is brought up by the skill itself, in the first conversation that finds it, before the request — installing the newer plugin is the user's go for it; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose step 3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again. Steps run in order (a schema-1 tracker gets 1 → 2, then 2 → 3, in one go). If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards; the next conversation tries again.
+The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **4**. A tracker below it is brought up by the skill itself, in the first conversation that finds it, before the request — installing the newer plugin is the user's go for it; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose step 3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again. Steps run in order (a schema-1 tracker gets 1 → 2, 2 → 3, then 3 → 4, in one go). If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
 
 **1 → 2: `Order`.**
 1. Milestones and Tasks get `Order` (`ADD COLUMN` as in step 2, skipped where it exists).
@@ -216,4 +216,18 @@ The config's `schema` is the structure the tracker was built with; no `schema` l
 
 The closing line names what is new for the user: client dashboards, and that `Client dashboard` is best set to *Hide when empty* on a project page (the API cannot).
 
-A future step goes here as **3 → 4**, and the number above moves with it.
+**3 → 4: pages in parts.** SKILL.md (**Pages**) lays every page out as a description, `## Notes`, `## Private notes` and `## History`; before, a row's notes and history were told apart only by how a line looked, a project's notes lived in a `Notes` tab, and a problem kept its changes in `Note`. The update moves what is there into the parts by its form and decides nothing about privacy: a client dashboard published before it is checked before its next refresh (`references/client-dashboards.md` → **Keeping it current**), and one made later is checked when it is made.
+1. Problems: `RENAME COLUMN "Note" TO "Summary"` (skipped where `Summary` exists; views follow the rename). Values stay as they are — older ones may hold several parts joined by ` · `; they are not split into history lines, which would need dates nobody wrote down.
+2. Lay out every milestone, task and problem page with a body: the milestones and tasks of every project in `Active` and `Closed` (its `Schedule` and `Tasks` views), and the problems in root `Open` and `Recently resolved`. Fetch the page; a page that already has one of the three headings, or no body, is skipped. Its blocks, read top to bottom:
+   - a dated list line (`- **Oct 6** — …`) is history;
+   - a dated paragraph (`**Oct 2** — …`), a sub-page (`<page …>`) or a file is a note;
+   - any other block belongs with the dated entry above it (a note's own continuation), and before the first dated entry it is the description.
+
+   Already in that order (the usual case — notes were written above the history): one `update_content` with two `content_updates` — the first note → `## Notes`, a newline, that note; the first history line → `## History`, a newline, that line. Out of order (a note below a history line): the same call also moves each such note — its block → empty, and the first history line's replacement gets the notes in front of `## History`. Nothing is rewritten or dropped, only headed and moved; fetch the page after the call and check.
+3. Every project page in `Active` and `Closed` whose tabs still hold `Notes`: its entries (below the gray placeholder line) move under the tabs, and the tab goes — one `update_content` with `old_str` from the `Notes` tab's `<tab>` line through `</tabs>`, as fetched, and `new_str` `</tabs>` followed by the parts, without the tabs' indentation: the lines that record the project's own state (`Paused`, `Done`, `Active`, `Removed`, `Target end` lines) as history lines (`- ` added) under `## History`, `Client side:` lines under `## Private notes`, everything else, sub-pages included, under `## Notes`, each in its old order. A tab with no entries just goes.
+4. A Dropped row, or a row of a Removed project, is in no view: its page is laid out the same way the first time anything is written to it.
+5. Write `schema: 4` in the config toggle, as above — last.
+
+The closing line names what is new for the user: every page — project, milestone, task, problem — can have a description and a checklist (they ask: "add a checklist to the layout task: …"), then Notes, Private notes and History; a client dashboard shows all of it but Private notes; the user's own dashboard needs its update to show the parts (the offer follows).
+
+A future step goes here as **4 → 5**, and the number above moves with it.
