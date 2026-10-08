@@ -220,12 +220,18 @@
     if (S.origin !== "All" && !kinds[S.origin] && S.projects) S.origin = "All";
     var tb = $("origin"); clear(tb); if (ks.length < 2) return;
     var total = (S.projects || []).length, lab = function (k) { return k === "All" ? "All projects" : k; }, cnt = function (k) { return k === "All" ? total : kinds[k]; };
+    var pick = function (k) { S.origin = k; try { localStorage.setItem("pt.origin", k); } catch (e) {} TLN.reset(); closeMenus(); paint(); }; // the menu closes first: paint() waits while a menu is open
+    if (ks.length <= 3) { // a few origins: all in view as a segmented control, one click each; more than three take the menu below
+      var seg = el("div", "seg"); seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "Which projects to show, by Origin");
+      ["All"].concat(ks).forEach(function (k) { var o = btn("", null, function () { pick(k); }); o.setAttribute("aria-pressed", String(S.origin === k)); o.appendChild(span(k === "All" ? "All" : k)); o.appendChild(span(String(cnt(k)), "n")); seg.appendChild(o); });
+      tb.appendChild(seg); return;
+    }
     var b = btn("", null), menu = el("div", "dd-m"); menu.hidden = true; menu.setAttribute("role", "menu");
     b.appendChild(span(lab(S.origin))); b.appendChild(span(String(cnt(S.origin)), "n")); b.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.8 5 6.8 8 3.8"/></svg>');
     b.setAttribute("aria-haspopup", "menu"); b.setAttribute("aria-expanded", "false"); b.title = "Which projects to show, by Origin";
     b.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; menu.hidden = !on; b.setAttribute("aria-expanded", String(on)); });
     ["All"].concat(ks).forEach(function (k) {
-      var o = btn("", null, function () { S.origin = k; try { localStorage.setItem("pt.origin", k); } catch (e) {} TLN.reset(); paint(); });
+      var o = btn("", null, function () { pick(k); });
       o.setAttribute("role", "menuitemradio"); o.setAttribute("aria-checked", String(S.origin === k)); o.appendChild(span(lab(k))); o.appendChild(span(String(cnt(k)), "n")); menu.appendChild(o);
     });
     tb.appendChild(b); tb.appendChild(menu);

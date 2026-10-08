@@ -316,6 +316,8 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 /* the origin filter: a dropdown, since the user may add any number of Origin options */
 .origin { position: relative; display: inline-flex; }
 .origin:empty { display: none; }
+.origin .seg button { display: inline-flex; align-items: baseline; gap: 5px; }
+.origin .seg .n { font-size: 12px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
 .origin > button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface-2); padding: 4px 10px 4px 11px; border-radius: 7px; color: var(--text); cursor: pointer; font-size: 13px; white-space: nowrap; }
 .origin > button:hover { border-color: var(--border-2); }
 .origin > button .n { color: var(--text-mute); }
