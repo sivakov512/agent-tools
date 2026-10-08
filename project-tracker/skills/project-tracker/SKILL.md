@@ -156,7 +156,7 @@ The fact was different from what was recorded. Fix exactly that: `Finished`, the
 
 Anything about the project that is not plan, progress, a task or a problem goes into the project's `Notes` tab, oldest first below the tab's gray placeholder line. A short note: `update_content` with `old_str` = the tab's last line, `new_str` = that line plus `**Mon D** — text` at the same indentation. Long text (call notes, a spec, an email thread) and files: `references/notes.md`.
 
-A note about one milestone, task or problem ("note on the RFQ task: …", the text of an RFQ's emails, a spec for one milestone) goes onto that row's page instead, as a paragraph `**Mon D** — text` above its history — never a dated list line, which is history: `references/notes.md` → **On a row's page**. Your summaries are in English; pasted material stays as pasted. If the note also reports progress or a problem, handle that as its own scenario — unless the user asked only to save it ("just note it"); then save only and mention what it seems to imply.
+A note about one milestone, task or problem ("note on the RFQ task: …", the text of an RFQ's emails, a spec for one milestone) goes onto that row's page instead, as a paragraph `**Mon D** — text` above its history — never a dated list line, which is history: `references/notes.md` → **On a row's page**. Material that already lives somewhere (a doc, an email, a link) is never copied in: the note is its short summary and the link. Your summaries are in English; pasted material stays as pasted. If the note also reports progress or a problem, handle that as its own scenario — unless the user asked only to save it ("just note it"); then save only and mention what it seems to imply.
 
 ### Status — "how is X going?", "how are the masts?"
 
