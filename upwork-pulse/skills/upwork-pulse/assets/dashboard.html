@@ -615,7 +615,7 @@
     milestones: {}, contractJobs: {}, runs: null, lastUpdate: 0, balance: null, invites: null, balanceErr: null, ptab: "waiting", prooms: {},
     questions: null, questionsErr: null,
     openProps: {}, sentByJob: {}, sentById: {}, writing: {}, // Proposals rows by Job ID / Proposal ID; writing: started here
-    jobs: {}, extra: {}, // Job ID → is the posting filled or closed; Proposal ID → a sent proposal no Upwork list returned
+    extra: {}, jobTried: {}, // Proposal ID → a sent proposal no Upwork list returned; Job ID → its page was asked for this load
     saved: {} // Job ID → the row as this page last saved it, kept over loads for a few minutes
   };
   try { var sv = localStorage.getItem("fp.verdict"); if (sv === "Take" || sv === "Maybe" || sv === "Skipped") S.verdict = sv; } catch (e) {}
@@ -2065,14 +2065,12 @@
   function myTurn(room) { return !!room && (room.awaiting_reply_from === "you" || (room.awaiting_reply_from == null && room.last_message_from_self === false)); }
   // One rule for the whole section: a proposal is shown while something happened on it in the last LIVE_DAYS.
   function hasChat(room) { return !!room && !!room.latestStory; }
-  // A proposal is over when Upwork closed it (declined, archived, withdrawn) or when its job is: Upwork leaves the proposal
-  // of a filled job open ("Invitation accepted", annotated OnHold), so the job's own state decides — hires reaching the
-  // number sought, or the posting closed. A proposal that became my contract is never over here.
+  // A proposal is over when Upwork closed it (declined, archived, withdrawn) or put it on hold: a client who hires someone
+  // else or closes the job leaves the other proposals open but on hold (annotated OnHold) and drops them from every list —
+  // recoverProposals reads those one by one. Its job's page, when Upwork lets it be opened, says which of the two it was.
   function shut(p) {
-    if (p.closed) return { label: p.statusLabel, reason: p.reason, at: p.modified || p.created };
-    var j = S.jobs[p.jobId], room = proposalRoom(p);
-    if (!j || !j.over || p.status === "Offered" || (room && room.contractId)) return null;
-    return { label: j.hired ? "Hired someone else" : "Job closed", reason: "", hired: !!j.hired, at: Math.max(p.modified, p.created) };
+    if (!p.closed) return null;
+    return { label: p.statusLabel, reason: p.reason, hired: !!p.onHold || p.statusLabel === "Hired someone else", at: p.modified || p.created };
   }
   function classify(p, now) {
     var live = LIVE_DAYS * DAY, s = shut(p);
@@ -2088,15 +2086,12 @@
     var now = Date.now();
     var groups = { waiting: [], discussing: [], closed: [] };
     // In talks: every proposal with a live chat, newest message first; whose turn it is shows on the row (Your move is where attention goes)
-    S.proposals.forEach(function (p) {
-      var g = classify(p, now); if (!g) return;
-      groups[g].push(p);
-      if (g !== "closed") fetchJob(p.jobId); // a listed open proposal: is its job still open?
-    });
+    S.proposals.forEach(function (p) { var g = classify(p, now); if (g) groups[g].push(p); });
     // A proposal chat whose proposal is not in the list (sent before the window): still a live discussion.
     var known = {};
     S.proposals.forEach(function (p) { var r = proposalRoom(p); if (r) known[r.id] = true; });
-    var loose = (S.rooms || []).filter(function (r) {
+    // While proposals are still being read, an unmatched chat is most likely one of them: shown once that is done.
+    var loose = upPending() ? [] : (S.rooms || []).filter(function (r) {
       return r.roomType === "INTERVIEW" && !r.contractId && !known[r.id] && hasChat(r) && now - roomAct(r) < LIVE_DAYS * DAY;
     });
     $("cntPDiscussing").textContent = groups.discussing.length + loose.length;
@@ -2107,7 +2102,6 @@
     var key = function (x) { return S.ptab === "discussing" ? roomAct(x._room || proposalRoom(x)) : S.ptab === "closed" ? shut(x).at : x.created; };
     list.sort(function (a, b) { return key(b) - key(a); });
     clear(host);
-    if (S.checkErr) host.appendChild(el("div", "err", "Can't check on Upwork whether these jobs are filled or closed, so some may belong under Closed. " + errText(S.checkErr, UPWORK)));
     if (!list.length) {
       host.appendChild(el("div", "empty", S.ptab === "discussing" ? "No proposal chats in the last " + LIVE_DAYS + " days." :S.ptab === "waiting" ? "No proposals sent in the last " + LIVE_DAYS + " days without a reply." : "Nothing closed in the last " + LIVE_DAYS + " days."));
       return;
@@ -2118,7 +2112,7 @@
   }
   // Closed, in two groups: the ones we talked on first — who left for someone else, or closed — then the quiet ones, folded.
   function closedInto(host, list, now) {
-    var talked = list.filter(function (p) { return hasChat(proposalRoom(p)); }), quiet = list.filter(function (p) { return !hasChat(proposalRoom(p)); });
+    var talked = list.filter(function (p) { return !!proposalRoom(p); }), quiet = list.filter(function (p) { return !proposalRoom(p); });
     if (talked.length) {
       var h = el("div", "day"); h.appendChild(el("span", "", "After talks · " + talked.length)); host.appendChild(h);
       talked.forEach(function (p) { host.appendChild(proposalItem(p, now)); });
@@ -2300,18 +2294,23 @@
   // throttled call waits as told and goes again, and its kind of call is paced from then on, instead of reading as "no chat"
   // or "no job" for the rest of the load.
   var upQ = [], upBusy = 0, upLive = 0, upSeq = 0, upHold = {}, upGap = {}, upTimer = null; // upLive: proposal checks in flight
-  var UP_PAR = 4, UP_PACE = { jobs: 5200, all: 1100 }, UP_TRIES = 4;
+  var UP_PAR = 4, UP_PACE = { jobs: 6000, all: 1100 }, UP_TRIES = 8;
+  upGap.jobs = UP_PACE.jobs; // job pages one at a time, seconds apart: Upwork refuses them opened in quick succession
   function upKind(tool) { return tool === "upwork__find_jobs" ? "jobs" : "all"; }
   function throttled(err) { return !!err && err.code === "tool_error" && /RATE_LIMIT_EXCEEDED/.test(String(err.message || "") + " " + JSON.stringify(err.result || "")); }
   function upCall(tool, input, opts, prio) { // prio: 0 first (default), higher later
-    var prop = tool === "upwork__find_jobs" || tool === "upwork__list_freelancer_proposals" || (input && input.action === "find_room");
+    var prop = tool === "upwork__list_freelancer_proposals" || (input && input.action === "find_room"); // what the Proposals list waits for (a job page is background)
     return new Promise(function (ok, bad) { upQ.push({ tool: tool, input: input, opts: opts, prio: prio || 0, seq: upSeq++, tries: 0, prop: prop, ok: ok, bad: bad }); upPump(); });
   }
-  // while the proposals are still being checked with Upwork, a line runs along the list's top edge — rows move between the tabs until it stops
+  // while the proposals are still being read, a line runs along the list's top edge — rows move between the tabs until it stops
+  function upPending() { return upLive > 0 || upQ.some(function (t) { return t.prop; }); }
+  var upWasOn = false;
   function upStatus() {
     var c = $("propCard"); if (!c) return;
-    var on = upLive > 0 || upQ.some(function (t) { return t.prop; });
+    var on = upPending();
     c.classList.toggle("loading", on); c.setAttribute("aria-busy", on ? "true" : "false");
+    if (upWasOn && !on) setTimeout(renderApplied, 0); // settled: the chats left unmatched show now
+    upWasOn = on;
   }
   function upPump() {
     clearTimeout(upTimer); upTimer = null;
@@ -2328,6 +2327,7 @@
     upStatus();
   }
   function upRun(t) {
+    if (t.tool === "upwork__find_jobs" && S.jobsStop) { upBusy--; if (t.prop) upLive--; t.bad({ code: "skipped", message: "job pages paused for this load" }); upPump(); return; } // Upwork said "opened too quickly"
     MCP.callTool(UPWORK, t.tool, t.input, t.opts).then(function (res) { upBusy--; if (t.prop) upLive--; t.ok(res); upPump(); }, function (err) {
       upBusy--; if (t.prop) upLive--;
       if (throttled(err) && t.tries < UP_TRIES) {
@@ -2527,10 +2527,21 @@
     { status: "Accepted", sort: "CREATEDDATETIME", closed: false },
     { status: "Activated", sort: "CREATEDDATETIME", closed: false }, // the client opened a chat on the proposal (the API labels it "Invitation accepted")
     { status: "Offered", sort: "CREATEDDATETIME", closed: false },
-    { status: "Archived", sort: "MODIFIEDDATETIME", closed: true },
-    { status: "Declined", sort: "MODIFIEDDATETIME", closed: true },
-    { status: "Withdrawn", sort: "MODIFIEDDATETIME", closed: true }
-  ];
+    { status: "Archived", sort: "MODIFIEDDATETIME", closed: true }
+  ]; // Declined, Withdrawn and Hired come back empty from this connector: recoverProposals finds those one by one
+  // What this browser already knows for good: a proposal that is over (it never reopens), a proposal's chat, how a job ended.
+  // Later loads skip those reads. Browser storage: per device, may be empty — then the reads simply run again.
+  var MEM_KEY = "pulse.proposals." + ORG;
+  var MEM = (function () { try { var m = JSON.parse(localStorage.getItem(MEM_KEY) || "{}"); return m && typeof m === "object" ? m : {}; } catch (e) { return {}; } })();
+  MEM.finals = MEM.finals || {}; MEM.rooms = MEM.rooms || {}; MEM.jobs = MEM.jobs || {};
+  function memSave() {
+    try {
+      var old = Date.now() - 90 * DAY;
+      Object.keys(MEM.finals).forEach(function (id) { if (!(MEM.finals[id].at > old)) { delete MEM.finals[id]; delete MEM.rooms[id]; } });
+      Object.keys(MEM.jobs).forEach(function (id) { if (!(MEM.jobs[id].at > old)) delete MEM.jobs[id]; });
+      localStorage.setItem(MEM_KEY, JSON.stringify(MEM));
+    } catch (e) {}
+  }
   var propParts = {}, proposalsLoading = false;
   function loadProposalSource(src, cutoff) {
     var out = [];
@@ -2556,7 +2567,6 @@
     if (!MCP || proposalsLoading) return; proposalsLoading = true;
     var now = Date.now();
     Object.keys(S.extra).forEach(function (id) { S.extra[id].stale = true; }); // read again, shown as they were meanwhile
-    Object.keys(S.jobs).forEach(function (id) { if (!S.jobs[id].over && !S.jobs[id].pending) delete S.jobs[id]; }); // a filled job stays filled
     Promise.all(PROPOSAL_SOURCES.map(function (src) {
       return loadProposalSource(src, now - (src.closed ? LIVE_DAYS : FETCH_DAYS) * DAY).then(function (list) { propParts[src.status] = list; }, function (err) {
         if (src.status === "Accepted") { S.proposalsErr = err; if (isDenial(err)) S.proposals = null; }
@@ -2567,62 +2577,87 @@
     }).then(function () { proposalsLoading = false; }, function () { proposalsLoading = false; });
   }
   function mergeProposals() {
-    var seen = {}, all = [];
-    PROPOSAL_SOURCES.forEach(function (src) { (propParts[src.status] || []).forEach(function (p) { if (!seen[p.id]) { seen[p.id] = true; all.push(p); delete S.extra[p.id]; } }); });
+    var seen = {}, all = [], changed = false;
+    PROPOSAL_SOURCES.forEach(function (src) { (propParts[src.status] || []).forEach(function (p) {
+      if (seen[p.id]) return;
+      seen[p.id] = true; all.push(p); delete S.extra[p.id];
+      if (!p.closed && MEM.finals[p.id]) { delete MEM.finals[p.id]; changed = true; } // back in a list as open: it was not over after all
+    }); });
     Object.keys(S.extra).forEach(function (id) { var x = S.extra[id]; if (x.p && !seen[id]) { seen[id] = true; all.push(x.p); } });
+    if (changed) memSave();
     S.proposals = all;
     S.proposalsErr = null;
-    S.proposals.forEach(function (p) { var r = S.prooms[p.id]; if (!r || (!p.closed && !r.pending && !r.room)) fetchProposalRoom(p); }); // no room yet: the client may have opened one since (a closed one is looked up once, for Closed → After talks)
+    all.forEach(roomFor);
     renderApplied(); renderLeads();
     recoverProposals();
   }
-  // Upwork's list leaves some proposals out — the open ones it annotates OnHold, as it does when the client hires someone
-  // else — so their chats would look like chats without a proposal. Every proposal Notion has as sent in the window that no
-  // list returned is read on its own.
+  // A sent proposal (a Proposals row in Notion, in the window) that no list returned: over and remembered → drawn from its row
+  // with no call; otherwise read on its own, and what that read says that is final is remembered.
   function recoverProposals() {
     if (!S.proposals) return;
-    var have = {}, cutoff = Date.now() - FETCH_DAYS * DAY;
-    S.proposals.forEach(function (p) { if (!S.extra[p.id]) have[p.id] = true; }); // returned by a list
+    var listed = {}, cutoff = Date.now() - FETCH_DAYS * DAY;
+    S.proposals.forEach(function (p) { if (!S.extra[p.id]) listed[p.id] = true; });
     Object.keys(S.sentById).forEach(function (id) {
-      var x = S.extra[id], written = Date.parse(S.sentById[id]["date:Written:start"] || "");
-      if (have[id] || !/^\d+$/.test(id) || !(written >= cutoff) || (x && (x.pending || !x.stale))) return;
+      var row = S.sentById[id], x = S.extra[id], written = Date.parse(row["date:Written:start"] || "");
+      if (listed[id] || !/^\d+$/.test(id) || !(written >= cutoff) || (x && (x.pending || !x.stale))) return;
+      if (MEM.finals[id]) { putExtra(id, rememberedProposal(row, MEM.finals[id])); return; }
       S.extra[id] = { pending: true, p: x && x.p };
       upCall("upwork__list_freelancer_proposals", { action: "get", org_uid: ORG, params: { id: id } }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
-        var vp = ((payloadOf(res) || {}).data || {}).vendorProposal, p = vp && vp.id ? mapProposal(vp, false) : null;
-        S.extra[id] = { p: p && p.status !== "Hired" ? p : null }; // a hire is a contract, shown under Contracts
-        var at = -1; S.proposals.forEach(function (q, i) { if (q.id === id) at = i; });
-        if (at >= 0) S.proposals.splice(at, 1);
-        if (S.extra[id].p) { S.proposals.push(S.extra[id].p); if (!S.prooms[id]) fetchProposalRoom(S.extra[id].p); }
-        renderApplied(); renderLeads();
-      }, function (err) { S.extra[id] = { p: x && x.p }; checkFailed(err); });
+        var pl = payloadOf(res) || {}, vp = (pl.data || {}).vendorProposal, p = vp && vp.id ? mapProposal(vp, false) : null;
+        if (pl.room_id) MEM.rooms[id] = String(pl.room_id);
+        if (p && p.status === "Hired") p = null; // a hire is a contract, shown under Contracts
+        else if (p && !p.closed && (vp.annotations || []).indexOf("OnHold") >= 0) { p.closed = true; p.onHold = true; p.statusLabel = jobLabel(p.jobId); p.reason = ""; }
+        if (p && p.closed) MEM.finals[id] = { label: p.onHold ? "" : p.statusLabel, reason: p.reason, at: p.modified || p.created, onHold: !!p.onHold };
+        memSave();
+        if (p && p.onHold) checkJob(p);
+        putExtra(id, p);
+      }, function () { S.extra[id] = { p: x && x.p }; });
     });
   }
-  // A check that could not run at all (the page may not call find_jobs yet, the connector is down) is said on the list —
-  // otherwise a filled job would stay in Sent / In talks with no sign why. A job that is gone or private is not such a failure.
-  function checkFailed(err) {
-    if (!err || err.code === "tool_error") return; // a job that is gone, or Upwork still throttling after the retries
-    S.checkErr = err; renderApplied();
+  function putExtra(id, p) {
+    S.extra[id] = { p: p };
+    var at = -1; S.proposals.forEach(function (q, i) { if (q.id === id) at = i; });
+    if (at >= 0) S.proposals.splice(at, 1);
+    if (p) { S.proposals.push(p); roomFor(p); }
+    renderApplied(); renderLeads();
   }
-  // The posting behind an open proposal: filled (hires reach the number sought; 0 sought counts as 1) or closed.
-  function fetchJob(id) {
-    if (!id || (S.jobs[id] && !(S.jobs[id].retry < Date.now()))) return;
-    S.jobs[id] = { pending: true };
-    upCall("upwork__find_jobs", { action: "get", org_uid: ORG, params: { id: id } }, { cache: { staleTime: 3600000, gcTime: 86400000 } }, 2).then(function (res) {
-      var jp = ((payloadOf(res) || {}).data || {}).marketplaceJobPosting;
-      if (!jp) { S.jobs[id] = { err: true }; return; }
-      if (S.checkErr) { S.checkErr = null; renderApplied(); }
-      var hired = num(((jp.activityStat || {}).jobActivity || {}).totalHired) || 0, sought = num((jp.contractTerms || {}).personsToHire) || 1;
-      S.jobs[id] = { hired: hired, over: hired >= sought || /^closed$/i.test((jp.workFlowState || {}).status || "") };
-      if (S.jobs[id].over) { renderApplied(); renderLeads(); }
-    }, function (err) { // gone or private (a tool error): nothing is known, the proposal stays as Upwork has it; still throttled: asked again in a minute
-      S.jobs[id] = throttled(err) ? { err: true, retry: Date.now() + 60000 } : { err: true }; checkFailed(err);
-    });
+  function rememberedProposal(row, f) { // a proposal this browser knows is over, drawn from its Proposals row and the card
+    var jobId = String(row["Job ID"] || ""), card = S.appliedNotion[jobId] || S.leadsById[jobId], created = Date.parse(row["date:Written:start"] || "") || 0;
+    var p = {
+      id: String(row["Proposal ID"]), jobId: jobId, title: unesc(row.Title || "Untitled"),
+      url: card && card.Link ? String(card.Link) : jobId ? "https://www.upwork.com/jobs/~02" + jobId : null,
+      created: created, modified: f.at || created, rate: card ? myPrice(card) : "", bid: num(row.Boost) || null,
+      status: "Closed", statusLabel: f.onHold ? jobLabel(jobId) : f.label, reason: f.reason || "", closed: true, onHold: !!f.onHold
+    };
+    if (p.onHold) checkJob(p);
+    return p;
   }
-  function fetchProposalRoom(p) {
+  function jobLabel(jobId) { return MEM.jobs[jobId] ? MEM.jobs[jobId].label : "Client moved on"; }
+  // How an on-hold proposal's job ended: its page, opened in the background, once per job and one at a time. When Upwork
+  // refuses ("opened too quickly"), no more job pages this load; the label stays "Client moved on" until a later load.
+  function checkJob(p) {
+    if (!p.jobId || MEM.jobs[p.jobId] || S.jobTried[p.jobId] || S.jobsStop) return;
+    S.jobTried[p.jobId] = true;
+    upCall("upwork__find_jobs", { action: "get", org_uid: ORG, params: { id: p.jobId } }, { cache: { staleTime: 3600000, gcTime: 86400000 } }, 2).then(function (res) {
+      var jp = ((payloadOf(res) || {}).data || {}).marketplaceJobPosting; if (!jp) return;
+      var hired = num(((jp.activityStat || {}).jobActivity || {}).totalHired) || 0;
+      MEM.jobs[p.jobId] = { label: hired ? "Hired someone else" : "Job closed", at: Date.now() }; memSave();
+      (S.proposals || []).forEach(function (q) { if (q.jobId === p.jobId && q.onHold) q.statusLabel = MEM.jobs[p.jobId].label; });
+      renderApplied();
+    }, function (err) { if (/opened too quickly/i.test(String((err && err.message) || "") + JSON.stringify((err && err.result) || ""))) S.jobsStop = true; });
+  }
+  // A proposal's chat: remembered, or looked up once the client has opened one (Activated, Offered); a submitted proposal has none.
+  function roomFor(p) {
+    var r = S.prooms[p.id]; if (r && (r.room || r.pending)) return;
+    if (MEM.rooms[p.id]) { S.prooms[p.id] = { room: { id: MEM.rooms[p.id] } }; return; }
+    if (!/^(Activated|Offered)$/.test(p.status || "")) { S.prooms[p.id] = { room: null }; return; }
     S.prooms[p.id] = { pending: true };
-    upCall("upwork__get_messages", { action: "find_room", org_uid: ORG, params: { context_type: "proposal", context_id: p.id } }, { cache: { staleTime: 300000, gcTime: 86400000 } }, p.status === "Activated" ? 0 : 1) // Activated: the client opened a chat
-      .then(function (res) { var pl = payloadOf(res) || {}; S.prooms[p.id] = { room: ((pl.data || {}).proposalRoom) || null }; renderApplied(); },
-            function (err) { S.prooms[p.id] = err && err.code === "tool_error" && !throttled(err) ? { room: null } : { err: err }; renderApplied(); });
+    upCall("upwork__get_messages", { action: "find_room", org_uid: ORG, params: { context_type: "proposal", context_id: p.id } }, { cache: { staleTime: 300000, gcTime: 86400000 } }, 1)
+      .then(function (res) {
+        var room = ((payloadOf(res) || {}).data || {}).proposalRoom || null;
+        if (room && room.id) { MEM.rooms[p.id] = room.id; memSave(); }
+        S.prooms[p.id] = { room: room }; renderApplied();
+      }, function (err) { S.prooms[p.id] = err && err.code === "tool_error" && !throttled(err) ? { room: null } : { err: err }; renderApplied(); });
   }
   function renderBalance() {
     if (S.balanceErr && !S.balance) { $("balanceValue").textContent = "—"; $("balanceSub").textContent = errText(S.balanceErr, UPWORK); return; }
@@ -2680,7 +2715,7 @@
       ["", "Your proposals from Upwork. A proposal stays here while something happens on it; after " + LIVE_DAYS + " quiet days it drops off."],
       ["Sent", "sent, no reply from the client yet."],
       ["In talks", "the client replied; newest message first. A chat where the next message is yours is marked Your turn and is in Your move as well."],
-      ["Closed", "declined, archived or withdrawn, or the job is over: the client hired someone else or closed the posting (Upwork keeps such a proposal open, so the page checks the job itself). After talks first — the ones with a chat, how each ended and who wrote last — then No reply, folded."],
+      ["Closed", "declined, archived or withdrawn, or the client moved on: hired someone else or closed the job (Upwork puts such a proposal on hold; its job, when it can be opened, says which). After talks first — the ones with a chat, how each ended and who wrote last — then No reply, folded."],
       ["Drawer", "the proposal's terms, What you sent — the copy kept in Notion's Proposals, synced from Upwork by the digests — and the job it was for."]
     ];
   });
