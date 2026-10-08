@@ -52,6 +52,19 @@
   .status { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-mute); }
   .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); display: inline-block; margin-right: 6px; vertical-align: middle; }
   .live-dot.on { background: var(--good); }
+  .live-dot.bad { background: var(--critical); }
+  /* the live line is the status button: green dot when all runs well, red with a short note when something is degraded */
+  .livebtn { border: 0; background: transparent; font: inherit; color: inherit; padding: 4px 8px; margin: 0 -8px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+  .livebtn:hover, .livebtn[aria-expanded="true"] { background: var(--surface-2); color: var(--text-2); }
+  .livebtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .live-issue { color: var(--critical); }
+  .stat-pop { padding: 6px 4px; }
+  .st-row { display: grid; grid-template-columns: 6px minmax(0, 1fr); gap: 2px 10px; padding: 8px 10px; }
+  .st-row::before { content: ""; grid-row: 1; grid-column: 1; width: 6px; height: 6px; margin-top: 7px; border-radius: 50%; background: var(--good); }
+  .st-row.bad::before { background: var(--critical); }
+  .st-row.wait::before { background: var(--border); }
+  .st-row b { grid-column: 2; font-weight: 500; font-size: 14px; color: var(--text); }
+  .st-row span { grid-column: 2; font-size: 12.5px; line-height: 1.45; color: var(--text-mute); }
   .btn { border: 1px solid var(--border); background: transparent; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12.5px; color: var(--text-2); }
   .btn:hover { color: var(--text); border-color: var(--text-mute); }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
@@ -486,7 +499,10 @@
   <div class="pills" id="pills"></div>
   <span class="sp"></span>
   <div class="status">
-    <span id="liveStatus"><span class="live-dot" id="liveDot"></span><span id="liveText">Connecting…</span></span>
+    <div class="setwrap">
+      <button class="livebtn" id="liveStatus" type="button" aria-expanded="false" aria-controls="statusPop" title="Status"><span class="live-dot" id="liveDot"></span><span id="liveText">Connecting…</span><span class="live-issue" id="liveIssue" hidden></span></button>
+      <div class="set-pop stat-pop" id="statusPop" role="dialog" aria-label="Status" hidden></div>
+    </div>
     <button class="btn" id="refreshBtn" type="button">Refresh</button>
     <div class="setwrap" id="setWrap" hidden>
       <button class="btn" id="settingsBtn" type="button" aria-expanded="false" aria-controls="setPop"><svg class="gear" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Settings</button>
@@ -789,7 +805,7 @@
   function touch(result) {
     var t = result && result.cache && result.cache.storedAt ? result.cache.storedAt : Date.now();
     if (t > S.lastUpdate) S.lastUpdate = t;
-    var d = $("liveDot"); d.className = "live-dot on";
+    $("liveDot").className = "live-dot " + (S.degraded ? "bad" : "on");
     var w = wallOf(S.lastUpdate);
     $("liveText").textContent = "Live · updated " + fmtWall(w, dayKey(w) !== dayKey(wallNow()));
   }
@@ -968,7 +984,7 @@
     return set;
   }
   function leadTime(r) { return wallFromNotion(r["date:Published:start"]) || wallFromNotion(r["date:Found:start"]); }
-  function renderLeads() {
+  function renderLeads() { renderStatus();
     var host = $("leadList");
     if (S.leadsErr && !S.leads) return errBox(host, S.leadsErr, NOTION);
     if (!S.leads) return;
@@ -1538,7 +1554,7 @@
 
   // ---------- settings and notices from the config ----------
   function renderLeadNotice() {
-    var host = $("leadNotice"); clear(host);
+    var host = $("leadNotice"); clear(host); renderStatus();
     if (S.cfg.loaded && S.cfg.update_error) {
       var e = el("div", "banner alert");
       e.appendChild(el("span", "", "The pipeline update stopped: " + S.cfg.update_error + ". The scheduled runs are paused until it is finished \u2014 open a chat with Claude and say \u201cupdate the pipeline\u201d."));
@@ -1604,8 +1620,56 @@
     }, function () {});
   }
 
+  // Upwork refuses job pages opened too fast; the hourly run then pauses them and defers what it found (Run state, hourly.md §4)
+  function checkJobPages() {
+    if (!S.cfg.state) { S.jobPages = null; return; }
+    MCP.callTool(NOTION, "notion-fetch", { id: S.cfg.state }, { cache: { staleTime: 300000, gcTime: 86400000 } }).then(function (res) {
+      var p = payloadOf(res), txt = p && typeof p === "object" ? p.text : (typeof p === "string" ? p : "");
+      var pause = /JOB_PAGES_PAUSE:\s*(\S+)/.exec(txt || ""), def = /DEFERRED:\s*([^\n<]*)/.exec(txt || "");
+      var until = pause ? Date.parse(pause[1]) : NaN, old = Date.now() - 2 * DAY;
+      var waiting = def ? def[1].split(",").filter(function (x) { var t = Date.parse((x.split("@")[1] || "").trim()); return /\d/.test(x) && !(t < old); }).length : 0;
+      S.jobPages = { until: until > Date.now() ? until : null, waiting: waiting };
+      renderStatus();
+    }, function () {});
+  }
+
+  // ---------- status: the live line in the header, the details on click ----------
+  // each row: [ok | bad | wait, title, details, the short note the live line shows when bad]
+  function statusRows() {
+    var rows = [], jp = S.jobPages, sc = S.scanner, c = S.cfg || {};
+    rows.push(!sc ? ["wait", "Job scanner", "Loading the last runs\u2026"]
+      : sc.idle ? ["bad", "Job scanner idle for " + ago(sc.age), "No hourly run since " + fmtWall(sc.w, true) + ". Check the hourly search task in Claude.", "scanner idle"]
+      : sc.rulesFailed ? ["bad", "Job scanner can't read Search rules", "The last hourly run could not read the Search rules page, so it searched nothing. Check that the page is there and not empty.", "rules unreadable"]
+      : ["ok", "Job scanner", "Ran " + ago(sc.age) + " ago \u00b7 " + sc.what + "."]);
+    if (jp && (jp.until || jp.waiting)) {
+      var until = jp.until ? fmtWall(wallOf(jp.until), wallOf(jp.until) - wallNow() > 12 * 3600000) : null;
+      rows.push(["bad", until ? "Job pages paused until " + until : "Leads waiting for their pages",
+        "Upwork refuses job pages opened too fast and says nothing about how long, so the hourly run waits instead of retrying: 1 hour, then 2, 4, up to 8. The searches go on"
+        + (jp.waiting ? "; " + jp.waiting + (jp.waiting === 1 ? " lead found waits" : " leads found wait") + " for a page and get" + (jp.waiting === 1 ? "s" : "") + " a card once pages open, newest first. One older than 48 hours is dropped." : ", and leads found meanwhile get cards once pages open."),
+        until ? "job pages paused" : "leads waiting"]);
+    } else rows.push(["ok", "Job pages", "Upwork opens them; new leads get cards as they are found."]);
+    var nErr = isDenial(S.leadsErr) ? S.leadsErr : null, uErr = [S.dashErr, S.connectsErr, S.balanceErr, S.roomsErr].filter(isDenial)[0];
+    rows.push(nErr || uErr ? ["bad", (nErr ? "Notion" : "Upwork") + " connector needs attention", errText(nErr || uErr, nErr ? NOTION : UPWORK), (nErr ? "Notion" : "Upwork") + " disconnected"]
+      : ["ok", "Notion and Upwork", "Both connectors answer."]);
+    if (c.loaded && c.update_error) rows.push(["bad", "Pipeline update stopped", c.update_error + ". The scheduled runs are paused until a chat with Claude finishes it (\u201cupdate the pipeline\u201d).", "update stopped"]);
+    else if (c.loaded && !(c.schema >= SCHEMA)) rows.push(["bad", c.updating ? "Pipeline update running" : "Pipeline update pending", "Leads show without numbers until the pipeline is on the new version; the next hourly run or a chat with Claude does it.", "updating"]);
+    else if (c.loaded && c.schema > SCHEMA) rows.push(["bad", "Dashboard older than the pipeline", "Some values may show wrong until the next hourly run republishes this page.", "dashboard outdated"]);
+    if (c.auto_drafts === "on" && S.guideIssue) rows.push(["bad", "Proposal guide not filled", "Auto proposals are on, but the guide " + S.guideIssue + ": Claude writes advice only until it is.", "guide not filled"]);
+    return rows;
+  }
+  function renderStatus() {
+    var rows = statusRows(), bad = rows.filter(function (r) { return r[0] === "bad"; });
+    S.degraded = bad.length > 0;
+    if (S.lastUpdate || S.degraded) $("liveDot").className = "live-dot " + (S.degraded ? "bad" : "on");
+    var issue = $("liveIssue"); issue.hidden = !bad.length;
+    issue.textContent = !bad.length ? "" : " \u00b7 " + (bad.length > 1 ? bad.length + " issues" : bad[0][3]);
+    var pop = $("statusPop"); clear(pop);
+    rows.forEach(function (r) { var d = el("div", "st-row " + r[0]); d.appendChild(el("b", "", r[1])); d.appendChild(el("span", "", r[2])); pop.appendChild(d); });
+  }
+
+
   // ---------- rendering: stats from Upwork ----------
-  function renderConnects() {
+  function renderConnects() { renderStatus();
     if (S.connectsErr && !S.connects) { $("connectsValue").textContent = "—"; $("connectsSub").textContent = errText(S.connectsErr, UPWORK); return; }
     var p = S.connects; if (!p) return;
     var b = p.balance || {};
@@ -1689,7 +1753,7 @@
     var reply = !!room && (myTurn(room) || (room.numUnread || 0) > 0);
     return reply || late.length ? { reply: reply, late: late, room: room } : null;
   }
-  function renderContracts() {
+  function renderContracts() { renderStatus();
     var host = $("contractList");
     renderSoon();
     if (S.dashErr && !S.dash) { errBox(host, S.dashErr, UPWORK); return; }
@@ -2258,6 +2322,7 @@
     var today = rows.filter(function (x) { return dayKey(x.w) === dayKey(now); });
     var found = today.reduce(function (a, x) { return a + (x.r.Take || 0); }, 0);
     var what = last.r.Status === "ok" ? "found " + (last.r.Take || 0) + " take, " + (last.r.Maybe || 0) + " maybe" : last.r.Status === "partial" ? "hit its budget, continues next run" : "nothing new";
+    S.scanner = { age: age, w: last.w, idle: age > 3 * 3600000, what: what, rulesFailed: /rules read failed/i.test(last.r.Window || "") }; renderStatus();
     if (age > 3 * 3600000) host.appendChild(el("span", "chip bad", "Job scanner idle for " + ago(age) + " — check the hourly search task"));
     else host.appendChild(el("span", "", "Job scanner ran " + ago(age) + " ago · " + what));
   }
@@ -2374,7 +2439,8 @@
       S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide"), proposals: key("proposals"), updating: key("updating"), update_error: key("update_error"), skill_version: key("skill_version"), dashboard_version: key("dashboard_version") };
       var cp = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\s*(.*)$/i.exec(key("chat_project") || ""); // `<project id> <name>`, or `none`
       S.cfg.chat_project = cp ? cp[1] : null; S.cfg.chat_project_name = cp ? (cp[2] || "A project") : null;
-      renderSettings(); checkGuide();
+      S.cfg.state = key("state");
+      renderSettings(); checkGuide(); checkJobPages();
     }, function () { S.matchScore = null; renderSettings(); });
   }
   function loadSkipped(more) { // the Skipped view, newest skip first; one page now, the next on "Show more days"
@@ -2699,6 +2765,12 @@
   }
   document.addEventListener("click", closeInfos);
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeInfos(); });
+  $("liveStatus").addEventListener("click", function (e) { // the status details; closes like the ⓘ notes
+    e.stopPropagation(); var pop = $("statusPop"), open = pop.hidden; closeInfos(); closeSettings();
+    if (open) { renderStatus(); pop.hidden = false; this.setAttribute("aria-expanded", "true"); }
+  });
+  $("statusPop").addEventListener("click", function (e) { e.stopPropagation(); });
+  infos.push([$("liveStatus"), $("statusPop")]);
   addInfo("hLeads", function () {
     return [
       ["", "Cards with status New in Notion, minus jobs you have already applied to on Upwork. Take and Maybe are the hourly scan's verdicts."],
