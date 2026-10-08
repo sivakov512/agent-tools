@@ -86,6 +86,7 @@
     return fetchText(ROOT_PAGE, STRUCT).then(function (txt) {
       var ids = {};
       ["projects", "milestones", "tasks", "problems", "open_items"].forEach(function (k) { var m = new RegExp("\\b" + k + ":\\s*`?([0-9a-f-]{32,36})").exec(txt); if (m) ids[k] = m[1]; });
+      var rp = /\bref_prefixes:\s*`?([A-Za-z0-9 ,-]+)/.exec(txt); if (rp) PT.setRefPrefixes(rp[1]); // the Ref prefixes in use; without the line, the usual four
       if (ids.open_items && !ids.tasks) throw { code: "config", message: "This tracker was made by version 0.x of the skill. Ask Claude in chat to upgrade it.", chat: "Upgrade my project tracker to the new version." };
       if (!ids.projects || !ids.problems) throw { code: "config", message: "The tracker's config toggle is missing database IDs. Run setup in chat to fix it.", chat: "Set up the project tracker: its config is missing database IDs." };
       var dbs = {}, re = /<database url="([^"]+)"[^>]*data-source-url="\{*collection:\/\/([0-9a-f-]+)\}*"/g, m;

@@ -68,6 +68,8 @@ CREATE TABLE ("Name" TITLE, "Project" RELATION('<projects>'),
   "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude')
 ```
 
+`Ref`'s prefix must be free in the whole Notion workspace, not only in this database: when a create is refused with `Unique ID prefix is already in use` (another tracker or database has it, or a deleted `Ref` still holds it), create that database without its `Ref` line and give it `Ref` as **Tracker update** → 4 → 5, step 1 says — another prefix, recorded in the config.
+
 Then the computed columns, with `notion-update-data-source` `statements`, one `ADD COLUMN` per call (without the trailing `;`), in this order (formulas that reach into another database are rejected by the API, so statuses from other databases come in through rollups):
 
 ```sql
@@ -127,7 +129,7 @@ Project, milestone and task pages then open at full width, and a milestone page 
 
 ## 3. Config
 
-The config toggle gets the four data source IDs and the structure's version, `schema` (**Tracker update** says what it means), as its lines:
+The config toggle gets the four data source IDs, the `Ref` prefixes in use (projects, milestones, tasks, problems, in that order) and the structure's version, `schema` (**Tracker update** says what it means), as its lines:
 
 ```
 <details color="gray_bg">
@@ -136,6 +138,7 @@ The config toggle gets the four data source IDs and the structure's version, `sc
 	milestones: `<milestones>`
 	tasks: `<tasks>`
 	problems: `<problems>`
+	ref_prefixes: PR, MS, TK, PB
 	schema: 5
 </details>
 ```
@@ -236,10 +239,11 @@ The closing line names what is new for the user: client dashboards, and that `Cl
 The closing line names what is new for the user: every page — project, milestone, task, problem — can have a description and a checklist (they ask: "add a checklist to the layout task: …"), then Notes, Private notes and History; a client dashboard shows all of it but Private notes; the user's own dashboard needs its update to show the parts (the offer follows).
 
 **4 → 5: `Ref`, an ID per row.**
-1. Each database gets `Ref` (`ADD COLUMN` as in step 2, skipped where it exists): `"Ref" UNIQUE_ID PREFIX 'PR'` on Projects, `'MS'` on Milestones, `'TK'` on Tasks, `'PB'` on Problems. Notion numbers the rows that exist itself, in no set order; nothing is written to them.
-2. The root views show it right after `Name` (`notion-update-view`, the `SHOW` lines of step 4); the project pages' views stay as they are — their rows carry `Ref` all the same.
-3. Write `schema: 5` in the config toggle, as above — last.
+1. Each database gets `Ref` (`ADD COLUMN` as in step 2): `"Ref" UNIQUE_ID PREFIX 'PR'` on Projects, `'MS'` on Milestones, `'TK'` on Tasks, `'PB'` on Problems. A prefix is unique across the whole Notion workspace, so `Unique ID prefix is already in use` is no failure: take the next of `PRJ` / `MST` / `TSK` / `PRB`, then `PR2` / `MS2` / `TK2` / `PB2`, and so on, until one is accepted. Where `Ref` already exists (a column the user added or restored), it stays as it is, and its prefix is read from one row's page fetch (`"Ref":"TK-3"`). Notion numbers the rows that exist itself, in no set order; nothing is written to them.
+2. Write `ref_prefixes: <projects>, <milestones>, <tasks>, <problems>` in the config toggle (the line replaced, or added before `schema`): the prefixes in use. Views give `Ref` as the bare number, so this line is what puts `TK-` in front of it on the dashboard and what an ID the user writes is matched against.
+3. The root views show it right after `Name` (`notion-update-view`, the `SHOW` lines of step 4); the project pages' views stay as they are — their rows carry `Ref` all the same.
+4. Write `schema: 5` in the config toggle, as above — last.
 
-The closing line names what is new for the user: every project, milestone, task and problem has an ID — next to its name on the dashboard and in Notion — to name it in a chat ("link PB-5 to TK-34", "TK-34 is done").
+The closing line names what is new for the user: every project, milestone, task and problem has an ID — next to its name on the dashboard and in Notion — to name it in a chat ("link PB-5 to TK-34", "TK-34 is done"); and, when a prefix other than `PR` / `MS` / `TK` / `PB` was taken, which and why (a deleted `Ref` that holds the usual one can be restored from the database's Properties → deleted properties, with its old numbers).
 
 A future step goes here as **5 → 6**, and the number above moves with it.
