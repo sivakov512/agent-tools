@@ -248,7 +248,7 @@
       var a = ax.a, b = ax.b, t = ax.t, px = ax.px, X = ax.X, LW = ax.LW, rg = ctx.range();
       var months = el("div", "tl-months"); months.appendChild(el("div", "tl-label tl-corner"));
       function line(n, cls) { var g = el("div", "tl-grid" + (cls ? " " + cls : "")); g.style.left = (LW + X(n)) + "px"; tl.appendChild(g); }
-      function underToday(n, w) { return X(t) - X(n) > -8 && X(t) - X(n) < w; }
+      function underToday(n, w) { var d = X(n) - X(t); return d > -w && d < 28; } // a date label w wide would touch the Today tag, centred on today
       var mstarts = [];
       for (var d0 = new Date(a * DAY), mc = Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth(), 1) / DAY; mc < b; d0 = new Date(mc * DAY), mc = Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + 1, 1) / DAY) if (mc >= a) mstarts.push(mc);
       var byMonth = function (n) { return mstarts.some(function (m) { return Math.abs(X(n) - X(m)) < Math.min(30, Math.max(14, 2.5 * px)); }); };
@@ -422,23 +422,30 @@
   function actions(host, items) { var a = el("div", "actions"); items.forEach(function (x) { if (x) a.appendChild(x); }); if (a.childNodes.length) host.appendChild(a); }
   function typeTag(t) { return el("span", "tt " + (t || ""), t || "Item"); }
   function phraseEl(parts) { var s = el("span", "s"); parts.forEach(function (p) { if (!p || !p[0]) return; if (s.childNodes.length) s.appendChild(document.createTextNode(" · ")); s.appendChild(span(p[0], p[1] || "")); }); return s; }
+  function whoOf(p) { var c = p.client || "", o = p.origin || ""; return c && o && c.toLowerCase() === o.toLowerCase() ? c : [c, o].filter(Boolean).join(" · "); } // client · origin, once when they are the same
+  function rowPhrase(m) { // a plan row's line: its status where the timing alone does not say it, then the timing
+    var ph = planPhrase(m), st = null;
+    if (!m.paused && m.status === "In progress" && !/in progress/.test(ph[0])) st = ["in progress", ""];
+    else if (!m.paused && m.status === "Planned" && !/^starts in/.test(ph[0])) st = ["planned", ""];
+    return [st, ph];
+  }
   function problemLines(list, onUs, go) { // the problems on a milestone or task, as one of its page's parts; onUs: how a problem waiting on no one reads (on the user's page, "on you"); go(i, name): a problem's name as a link to it
     if (!list.length) return null;
     var bx = el("div", "part"); bx.appendChild(el("div", "xh", "Problems"));
     var ls = el("div", "plines after-xh");
-    list.forEach(function (i) { var l = el("div", "pline"); l.appendChild(typeTag(i.type)); l.appendChild(go ? go(i, i.name) : span(i.name, "pn")); l.appendChild(span(i.status === "Resolved" ? "resolved" : i.waiting ? "waiting on " + i.waiting : onUs || "on you", "muted")); ls.appendChild(l); });
+    list.forEach(function (i) { var l = el("div", "pline"); l.appendChild(typeTag(i.type)); l.appendChild(go ? go(i, i.name) : span(i.name, "pn")); var stt = i.status === "Resolved" ? "resolved" : i.waiting ? "waiting on " + i.waiting : ""; if (stt) l.appendChild(span(stt, "muted")); ls.appendChild(l); }); // the state only when it says something: a risk, or a question on the user, says nothing
     bx.appendChild(ls); return bx;
   }
   function meta(x, bits) { // the few facts the row's own header does not already say, on one quiet line
     var d = el("div", "meta"); bits.filter(function (b) { return b != null && b !== ""; }).forEach(function (b, n) { if (n) d.appendChild(span(" · ", "sep")); d.appendChild(typeof b === "string" ? span(b) : b); });
     if (d.childNodes.length) x.appendChild(d);
   }
-  function msFacts(x, m) { // the group's header already says the dates, the timing and how many tasks are done
-    meta(x, [m.status + (m.project.status === "Paused" && m.status !== "Done" ? " (project paused)" : ""), m.start == null ? "no dates yet, so it can't show as due or late" : ""]);
+  function msFacts(x, m) { // the group's header already says the status, the dates, the timing and how many tasks are done
+    meta(x, [m.project.status === "Paused" && m.status !== "Done" ? "the project is paused" : ""]);
   }
-  function taskFacts(x, k, go) { // the row's header already says its dates and timing; go(item, text): a link to another item
-    var inMs = null; if (k.ms) { inMs = span("in "); inMs.appendChild(go ? go(k.ms, k.ms.name) : document.createTextNode(k.ms.name)); }
-    meta(x, [k.status + (k.status === "Waiting" && k.waiting ? " on " + k.waiting : ""), inMs, k.start == null ? "no dates" : ""]);
+  function taskFacts(x, k, go, inPlan) { // the row's header already says its status, dates and timing; outside the plan, which milestone it is in; go(item, text): a link to another item
+    var inMs = null; if (k.ms && !inPlan) { inMs = span("in "); inMs.appendChild(go ? go(k.ms, k.ms.name) : document.createTextNode(k.ms.name)); }
+    meta(x, [inMs]);
   }
   // the project at a glance, under its summary: when it ends and when it started, then what extra(pair) adds
   function projectSummary(p, plan, extra) {
@@ -488,13 +495,13 @@
       var k = s.dataset.sec; if (fold) ui.col[k] = 1; else delete ui.col[k];
       s.classList.toggle("folded", fold); s.querySelector(".dsec-h").setAttribute("aria-expanded", String(!fold)); s.querySelector(".dsec-b").hidden = fold;
     }
-    function taskRow(k) { return acc({ k: key(k.url), item: k, tsk: true, dot: itemDot(k), title: k.name, line: phraseEl([planPhrase(k)]), right: k.start == null ? "" : range(k.start, k.end), expand: function (x) { ctx.taskBody(x, k); } }); }
+    function taskRow(k) { return acc({ k: key(k.url), item: k, tsk: true, dot: itemDot(k), title: k.name, line: phraseEl(rowPhrase(k)), right: k.start == null ? "" : range(k.start, k.end), expand: function (x) { ctx.taskBody(x, k, true); } }); }
     function msGroup(m, openByDefault) { // a milestone and everything in it: opening it shows its details, then its tasks
       var k = key(m.url), on = ui.grp[k] != null ? ui.grp[k] : openByDefault, g = el("div", "mgrp" + (on ? " open" : "")), tdn = m.tasks.filter(function (x) { return x.status === "Done"; }).length;
       var h = btn("acc-h mh", null); h.setAttribute("aria-expanded", String(on));
       h.appendChild(el("span", "dot " + itemDot(m)));
       var mid = el("span", "mid"); mid.appendChild(titled("t", m, m.name));
-      mid.appendChild(phraseEl([planPhrase(m), m.tasks.length ? [tdn + " of " + plural(m.tasks.length, "task") + " done", ""] : null]));
+      mid.appendChild(phraseEl(rowPhrase(m).concat([m.tasks.length ? [tdn + " of " + plural(m.tasks.length, "task") + " done", ""] : null])));
       h.appendChild(mid); h.appendChild(el("span", "r", m.start == null ? "" : range(m.start, m.end))); h.insertAdjacentHTML("beforeend", CHEV);
       var b = el("div", "mgrp-b"); b.hidden = !on;
       var det = el("div", "mdet"); b.appendChild(det);
@@ -509,7 +516,7 @@
     function setGroup(g, k, on) { ui.grp[k] = on; if (on && g._fill) g._fill(); g.classList.toggle("open", on); g.querySelector(".mh").setAttribute("aria-expanded", String(on)); g.querySelector(".mgrp-b").hidden = !on; }
     function projectHead(host, p, st, plan, extra, desc) { // who, the name with its state, what the project is (its description), the project at a glance
       var hd = el("header", "dr-head");
-      hd.appendChild(el("div", "dr-who", [p.client, p.origin].filter(Boolean).join(" · ")));
+      hd.appendChild(el("div", "dr-who", whoOf(p)));
       var h = el("div", "dr-h1"), h1 = el("h1", "", p.name), rt = refTag(p); if (rt) h1.appendChild(rt); h.appendChild(h1); if (st.text) h.appendChild(el("span", "pill " + st.cls, st.text)); hd.appendChild(h);
       if (desc) { desc.classList.add("dr-lede"); hd.appendChild(desc); }
       hd.appendChild(projectSummary(p, plan, extra));
@@ -558,6 +565,7 @@
 
   window.PT = {
     DAY: DAY, OPEN_MS: OPEN_MS, OPEN_TASK: OPEN_TASK, SPANS: SPANS, CHEV: CHEV, MON: MON,
+    whoOf: whoOf,
     refOf: refOf, refTag: refTag, titled: titled, copyText: copyText,
     el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, clean: clean, rel: rel, key: key, num: num, plural: plural, smooth: smooth, sel: sel, keep: keep,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
