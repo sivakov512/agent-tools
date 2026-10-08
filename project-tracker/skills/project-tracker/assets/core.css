@@ -466,6 +466,13 @@ details.panel[open] > summary .chev { transform: rotate(90deg); }
 .pline .tt { flex: none; }
 .pline .muted { font-size: 13px; }
 .part-x { margin-top: 18px; }
+.ref { display: inline-block; margin-left: 7px; padding: 1px 5px; border-radius: 4px; background: var(--sunken); color: var(--text-mute); font: 400 11px/1.5 var(--mono); letter-spacing: 0; vertical-align: 1px; white-space: nowrap; cursor: copy; } /* an item's ID, to name it in a chat; a click copies it */
+.ref:hover { color: var(--text-2); }
+.ref.copied::after { content: " ✓"; color: var(--good); }
+h1 .ref { vertical-align: 4px; }
+.ilink { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-2); text-underline-offset: 2px; } /* another item of the tracker: opens it on this page */
+.ilink:hover { color: var(--accent); text-decoration-color: currentColor; }
+.pline .ilink { font-size: 14px; color: var(--text); }
 .x-lede { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--text); max-width: 68ch; } /* a problem's summary, first in its details */
 .dr-head .md.dr-lede { font-size: 15px; color: var(--text-2); }
 .fsum { margin: 0; padding: 13px 16px; font-size: 14.5px; line-height: 1.55; color: var(--text-2); } /* the project's summary: where it stands, in a sentence */

@@ -33,10 +33,11 @@ CREATE TABLE ("Name" TITLE, "Client" RICH_TEXT,
   "Source" URL COMMENT 'Where the project came from; empty for pasted text, email or a local file',
   "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude',
   "Claude project" RICH_TEXT COMMENT 'The claude.ai project its dashboard chats open in: <name> — <project id>; empty = none',
-  "Client dashboard" URL COMMENT 'The client dashboard that shows it; set by Claude')
+  "Client dashboard" URL COMMENT 'The client dashboard that shows it; set by Claude',
+  "Ref" UNIQUE_ID PREFIX 'PR' COMMENT 'Its ID, to name it in a chat (PR-2); numbered by Notion')
 
 -- Milestones
-CREATE TABLE ("Name" TITLE,
+CREATE TABLE ("Name" TITLE, "Ref" UNIQUE_ID PREFIX 'MS' COMMENT 'Its ID, to name it in a chat (MS-12); numbered by Notion',
   "Project" RELATION('<projects>', DUAL 'Milestones'),
   "Status" SELECT('Planned':gray, 'In progress':blue, 'Paused':yellow, 'Done':green, 'Dropped':brown),
   "Dates" DATE COMMENT 'Agreed with the client; drives the Gantt',
@@ -45,7 +46,7 @@ CREATE TABLE ("Name" TITLE,
   "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude')
 
 -- Tasks
-CREATE TABLE ("Name" TITLE,
+CREATE TABLE ("Name" TITLE, "Ref" UNIQUE_ID PREFIX 'TK' COMMENT 'Its ID, to name it in a chat (TK-34); numbered by Notion',
   "Project" RELATION('<projects>', DUAL 'Tasks'),
   "Milestone" RELATION('<milestones>', DUAL 'Tasks'),
   "Status" SELECT('Planned':gray, 'In progress':blue, 'Waiting':yellow, 'Done':green, 'Dropped':brown),
@@ -57,6 +58,7 @@ CREATE TABLE ("Name" TITLE,
 
 -- Problems
 CREATE TABLE ("Name" TITLE, "Project" RELATION('<projects>'),
+  "Ref" UNIQUE_ID PREFIX 'PB' COMMENT 'Its ID, to name it in a chat (PB-5); numbered by Notion',
   "Type" SELECT('Blocker':red, 'Risk':orange, 'Question':blue),
   "Status" SELECT('Open':red, 'Waiting':yellow, 'Resolved':green, 'Dropped':brown),
   "Waiting on" RICH_TEXT,
@@ -88,7 +90,7 @@ ADD COLUMN "Late, days" FORMULA('if(empty(prop("Milestones late")) and empty(pro
 
 Projects ↔ Milestones, Projects ↔ Tasks and Milestones ↔ Tasks are two-way because the project's `Late, days` and the milestone page's task list need the reverse side; Problems point at projects, milestones and tasks one way only, so pages do not grow another backlink list.
 
-Existing databases (an interrupted setup, or a pre-release 1.0 tracker): fetch each data source and add what is missing — the computed columns as above, and these plain columns: `Origin`, `Chat` and `Claude project`, which only pre-release 1.0 trackers lack, `Order`, which schema 1 lacks, and `Client dashboard`, which schema 2 lacks (one call per data source, statements joined by `;`):
+Existing databases (an interrupted setup, or a pre-release 1.0 tracker): fetch each data source and add what is missing — the computed columns as above, and these plain columns: `Origin`, `Chat` and `Claude project`, which only pre-release 1.0 trackers lack, `Order`, which schema 1 lacks, `Client dashboard`, which schema 2 lacks, and `Ref`, which schema 4 lacks (one call per data source, statements joined by `;`):
 
 ```sql
 -- on <projects>
@@ -104,9 +106,12 @@ ADD COLUMN "Order" NUMBER COMMENT 'Position in the plan (1, 2, …), so the orde
 
 -- on <projects>
 ADD COLUMN "Client dashboard" URL COMMENT 'The client dashboard that shows it; set by Claude'
+
+-- on each, with its own prefix: PR <projects>, MS <milestones>, TK <tasks>, PB <problems>
+ADD COLUMN "Ref" UNIQUE_ID PREFIX 'TK' COMMENT 'Its ID, to name it in a chat (TK-34); numbered by Notion'
 ```
 
-A tracker that already has rows and lacks `Order` or `Client dashboard` is brought up by **Tracker update** (after step 8), which also numbers the rows.
+A tracker that already has rows and lacks `Order`, `Client dashboard` or `Ref` is brought up by **Tracker update** (after step 8), which also numbers the rows.
 
 Make every database inline so it renders on the page: `notion-update-data-source`, `is_inline: true`.
 
@@ -131,26 +136,26 @@ The config toggle gets the four data source IDs and the structure's version, `sc
 	milestones: `<milestones>`
 	tasks: `<tasks>`
 	problems: `<problems>`
-	schema: 4
+	schema: 5
 </details>
 ```
 
-Add the missing lines with `update_content` — `old_str` from the fetch (for an empty toggle, `</summary>\n</details>`), lines indented one tab. Never a second toggle. `schema: 4` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
+Add the missing lines with `update_content` — `old_str` from the fetch (for an empty toggle, `</summary>\n</details>`), lines indented one tab. Never a second toggle. `schema: 5` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
 
 ## 4. Views on the databases
 
 Views live on the databases themselves; linked views on the root page would add "View of …" pages to the sidebar. Fetch each database for its views. A new database comes with one view, "Default view", and it is the one the database opens on: it becomes the view marked "(default view)" below — rename and configure it with `notion-update-view`, never create that view anew (it would land after the others, and the database would open on another one). Create the rest with `notion-create-view` (`database_id` + `data_source_id`), in the order listed; fix an existing one with `notion-update-view`, `CLEAR FILTER; CLEAR SORT` first, then its whole configuration below. On an existing database whose first view is not the "(default view)" one, create the missing view and add "drag `<view>` to the first place" to the checklist in step 8. `TIMELINE BY "Dates"` with one date-range property is valid. Filters list the statuses to show rather than the ones to hide, so a status added later never leaks into a view.
 
 ```
-Projects    Active             (default view)  FILTER "Status" IN ("Active", "Paused"); SHOW "Name", "Client", "Origin", "Status", "Late, days", "Summary", "Target end", "Source"
-            Closed             table           FILTER "Status" IN ("Done", "Removed"); SORT BY "Target end" DESC; SHOW "Name", "Client", "Origin", "Status", "Target end", "Source"
-Milestones  Next up            (default view)  FILTER "Status" IN ("Planned", "In progress", "Paused"); GROUP BY "Project"; SORT BY "Order" ASC, "Dates" ASC; SHOW "Name", "Status", "Dates", "Late, days"
-            Timeline           timeline        FILTER "Status" IN ("Planned", "In progress", "Paused"); TIMELINE BY "Dates"; GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Status"
-Tasks       All                (default view)  FILTER "Status" IN ("Planned", "In progress", "Waiting"); GROUP BY "Project"; SORT BY "Dates" ASC, "Order" ASC; SHOW "Name", "Milestone", "Status", "Dates", "Waiting on", "Late, days"
-            Waiting on         table           FILTER "Status" = "Waiting"; GROUP BY "Waiting on"; SORT BY "Dates" ASC; SHOW "Name", "Project", "Milestone", "Dates"
-            Timeline           timeline        FILTER "Status" IN ("Planned", "In progress", "Waiting"); TIMELINE BY "Dates"; GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Status"
-Problems    Open               (default view)  FILTER "Status" IN ("Open", "Waiting"); GROUP BY "Type"; SORT BY "Opened" ASC; SHOW "Name", "Project", "Status", "Waiting on", "Opened"
-            Recently resolved  table           FILTER "Status" = "Resolved"; SORT BY "Resolved on" DESC; SHOW "Name", "Project", "Type", "Resolved on", "Summary"
+Projects    Active             (default view)  FILTER "Status" IN ("Active", "Paused"); SHOW "Name", "Ref", "Client", "Origin", "Status", "Late, days", "Summary", "Target end", "Source"
+            Closed             table           FILTER "Status" IN ("Done", "Removed"); SORT BY "Target end" DESC; SHOW "Name", "Ref", "Client", "Origin", "Status", "Target end", "Source"
+Milestones  Next up            (default view)  FILTER "Status" IN ("Planned", "In progress", "Paused"); GROUP BY "Project"; SORT BY "Order" ASC, "Dates" ASC; SHOW "Name", "Ref", "Status", "Dates", "Late, days"
+            Timeline           timeline        FILTER "Status" IN ("Planned", "In progress", "Paused"); TIMELINE BY "Dates"; GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Ref", "Status"
+Tasks       All                (default view)  FILTER "Status" IN ("Planned", "In progress", "Waiting"); GROUP BY "Project"; SORT BY "Dates" ASC, "Order" ASC; SHOW "Name", "Ref", "Milestone", "Status", "Dates", "Waiting on", "Late, days"
+            Waiting on         table           FILTER "Status" = "Waiting"; GROUP BY "Waiting on"; SORT BY "Dates" ASC; SHOW "Name", "Ref", "Project", "Milestone", "Dates"
+            Timeline           timeline        FILTER "Status" IN ("Planned", "In progress", "Waiting"); TIMELINE BY "Dates"; GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Ref", "Status"
+Problems    Open               (default view)  FILTER "Status" IN ("Open", "Waiting"); GROUP BY "Type"; SORT BY "Opened" ASC; SHOW "Name", "Ref", "Project", "Status", "Waiting on", "Opened"
+            Recently resolved  table           FILTER "Status" = "Resolved"; SORT BY "Resolved on" DESC; SHOW "Name", "Ref", "Project", "Type", "Resolved on", "Summary"
 ```
 
 Tasks `All` sorts by `Dates` first: `Order` restarts per milestone, so across a project it only breaks ties. The view DSL takes only fixed dates, so `Recently resolved` gets its "past month" window by hand (checklist below); until then it lists every resolved problem, newest first.
@@ -202,7 +207,7 @@ Next step: a new project.
 
 Not a numbered step, so a setup run from the top never reaches it: SKILL.md (**Finding things**) starts it, or step 3 on a tracker that has rows.
 
-The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **4**. A tracker below it is brought up by the skill itself, in the first conversation that finds it, before the request — installing the newer plugin is the user's go for it; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose step 3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again. Steps run in order (a schema-1 tracker gets 1 → 2, 2 → 3, then 3 → 4, in one go). If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
+The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **5**. A tracker below it is brought up by the skill itself, in the first conversation that finds it, before the request — installing the newer plugin is the user's go for it; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose step 3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again. Steps run in order (a schema-1 tracker gets 1 → 2, 2 → 3, 3 → 4, then 4 → 5, in one go). If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
 
 **1 → 2: `Order`.**
 1. Milestones and Tasks get `Order` (`ADD COLUMN` as in step 2, skipped where it exists).
@@ -230,4 +235,11 @@ The closing line names what is new for the user: client dashboards, and that `Cl
 
 The closing line names what is new for the user: every page — project, milestone, task, problem — can have a description and a checklist (they ask: "add a checklist to the layout task: …"), then Notes, Private notes and History; a client dashboard shows all of it but Private notes; the user's own dashboard needs its update to show the parts (the offer follows).
 
-A future step goes here as **4 → 5**, and the number above moves with it.
+**4 → 5: `Ref`, an ID per row.**
+1. Each database gets `Ref` (`ADD COLUMN` as in step 2, skipped where it exists): `"Ref" UNIQUE_ID PREFIX 'PR'` on Projects, `'MS'` on Milestones, `'TK'` on Tasks, `'PB'` on Problems. Notion numbers the rows that exist itself, in no set order; nothing is written to them.
+2. The root views show it right after `Name` (`notion-update-view`, the `SHOW` lines of step 4); the project pages' views stay as they are — their rows carry `Ref` all the same.
+3. Write `schema: 5` in the config toggle, as above — last.
+
+The closing line names what is new for the user: every project, milestone, task and problem has an ID — next to its name on the dashboard and in Notion — to name it in a chat ("link PB-5 to TK-34", "TK-34 is done").
+
+A future step goes here as **5 → 6**, and the number above moves with it.

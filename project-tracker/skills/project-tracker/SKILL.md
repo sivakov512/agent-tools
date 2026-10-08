@@ -17,6 +17,7 @@ A root page, named as the user likes, with four databases. A project is planned 
 - **Problems** (config key `problems`) — only what was not in the plan: `Name`, `Project`, `Type` (Blocker / Risk / Question), `Status` (Open / Waiting / Resolved / Dropped), `Waiting on`, `Milestone`, `Task`, `Summary` (one sentence: what is wrong and what it would cost — for a risk, its consequence; once resolved, how it ended; rewritten in place, never added to), `Opened`, `Resolved on`. Its page is laid out as **Pages** says.
 - `Chat` (all four) and `Claude project` (Projects) — the row's Claude chat and the claude.ai project its chats open in: written only as `references/chats.md` says.
 - `Client dashboard` (Projects) — the link of the client dashboard that shows the project: written only as `references/client-dashboards.md` says.
+- `Ref` (all four) — the row's ID, numbered by Notion, never written: `PR-2` a project, `MS-12` a milestone, `TK-34` a task, `PB-5` a problem. The dashboard shows it next to every name, so the user can name a row in a chat.
 
 **Pages.** Every page in the tracker — a project's, milestone's, task's or problem's — holds up to four parts, always in this order (on a project page, below its tabs), each there only once it has something in it:
 
@@ -75,7 +76,9 @@ The root page holds the config toggle, then the views you read: Projects `Active
 - None → the tracker is not set up (see **Other scenarios**).
 - A config with `open_items` and no `tasks` is a tracker made by version 0.x: say so and offer the upgrade (`references/upgrade.md`) before anything else; do not write to it with the rules of this version.
 - A current tracker plus an unretired 0.x one with the same title → the upgrade was interrupted: offer to finish it (`references/upgrade.md`).
-- A current config (it has `tasks`) whose `schema` is below 4 (no line = 1) → `references/setup.md` → **Tracker update** first, without asking, then the request.
+- A current config (it has `tasks`) whose `schema` is below 5 (no line = 1) → `references/setup.md` → **Tracker update** first, without asking, then the request.
+
+**An ID** the user writes — `TK-34`, `tk34`, `PB 5` — names exactly one row, never a guess: the prefix says the database (`PR` projects, `MS` milestones, `TK` tasks, `PB` problems) and the number is its `Ref`. Views give `Ref` as the bare number, so match the number in that database's rows: the root views first, then the views of each project in `Active` and `Closed` (they hold Done rows too). A number found nowhere, or one without a prefix, is asked about, never matched by hand. Several IDs in one message ("link PB-5 to TK-34") name exactly those rows.
 
 A project: query the `Active` view and match by meaning ("the rain gauge" → "Weather station", "the masts" → "Weather station" whose repository is `wx_mast`). A Done project: the `Closed` view. A Removed one only when the user names it or asks to bring it back. A milestone, task or open problem: the project's `Schedule` / `Tasks` / `Problems` views; a Resolved problem ("it came back, not fixed"): the root `Recently resolved` view, older ones by `notion-search`. All by meaning, and a task before a milestone when the words name a step ("the demo firmware" is the task *Demo firmware*, not the milestone *Demo prototype*). With one candidate there is nothing to ask; with several plausible ones, ask.
 
@@ -125,7 +128,7 @@ Changing one line or block: `update_content` with `old_str` exactly as fetched. 
 1. Before writing, note the current values of everything you are about to change — you have them from the read.
 2. Write the rows first. Only after they succeeded, bring `Summary`, `Target end` and the status callout in line with what changed — never in parallel with the row writes, so a failed write never leaves the page describing a change that did not happen.
 3. **Client dashboard.** If the project's `Client dashboard` holds a link (from its `Active` or `Closed` row, or a fetch of the project page; fetch it if this conversation has not read it), refresh that page once, after all the writes: `references/client-dashboards.md` → **Keeping it current**. Only a change that touched nothing but Private notes (a `Client side:` note aside), the callout, `Chat`, `Claude project` or the link itself refreshes nothing — none of them shows there.
-4. Reply with one short line per change, **was → now**: `Demo firmware → Done, finished Oct 28 (due Oct 30) · Demo prototype: still In progress, 1 task left`. Never change something silently; the user should not have to open Notion to know what happened.
+4. Reply with one short line per change, **was → now**, each item led by its ID: `TK-34 Demo firmware → Done, finished Oct 28 (due Oct 30) · MS-12 Demo prototype: still In progress, 1 task left`. Never change something silently; the user should not have to open Notion to know what happened.
 
 These steps hold for every write, whichever reference describes it.
 
@@ -187,7 +190,7 @@ In a conversation with the user (never a scheduled or unattended run), once per 
 | When | Read |
 |---|---|
 | A first message `<Project / Milestone / Task / Problem>: <name> … (Project Tracker, <url>). Load it with the project-tracker skill.`, or a request to change where a project's chats open | `references/chats.md`, before anything else |
-| Set up the tracker, the root page is missing, or an existing tracker lacks something (views, tabs, columns); a config `schema` below 4 | `references/setup.md` |
+| Set up the tracker, the root page is missing, or an existing tracker lacks something (views, tabs, columns); a config `schema` below 5 | `references/setup.md` |
 | A milestone or project paused or resumed; a project finished, reopened, or its fields set (client, origin, repository, source) | `references/state.md` |
 | Long text (call notes, a spec, an email thread) or a file to save to a project, milestone, task or problem; a note for a milestone, task or problem | `references/notes.md` |
 | Undo of a change made in an earlier conversation | `references/plan-changes.md` → **Undo of an earlier change** |
