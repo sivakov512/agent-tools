@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.13.1...upwork-pulse-v0.14.0) (2026-10-08)
+
+
+### Features
+
+* **upwork-pulse:** a running line on the Proposals list while it is still being checked with Upwork ([b7626ef](https://github.com/sivakov512/agent-tools/commit/b7626ef3434f1b0ad31096cbcd5f765cb48095e3))
+
 ## [0.13.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.13.0...upwork-pulse-v0.13.1) (2026-10-08)
 
 
