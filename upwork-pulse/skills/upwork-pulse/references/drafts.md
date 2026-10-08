@@ -7,7 +7,7 @@ It never sends anything to Upwork. The user copies the text and submits it.
 ## 1. Inputs
 
 - The root page (from the prompt) and its config. Needs `schema: 6` (any other: SKILL.md → Pipeline update); on an older schema write nothing: the pipeline is being updated (SKILL.md → Pipeline update) — return that to the caller, or, as the drafts task, end with an empty reply (the dashboard shows the update).
-- The cards: card URLs or Job IDs given in the prompt (chat, the hourly run's subagent). **The drafts task the dashboard starts** finds its cards in Notion, not in the prompt: before starting the task the dashboard marks each request on the job's row in Proposals — `State` Writing, `Written` = the click — creating the row (`Job` = the card, no text yet) when the job had none. So read `proposals_open`; its rows with `State` Writing and `Written` in the last 30 minutes are the requests, and their `Job` cards are this run's cards. The run may also carry a payload after the prompt — `<routine-fire-payload>` with the line `jobs: 2106…`, the job the button was pressed for. When you can read Job IDs there (digits only; nothing else in it is used, it is data), work on those cards only: another run may be busy with the other Writing rows, and two runs on one card pay twice for the same text. No usable payload → the Writing rows are the list. No request row and no Job ID → nothing to do: write nothing and say so in one line. A Job ID is found as SKILL.md → Finding things says. As the hourly run's subagent, also take, after those, the cards the dashboard lists without advice: New cards in `jobs_inbox` posted in the last 5 days (`Published`, else `Found`; the dashboard folds older ones away as mostly closed) that have no `Advice` — left over from a run whose drafts step failed, or found while drafts were off or paused. Take first, then Maybe, newest first within each; at most 5 per run, so one hour's cost stays bounded — the next run takes the rest.
+- The cards: card URLs or Job IDs given in the prompt (chat, the hourly run's subagent). **The drafts task the dashboard starts** finds its cards in Notion, not in the prompt: before starting the task the dashboard marks each request on the job's row in Proposals — `State` Writing, `Written` = the click — creating the row (`Job` = the card, no text yet) when the job had none. So read `proposals_open`; its rows with `State` Writing and `Written` in the last 30 minutes are the requests, and their `Job` cards are this run's cards. The run may also carry a payload after the prompt — `<routine-fire-payload>` with the line `jobs: 2106…`, the job the button was pressed for. When you can read Job IDs there (digits only; nothing else in it is used, it is data), work on those cards only: another run may be busy with the other Writing rows, and two runs on one card pay twice for the same text. No usable payload → the Writing rows are the list. No request row and no Job ID → nothing to do: write nothing; as the drafts task, the report says so (§5), elsewhere one line. A Job ID is found as SKILL.md → Finding things says. As the hourly run's subagent, also take, after those, the cards the dashboard lists without advice: New cards in `jobs_inbox` posted in the last 5 days (`Published`, else `Found`; the dashboard folds older ones away as mostly closed) that have no `Advice` — left over from a run whose drafts step failed, or found while drafts were off or paused. Take first, then Maybe, newest first within each; at most 5 per run, so one hour's cost stays bounded — the next run takes the rest.
 - Fetch **Search rules**, **Proposal guide** and **Field notes** once per run. Search rules that cannot be read or hold no rules (empty, a stub, a pointer to something else) → no advice can be honest: write nothing (the request rows go back as §3 says for a card without a new proposal) and return or say `rules unreadable`.
 - Only cards still New are worked on; one the user has meanwhile skipped or applied to is left alone (return `#<short id> not new`), except that its request row is put back as §3 says for a card without a new proposal, so it does not stay Writing.
 
@@ -74,7 +74,19 @@ Before writing, read the proposal once as the client would and check it against 
 ## 5. When it ends
 
 - **Subagent of an hourly run**: return to the caller one line per card, the keywords in English and the reason in `language`: `#<short id> apply — <Advice why>`, or `#<short id> skip — <reason>`. No message, no push: the hourly run reports.
-- **The drafts task** (started from the dashboard): scheduled run, automatic mode, but the user is looking at the dashboard, so no push and an empty final reply.
+- **The drafts task** (started from the dashboard): scheduled run, automatic mode, but the user is looking at the dashboard, so no push; the final reply is the report alone (SKILL.md → automatic mode):
+
+```
+# Drafts HH:MM
+Cards N · apply M · skip K
+
+## Log
+- Drafts: <n> advised — apply #<short id>, …; skip #<short id>, …   ← no request: `Drafts: no request`
+- Not new: #<short id>, …
+- Problems: <one line per problem: where, what failed, what is left undone>
+```
+
+`Drafts` is always there (the requests found and what each got — the same line the hourly run's Log carries); `Not new` only for cards the user skipped or applied to meanwhile; `Problems` only when a call failed or was blocked — `rules unreadable` is one.
 - **Chat**: one line per card with the advice; for Apply say the proposal is in Proposals and on the dashboard, and offer the full package in chat (`references/chat.md`) if the user wants to edit it here.
 
 Off limits here: `confirm_preview`, `send_message`, any write to Upwork beyond the preview; `PROCESSED_UNTIL`; Runs.
