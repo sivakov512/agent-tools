@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.2](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.1...project-tracker-v1.7.2) (2026-10-08)
+
+
+### Bug Fixes
+
+* **project-tracker:** fall back when a Ref prefix is taken ([44a5975](https://github.com/sivakov512/agent-tools/commit/44a59751180c108d3896a24751b61930dee99335))
+
 ## [1.7.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.0...project-tracker-v1.7.1) (2026-10-08)
 
 
