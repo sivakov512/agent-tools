@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.13.0...upwork-pulse-v0.13.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** pace dashboard Upwork calls and retry throttled ones instead of reading them as no chat ([c374c67](https://github.com/sivakov512/agent-tools/commit/c374c67cd437e01a8772ef253f0068c86e0a9975))
+
 ## [0.13.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.12.0...upwork-pulse-v0.13.0) (2026-10-08)
 
 
