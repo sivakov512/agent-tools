@@ -473,6 +473,12 @@ h1 .ref { vertical-align: 4px; }
 .ilink { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-2); text-underline-offset: 2px; } /* another item of the tracker: opens it on this page */
 .ilink:hover { color: var(--accent); text-decoration-color: currentColor; }
 .pline .ilink { font-size: 14px; color: var(--text); }
+.needs { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; border-top: 1px solid var(--border); background: none; padding: 11px 16px; text-align: left; cursor: pointer; font: inherit; font-size: 13px; color: var(--text-mute); } /* Your move: the milestones without dates, folded into one quiet line */
+.needs:hover { color: var(--text-2); }
+.needs .chev { margin-left: auto; transition: transform .15s; }
+.needs.open .chev { transform: rotate(90deg); }
+#moveList > .needs:first-child { border-top: 0; }
+@media (max-width: 600px) { .dr-bar .long { display: none; } .dr-bar .ttl { visibility: hidden; } } /* a phone's drawer bar: "Notion ↗" on one line; the name is in the head below */
 .x-lede { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--text); max-width: 68ch; } /* a problem's summary, first in its details */
 .dr-head .md.dr-lede { font-size: 15px; color: var(--text-2); }
 .fsum { margin: 0; padding: 13px 16px; font-size: 14.5px; line-height: 1.55; color: var(--text-2); } /* the project's summary: where it stands, in a sentence */
