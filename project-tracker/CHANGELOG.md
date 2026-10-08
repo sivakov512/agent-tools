@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.5.0...project-tracker-v1.6.0) (2026-10-08)
+
+
+### Features
+
+* **project-tracker:** origin filter as segments for up to three origins, and a pick repaints at once ([2927bae](https://github.com/sivakov512/agent-tools/commit/2927bae8a679787aa8f644cc74aa161468f68b71))
+
 ## [1.5.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.4.0...project-tracker-v1.5.0) (2026-10-08)
 
 
