@@ -9,7 +9,7 @@ claude plugin eval . --tag routine   --model sonnet --judge-model sonnet --runs 
 claude plugin eval . --tag proposal  --model opus   --judge-model sonnet --runs 1 --ablation none --trust-plugin -j 2 --no-publish
 ```
 
-- Two groups because two models do the work: `routine` (everything but proposals and drafts) runs on Sonnet, what the scheduled tasks use; `proposal` (chat proposals and the drafts mode) runs on Opus, what proposals and drafts are written with. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
+- Two groups because two models do the work: `routine` (everything but proposals, drafts and the chat updates) runs on Sonnet, what the scheduled tasks use; `proposal` (chat proposals, the drafts mode, and the updates a chat starts: `chat-auto-update`, `update-to-6`) runs on Opus, what proposals, drafts and chats are written with. On Sonnet a chat answers and asks before updating instead of updating unasked; the hourly run on Sonnet updates. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
 - One case: `--case hourly-take` (one `--case` per run; `--case` and `--tag` together match nothing). By mode: `--tag hourly` (hourly, digest, weekly, chat, setup, drafts, negative).
 - 35 cases, roughly 15 minutes at `-j 3`.
 
@@ -43,7 +43,7 @@ Every scheduled run ends with a report whose last block is `## Log` (SKILL.md �
 
 The agent, the mocks and the judge are all models; one run can fail for reasons unrelated to the skill. Read the trace first, re-run the case (`--case <name> --runs 3`), and change the skill only for failures that repeat or that would damage data — with a general rule and its reason, not a patch for the one example. The LLM judge itself misfires: `setup-adopt` and `chat-proposal` have failed on replies that meet every claim when re-judged by hand; check the reply against the rubric before touching the skill.
 
-Known unstable on Sonnet, one run in two or three: `chat-auto-update` (Sonnet usually answers and asks for "update the pipeline" instead of updating unasked, because the update drops columns — the next hourly run does it anyway; on Opus, which chats run on, it updates); `question-repeat` (the case is decided without recording a question, or a second row instead of bumping `Seen`); `setup-adopt` (a `<root>` placeholder left in the hand-made task table); `setup-empty` (the watermark takes the machine date instead of the case's date; or, without a task tool, the reply says the tasks are missing but leaves out the table of prompts). The LLM judge on `setup-adopt` and `chat-proposal` fails replies that pass every claim when re-judged by hand.
+Known unstable on Sonnet, one run in two or three: `question-repeat` (the case is decided without recording a question, or a second row instead of bumping `Seen`); `setup-adopt` (a `<root>` placeholder left in the hand-made task table); `setup-empty` (the watermark takes the machine date instead of the case's date; or, without a task tool, the reply says the tasks are missing but leaves out the table of prompts). The LLM judge on `setup-adopt` and `chat-proposal` fails replies that pass every claim when re-judged by hand.
 
 ## Pushes
 
