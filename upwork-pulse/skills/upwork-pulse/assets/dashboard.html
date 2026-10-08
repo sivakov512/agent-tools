@@ -2066,7 +2066,7 @@
     if (p.closed) return { label: p.statusLabel, reason: p.reason, at: p.modified || p.created };
     var j = S.jobs[p.jobId], room = proposalRoom(p);
     if (!j || !j.over || p.status === "Offered" || (room && room.contractId)) return null;
-    return { label: j.hired ? "Job filled" : "Job closed", reason: j.hired ? "the client hired someone else" : "", at: Math.max(p.modified, p.created) };
+    return { label: j.hired ? "Hired someone else" : "Job closed", reason: "", hired: !!j.hired, at: Math.max(p.modified, p.created) };
   }
   function classify(p, now) {
     var live = LIVE_DAYS * DAY, s = shut(p);
@@ -2105,8 +2105,23 @@
       host.appendChild(el("div", "empty", S.ptab === "discussing" ? "No proposal chats in the last " + LIVE_DAYS + " days." :S.ptab === "waiting" ? "No proposals sent in the last " + LIVE_DAYS + " days without a reply." : "Nothing closed in the last " + LIVE_DAYS + " days."));
       return;
     }
+    if (S.ptab === "closed") { closedInto(host, list, now); afterList("appliedList"); return; }
     list.forEach(function (x) { host.appendChild(x._room ? chatItem(x._room, now) : proposalItem(x, now)); });
     afterList("appliedList");
+  }
+  // Closed, in two groups: the ones we talked on first — who left for someone else, or closed — then the quiet ones, folded.
+  function closedInto(host, list, now) {
+    var talked = list.filter(function (p) { return hasChat(proposalRoom(p)); }), quiet = list.filter(function (p) { return !hasChat(proposalRoom(p)); });
+    if (talked.length) {
+      var h = el("div", "day"); h.appendChild(el("span", "", "After talks · " + talked.length)); host.appendChild(h);
+      talked.forEach(function (p) { host.appendChild(proposalItem(p, now)); });
+    }
+    if (!quiet.length) return;
+    var d = el("details", "older"); d.open = !talked.length || !!S.quietOpen;
+    d.addEventListener("toggle", function () { if (talked.length) S.quietOpen = d.open; });
+    d.appendChild(el("summary", "", "No reply · " + quiet.length + " — declined, archived, or the job went elsewhere without a word"));
+    quiet.forEach(function (p) { d.appendChild(proposalItem(p, now)); });
+    host.appendChild(d);
   }
   function clientOf(room) { return room && room.roomName ? clean(room.roomName).split(",")[0].trim() : ""; }
   function turnSpan(room) {
@@ -2128,7 +2143,11 @@
     s.appendChild(tr);
     var m = el("div", "t-meta");
     if (room && clientOf(room)) m.appendChild(el("span", "", clientOf(room)));
-    if (over) { metaSep(m); m.appendChild(el("span", "", over.label + (over.reason ? " — " + over.reason : ""))); }
+    if (over) {
+      metaSep(m); var op = el("span", "dpill " + (over.hired ? "skip" : "busy"), over.label); if (over.reason) op.title = over.reason; m.appendChild(op);
+      if (chat) { metaSep(m); m.appendChild(el("span", "", (room.last_message_from_self ? "you" : "they") + " wrote last · " + new Date(roomAct(room)).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))); }
+      s.appendChild(m); return row.d; // the terms matter no more
+    }
     else if (chat) { metaSep(m); m.appendChild(turnSpan(room)); }
     else { var rp = S.prooms[p.id]; if (rp && rp.err) { metaSep(m); m.appendChild(el("span", "", "Reply status unknown")); } else if (!rp || rp.pending) { metaSep(m); m.appendChild(el("span", "", "Checking replies…")); } }
     var extra = [];
@@ -2501,7 +2520,7 @@
     Object.keys(S.extra).forEach(function (id) { var x = S.extra[id]; if (x.p && !seen[id]) { seen[id] = true; all.push(x.p); } });
     S.proposals = all;
     S.proposalsErr = null;
-    S.proposals.forEach(function (p) { var r = S.prooms[p.id]; if (!p.closed && (!r || (!r.pending && !r.room))) fetchProposalRoom(p); }); // no room yet: the client may have opened one since
+    S.proposals.forEach(function (p) { var r = S.prooms[p.id]; if (!r || (!p.closed && !r.pending && !r.room)) fetchProposalRoom(p); }); // no room yet: the client may have opened one since (a closed one is looked up once, for Closed → After talks)
     renderApplied(); renderLeads();
     recoverProposals();
   }
@@ -2521,7 +2540,7 @@
         S.extra[id] = { p: p && p.status !== "Hired" ? p : null }; // a hire is a contract, shown under Contracts
         var at = -1; S.proposals.forEach(function (q, i) { if (q.id === id) at = i; });
         if (at >= 0) S.proposals.splice(at, 1);
-        if (S.extra[id].p) { S.proposals.push(S.extra[id].p); if (!S.extra[id].p.closed && !S.prooms[id]) fetchProposalRoom(S.extra[id].p); }
+        if (S.extra[id].p) { S.proposals.push(S.extra[id].p); if (!S.prooms[id]) fetchProposalRoom(S.extra[id].p); }
         renderApplied(); renderLeads();
       }, function () { S.extra[id] = { p: x && x.p }; });
     });
@@ -2600,7 +2619,7 @@
       ["", "Your proposals from Upwork. A proposal stays here while something happens on it; after " + LIVE_DAYS + " quiet days it drops off."],
       ["Sent", "sent, no reply from the client yet."],
       ["In talks", "the client replied; newest message first. A chat where the next message is yours is marked Your turn and is in Your move as well."],
-      ["Closed", "declined, archived or withdrawn, or the job is over: the client hired someone else or closed the posting. Upwork keeps such a proposal open, so the page checks the job itself."],
+      ["Closed", "declined, archived or withdrawn, or the job is over: the client hired someone else or closed the posting (Upwork keeps such a proposal open, so the page checks the job itself). After talks first — the ones with a chat, how each ended and who wrote last — then No reply, folded."],
       ["Drawer", "the proposal's terms, What you sent — the copy kept in Notion's Proposals, synced from Upwork by the digests — and the job it was for."]
     ];
   });
