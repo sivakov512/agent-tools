@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.3](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.2...project-tracker-v1.7.3) (2026-10-08)
+
+
+### Bug Fixes
+
+* **project-tracker:** never truncate names on the timeline ([6b3dcaf](https://github.com/sivakov512/agent-tools/commit/6b3dcafe517bfda56707468882060b5d010283f3))
+
 ## [1.7.2](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.1...project-tracker-v1.7.2) (2026-10-08)
 
 
