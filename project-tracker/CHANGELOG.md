@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.3.0...project-tracker-v1.4.0) (2026-10-08)
+
+
+### Features
+
+* **project-tracker:** link existing material in notes ([3028042](https://github.com/sivakov512/agent-tools/commit/3028042c20118cec7baba459233ead879be7c2a8))
+
 ## [1.3.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.2.0...project-tracker-v1.3.0) (2026-10-07)
 
 
