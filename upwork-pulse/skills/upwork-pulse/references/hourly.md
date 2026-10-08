@@ -35,7 +35,7 @@ No pending invitations → nothing about them anywhere, the report's Log include
 
 **Stage 1**, on title and snippet: drop only what is obviously outside the user's field per the rules' "reject on sight" items. Keep anything that might fit — snippets lie. Skill tags are noise; never filter on them.
 
-**Stage 2**, on the full text (`find_jobs`, action `get`, one call per survivor): apply the rules' reject list, then flags, then verdict. Decisions come from the full text only. Two rejects hold for every user, whatever the rules say: **already hired** — the client has hired as many people as the posting seeks; **not a job** — a personal message or a request for direct contact dressed as a posting.
+**Stage 2**, on the full text (`find_jobs`, action `get`, one call per survivor, at most three in one turn — a burst of job pages is what Upwork refuses): apply the rules' reject list, then flags, then verdict. Decisions come from the full text only. Two rejects hold for every user, whatever the rules say: **already hired** — the client has hired as many people as the posting seeks; **not a job** — a personal message or a request for direct contact dressed as a posting.
 
 The default flags mean the same for everyone (the rules decide how much each weighs on the verdict): `no client history` — the client has never hired; `partially hired` — some of the people sought are hired, not all; `timezone lock` — a hard requirement on presence or working hours; `mandatory calls` — regular calls required; `budget mismatch` — a fixed budget far below the scope; `full-time` — 30+ hours a week or 6+ months, effectively a hire; `unfamiliar tech` — a tool, platform or part the user has not worked with. The user's own flags are defined in the rules.
 

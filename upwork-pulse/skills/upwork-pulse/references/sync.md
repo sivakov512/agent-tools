@@ -8,7 +8,7 @@ Its own watermark, like the hourly search's: the line `PROPOSALS_SYNCED_UNTIL: <
 
 1. Note the time now (the new watermark).
 2. The start: the watermark − 10 min (the overlap catches one sent while the previous sync was writing), or the start of the period the user named.
-3. `list_freelancer_proposals` `list` for each status a submitted proposal can have by now — `Accepted`, `Activated`, `Offered`, `Hired`, `Declined`, `Withdrawn`, `Archived` — all in one turn, `sort_field: "CREATEDDATETIME"`, `sort_order: "DESC"`, `limit` 10; take the next page (`cursor`) only while a page's oldest proposal is still after the start. Keep the proposals created after the start. Usually none: go to step 5.
+3. `list_freelancer_proposals` `list` for each status that returns proposals — `Accepted`, `Activated`, `Offered`, `Archived` — all in one turn (`Hired`, `Declined` and `Withdrawn` always come back empty from this connector, and a proposal whose client hired someone else is put on hold and left out of every list: such a one reaches Proposals only when it was sent from chat, which writes it itself), `sort_field: "CREATEDDATETIME"`, `sort_order: "DESC"`, `limit` 10; take the next page (`cursor`) only while a page's oldest proposal is still after the start. Keep the proposals created after the start. Usually none: go to step 5.
 4. Write each one (§2).
 5. Set the line to the time from step 1 — but only if this sync covered everything from the old watermark to now (a period the user named that starts later leaves it alone) — with `update_content` on that line only; no line yet → `insert_content` at the end. A sync that fails or stops early leaves it, so the next one picks up what was missed.
 
