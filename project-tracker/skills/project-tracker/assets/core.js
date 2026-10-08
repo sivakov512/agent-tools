@@ -85,7 +85,8 @@
     k.late = lateOf(k, paused); k.state = stateOfItem(k, paused); k.paused = paused && k.status !== "Done";
     return k;
   }
-  var REF = { project: "PR", ms: "MS", task: "TK", problem: "PB" }; // the `Ref` field's prefix per database (setup.md); a view gives only the number
+  var REF = { project: "PR", ms: "MS", task: "TK", problem: "PB" }; // the `Ref` field's prefix per database, as the config's ref_prefixes line sets them (setup.md); a view gives only the number
+  function setRefPrefixes(line) { var p = String(line || "").split(/[,\s]+/).filter(Boolean); if (p.length === 4) { REF.project = p[0]; REF.ms = p[1]; REF.task = p[2]; REF.problem = p[3]; } }
   function refOf(kind, v) { v = String(v == null ? "" : v).trim(); return !v ? "" : /^\d+$/.test(v) ? REF[kind] + "-" + v : v; }
   function copyText(t) { // the clipboard, or the old way where a page may not use it
     if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t).catch(function () { legacy(); });
@@ -569,7 +570,7 @@
   window.PT = {
     DAY: DAY, OPEN_MS: OPEN_MS, OPEN_TASK: OPEN_TASK, SPANS: SPANS, CHEV: CHEV, MON: MON,
     whoOf: whoOf,
-    refOf: refOf, refTag: refTag, titled: titled, copyText: copyText,
+    refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled, copyText: copyText,
     el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, clean: clean, rel: rel, key: key, num: num, plural: plural, smooth: smooth, sel: sel, keep: keep,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
     msOf: msOf, taskOf: taskOf, problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate,

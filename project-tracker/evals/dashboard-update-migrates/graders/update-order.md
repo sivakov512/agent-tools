@@ -9,4 +9,4 @@ The tracker started at `schema: 4` with a dashboard published from 1.0.0; the us
 - All four `Ref` columns and `schema: 5` came BEFORE the Artifact `publish` of the dashboard (`https://claude.ai/artifact/d0000000-…-0001`). A publish before any of them is a FAIL.
 - If the dashboard was published, it went to that same URL (not a new artifact) after an Artifact `read` of it. The eval has no shell to copy the dashboard's files, so stopping before the publish is fine here — this case is about the update coming first, not about the copy.
 
-Judge only these claims. Extra read calls, and reading the artifact before or during the tracker update, are fine. Answer FAIL only if one of the claims above is clearly false.
+Judge only these claims. Extra read calls, and reading the artifact before or during the tracker update, are fine. A `ref_prefixes: …` line written to the config toggle before `schema: 5` is part of the update and fine; a `dashboard_version` line written after the publish belongs to the dashboard, not to the tracker update, so it may come after `schema: 5`. Answer FAIL only if one of the claims above is clearly false.
