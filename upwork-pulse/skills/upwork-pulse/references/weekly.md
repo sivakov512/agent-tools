@@ -4,7 +4,7 @@ Once a week the open questions — the cases the rules did not settle — are pu
 
 ## 1. Automatic part
 
-Query `questions_open`. No open rows → change nothing, no push, and the final reply is empty (SKILL.md → automatic mode).
+Query `questions_open`. No open rows → change nothing, no push; the report is the header (`# Questions this week · 0`) and the Log.
 
 Otherwise fetch **Search rules** and **Proposal guide** (the recommendations must point at the item they would refine) and send exactly one message:
 
@@ -18,11 +18,17 @@ Otherwise fetch **Search rules** and **Proposal guide** (the recommendations mus
 Stale in the rules/guide: <items that contradict or duplicate each other; leave the line out if none>
 
 Reply by number — "1 yes, 2 no, 3 as recommended" — and I will apply it and close them.
+
+## Log
+- Questions: <N> open
+- Problems: <one line per problem: where, what failed, what is left undone>
 ```
 
-No description of your work, nothing outside the format, no Notion changes before the user answers.
+`Questions` is always there; `Problems` only when a call failed or was blocked (SKILL.md → automatic mode).
 
-**Push line**, in `language`, plain text: `Upwork: <N> open questions for the weekly review`. Last steps: load `PushNotification` and push the line; then the final reply — the message alone.
+No description of your work outside the Log, nothing outside the format, no Notion changes before the user answers.
+
+**Push line**, in `language`, plain text: `Upwork: <N> open questions for the weekly review`. Last steps: with open questions, load `PushNotification` and push the line; then the final reply — the report alone, its first characters `# Questions`. None → no push, the report all the same.
 
 ## 2. After the user answers
 
