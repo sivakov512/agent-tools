@@ -71,7 +71,7 @@
   function msOf(row, project) {
     var start = dnum(row["date:Dates:start"]), end = dnum(row["date:Dates:end"]);
     if (end == null) end = start;
-    var m = { kind: "ms", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, tasks: [], chat: row.Chat || "", order: num(row.Order) };
+    var m = { kind: "ms", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, tasks: [], chat: row.Chat || "", order: num(row.Order), ref: refOf("ms", row.Ref) };
     var paused = m.status === "Paused" || project.status === "Paused";
     m.late = lateOf(m, paused); m.state = stateOfItem(m, paused); m.paused = paused && m.status !== "Done";
     return m;
@@ -80,13 +80,27 @@
     var start = dnum(row["date:Dates:start"]), end = dnum(row["date:Dates:end"]);
     if (end == null) end = start;
     var mk = rel(row.Milestone).map(key)[0] || null, ms = mk ? msByKey[mk] : null;
-    var k = { kind: "task", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", waiting: clean(row["Waiting on"]), start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, mk: ms ? mk : null, ms: ms || null, chat: row.Chat || "", order: num(row.Order) };
+    var k = { kind: "task", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", waiting: clean(row["Waiting on"]), start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, mk: ms ? mk : null, ms: ms || null, chat: row.Chat || "", order: num(row.Order), ref: refOf("task", row.Ref) };
     var paused = project.status === "Paused" || (ms && ms.status === "Paused");
     k.late = lateOf(k, paused); k.state = stateOfItem(k, paused); k.paused = paused && k.status !== "Done";
     return k;
   }
+  var REF = { project: "PR", ms: "MS", task: "TK", problem: "PB" }; // the `Ref` field's prefix per database (setup.md); a view gives only the number
+  function refOf(kind, v) { v = String(v == null ? "" : v).trim(); return !v ? "" : /^\d+$/.test(v) ? REF[kind] + "-" + v : v; }
+  function copyText(t) { // the clipboard, or the old way where a page may not use it
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t).catch(function () { legacy(); });
+    legacy(); return Promise.resolve();
+    function legacy() { var ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch (e) {} document.body.removeChild(ta); }
+  }
+  function refTag(x) { // an item's ID next to its name, to use in a chat ("link PB-5 to TK-34"); a click copies it
+    if (!x || !x.ref) return null;
+    var t = el("span", "ref", x.ref); t.title = "Copy " + x.ref;
+    t.addEventListener("click", function (e) { e.stopPropagation(); e.preventDefault(); copyText(x.ref); t.classList.add("copied"); setTimeout(function () { t.classList.remove("copied"); }, 1200); });
+    return t;
+  }
+  function titled(cls, x, name) { var s = el("span", cls, name); var r = refTag(x); if (r) s.appendChild(r); return s; } // a name with its ID after it
   function problemOf(r) {
-    return { kind: "problem", url: cleanUrl(r.url), name: clean(r.Name) || "Untitled", type: r.Type || "", status: r.Status || "", waiting: clean(r["Waiting on"]), summary: clean(r.Summary), opened: dnum(r["date:Opened:start"]), resolvedOn: dnum(r["date:Resolved on:start"]), pk: rel(r.Project).map(key)[0], mk: rel(r.Milestone).map(key)[0], tk: rel(r.Task).map(key)[0], chat: r.Chat || "" };
+    return { kind: "problem", url: cleanUrl(r.url), name: clean(r.Name) || "Untitled", type: r.Type || "", status: r.Status || "", waiting: clean(r["Waiting on"]), ref: refOf("problem", r.Ref), summary: clean(r.Summary), opened: dnum(r["date:Opened:start"]), resolvedOn: dnum(r["date:Resolved on:start"]), pk: rel(r.Project).map(key)[0], mk: rel(r.Milestone).map(key)[0], tk: rel(r.Task).map(key)[0], chat: r.Chat || "" };
   }
   function buildPlan(p, msRows, taskRows) { // a project's Schedule and Tasks rows → its milestones, each with its tasks, and all its tasks
     var msList = msRows.map(function (row) { return msOf(row, p); }).filter(function (m) { return m.status !== "Dropped"; });
@@ -408,11 +422,11 @@
   function actions(host, items) { var a = el("div", "actions"); items.forEach(function (x) { if (x) a.appendChild(x); }); if (a.childNodes.length) host.appendChild(a); }
   function typeTag(t) { return el("span", "tt " + (t || ""), t || "Item"); }
   function phraseEl(parts) { var s = el("span", "s"); parts.forEach(function (p) { if (!p || !p[0]) return; if (s.childNodes.length) s.appendChild(document.createTextNode(" · ")); s.appendChild(span(p[0], p[1] || "")); }); return s; }
-  function problemLines(list, onUs) { // the problems on a milestone or task, as one of its page's parts; onUs: how a problem waiting on no one reads (on the user's page, "on you")
+  function problemLines(list, onUs, go) { // the problems on a milestone or task, as one of its page's parts; onUs: how a problem waiting on no one reads (on the user's page, "on you"); go(i, name): a problem's name as a link to it
     if (!list.length) return null;
     var bx = el("div", "part"); bx.appendChild(el("div", "xh", "Problems"));
     var ls = el("div", "plines after-xh");
-    list.forEach(function (i) { var l = el("div", "pline"); l.appendChild(typeTag(i.type)); l.appendChild(span(i.name, "pn")); l.appendChild(span(i.status === "Resolved" ? "resolved" : i.waiting ? "waiting on " + i.waiting : onUs || "on you", "muted")); ls.appendChild(l); });
+    list.forEach(function (i) { var l = el("div", "pline"); l.appendChild(typeTag(i.type)); l.appendChild(go ? go(i, i.name) : span(i.name, "pn")); l.appendChild(span(i.status === "Resolved" ? "resolved" : i.waiting ? "waiting on " + i.waiting : onUs || "on you", "muted")); ls.appendChild(l); });
     bx.appendChild(ls); return bx;
   }
   function meta(x, bits) { // the few facts the row's own header does not already say, on one quiet line
@@ -422,8 +436,9 @@
   function msFacts(x, m) { // the group's header already says the dates, the timing and how many tasks are done
     meta(x, [m.status + (m.project.status === "Paused" && m.status !== "Done" ? " (project paused)" : ""), m.start == null ? "no dates yet, so it can't show as due or late" : ""]);
   }
-  function taskFacts(x, k) { // the row's header already says its dates and timing
-    meta(x, [k.status + (k.status === "Waiting" && k.waiting ? " on " + k.waiting : ""), k.ms ? "in " + k.ms.name : "", k.start == null ? "no dates" : ""]);
+  function taskFacts(x, k, go) { // the row's header already says its dates and timing; go(item, text): a link to another item
+    var inMs = null; if (k.ms) { inMs = span("in "); inMs.appendChild(go ? go(k.ms, k.ms.name) : document.createTextNode(k.ms.name)); }
+    meta(x, [k.status + (k.status === "Waiting" && k.waiting ? " on " + k.waiting : ""), inMs, k.start == null ? "no dates" : ""]);
   }
   // the project at a glance, under its summary: when it ends and when it started, then what extra(pair) adds
   function projectSummary(p, plan, extra) {
@@ -453,7 +468,7 @@
       var k = "d:" + o.k, on0 = !!ui.open[k], r = el("div", "arow" + (o.tsk ? " tsk" : "") + (on0 ? " open" : "")); r.dataset.k = o.k;
       var h = btn("acc-h", null); h.setAttribute("aria-expanded", String(on0));
       h.appendChild(el("span", "dot " + (o.dot || "")));
-      var mid = el("span", "mid"); mid.appendChild(el("span", "t", o.title));
+      var mid = el("span", "mid"); mid.appendChild(titled("t", o.item, o.title));
       if (o.line) mid.appendChild(o.line);
       h.appendChild(mid); h.appendChild(el("span", "r", o.right || "")); h.insertAdjacentHTML("beforeend", CHEV);
       var x = el("div", "acc-x"); x.hidden = !on0; if (on0) o.expand(x);
@@ -473,12 +488,12 @@
       var k = s.dataset.sec; if (fold) ui.col[k] = 1; else delete ui.col[k];
       s.classList.toggle("folded", fold); s.querySelector(".dsec-h").setAttribute("aria-expanded", String(!fold)); s.querySelector(".dsec-b").hidden = fold;
     }
-    function taskRow(k) { return acc({ k: key(k.url), tsk: true, dot: itemDot(k), title: k.name, line: phraseEl([planPhrase(k)]), right: k.start == null ? "" : range(k.start, k.end), expand: function (x) { ctx.taskBody(x, k); } }); }
+    function taskRow(k) { return acc({ k: key(k.url), item: k, tsk: true, dot: itemDot(k), title: k.name, line: phraseEl([planPhrase(k)]), right: k.start == null ? "" : range(k.start, k.end), expand: function (x) { ctx.taskBody(x, k); } }); }
     function msGroup(m, openByDefault) { // a milestone and everything in it: opening it shows its details, then its tasks
       var k = key(m.url), on = ui.grp[k] != null ? ui.grp[k] : openByDefault, g = el("div", "mgrp" + (on ? " open" : "")), tdn = m.tasks.filter(function (x) { return x.status === "Done"; }).length;
       var h = btn("acc-h mh", null); h.setAttribute("aria-expanded", String(on));
       h.appendChild(el("span", "dot " + itemDot(m)));
-      var mid = el("span", "mid"); mid.appendChild(el("span", "t", m.name));
+      var mid = el("span", "mid"); mid.appendChild(titled("t", m, m.name));
       mid.appendChild(phraseEl([planPhrase(m), m.tasks.length ? [tdn + " of " + plural(m.tasks.length, "task") + " done", ""] : null]));
       h.appendChild(mid); h.appendChild(el("span", "r", m.start == null ? "" : range(m.start, m.end))); h.insertAdjacentHTML("beforeend", CHEV);
       var b = el("div", "mgrp-b"); b.hidden = !on;
@@ -495,7 +510,7 @@
     function projectHead(host, p, st, plan, extra, desc) { // who, the name with its state, what the project is (its description), the project at a glance
       var hd = el("header", "dr-head");
       hd.appendChild(el("div", "dr-who", [p.client, p.origin].filter(Boolean).join(" · ")));
-      var h = el("div", "dr-h1"); h.appendChild(el("h1", "", p.name)); if (st.text) h.appendChild(el("span", "pill " + st.cls, st.text)); hd.appendChild(h);
+      var h = el("div", "dr-h1"), h1 = el("h1", "", p.name), rt = refTag(p); if (rt) h1.appendChild(rt); h.appendChild(h1); if (st.text) h.appendChild(el("span", "pill " + st.cls, st.text)); hd.appendChild(h);
       if (desc) { desc.classList.add("dr-lede"); hd.appendChild(desc); }
       hd.appendChild(projectSummary(p, plan, extra));
       host.appendChild(hd); return hd;
@@ -543,6 +558,7 @@
 
   window.PT = {
     DAY: DAY, OPEN_MS: OPEN_MS, OPEN_TASK: OPEN_TASK, SPANS: SPANS, CHEV: CHEV, MON: MON,
+    refOf: refOf, refTag: refTag, titled: titled, copyText: copyText,
     el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, clean: clean, rel: rel, key: key, num: num, plural: plural, smooth: smooth, sel: sel, keep: keep,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
     msOf: msOf, taskOf: taskOf, problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate,

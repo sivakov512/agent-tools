@@ -162,7 +162,7 @@
         S.projects = rows.map(function (r) {
           var p = old[key(r.url)] || { kind: "project" };
           p.url = cleanUrl(r.url); p.key = key(r.url); p.name = clean(r.Name) || "Untitled"; p.client = clean(r.Client); p.status = r.Status || "";
-          p.summary = clean(r.Summary); p.target = dnum(r["date:Target end:start"]); p.repo = r.Repository || ""; p.source = r.Source || ""; p.chat = r.Chat || ""; p.cproj = claudeProject(r["Claude project"]); p.origin = originOf(r);
+          p.summary = clean(r.Summary); p.target = dnum(r["date:Target end:start"]); p.repo = r.Repository || ""; p.source = r.Source || ""; p.chat = r.Chat || ""; p.cproj = claudeProject(r["Claude project"]); p.origin = originOf(r); p.ref = PT.refOf("project", r.Ref);
           return p;
         }).filter(function (p) { return p.status === "Active" || p.status === "Paused"; });
         S.projErr = null; render();
@@ -187,6 +187,7 @@
   function taskList(p) { var d = planOf(p); return d ? d.tasks : null; }
   function itemsOf(p) { var d = planOf(p); return d ? d.ms.concat(d.tasks) : []; }
   function allItems() { var out = []; projs().forEach(function (p) { out = out.concat(itemsOf(p)); }); return out; }
+  function mentioned(u) { var k = key(u), it = itemIndex()[k]; if (it) return it; var pr = allProblems().filter(function (i) { return key(i.url) === k; })[0]; return pr || null; } // the item of the tracker a mention points to, if any
   function itemIndex() { var o = {}; (S.projects || []).forEach(function (p) { itemsOf(p).forEach(function (x) { o[key(x.url)] = x; }); }); return o; }
   function liveProblems() { var pk = projByKey(); return (S.problems || []).map(problemOf).filter(function (i) { return pk[i.pk] && (i.status === "Open" || i.status === "Waiting"); }); }
   function allProblems() { return (S.problems || []).map(problemOf).concat((S.resolved || []).map(problemOf)); }
@@ -267,7 +268,7 @@
   function card(p) {
     var c = btn("pc", null, function () { openProject(p); }), st = stateOfProject(p), f = focusOf(p), d = S.plan[p.key];
     var top = el("div", "pc-top"), nm = el("div", "mid");
-    nm.appendChild(el("div", "pc-name", p.name)); nm.appendChild(el("div", "pc-who", [p.client, p.origin].filter(Boolean).join(" · ")));
+    nm.appendChild(PT.titled("pc-name", p, p.name)); nm.appendChild(el("div", "pc-who", [p.client, p.origin].filter(Boolean).join(" · ")));
     top.appendChild(nm); if (st.text) top.appendChild(el("span", "pill " + st.cls, st.text)); c.appendChild(top);
     var ms0 = msList(p) || [], tk0 = taskList(p) || [], strip = ms0.length ? ms0 : tk0;
     if (d && d.err) c.appendChild(el("div", "crit", "Its plan didn't load. " + errText(d.err)));
@@ -301,17 +302,17 @@
   function item(o) { // one line in a list; opens its project with the item in view
     var b = btn("it", null, o.go);
     b.appendChild(el("span", "mk " + (o.mark || "")));
-    var mid = el("span", "mid"); mid.appendChild(el("span", "t", o.title)); mid.appendChild(el("span", "s", o.sub)); b.appendChild(mid);
+    var mid = el("span", "mid"); mid.appendChild(PT.titled("t", o.item, o.title)); mid.appendChild(el("span", "s", o.sub)); b.appendChild(mid);
     b.appendChild(el("span", "m " + (o.cls || ""), o.meta || ""));
     return b;
   }
   function problemItem(i, o) {
     var p = allProjByKey()[i.pk];
-    return item({ mark: o.mark, title: i.name, sub: [p ? p.name : "", o.sub].filter(Boolean).join(" · "), meta: o.meta, cls: o.cls, go: function () { if (p) openProject(p, key(i.url)); } });
+    return item({ item: i, mark: o.mark, title: i.name, sub: [p ? p.name : "", o.sub].filter(Boolean).join(" · "), meta: o.meta, cls: o.cls, go: function () { if (p) openProject(p, key(i.url)); } });
   }
   function planItem(m, o) {
     var where = m.kind === "task" && m.ms ? m.project.name + " · " + m.ms.name : m.project.name;
-    return item({ mark: o.mark, title: m.name, sub: [where, o.sub].filter(Boolean).join(" · "), meta: o.meta, cls: o.cls, go: function () { openProject(m.project, key(m.url)); } });
+    return item({ item: m, mark: o.mark, title: m.name, sub: [where, o.sub].filter(Boolean).join(" · "), meta: o.meta, cls: o.cls, go: function () { openProject(m.project, key(m.url)); } });
   }
   function anyItem(x, o) { return x.kind === "problem" ? problemItem(x, o) : planItem(x, o); }
   function gh(host, title, n, cls) { var h = el("div", "gh" + (cls ? " " + cls : "")); h.appendChild(span(title)); if (n != null) h.appendChild(span(String(n), "n")); host.appendChild(h); }
@@ -393,7 +394,7 @@
     var pub = function (t) { var pt = partsOf(t), o = []; if (pt.desc) o.push(pt.desc); if (pt.notes) o.push("## Notes\n" + pt.notes); if (pt.hist) o.push("## History\n" + pt.hist); return o.join("\n\n"); }; // Private notes never reach a client's page, even if the data has them
     for (var sp in D.subpages || {}) S.snapPages[key(sp)] = D.subpages[sp];
     (D.projects || []).forEach(function (x) {
-      var r = x.project || {}, p = { kind: "project", url: cleanUrl(r.url), key: key(r.url), name: clean(r.Name) || "Untitled", client: clean(r.Client), status: r.Status || "", summary: clean(r.Summary), target: dnum(r["date:Target end:start"]), origin: "" };
+      var r = x.project || {}, p = { kind: "project", url: cleanUrl(r.url), key: key(r.url), name: clean(r.Name) || "Untitled", client: clean(r.Client), status: r.Status || "", summary: clean(r.Summary), target: dnum(r["date:Target end:start"]), origin: "", ref: PT.refOf("project", r.Ref) };
       var plan = PT.buildPlan(p, x.milestones || [], x.tasks || []);
       S.plan[p.key] = plan; S.pageInfo[p.key] = { notes: [], parts: partsOf(pub(r.page)) }; S.projects.push(p);
       (x.milestones || []).concat(x.tasks || [], x.problems || []).forEach(function (row) { if (row.page) S.snapPages[key(row.url)] = pub(row.page); });
@@ -467,8 +468,10 @@
       if (m[1] != null) host.appendChild(el("b", "", unesc(m[1])));
       else if (m[2] != null) host.appendChild(el("code", "", m[2]));
       else if (m[3] != null) { if (/^https?:/.test(m[4])) host.appendChild(link(m[4], unesc(m[3]))); else host.appendChild(document.createTextNode(unesc(m[3]))); }
-      else if (m[5] != null) host.appendChild(SNAP ? document.createTextNode(clean(m[6]) || "page") : link(cleanUrl(m[5]), clean(m[6]) || "page")); // a client's page links nowhere into Notion
-      else if (m[7] != null) { var it = itemIndex()[key(m[7])]; host.appendChild(SNAP ? document.createTextNode(it ? it.name : "page") : link(cleanUrl(m[7]), it ? it.name : "page")); }
+      else if (m[5] != null || m[7] != null) { // a page mention: an item of the tracker opens here; anything else opens in Notion (a client's page links nowhere into Notion)
+        var mu = m[5] != null ? m[5] : m[7], it = mentioned(mu), nm = clean(m[6] || "") || (it ? it.name : "page");
+        host.appendChild(it ? itemLink(it, nm) : SNAP ? document.createTextNode(nm) : link(cleanUrl(mu), nm));
+      }
       else if (m[8] != null) host.appendChild(document.createTextNode(fmt(dnum(m[8]), true)));
       else if (m[9] != null) host.appendChild(document.createTextNode(m[9]));
       else if (m[10] != null) host.appendChild(el("i", "", unesc(m[10])));
@@ -552,21 +555,24 @@
     d.appendChild(b); d.appendChild(body); return d;
   }
   S.col = {}; // sections folded in this visit; every new visit starts with all of them open
+  function goItem(x) { var p = x.project && x.project.key ? x.project : projByKey()[x.pk]; if (p) openProject(p, key(x.url)); } // another item of the tracker: its project's page, scrolled to it and opened
+  function itemLink(x, text) { var b = btn("ilink", text, function (e) { e.stopPropagation(); goItem(x); }); b.title = "Go to " + (x.kind === "problem" ? "the problem" : x.kind === "ms" ? "the milestone" : x.kind === "task" ? "the task" : "it"); return b; }
   function problemsOn(k, field) { return allProblems().filter(function (i) { return i[field] === k && i.status !== "Dropped"; }); }
   function msBody(x, m) {
     PT.msFacts(x, m);
-    pageBody(x, m.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(m.url), "mk"), ON_US); } });
+    pageBody(x, m.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(m.url), "mk"), ON_US, itemLink); } });
     if (!SNAP) actions(x, [chatBtn(m, "ms"), link(m.url, "Open in Notion ↗", "ext")]);
   }
   function taskBody(x, k) {
-    PT.taskFacts(x, k);
-    pageBody(x, k.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(k.url), "tk"), ON_US); } });
+    PT.taskFacts(x, k, itemLink);
+    pageBody(x, k.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(k.url), "tk"), ON_US, itemLink); } });
     if (!SNAP) actions(x, [chatBtn(k, "task"), link(k.url, "Open in Notion ↗", "ext")]);
   }
   function problemBody(x, i) {
     var idx = itemIndex(), ms = idx[i.mk], tk = idx[i.tk], a = ageOf(i);
     if (i.summary) x.appendChild(el("p", "x-lede", i.summary)); // what is wrong, first
-    PT.meta(x, [i.status === "Resolved" ? "" : i.waiting ? "waiting on " + i.waiting : SNAP ? "on our side" : "on you", ms ? "in " + ms.name + (tk ? " › " + tk.name : "") : tk ? "on " + tk.name : "", i.opened != null ? "opened " + fmt(i.opened) + (i.status !== "Resolved" && a != null ? ", " + days(a) + " ago" : "") : "", i.resolvedOn != null ? "resolved " + fmt(i.resolvedOn) : ""]);
+    var where = null; if (ms || tk) { where = span(ms ? "in " : "on "); if (ms) where.appendChild(itemLink(ms, ms.name)); if (ms && tk) where.appendChild(document.createTextNode(" › ")); if (tk) where.appendChild(itemLink(tk, tk.name)); } // what it is about, each a link to it
+    PT.meta(x, [i.status === "Resolved" ? "" : i.waiting ? "waiting on " + i.waiting : SNAP ? "on our side" : "on you", where, i.opened != null ? "opened " + fmt(i.opened) + (i.status !== "Resolved" && a != null ? ", " + days(a) + " ago" : "") : "", i.resolvedOn != null ? "resolved " + fmt(i.resolvedOn) : ""]);
     pageBody(x, i.url, { split: true });
     if (!SNAP) actions(x, [chatBtn(i, "problem"), link(i.url, "Open in Notion ↗", "ext")]);
   }
@@ -622,9 +628,9 @@
         var gt = el("div", "grp-t"); gt.appendChild(span(g[0])); gt.appendChild(span(String(g[1].length), "n")); b1.appendChild(gt);
         g[1].sort(function (x, y) { return (ageOf(y) || 0) - (ageOf(x) || 0); }).forEach(function (i) {
           var a = ageOf(i), sub = el("span", "s");
-          if (i.kind === "task") { sub.appendChild(typeTag("Task")); sub.appendChild(document.createTextNode(" " + (i.waiting || "") + (i.end != null ? " · due " + fmt(i.end) : ""))); b1.appendChild(acc({ k: "w:" + key(i.url), dot: i.late > 0 ? "crit" : "warn", title: i.name, line: sub, right: a != null ? days(a) : "", expand: function (x) { taskBody(x, i); } })); return; }
+          if (i.kind === "task") { sub.appendChild(typeTag("Task")); sub.appendChild(document.createTextNode(" " + (i.waiting || "") + (i.end != null ? " · due " + fmt(i.end) : ""))); b1.appendChild(acc({ k: "w:" + key(i.url), item: i, dot: i.late > 0 ? "crit" : "warn", title: i.name, line: sub, right: a != null ? days(a) : "", expand: function (x) { taskBody(x, i); } })); return; }
           sub.appendChild(typeTag(i.type)); if (i.waiting) sub.appendChild(document.createTextNode(" " + i.waiting));
-          b1.appendChild(acc({ k: key(i.url), dot: i.type === "Blocker" ? "crit" : i.type === "Risk" ? "warn" : i.waiting ? "ring" : "cur", title: i.name, line: sub, right: a != null ? days(a) : "", expand: function (x) { problemBody(x, i); } }));
+          b1.appendChild(acc({ k: key(i.url), item: i, dot: i.type === "Blocker" ? "crit" : i.type === "Risk" ? "warn" : i.waiting ? "ring" : "cur", title: i.name, line: sub, right: a != null ? days(a) : "", expand: function (x) { problemBody(x, i); } }));
         });
       });
     }
@@ -634,7 +640,7 @@
     var resolvedP = (S.resolved || []).map(problemOf).filter(function (i) { return i.pk === p.key && i.status === "Resolved"; });
     if (resolvedP.length) {
       var b4 = dsec(body, "resolved", "Resolved lately", resolvedP.length);
-      resolvedP.forEach(function (i) { var sub = el("span", "s"); sub.appendChild(typeTag(i.type)); sub.appendChild(document.createTextNode(i.resolvedOn != null ? " resolved " + fmt(i.resolvedOn) : " resolved")); b4.appendChild(acc({ k: "r:" + key(i.url), dot: "good", title: i.name, line: sub, right: "", expand: function (x) { problemBody(x, i); } })); });
+      resolvedP.forEach(function (i) { var sub = el("span", "s"); sub.appendChild(typeTag(i.type)); sub.appendChild(document.createTextNode(i.resolvedOn != null ? " resolved " + fmt(i.resolvedOn) : " resolved")); b4.appendChild(acc({ k: "r:" + key(i.url), item: i, dot: "good", title: i.name, line: sub, right: "", expand: function (x) { problemBody(x, i); } })); });
     }
 
   }

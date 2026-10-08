@@ -65,16 +65,16 @@ The project page **is the Projects row** — build into the row's body (`page_id
 Views — `notion-create-view` with `parent_page_id` = the project page, in this order (they are appended to the page as `<database …>` lines, in creation order; a `GROUP BY` view comes back with empty groups hidden, which is fine):
 
 ```
-Plan       timeline  data source <milestones>  FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Paused", "Done"); TIMELINE BY "Dates"; SORT BY "Dates" ASC; SHOW "Name", "Status", "Late, days"
-Tasks      table     data source <tasks>       FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Waiting", "Done"); GROUP BY "Milestone"; SORT BY "Order" ASC, "Dates" ASC; SHOW "Name", "Status", "Dates", "Waiting on", "Late, days"
-Schedule   table     data source <milestones>  FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Paused", "Done"); SORT BY "Order" ASC, "Dates" ASC; SHOW "Name", "Status", "Dates", "Finished", "Late, days"
-Problems   table     data source <problems>    FILTER "Project" = "<page id>"; FILTER "Status" IN ("Open", "Waiting"); SORT BY "Type" ASC; SHOW "Name", "Type", "Status", "Waiting on", "Milestone", "Task"
+Plan       timeline  data source <milestones>  FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Paused", "Done"); TIMELINE BY "Dates"; SORT BY "Dates" ASC; SHOW "Name", "Ref", "Status", "Late, days"
+Tasks      table     data source <tasks>       FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Waiting", "Done"); GROUP BY "Milestone"; SORT BY "Order" ASC, "Dates" ASC; SHOW "Name", "Ref", "Status", "Dates", "Waiting on", "Late, days"
+Schedule   table     data source <milestones>  FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Paused", "Done"); SORT BY "Order" ASC, "Dates" ASC; SHOW "Name", "Ref", "Status", "Dates", "Finished", "Late, days"
+Problems   table     data source <problems>    FILTER "Project" = "<page id>"; FILTER "Status" IN ("Open", "Waiting"); SORT BY "Type" ASC; SHOW "Name", "Ref", "Type", "Status", "Waiting on", "Milestone", "Task"
 ```
 
 Then the Gantt as a second view of the `Tasks` block — `notion-create-view` with `database_id` = that block:
 
 ```
-Timeline   timeline  data source <tasks>       FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Waiting", "Done"); TIMELINE BY "Dates"; GROUP BY "Milestone"; SORT BY "Dates" ASC; SHOW "Name", "Status", "Waiting on", "Late, days"
+Timeline   timeline  data source <tasks>       FILTER "Project" = "<page id>"; FILTER "Status" IN ("Planned", "In progress", "Waiting", "Done"); TIMELINE BY "Dates"; GROUP BY "Milestone"; SORT BY "Dates" ASC; SHOW "Name", "Ref", "Status", "Waiting on", "Late, days"
 ```
 
 The table comes first because a timeline hides tasks without dates; the dashboard reads the view named `Tasks`. Notion orders the milestone groups itself; the rows inside follow `Order`. Create the block with the table (`notion-create-view`, `parent_page_id` = the project page), then add the timeline to the same block: `notion-create-view` with `database_id` = that block's id (from the page fetch, `<database url=…>`) — it becomes the block's second view.

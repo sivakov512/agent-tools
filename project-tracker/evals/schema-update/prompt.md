@@ -1,6 +1,6 @@
 ---
-max_turns: 120
-timeout_seconds: 1800
+max_turns: 160
+timeout_seconds: 2400
 allowed_tools: [Skill, Read, Glob, Grep]
 runs: 1
 tags: [setup, upgrade]

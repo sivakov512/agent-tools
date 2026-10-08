@@ -28,7 +28,7 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 	problems: `20000000-0000-4000-8000-000000000003`
 	dashboard: `https://claude.ai/artifact/d0000000-0000-4000-8000-000000000001`
 	dashboard_version: 99.0.0
-	schema: 4
+	schema: 5
 </details>
 <tabs>
 	<tab>
@@ -62,14 +62,16 @@ Fetching a database URL lists its data source with the schema below and its view
 A view is queried with `data: {mode: "view", view_url: "https://app.notion.com/p/<database or block id without dashes>?v=<view id without dashes>"}` and returns `{"results":[{…row properties…, "url":"https://app.notion.com/p/<row id>"}],"has_more":false}` with dates as `date:<Prop>:start` / `date:<Prop>:end`, relations as JSON arrays of page URLs, `Late, days`, `Open late` and the rollups as opaque formula references.
 
 Schemas:
-- Projects: Name (title), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Claude project (text), Client dashboard (url), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
-- Milestones: Name (title), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Order (number), Chat (url), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
-- Tasks: Name (title), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Order (number), Chat (url), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
-- Problems: Name (title), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Summary (text), Opened (date), Resolved on (date), Chat (url). `Chat` is empty on every row at the start, except task 0103, whose `Chat` is `https://claude.ai/code/session_01EvalOtherChat` (an earlier chat about it).
+- Projects: Name (title), Ref (unique ID, prefix PR), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Claude project (text), Client dashboard (url), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
+- Milestones: Name (title), Ref (unique ID, prefix MS), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Order (number), Chat (url), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
+- Tasks: Name (title), Ref (unique ID, prefix TK), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Order (number), Chat (url), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
+- Problems: Name (title), Ref (unique ID, prefix PB), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Summary (text), Opened (date), Resolved on (date), Chat (url). `Chat` is empty on every row at the start, except task 0103, whose `Chat` is `https://claude.ai/code/session_01EvalOtherChat` (an earlier chat about it).
+
+`Ref` (all four databases) is a Notion unique ID — numbered by Notion itself, per database, and read-only: a write to it fails with a validation error. A fetch of a database or data source lists it in the schema as a unique ID with its prefix (`PR` Projects, `MS` Milestones, `TK` Tasks, `PB` Problems). **Its value reads differently by call, exactly as real Notion returns it:** in view query results it is the bare number as a string, with no prefix — `"Ref":"4"`; in a page fetch's `<properties>` it carries the prefix — `"Ref":"TK-4"`. Every row below gives its `Ref` (`Ref PR-1` on a project, `(Ref TK-4)` on the other rows); return it in every view query row (whatever the view shows) and in every page fetch, each in the form for that call. A row the agent creates gets the next free number of its database (the next project `PR-3`, milestone `MS-6`, task `TK-12`, problem `PB-3`).
 
 ## Projects
 
-**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Client Northwind; Origin Direct; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-08; Summary "Firmware on the dev board in progress, due Nov 13; real CT readings over Zigbee due Oct 9."
+**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Ref PR-1; Client Northwind; Origin Direct; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-08; Summary "Firmware on the dev board in progress, due Nov 13; real CT readings over Zigbee due Oct 9."
 
 Its page (fetch of the row id) contains:
 
@@ -108,28 +110,28 @@ Fetching a linked-view block `60000000…00NN` lists its views: block …11 → 
 `Order` is set on every milestone and task: 1, 2, … in the order each list below gives them (milestones per project, tasks per milestone; tasks without a milestone per project).
 
 Milestones of Energy meter (id — name — status — Dates):
-- `3000…0110` Firmware on the dev board — In progress — 2026-09-15 → 2026-11-13. Body: `## History`, then `- **Sep 15** — Started with the Zigbee stack bring-up.`
-- `3000…0111` Hardware — Planned — 2026-11-13 → 2027-01-08. Body empty.
+- `3000…0110` (Ref MS-1) Firmware on the dev board — In progress — 2026-09-15 → 2026-11-13. Body: `## History`, then `- **Sep 15** — Started with the Zigbee stack bring-up.`
+- `3000…0111` (Ref MS-2) Hardware — Planned — 2026-11-13 → 2027-01-08. Body empty.
 
 Tasks of Energy meter (id — name — milestone — status — Dates — Waiting on):
-- `3000…0101` Zigbee stack configured — 0110 — Done — 2026-09-15 → 2026-09-22 — Finished 2026-09-22
-- `3000…0102` Real readings from the CT sensor over Zigbee — 0110 — In progress — 2026-09-22 → 2026-10-09
-- `3000…0103` Sleep modes and sampling with the processor asleep — 0110 — Planned — 2026-10-09 → 2026-11-06 — Chat https://claude.ai/code/session_01EvalOtherChat
-- `3000…0104` Power measured, module fixed — 0110 — Planned — 2026-11-06 → 2026-11-13
-- `3000…0105` Board designed, first boards ordered — 0111 — Planned — 2026-11-13 → 2026-12-04
-- `3000…0106` First prototype working on the custom board — 0111 — Planned — 2026-12-04 → 2027-01-08
-- `3000…0201` CI runner set up — 0110 — Waiting — no Dates — Waiting on Marko
-- `3000…0202` RFQ reviewed — 0111 — Waiting — no Dates — Waiting on Northwind
-- `3000…0203` Invoice received from Acme — 0111 — Waiting — no Dates — Waiting on Acme
-- `3000…0205` Laboratory found — 0111 — Planned — no Dates — Waiting on empty
+- `3000…0101` (Ref TK-1) Zigbee stack configured — 0110 — Done — 2026-09-15 → 2026-09-22 — Finished 2026-09-22
+- `3000…0102` (Ref TK-2) Real readings from the CT sensor over Zigbee — 0110 — In progress — 2026-09-22 → 2026-10-09
+- `3000…0103` (Ref TK-3) Sleep modes and sampling with the processor asleep — 0110 — Planned — 2026-10-09 → 2026-11-06 — Chat https://claude.ai/code/session_01EvalOtherChat
+- `3000…0104` (Ref TK-4) Power measured, module fixed — 0110 — Planned — 2026-11-06 → 2026-11-13
+- `3000…0105` (Ref TK-5) Board designed, first boards ordered — 0111 — Planned — 2026-11-13 → 2026-12-04
+- `3000…0106` (Ref TK-6) First prototype working on the custom board — 0111 — Planned — 2026-12-04 → 2027-01-08
+- `3000…0201` (Ref TK-7) CI runner set up — 0110 — Waiting — no Dates — Waiting on Marko
+- `3000…0202` (Ref TK-8) RFQ reviewed — 0111 — Waiting — no Dates — Waiting on Northwind
+- `3000…0203` (Ref TK-9) Invoice received from Acme — 0111 — Waiting — no Dates — Waiting on Acme
+- `3000…0205` (Ref TK-10) Laboratory found — 0111 — Planned — no Dates — Waiting on empty
 
 Each of these task pages holds only its history — a `## History` heading, then the line: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Sep 22** — Asked Marko to set up a CI runner for the firmware.`; 0202 `- **Sep 22** — Sent the RFQ to Northwind for review.`; 0203 `- **Sep 22** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; the others are empty.
 
 Problems of Energy meter:
-- `3000…0204` Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0111 — Task 0105 — Summary "+3 weeks if the second board run misses it" — Opened 2026-09-22
-- `3000…0206` Zigbee binding error — Blocker — Resolved — Milestone 0110 — Task 0102 — Opened 2026-09-22 — Resolved on 2026-10-02 — Summary "Fixed with a custom converter."
+- `3000…0204` (Ref PB-1) Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0111 — Task 0105 — Summary "+3 weeks if the second board run misses it" — Opened 2026-09-22
+- `3000…0206` (Ref PB-2) Zigbee binding error — Blocker — Resolved — Milestone 0110 — Task 0102 — Opened 2026-09-22 — Resolved on 2026-10-02 — Summary "Fixed with a custom converter."
 
-**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Client Brightbrush Ltd; Origin Upwork; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Summary "Layout in progress, due Oct 20; firmware starts Oct 20, once the spec is approved." Same page layout, with this callout and nothing below `</tabs>`:
+**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Ref PR-2; Client Brightbrush Ltd; Origin Upwork; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Summary "Layout in progress, due Oct 20; firmware starts Oct 20, once the spec is approved." Same page layout, with this callout and nothing below `</tabs>`:
 
 ```
 <callout icon="🔵" color="blue_bg">
@@ -139,16 +141,17 @@ Problems of Energy meter:
 ```
 
 Linked-view blocks `60000000…0021` Plan, `…0022` Tasks (views `70000000…0022` "Tasks" table, then `…0025` "Timeline"), `…0023` Schedule, `…0024` Problems; views `70000000…0021/22/23/24`, same kinds as for Energy meter.
-- Milestone `3000…0301` Schematic — Done — 2026-09-01 → 2026-09-18 — Finished 2026-09-18. Body: `Contract milestone 1. Done when the schematic PDF is delivered.`
-- Milestone `3000…0302` Layout — In progress — 2026-09-18 → 2026-10-20. Body: `Contract milestone 2. Done when the Gerbers are delivered.`
-- Milestone `3000…0303` Firmware — Planned — 2026-10-20 → 2026-11-10. Body: `Contract milestone 3. Done when the firmware runs on the prototype.`
-- Task `3000…0401` Firmware spec approved by Brightbrush Ltd — milestone 0303 — Waiting — no Dates — Waiting on Brightbrush Ltd. Body: `## History`, then `- **Sep 18** — Sent the firmware spec to Brightbrush Ltd for approval.`
+- Milestone `3000…0301` (Ref MS-3) Schematic — Done — 2026-09-01 → 2026-09-18 — Finished 2026-09-18. Body: `Contract milestone 1. Done when the schematic PDF is delivered.`
+- Milestone `3000…0302` (Ref MS-4) Layout — In progress — 2026-09-18 → 2026-10-20. Body: `Contract milestone 2. Done when the Gerbers are delivered.`
+- Milestone `3000…0303` (Ref MS-5) Firmware — Planned — 2026-10-20 → 2026-11-10. Body: `Contract milestone 3. Done when the firmware runs on the prototype.`
+- Task `3000…0401` (Ref TK-11) Firmware spec approved by Brightbrush Ltd — milestone 0303 — Waiting — no Dates — Waiting on Brightbrush Ltd. Body: `## History`, then `- **Sep 18** — Sent the firmware spec to Brightbrush Ltd for approval.`
 - No problems.
 
 ## What each read returns (strict)
 
 - `notion-fetch` of a database, data source or linked-view block returns its schema and its views only — **never rows**. Rows come only from `notion-query-data-sources` in view mode.
 - `notion-fetch` of a row id returns that page: properties and body, exactly as described above (description, `## Notes`, `## Private notes`, `## History` — whichever the page has).
+- `Ref` reads as the bare number string in every view query row (`"Ref":"4"`) and as `PREFIX-N` in every page fetch (`"Ref":"TK-4"`) — never the other way round.
 - View queries apply the view's filter exactly. At the start of the run they return:
   - Projects "Active" (5000…0001): Energy meter, Brightbrush. "Closed" (…0009): no rows.
   - Milestones "Next up" (…0002) and "Timeline" (…0003): every milestone not Done — 0110, 0111, 0302, 0303. Never 0301.
