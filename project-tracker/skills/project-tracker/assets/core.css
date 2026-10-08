@@ -6,7 +6,7 @@
   --text: #1a1e1f; --text-2: #5b6462; --text-mute: #8d9593;
   --accent: #0f7f79; --accent-soft: #e2f2f0; --on-accent: #ffffff;
   --critical: #b83a2e; --critical-soft: #fbe9e6; --warn: #8a6c2c; --warn-soft: #f5eedf; --good: #2a8a55; --good-soft: #e3f3e9;
-  --bar: #dde1df; --bar-ink: #2b3231; --paused: #c2c8c5; --scrim: rgba(18, 22, 22, .28);
+  --bar: #dde1df; --bar-ink: #2b3231; --paused: #c2c8c5; --scrim: rgba(18, 22, 22, .28); --weekend: rgba(18, 22, 22, .035);
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
@@ -17,7 +17,7 @@
     --text: #e4e7e6; --text-2: #9ca4a2; --text-mute: #6d7674;
     --accent: #5ec6bc; --accent-soft: #17302e; --on-accent: #0c1817;
     --critical: #ec7b70; --critical-soft: #35191a; --warn: #b39a5c; --warn-soft: #2a2416; --good: #6cc592; --good-soft: #16291e;
-    --bar: #2b3133; --bar-ink: #d9dedd; --paused: #485052; --scrim: rgba(0, 0, 0, .5);
+    --bar: #2b3133; --bar-ink: #d9dedd; --paused: #485052; --scrim: rgba(0, 0, 0, .5); --weekend: rgba(0, 0, 0, .22);
     color-scheme: dark;
   }
 }
@@ -27,7 +27,7 @@
   --text: #e4e7e6; --text-2: #9ca4a2; --text-mute: #6d7674;
   --accent: #5ec6bc; --accent-soft: #17302e; --on-accent: #0c1817;
   --critical: #ec7b70; --critical-soft: #35191a; --warn: #b39a5c; --warn-soft: #2a2416; --good: #6cc592; --good-soft: #16291e;
-  --bar: #2b3133; --bar-ink: #d9dedd; --paused: #485052; --scrim: rgba(0, 0, 0, .5);
+  --bar: #2b3133; --bar-ink: #d9dedd; --paused: #485052; --scrim: rgba(0, 0, 0, .5); --weekend: rgba(0, 0, 0, .22);
   color-scheme: dark;
 }
 
@@ -106,6 +106,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .tl-wk { position: absolute; top: 0; height: 100%; padding: 9px 0 0 4px; font-size: 11px; color: var(--text-mute); opacity: .8; white-space: nowrap; }
 .tl-grid.wk { border-left: 1px dashed var(--border-2); }
 .tl-grid.day { border-left: 1px dotted var(--border-2); opacity: .6; }
+.tl-we { position: absolute; top: 32px; bottom: 0; background: var(--weekend); pointer-events: none; } /* weekends at 1 month: a band under the bars, always darker than workdays (sunken), in both themes */
 .tl-grid.yr { border-left-color: color-mix(in srgb, var(--text-mute) 45%, transparent); }
 .tl-month.yr { color: var(--text-2); font-weight: 600; }
 .tl-today { position: absolute; top: 32px; bottom: 0; width: 2px; background: var(--accent); opacity: .7; z-index: 1; pointer-events: none; }

@@ -238,6 +238,9 @@
       var mstarts = [];
       for (var d0 = new Date(a * DAY), mc = Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth(), 1) / DAY; mc < b; d0 = new Date(mc * DAY), mc = Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + 1, 1) / DAY) if (mc >= a) mstarts.push(mc);
       var byMonth = function (n) { return mstarts.some(function (m) { return Math.abs(X(n) - X(m)) < Math.min(30, Math.max(14, 2.5 * px)); }); };
+      if (rg === "1") for (var we = a; we < b; we++) if (new Date(we * DAY).getUTCDay() === 6 || (we === a && new Date(we * DAY).getUTCDay() === 0)) { // weekends, a band each, under the bars
+        var wend = Math.min(new Date(we * DAY).getUTCDay() === 6 ? we + 2 : we + 1, b), band = el("div", "tl-we"); band.style.left = (LW + X(we)) + "px"; band.style.width = (X(wend) - X(we)) + "px"; tl.appendChild(band);
+      }
       if (rg === "1") for (var dy = a; dy < b; dy++) if (mstarts.indexOf(dy) < 0 && new Date(dy * DAY).getUTCDay() !== 1) line(dy, "day");
       if (rg === "1" || rg === "3") {
         for (var wk = a + ((8 - new Date(a * DAY).getUTCDay()) % 7); wk < b; wk += 7) {
