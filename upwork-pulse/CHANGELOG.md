@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.15.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.14.2...upwork-pulse-v0.15.0) (2026-10-08)
+
+
+### Features
+
+* **upwork-pulse:** the dashboard's live line is a status button — green when all runs well, red with a short note and the details when the scanner, job pages, a connector, an update or the guide is degraded ([16d2441](https://github.com/sivakov512/agent-tools/commit/16d24416d7fc627e75f788261192fa7fa3a31c49))
+
+
+### Bug Fixes
+
+* **upwork-pulse:** the hourly run opens job pages three per turn, and the proposals sync skips the status lists this connector always returns empty ([fd43659](https://github.com/sivakov512/agent-tools/commit/fd43659cb1f6c93ee9f1fd4fcd9263a40b6cf60b))
+
 ## [0.14.2](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.14.1...upwork-pulse-v0.14.2) (2026-10-08)
 
 
