@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.15.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.14.2...upwork-pulse-v0.15.0) (2026-10-08)
+
+
+### Features
+
+* **upwork-pulse:** pipeline status button in the dashboard ([16d2441](https://github.com/sivakov512/agent-tools/commit/16d24416d7fc627e75f788261192fa7fa3a31c49))
+
+
+### Bug Fixes
+
+* **upwork-pulse:** batch job page reads, skip empty status lists ([fd43659](https://github.com/sivakov512/agent-tools/commit/fd43659cb1f6c93ee9f1fd4fcd9263a40b6cf60b))
+
 ## [0.14.2](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.14.1...upwork-pulse-v0.14.2) (2026-10-08)
 
 
