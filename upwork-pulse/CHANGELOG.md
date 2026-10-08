@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.2](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.14.1...upwork-pulse-v0.14.2) (2026-10-08)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** job pages Upwork refuses pause the hourly search with a growing backoff, deferred postings open newest first, and the hourly run hands drafts its catch-up cards ([3c65d3e](https://github.com/sivakov512/agent-tools/commit/3c65d3ecb4cf45652bd7558199010024708f6d60))
+
 ## [0.14.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.14.0...upwork-pulse-v0.14.1) (2026-10-08)
 
 
