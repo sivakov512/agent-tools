@@ -28,7 +28,7 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 	problems: `20000000-0000-4000-8000-000000000003`
 	dashboard: `https://claude.ai/artifact/d0000000-0000-4000-8000-000000000001`
 	dashboard_version: 99.0.0
-	schema: 3
+	schema: 4
 </details>
 <tabs>
 	<tab>
@@ -65,7 +65,7 @@ Schemas:
 - Projects: Name (title), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Claude project (text), Client dashboard (url), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
 - Milestones: Name (title), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Order (number), Chat (url), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
 - Tasks: Name (title), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Order (number), Chat (url), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
-- Problems: Name (title), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Note (text), Opened (date), Resolved on (date), Chat (url). `Chat` is empty on every row at the start, except task 0103, whose `Chat` is `https://claude.ai/code/session_01EvalOtherChat` (an earlier chat about it).
+- Problems: Name (title), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Summary (text), Opened (date), Resolved on (date), Chat (url). `Chat` is empty on every row at the start, except task 0103, whose `Chat` is `https://claude.ai/code/session_01EvalOtherChat` (an earlier chat about it).
 
 ## Projects
 
@@ -96,12 +96,11 @@ Its page (fetch of the row id) contains:
 		Problems
 		<database url="https://app.notion.com/p/60000000000040008000000000000014" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000003"></database>
 	</tab>
-	<tab>
-		Notes
-		Notes, files, docs and client correspondence for this project. Newest at the bottom. {color="gray"}
-		**Oct 2** — Client prefers the fix shipped to hubs first.
-	</tab>
 </tabs>
+## Notes
+**Oct 2** — Client prefers the fix shipped to hubs first.
+## Private notes
+**Oct 3** — Northwind's PM sits on every sign-off for weeks; at this fixed price the hardware milestone leaves me almost no margin.
 ```
 
 Fetching a linked-view block `60000000…00NN` lists its views: block …11 → view `70000000-0000-4000-8000-000000000011` "Plan" (milestones, timeline); …12 → two views, first `70000000-…-000000000012` "Tasks" (tasks, table, grouped by Milestone; Status in Planned, In progress, Waiting, Done), then `70000000-…-000000000015` "Timeline" (the same tasks as a timeline by Dates); …13 → view `70000000-…-000000000013` "Schedule" (milestones, table); …14 → view `70000000-…-000000000014` "Problems" (Status in Open, Waiting). Querying them returns this project's rows.
@@ -109,7 +108,7 @@ Fetching a linked-view block `60000000…00NN` lists its views: block …11 → 
 `Order` is set on every milestone and task: 1, 2, … in the order each list below gives them (milestones per project, tasks per milestone; tasks without a milestone per project).
 
 Milestones of Energy meter (id — name — status — Dates):
-- `3000…0110` Firmware on the dev board — In progress — 2026-09-15 → 2026-11-13. Body: `- **Sep 15** — Started with the Zigbee stack bring-up.`
+- `3000…0110` Firmware on the dev board — In progress — 2026-09-15 → 2026-11-13. Body: `## History`, then `- **Sep 15** — Started with the Zigbee stack bring-up.`
 - `3000…0111` Hardware — Planned — 2026-11-13 → 2027-01-08. Body empty.
 
 Tasks of Energy meter (id — name — milestone — status — Dates — Waiting on):
@@ -124,13 +123,13 @@ Tasks of Energy meter (id — name — milestone — status — Dates — Waitin
 - `3000…0203` Invoice received from Acme — 0111 — Waiting — no Dates — Waiting on Acme
 - `3000…0205` Laboratory found — 0111 — Planned — no Dates — Waiting on empty
 
-Each task page body is its history: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Sep 22** — Asked Marko to set up a CI runner for the firmware.`; 0202 `- **Sep 22** — Sent the RFQ to Northwind for review.`; 0203 `- **Sep 22** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; the others are empty.
+Each of these task pages holds only its history — a `## History` heading, then the line: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Sep 22** — Asked Marko to set up a CI runner for the firmware.`; 0202 `- **Sep 22** — Sent the RFQ to Northwind for review.`; 0203 `- **Sep 22** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; the others are empty.
 
 Problems of Energy meter:
-- `3000…0204` Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0111 — Task 0105 — Note "+3 weeks if the second board run misses it" — Opened 2026-09-22
-- `3000…0206` Zigbee binding error — Blocker — Resolved — Milestone 0110 — Task 0102 — Opened 2026-09-22 — Resolved on 2026-10-02 — Note "Fixed with a custom converter."
+- `3000…0204` Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0111 — Task 0105 — Summary "+3 weeks if the second board run misses it" — Opened 2026-09-22
+- `3000…0206` Zigbee binding error — Blocker — Resolved — Milestone 0110 — Task 0102 — Opened 2026-09-22 — Resolved on 2026-10-02 — Summary "Fixed with a custom converter."
 
-**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Client Brightbrush Ltd; Origin Upwork; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Summary "Layout in progress, due Oct 20; firmware starts Oct 20, once the spec is approved." Same page layout, with this callout and no Notes lines below the gray placeholder:
+**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Client Brightbrush Ltd; Origin Upwork; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Summary "Layout in progress, due Oct 20; firmware starts Oct 20, once the spec is approved." Same page layout, with this callout and nothing below `</tabs>`:
 
 ```
 <callout icon="🔵" color="blue_bg">
@@ -143,13 +142,13 @@ Linked-view blocks `60000000…0021` Plan, `…0022` Tasks (views `70000000…00
 - Milestone `3000…0301` Schematic — Done — 2026-09-01 → 2026-09-18 — Finished 2026-09-18. Body: `Contract milestone 1. Done when the schematic PDF is delivered.`
 - Milestone `3000…0302` Layout — In progress — 2026-09-18 → 2026-10-20. Body: `Contract milestone 2. Done when the Gerbers are delivered.`
 - Milestone `3000…0303` Firmware — Planned — 2026-10-20 → 2026-11-10. Body: `Contract milestone 3. Done when the firmware runs on the prototype.`
-- Task `3000…0401` Firmware spec approved by Brightbrush Ltd — milestone 0303 — Waiting — no Dates — Waiting on Brightbrush Ltd. Body: `- **Sep 18** — Sent the firmware spec to Brightbrush Ltd for approval.`
+- Task `3000…0401` Firmware spec approved by Brightbrush Ltd — milestone 0303 — Waiting — no Dates — Waiting on Brightbrush Ltd. Body: `## History`, then `- **Sep 18** — Sent the firmware spec to Brightbrush Ltd for approval.`
 - No problems.
 
 ## What each read returns (strict)
 
 - `notion-fetch` of a database, data source or linked-view block returns its schema and its views only — **never rows**. Rows come only from `notion-query-data-sources` in view mode.
-- `notion-fetch` of a row id returns that page: properties and body (for milestones and tasks, the history lines).
+- `notion-fetch` of a row id returns that page: properties and body, exactly as described above (description, `## Notes`, `## Private notes`, `## History` — whichever the page has).
 - View queries apply the view's filter exactly. At the start of the run they return:
   - Projects "Active" (5000…0001): Energy meter, Brightbrush. "Closed" (…0009): no rows.
   - Milestones "Next up" (…0002) and "Timeline" (…0003): every milestone not Done — 0110, 0111, 0302, 0303. Never 0301.
@@ -166,5 +165,7 @@ Linked-view blocks `60000000…0021` Plan, `…0022` Tasks (views `70000000…00
 
 Linked views created with `notion-create-view` and `parent_page_id` are appended at the end of that page as `<database url="https://app.notion.com/p/<new block id>" inline="true" data-source-url="collection://…"></database>` lines. A page has no `<tabs>` block until the agent writes one; never invent content the agent did not write.
 
+
+Page bodies are laid out in parts, in this order: an unheaded description, then `## Notes`, `## Private notes` and `## History`, each heading present only once its section has an entry (on a project page they follow `</tabs>`). The headings are ordinary heading blocks: `update_content` with `old_str` `## History` matches on a page that has that heading, and `insert_content` at `end` lands after the last history line.
 
 Every status option listed in the schemas (including Paused, Waiting, Dropped and Removed) is valid, so property updates that set one succeed. Tabs, callouts, toggles (`<details>`), pages and databases are all supported block types in `insert_content` and `update_content`; never answer that a block type is unsupported. Create/update/insert calls succeed and return `{"page_id":"<id>"}` or, for create-pages, `{"pages":[{"id":…,"url":…}]}`. `notion-update-page` with `update_content` fails with "No matches found" if `old_str` is not in the page's current content exactly. `notion-create-database` returns a new database url and `collection://…` data source id. `notion-create-view` returns a new view id. `notion-create-file-upload` returns `{"upload_url":"https://upload.example/…","suggested_markdown":"<file src=\"file-upload://abc123\">name</file>"}`.

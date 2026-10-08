@@ -26,7 +26,7 @@ Status: finished stages → Done; the stage the work is on (active on the platfo
 
 Tasks and problems — no tasks; problems only these:
 
-- A stage marked as disputed, requested changes or rejected → a Blocker problem, Status Open, `Waiting on` empty (it is on the user), linked to the milestone, with the client's reason in `Note`.
+- A stage marked as disputed, requested changes or rejected → a Blocker problem, Status Open, `Waiting on` empty (it is on the user), linked to the milestone, with the client's reason in `Summary`.
 - A term that names a concrete future decision or event with a cost ("extra revisions are quoted separately", "support beyond the first month is billed hourly") → neither a task nor a problem. These are commercial terms. If one limits what a milestone includes, add it as the second line of that milestone's page body; otherwise ignore it.
 
 Later news from the user about the client's side — the client has not funded the next stage, an approval is pending — is an ordinary fact: a Waiting task or a Blocker waiting on the client, by SKILL.md's usual rules (**A task or a problem**).
@@ -36,7 +36,7 @@ Ignore entirely: amounts, funding and payment states (they go stale and are not 
 ## Project fields and page
 
 - `Source` = the link to the contract on the platform. This is the only link to the platform the tracker keeps; `Repository` is for code and stays empty unless the user gives one.
-- Page body: callout and tabs as for any project. The `Notes` tab starts empty; the contract text is not copied there — it is one click away through `Source`.
+- Page body: callout and tabs as for any project. The contract text is not copied onto the page — it is one click away through `Source`.
 
 ## Resync — "sync the Upwork project"
 

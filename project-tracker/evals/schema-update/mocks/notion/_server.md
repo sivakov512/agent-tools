@@ -105,7 +105,9 @@ Its page (fetch of the row id) contains:
 
 Fetching a linked-view block `60000000…00NN` lists its views: block …11 → view `70000000-0000-4000-8000-000000000011` "Plan" (milestones, timeline); …12 → two views, first `70000000-…-000000000012` "Tasks" (tasks, table, grouped by Milestone; Status in Planned, In progress, Waiting, Done), then `70000000-…-000000000015` "Timeline" (the same tasks as a timeline by Dates); …13 → view `70000000-…-000000000013` "Schedule" (milestones, table); …14 → view `70000000-…-000000000014` "Problems" (Status in Open, Waiting). Querying them returns this project's rows.
 
-This tracker was built by release 1.0.0: Milestones and Tasks have no `Order` column until the agent adds it with `notion-update-data-source` (`ADD COLUMN "Order" NUMBER …`); after that, property writes to `Order` succeed and later fetches show the values. Writing `Order` before the column exists fails with a validation error naming the unknown property.
+This tracker was built by release 1.0.0: Milestones and Tasks have no `Order` column until the agent adds it with `notion-update-data-source` (`ADD COLUMN "Order" NUMBER …`); after that, property writes to `Order` succeed and later fetches show the values. Writing `Order` before the column exists fails with a validation error naming the unknown property. Projects likewise has no `Client dashboard` column until the agent adds it. Problems has `Note`, not `Summary`, until the agent renames it (`RENAME COLUMN "Note" TO "Summary"`); after that the schema, the views and the rows show `Summary` with the same values, and `Note` no longer exists.
+
+The pages are in the old layout: no page has a `## Notes`, `## Private notes` or `## History` heading; a row's body is plain blocks as listed below, and a project's notes sit in its `Notes` tab. Headings the agent writes with `update_content` or `insert_content` are stored as heading blocks and show in later fetches; content the agent moves or replaces is gone from its old place.
 
 Milestones of Energy meter (id — name — status — Dates):
 - `3000…0110` Firmware on the dev board — In progress — 2026-09-15 → 2026-11-13. Body: `- **Sep 15** — Started with the Zigbee stack bring-up.`
@@ -123,7 +125,7 @@ Tasks of Energy meter (id — name — milestone — status — Dates — Waitin
 - `3000…0203` Invoice received from Acme — 0111 — Waiting — no Dates — Waiting on Acme
 - `3000…0205` Laboratory found — 0111 — Planned — no Dates — Waiting on empty
 
-Each task page body is its history: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Sep 22** — Asked Marko to set up a CI runner for the firmware.`; 0202 `- **Sep 22** — Sent the RFQ to Northwind for review.`; 0203 `- **Sep 22** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; the others are empty.
+Task page bodies: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Sep 22** — Asked Marko to set up a CI runner for the firmware.`; 0202 `**Sep 20** — RFQ scope agreed on the call: three labs, a six-week test window.` (a paragraph) then `- **Sep 22** — Sent the RFQ to Northwind for review.`; 0203 `- **Sep 22** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; the others are empty.
 
 Problems of Energy meter:
 - `3000…0204` Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0111 — Task 0105 — Note "+3 weeks if the second board run misses it" — Opened 2026-09-22
@@ -148,7 +150,7 @@ Linked-view blocks `60000000…0021` Plan, `…0022` Tasks (views `70000000…00
 ## What each read returns (strict)
 
 - `notion-fetch` of a database, data source or linked-view block returns its schema and its views only — **never rows**. Rows come only from `notion-query-data-sources` in view mode.
-- `notion-fetch` of a row id returns that page: properties and body (for milestones and tasks, the history lines).
+- `notion-fetch` of a row id returns that page: properties and body, exactly as described above.
 - View queries apply the view's filter exactly. At the start of the run they return:
   - Projects "Active" (5000…0001): Energy meter, Brightbrush. "Closed" (…0009): no rows.
   - Milestones "Next up" (…0002) and "Timeline" (…0003): every milestone not Done — 0110, 0111, 0302, 0303. Never 0301.

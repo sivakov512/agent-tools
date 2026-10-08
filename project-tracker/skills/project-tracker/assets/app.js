@@ -1,6 +1,6 @@
 /* Project Tracker: the dashboard itself, shared by both pages. dashboard.html runs it live from Notion through the viewer's connector
    (window.PT_ROOT, the tracker's root page); client.html runs it on a snapshot (window.PT_DATA, from data.js) for a client — the same
-   page without what is internal: no Notion links or chats, no histories or notes, and the open items by whose side they are on. */
+   page without what is internal: no Private notes, Notion links or chats, and the open items by whose side they are on. */
 (function () {
   "use strict";
   var ROOT_PAGE = window.PT_ROOT || "", SNAP = window.PT_DATA || null; // live from Notion, or a client's snapshot
@@ -102,19 +102,36 @@
     });
   }
 
-  function parseProjectPage(txt) { // status callout notes + the Notes tab
-    var info = { notes: [], noteLines: [], notePages: [] };
+  function parseProjectPage(txt) { // status callout notes + the page's own parts, below its tabs (SKILL.md → Pages)
+    var info = { notes: [], parts: partsOf("") };
     var c = /<callout[^>]*>([\s\S]*?)<\/callout>/.exec(txt);
     if (c) c[1].split("\n").forEach(function (line) { var l = clean(line); if (l && !/^(Now|Blocked on|Waiting on|Open):/i.test(l)) info.notes.push(l); });
-    var n = /<tab>\s*\n\s*Notes\s*\n([\s\S]*?)<\/tab>/.exec(txt);
-    if (n) n[1].split("\n").forEach(function (line) {
-      var l = line.replace(/^\t+/, ""); if (!l.trim()) return;
-      var pg = /<page url="([^"]+)"[^>]*>([^<]*)<\/page>/.exec(l);
-      if (pg) { info.notePages.push({ url: cleanUrl(pg[1]), title: clean(pg[2]) || "Untitled" }); return; }
-      if (/^Notes, files, docs and client correspondence/i.test(clean(l))) return;
-      info.noteLines.push(l);
-    });
+    var body = contentOf(txt), t = body.lastIndexOf("</tabs>");
+    info.parts = partsOf(t < 0 ? "" : body.slice(t + 7));
     return info;
+  }
+  var PART = /^#{1,3}\s+(Notes|Private notes|History)\s*$/; // the headings that split a page into its parts — by these alone, never by how a line looks
+  function partsOf(tx) { // a page's text → { desc, notes, priv, hist }, each the text of its part
+    var out = { desc: [], notes: [], priv: [], hist: [] }, cur = "desc", name = { "Notes": "notes", "Private notes": "priv", "History": "hist" };
+    String(tx || "").split("\n").forEach(function (l) { var h = PART.exec(l.replace(/^\t+/, "").trim()); if (h) { cur = name[h[1]]; return; } out[cur].push(l); });
+    for (var k in out) out[k] = out[k].join("\n").trim();
+    return out;
+  }
+  function entriesIn(t) { return t ? t.split("\n").filter(function (l) { return l.trim() && !/^\t/.test(l); }).length : 0; } // a part's entries, for counts: its top-level lines
+  var LOCK = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
+  function partHead(t, priv) { var h = el("div", "xh" + (priv ? " priv-h" : "")); if (priv) h.insertAdjacentHTML("beforeend", LOCK); h.appendChild(span(t)); if (priv) h.title = "Only you see this — never on a client dashboard"; return h; }
+  function renderParts(box, pt, opts) { // a page's parts in their order, each under its label: Description, Notes, Private notes (never on a client's page), History
+    var any = false;
+    var ex = opts.extra ? opts.extra() : null; // the problems on a milestone or task, right after what it is
+    [["Description", pt.desc, {}], ["", ex], ["Notes", pt.notes, {}], ["Private notes", SNAP ? "" : pt.priv, {}], ["History", pt.hist, { history: true }]].forEach(function (s) {
+      if (!s[1]) return;
+      if (!s[0]) { box.appendChild(s[1]); any = true; return; }
+      var b = el("div", "part" + (s[0] === "Private notes" ? " priv-b" : "")); b.appendChild(partHead(s[0], s[0] === "Private notes"));
+      var md = renderMd(s[1], s[2]); md.classList.add("after-xh"); b.appendChild(md); box.appendChild(b); any = true;
+    });
+    box.classList.add("parts");
+    if (!any && opts.empty) box.appendChild(el("div", "muted", opts.empty));
+    return any;
   }
   function tabView(txt, tab, want) { // a project page tab → its linked view block → the view's rows
     var m = new RegExp("<tab>\\s*" + tab + "\\s*<database url=\"([^\"]+)\"").exec(txt);
@@ -366,14 +383,17 @@
 
   // ---------- a client's page: the snapshot, and the open items by whose side they are on ----------
   function loadSnapshot(D) { // data.js: per project its row, milestones, tasks and problems, rows as the views return them (references/client-dashboards.md)
-    S.side = {}; S.projects = []; S.problems = []; S.resolved = []; S.cfg = {};
-    (D.projects || []).forEach(function (x) { // structure only: a project's Summary or a problem's Note is never shown here, even if the data has one
-      var r = x.project || {}, p = { kind: "project", url: cleanUrl(r.url), key: key(r.url), name: clean(r.Name) || "Untitled", client: clean(r.Client), status: r.Status || "", summary: "", target: dnum(r["date:Target end:start"]), origin: "" };
+    S.side = {}; S.projects = []; S.problems = []; S.resolved = []; S.cfg = {}; S.snapPages = {};
+    var pub = function (t) { var pt = partsOf(t), o = []; if (pt.desc) o.push(pt.desc); if (pt.notes) o.push("## Notes\n" + pt.notes); if (pt.hist) o.push("## History\n" + pt.hist); return o.join("\n\n"); }; // Private notes never reach a client's page, even if the data has them
+    for (var sp in D.subpages || {}) S.snapPages[key(sp)] = D.subpages[sp];
+    (D.projects || []).forEach(function (x) {
+      var r = x.project || {}, p = { kind: "project", url: cleanUrl(r.url), key: key(r.url), name: clean(r.Name) || "Untitled", client: clean(r.Client), status: r.Status || "", summary: clean(r.Summary), target: dnum(r["date:Target end:start"]), origin: "" };
       var plan = PT.buildPlan(p, x.milestones || [], x.tasks || []);
-      S.plan[p.key] = plan; S.pageInfo[p.key] = { notes: [], noteLines: [], notePages: [] }; S.projects.push(p);
+      S.plan[p.key] = plan; S.pageInfo[p.key] = { notes: [], parts: partsOf(pub(r.page)) }; S.projects.push(p);
+      (x.milestones || []).concat(x.tasks || [], x.problems || []).forEach(function (row) { if (row.page) S.snapPages[key(row.url)] = pub(row.page); });
       (x.tasks || []).concat(x.problems || []).forEach(function (row) { if (row.Side) S.side[key(row.url)] = row.Side; });
       (x.problems || []).forEach(function (row) {
-        var q = {}; for (var k in row) if (k !== "Note") q[k] = row[k]; q.Project = JSON.stringify([p.url]);
+        var q = {}; for (var k in row) if (k !== "page") q[k] = row[k]; q.Project = JSON.stringify([p.url]);
         (q.Status === "Resolved" ? S.resolved : S.problems).push(q);
       });
     });
@@ -407,29 +427,22 @@
   // ---------- the project page ----------
   S.open = {}; S.body = {}; S.dr = null;
   var bodyWaiters = {}; // url → repaint functions of the boxes showing it
-  var HIST = /^[-*+]\s+(\*\*)?(\d{4}-\d{2}-\d{2}|[A-Z][a-z]{2} \d{1,2}(, \d{4})?)(\*\*)?\s+[—–-]/; // a history line: "- **Oct 6** — …"
   function pageBody(host, url, opts) { // fetched when it opens, kept so later paints never flash
     opts = opts || {};
     var box = el("div"); host.appendChild(box);
     function paint() {
       clear(box); var c = S.body[url];
-      if (!c || (c.txt == null && !c.err)) { box.appendChild(el("div", "skel")); box.lastChild.style.width = "70%"; box.appendChild(el("div", "skel")); box.lastChild.style.width = "45%"; return; }
-      if (c.err && c.txt == null) { box.appendChild(el("div", "crit", errText(c.err))); return; }
+      var ex = function () { var e = opts.extra && opts.extra(); if (e) { e.classList.add("part-x"); box.appendChild(e); } }; // the problems show while the page loads, and if it fails
+      if (!c || (c.txt == null && !c.err)) { box.appendChild(el("div", "skel")); box.lastChild.style.width = "70%"; box.appendChild(el("div", "skel")); box.lastChild.style.width = "45%"; ex(); return; }
+      if (c.err && c.txt == null) { box.appendChild(el("div", "crit", errText(c.err))); ex(); return; }
       var tx = contentOf(c.txt).trim();
-      if (opts.split) { // a row's page: its notes (whatever is not a dated history line), then its history
-        var notes = [], hist = [];
-        if (tx) tx.split("\n").forEach(function (l) { (HIST.test(l.replace(/^\t+/, "")) ? hist : notes).push(l); });
-        box.hidden = !tx && !opts.empty;
-        var nt = notes.join("\n").trim();
-        if (nt) { box.appendChild(el("div", "xh", "Notes")); var nm = renderMd(nt, {}); nm.classList.add("after-xh"); box.appendChild(nm); }
-        if (hist.length || opts.empty) { var hb = el("div", nt ? "hist-b" : ""); hb.appendChild(el("div", "xh", "History")); if (hist.length) { var hm = renderMd(hist.join("\n"), { history: true }); hm.classList.add("after-xh"); hb.appendChild(hm); } else hb.appendChild(el("div", "muted", opts.empty)); box.appendChild(hb); }
-        return;
-      }
+      if (opts.split) { box.hidden = !renderParts(box, partsOf(tx), opts) && !opts.empty; return; } // a row's page, in its parts
       if (!tx) { box.hidden = !opts.empty; if (opts.empty) { if (opts.title) box.appendChild(el("div", "xh", opts.title)); box.appendChild(el("div", "muted", opts.empty)); } return; }
       box.hidden = false;
       if (opts.title) box.appendChild(el("div", "xh", opts.title));
       var md = renderMd(tx, opts); if (opts.title) md.classList.add("after-xh"); box.appendChild(md);
     }
+    if (SNAP) { S.body[url] = { txt: "<content>\n" + (S.snapPages[key(url)] || "") + "\n</content>", at: Infinity }; paint(); return; } // a client's page: the text came with the snapshot
     paint();
     (bodyWaiters[url] = bodyWaiters[url] || []).push(function () { if (box.isConnected) paint(); });
     var c = S.body[url];
@@ -448,8 +461,8 @@
       if (m[1] != null) host.appendChild(el("b", "", unesc(m[1])));
       else if (m[2] != null) host.appendChild(el("code", "", m[2]));
       else if (m[3] != null) { if (/^https?:/.test(m[4])) host.appendChild(link(m[4], unesc(m[3]))); else host.appendChild(document.createTextNode(unesc(m[3]))); }
-      else if (m[5] != null) host.appendChild(link(cleanUrl(m[5]), clean(m[6]) || "page"));
-      else if (m[7] != null) { var it = itemIndex()[key(m[7])]; host.appendChild(link(cleanUrl(m[7]), it ? it.name : "page")); }
+      else if (m[5] != null) host.appendChild(SNAP ? document.createTextNode(clean(m[6]) || "page") : link(cleanUrl(m[5]), clean(m[6]) || "page")); // a client's page links nowhere into Notion
+      else if (m[7] != null) { var it = itemIndex()[key(m[7])]; host.appendChild(SNAP ? document.createTextNode(it ? it.name : "page") : link(cleanUrl(m[7]), it ? it.name : "page")); }
       else if (m[8] != null) host.appendChild(document.createTextNode(fmt(dnum(m[8]), true)));
       else if (m[9] != null) host.appendChild(document.createTextNode(m[9]));
       else if (m[10] != null) host.appendChild(el("i", "", unesc(m[10])));
@@ -481,7 +494,8 @@
       if (li) {
         var tag = /\d/.test(li[1]) ? "ol" : "ul";
         if (!list || listTag !== tag) { list = el(tag, opts.history && tag === "ul" ? "hist" : ""); listTag = tag; box.appendChild(list); }
-        var itm = el("li"); inline(itm, li[2].replace(/^\[[ x]\]\s*/, "")); list.appendChild(itm); continue;
+        var td = /^\[([ xX])\]\s*/.exec(li[2]), itm = el("li", td ? "todo" + (td[1] !== " " ? " done" : "") : ""); // a checklist item: its box, ticked or not, read-only
+        if (td) itm.appendChild(el("span", "cb")); inline(itm, td ? li[2].slice(td[0].length) : li[2]); list.appendChild(itm); continue;
       }
       if (/^>\s?/.test(l)) { endList(); var q = el("blockquote"); inline(q, l.replace(/^>\s?/, "")); box.appendChild(q); continue; }
       endList(); var p = el("p"); inline(p, l); box.appendChild(p);
@@ -526,7 +540,7 @@
     var k = "sub:" + key(u), d = el("div", "sub" + (S.open[k] ? " open" : ""));
     var b = btn("", null); b.insertAdjacentHTML("beforeend", CHEV); b.appendChild(span(title)); b.setAttribute("aria-expanded", String(!!S.open[k]));
     var body = el("div", "sub-b"); body.hidden = !S.open[k];
-    function fill() { pageBody(body, u, { empty: "This page is empty." }); var a = el("div", "actions sub-acts"); a.appendChild(link(u, "Open in Notion ↗", "ext")); body.appendChild(a); }
+    function fill() { pageBody(body, u, { empty: "This page is empty." }); if (SNAP) return; var a = el("div", "actions sub-acts"); a.appendChild(link(u, "Open in Notion ↗", "ext")); body.appendChild(a); }
     if (S.open[k]) fill();
     b.addEventListener("click", function () { var on = !S.open[k]; if (on) S.open[k] = 1; else delete S.open[k]; d.classList.toggle("open", on); b.setAttribute("aria-expanded", String(on)); if (on && !body.firstChild) fill(); body.hidden = !on; });
     d.appendChild(b); d.appendChild(body); return d;
@@ -535,25 +549,20 @@
   function problemsOn(k, field) { return allProblems().filter(function (i) { return i[field] === k && i.status !== "Dropped"; }); }
   function msBody(x, m) {
     PT.msFacts(x, m);
-    problemLines(x, problemsOn(key(m.url), "mk"), "Problems on this milestone", ON_US);
-    if (SNAP) return;
-    pageBody(x, m.url, { split: true, empty: "No history yet." });
-    actions(x, [chatBtn(m, "ms"), link(m.url, "Open in Notion ↗", "ext")]);
+    pageBody(x, m.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(m.url), "mk"), ON_US); } });
+    if (!SNAP) actions(x, [chatBtn(m, "ms"), link(m.url, "Open in Notion ↗", "ext")]);
   }
   function taskBody(x, k) {
     PT.taskFacts(x, k);
-    problemLines(x, problemsOn(key(k.url), "tk"), "Problems on this task", ON_US);
-    if (SNAP) return;
-    pageBody(x, k.url, { split: true, empty: "No history yet." });
-    actions(x, [chatBtn(k, "task"), link(k.url, "Open in Notion ↗", "ext")]);
+    pageBody(x, k.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(k.url), "tk"), ON_US); } });
+    if (!SNAP) actions(x, [chatBtn(k, "task"), link(k.url, "Open in Notion ↗", "ext")]);
   }
   function problemBody(x, i) {
     var idx = itemIndex(), ms = idx[i.mk], tk = idx[i.tk], a = ageOf(i);
-    facts(x, [["Waiting on", i.waiting || (i.status === "Resolved" ? "" : SNAP ? "us" : "you")], ["Milestone", ms ? ms.name : ""], ["Task", tk ? tk.name : ""], ["Opened", i.opened != null ? fmt(i.opened, true) + (i.status !== "Resolved" && a != null ? ", " + days(a) + " ago" : "") : ""], ["Resolved", i.resolvedOn != null ? fmt(i.resolvedOn, true) : ""]]);
-    if (SNAP) return; // a client's page: the facts only
-    if (i.noteRaw) x.appendChild(renderMd(String(i.noteRaw).split(" · ").join("\n\n")));
+    if (i.summary) x.appendChild(el("p", "x-lede", i.summary)); // what is wrong, first
+    PT.meta(x, [i.status === "Resolved" ? "" : i.waiting ? "waiting on " + i.waiting : SNAP ? "on our side" : "on you", ms ? "in " + ms.name + (tk ? " › " + tk.name : "") : tk ? "on " + tk.name : "", i.opened != null ? "opened " + fmt(i.opened) + (i.status !== "Resolved" && a != null ? ", " + days(a) + " ago" : "") : "", i.resolvedOn != null ? "resolved " + fmt(i.resolvedOn) : ""]);
     pageBody(x, i.url, { split: true });
-    actions(x, [chatBtn(i, "problem"), link(i.url, "Open in Notion ↗", "ext")]);
+    if (!SNAP) actions(x, [chatBtn(i, "problem"), link(i.url, "Open in Notion ↗", "ext")]);
   }
   function projectLinks(p) { // what the user's project page adds to the project at a glance: Claude project, repository, source — each always there or said to be missing
     return function (pair) {
@@ -567,13 +576,13 @@
   var PG = PT.page({ ui: S, host: function () { return $("drBody"); }, msBody: msBody, taskBody: taskBody, onUs: ON_US });
   var acc = PG.acc, dsec = PG.dsec, setFold = PG.setFold, taskRow = PG.taskRow, reveal = PG.reveal;
   // the project page, block by block; ctx carries what several blocks share
-  function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p)); }
+  function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p), c.info.parts.desc ? renderMd(c.info.parts.desc, {}) : null); }
   function drStatus(body, c) {
     var ms0 = c.ms0, tk0 = c.tk0, info = c.info, st = c.st, f = c.f, openProbs = c.openProbs, waitTasks = c.waitTasks;
     if (info.notes.length) { var q = el("div", "dr-note"), nh = el("div", "nh"); nh.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></svg>'; nh.appendChild(span("Status")); q.appendChild(nh); info.notes.forEach(function (x) { q.appendChild(el("div", "", x)); }); body.appendChild(q); }
   }
   function drFocus(body, p, c) { // where it stands: the milestone under way with its current task, what is late, what is paused, the next milestone, blockers
-    if (c.ms0) { var fc = PG.focusBlock(c.f, blockersOf(p)); if (fc) body.appendChild(fc); }
+    var fc = c.ms0 ? PG.focusBlock(c.f, blockersOf(p), p.summary) : PG.focusBlock({ overdue: [], now: [], next: null }, [], p.summary); if (fc) body.appendChild(fc);
   }
   function drNumbers(body, p, c) { // three tiles, each opening its section
     var ms0 = c.ms0, tk0 = c.tk0, info = c.info, st = c.st, f = c.f, openProbs = c.openProbs, waitTasks = c.waitTasks;
@@ -584,10 +593,9 @@
     }
     var pr = null; if (strip.length) { pr = el("div", "mstrip tile-strip"); sortItems(strip).forEach(function (m) { pr.appendChild(el("i", m.state === "plan" ? "" : m.state)); }); }
     stat(ms0 && ms0.length ? "Milestones" : "Tasks", ms0 ? done + " / " + strip.length : "—", pr, ms0 ? "plan" : null);
-    var nOpen = openProbs.length + waitTasks.length, nNotes = info.noteLines.length + info.notePages.length;
+    var nOpen = openProbs.length + waitTasks.length, nNotes = entriesIn(info.parts.notes) + (SNAP ? 0 : entriesIn(info.parts.priv));
     stat("Open items", S.problemsErr && !S.problems ? "?" : String(nOpen), null, nOpen || (S.problemsErr && !S.problems) ? "items" : null); // a tile with nothing behind it is not a button
-    if (SNAP) { var td = (tk0 || []).filter(function (k) { return k.status === "Done"; }).length; stat("Tasks", (tk0 || []).length ? td + " / " + tk0.length : "—", null, null); } // a client's page has no notes
-    else stat("Notes", String(nNotes), null, "notes");
+    stat("Notes", String(nNotes), null, nNotes ? "notes" : null);
     body.appendChild(stats);
 
   }
@@ -628,13 +636,13 @@
     var dErr = S.plan[p.key] && S.plan[p.key].err;
     PG.planSec(body, c.ms0, c.tk0, c.f.head, { err: dErr ? errText(dErr) : "", empty: SNAP ? "No plan yet." : "No plan yet. Send Claude the plan in chat." });
   }
-  function drNotes(body, p, c) {
-    if (SNAP) return;
-    var ms0 = c.ms0, tk0 = c.tk0, info = c.info, st = c.st, f = c.f, openProbs = c.openProbs, waitTasks = c.waitTasks;
-    var b3 = dsec(body, "notes", "Notes", info.noteLines.length + info.notePages.length || null);
-    if (!info.noteLines.length && !info.notePages.length) b3.appendChild(el("div", "empty", "No notes yet. Tell Claude “save to the " + p.name + " notes: …”."));
-    if (info.noteLines.length) { var nl = renderMd(info.noteLines.join("\n")); nl.classList.add("pad"); b3.appendChild(nl); }
-    info.notePages.forEach(function (n) { b3.appendChild(subPage(n.url, n.title)); });
+  function drNotes(body, p, c) { // the project page's own sections: Notes, Private notes (not on a client's page), History
+    var pt = c.info.parts;
+    var b3 = dsec(body, "notes", "Notes", entriesIn(pt.notes) || null);
+    if (pt.notes) { var nl = renderMd(pt.notes, {}); nl.classList.add("pad"); b3.appendChild(nl); }
+    else b3.appendChild(el("div", "empty", SNAP ? "No notes yet." : "No notes yet. Tell Claude “save to the " + p.name + " notes: …”."));
+    if (!SNAP && pt.priv) { var b5 = dsec(body, "private", "Private notes", entriesIn(pt.priv)); b5.closest(".dsec").classList.add("priv-s"); var pl = renderMd(pt.priv, {}); pl.classList.add("pad"); b5.appendChild(pl); }
+    if (pt.hist) { var b6 = dsec(body, "history", "History", entriesIn(pt.hist)); var hl = renderMd(pt.hist, { history: true }); hl.classList.add("pad"); b6.appendChild(hl); }
   }
   function renderDrawer() {
     var host = $("drBody"), p = S.dr ? allProjByKey()[S.dr.pid] : null; if (!S.dr) return;
@@ -643,7 +651,7 @@
       if (!p) { $("drTitle").textContent = ""; if (!SNAP) { clear($("drChat")); $("drNotion").removeAttribute("href"); } host.appendChild(el("div", "dr-in muted", "This project is no longer in the active list.")); return; }
       $("drTitle").textContent = p.name; if (!SNAP) { $("drNotion").href = p.url; clear($("drChat")); $("drChat").appendChild(chatBtn(p, "project")); } paintNav();
       var ms0 = msList(p), tk0 = taskList(p);
-      var c = { ms0: ms0, tk0: tk0, info: S.pageInfo[p.key] || { notes: [], noteLines: [], notePages: [] }, st: stateOfProject(p), f: focusOf(p),
+      var c = { ms0: ms0, tk0: tk0, info: S.pageInfo[p.key] || { notes: [], parts: partsOf("") }, st: stateOfProject(p), f: focusOf(p),
         openProbs: allProblems().filter(function (i) { return i.pk === p.key && (i.status === "Open" || i.status === "Waiting"); }),
         waitTasks: (tk0 || []).filter(function (k) { return k.status === "Waiting" && !k.paused; }) };
       drHead(host, p, c);
