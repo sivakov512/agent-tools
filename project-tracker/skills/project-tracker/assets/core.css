@@ -479,6 +479,8 @@ h1 .ref { vertical-align: 4px; }
 .needs.open .chev { transform: rotate(90deg); }
 #moveList > .needs:first-child { border-top: 0; }
 @media (max-width: 600px) { .dr-bar .long { display: none; } .dr-bar .ttl { visibility: hidden; } } /* a phone's drawer bar: "Notion ↗" on one line; the name is in the head below */
+.tl-b.open, .tl-chip.open, .tl-seg.open { -webkit-mask-image: linear-gradient(to right, #000 70%, transparent); mask-image: linear-gradient(to right, #000 70%, transparent); } /* an edge that is no date fades: a start with no agreed end, drawn for a set span, fades where the end would be */
+.tl-b.box.ph { -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); } /* and a milestone with no dates at all, placed for a month from today, fades at both */
 .x-lede { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--text); max-width: 68ch; } /* a problem's summary, first in its details */
 .dr-head .md.dr-lede { font-size: 15px; color: var(--text-2); }
 .fsum { margin: 0; padding: 13px 16px; font-size: 14.5px; line-height: 1.55; color: var(--text-2); } /* the project's summary: where it stands, in a sentence */

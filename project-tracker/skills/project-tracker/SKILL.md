@@ -76,7 +76,7 @@ The root page holds the config toggle, then the views you read: Projects `Active
 - None → the tracker is not set up (see **Other scenarios**).
 - A config with `open_items` and no `tasks` is a tracker made by version 0.x: say so and offer the upgrade (`references/upgrade.md`) before anything else; do not write to it with the rules of this version.
 - A current tracker plus an unretired 0.x one with the same title → the upgrade was interrupted: offer to finish it (`references/upgrade.md`).
-- A current config (it has `tasks`) whose `schema` is below 5 (no line = 1) → `references/setup.md` → **Tracker update** first, without asking, then the request.
+- A current config (it has `tasks`) whose `schema` is below 5 (no line = 1) → `references/setup.md` → **Tracker update** first, without asking, then the request — whatever the request is: a status question, a note, a report or a dashboard update alike. The first time the config is read in a conversation, its `schema` is checked before anything else is done with it; a newer plugin works on that structure, and skipping the update leaves it half there (a dashboard published for fields the tracker does not have).
 
 **An ID** the user writes — `TK-34`, `tk34`, `PB 5` — names exactly one row, never a guess: the prefix says the database (`PR` projects, `MS` milestones, `TK` tasks, `PB` problems) and the number is its `Ref`. Views give `Ref` as the bare number, so match the number in that database's rows: the root views first, then the views of each project in `Active` and `Closed` (they hold Done rows too). A number found nowhere, or one without a prefix, is asked about, never matched by hand. Several IDs in one message ("link PB-5 to TK-34") name exactly those rows.
 
