@@ -2,6 +2,8 @@
 
 SKILL.md (**Notes and files**) has what goes into the project's `Notes` tab, what goes onto a milestone's, task's or problem's own page, and the short-note form for the tab.
 
+**Material that already lives somewhere** — a doc, an email, a web page, a file on a drive, a chat — is not copied in: the note is a short summary of what matters plus a link to it (`**Oct 2** — Factory flashing checked with JLCPCB: … [JLCPCB — firmware flashing at the factory](https://…)`). A copy would only drift from its source. Long text and files below are for material with no home of its own: call notes, an email thread or a spec pasted into the chat, a file the user hands over.
+
 ## In the project's Notes tab
 
 - **Long text** (call notes, a spec, an email thread): `notion-create-pages` with the project page as parent, title `Mon D — <subject>`; it lands as a `<page …>` line at the end of the project page, so move it into the tab with one `update_content` holding two `content_updates`: that `<page …>` line → empty, and the tab's last line → that line plus the same `<page url="…">…</page>` line. Notion rejects the page line appearing twice, so both edits go in the same call.
