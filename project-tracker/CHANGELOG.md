@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.5.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.4.0...project-tracker-v1.5.0) (2026-10-08)
+
+
+### Features
+
+* **project-tracker:** every page in parts — description, notes, private notes, history; client dashboards show page content ([ecc387a](https://github.com/sivakov512/agent-tools/commit/ecc387af11d4e8b53e2ee39bb14a86ac30418422))
+* **project-tracker:** shade weekends on the 1-month timeline ([0ccdfa1](https://github.com/sivakov512/agent-tools/commit/0ccdfa18e6d8501faa88709099065730b6306bb3))
+
+
+### Bug Fixes
+
+* **project-tracker:** a source's longer wording becomes the description in new projects too ([970b7d4](https://github.com/sivakov512/agent-tools/commit/970b7d49eba24e5c4b0165d2819b21ad7f2a1017))
+
 ## [1.4.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.3.0...project-tracker-v1.4.0) (2026-10-08)
 
 
