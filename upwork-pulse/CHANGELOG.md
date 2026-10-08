@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.14.0...upwork-pulse-v0.14.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** read proposals from Upwork's lists, close on-hold ones, remember what is final ([e82b921](https://github.com/sivakov512/agent-tools/commit/e82b921284b80e228735472cc44a62ea3b209762))
+
 ## [0.14.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.13.1...upwork-pulse-v0.14.0) (2026-10-08)
 
 
