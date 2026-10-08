@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.6.1...project-tracker-v1.7.0) (2026-10-08)
+
+
+### Features
+
+* **project-tracker:** row IDs and item links ([0f35579](https://github.com/sivakov512/agent-tools/commit/0f35579ae0860d5a3d0ea176466cbbf0a1e21cdb))
+* **project-tracker:** dashboard design review fixes ([2962183](https://github.com/sivakov512/agent-tools/commit/2962183551dc647a9d09a3b404873cc1de98999e))
+
 ## [1.6.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.6.0...project-tracker-v1.6.1) (2026-10-08)
 
 
