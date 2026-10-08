@@ -755,7 +755,7 @@
   function loadContractJob(id) { // the contract's job id is only in the contract's details
     if (!id || S.contractJobs[id]) return;
     S.contractJobs[id] = { busy: true };
-    MCP.callTool(UPWORK, "upwork__list_contracts", { action: "get", org_uid: ORG, params: { contract_id: String(id) } }, { cache: { staleTime: 86400000, gcTime: 604800000 } }).then(function (res) {
+    upCall("upwork__list_contracts", { action: "get", org_uid: ORG, params: { contract_id: String(id) } }, { cache: { staleTime: 86400000, gcTime: 604800000 } }).then(function (res) {
       var p = payloadOf(res) || {}, d = ((p.data || {}).contractDetails) || {};
       S.contractJobs[id] = { job: d.job && d.job.id ? String(d.job.id) : null };
       refreshDrawer();
@@ -936,7 +936,7 @@
   // the conversation, newest first, read from Upwork when the drawer opens
   function messagesInto(host, room) {
     var box = el("div", "msgs"); box.appendChild(el("div", "msg muted", "Loading messages…")); host.appendChild(box);
-    MCP.callTool(UPWORK, "upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: room.id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } })
+    upCall("upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: room.id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } })
       .then(function (res) {
         var edges = ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []);
         clear(box);
@@ -1812,7 +1812,7 @@
     return null;
   }
   function buildSummary(room, sid, refresh) {
-    MCP.callTool(UPWORK, "upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: room.id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } })
+    upCall("upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: room.id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } })
       .then(function (res) {
         var edges = ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []).slice().reverse();
         var lines = edges.map(function (e) {
@@ -2101,6 +2101,7 @@
     var key = function (x) { return S.ptab === "discussing" ? roomAct(x._room || proposalRoom(x)) : S.ptab === "closed" ? shut(x).at : x.created; };
     list.sort(function (a, b) { return key(b) - key(a); });
     clear(host);
+    if (S.checkErr) host.appendChild(el("div", "err", "Can't check on Upwork whether these jobs are filled or closed, so some may belong under Closed. " + errText(S.checkErr, UPWORK)));
     if (!list.length) {
       host.appendChild(el("div", "empty", S.ptab === "discussing" ? "No proposal chats in the last " + LIVE_DAYS + " days." :S.ptab === "waiting" ? "No proposals sent in the last " + LIVE_DAYS + " days without a reply." : "Nothing closed in the last " + LIVE_DAYS + " days."));
       return;
@@ -2186,7 +2187,7 @@
   // What was sent, read from Upwork while Notion has no copy yet: the same blocks as a Proposals row, minus milestones (Upwork does not return them)
   function upworkSentInto(fs, p) {
     fs.appendChild(el("div", "dr-empty", "Loading what you sent from Upwork…"));
-    MCP.callTool(UPWORK, "upwork__list_freelancer_proposals", { action: "get", org_uid: ORG, params: { proposal_id: p.id } }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
+    upCall("upwork__list_freelancer_proposals", { action: "get", org_uid: ORG, params: { proposal_id: p.id } }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
       var pl = payloadOf(res) || {}, vp = (pl.data || {}).vendorProposal || {}, t = vp.terms || {};
       clear(fs);
       fs.appendChild(el("div", "dr-empty", S.cfg.schema >= SCHEMA ? "From Upwork \u2014 saved to Notion with the next digest." : "From Upwork."));
@@ -2286,6 +2287,43 @@
 
   // ---------- data loading ----------
   var MCP = null, milestoneWatch = {};
+
+  // Upwork throttles its API — about 60 calls a minute in all and about 12 for find_jobs — and a throttled call fails as a
+  // tool error ("RATE_LIMIT_EXCEEDED", with retry_after_seconds). A load fires dozens of calls at once (a room per proposal,
+  // a job per open proposal), so every Upwork call goes through one queue: a few at a time, the most needed first; a
+  // throttled call waits as told and goes again, and its kind of call is paced from then on, instead of reading as "no chat"
+  // or "no job" for the rest of the load.
+  var upQ = [], upBusy = 0, upSeq = 0, upHold = {}, upGap = {}, upTimer = null;
+  var UP_PAR = 4, UP_PACE = { jobs: 5200, all: 1100 }, UP_TRIES = 4;
+  function upKind(tool) { return tool === "upwork__find_jobs" ? "jobs" : "all"; }
+  function throttled(err) { return !!err && err.code === "tool_error" && /RATE_LIMIT_EXCEEDED/.test(String(err.message || "") + " " + JSON.stringify(err.result || "")); }
+  function upCall(tool, input, opts, prio) { // prio: 0 first (default), higher later
+    return new Promise(function (ok, bad) { upQ.push({ tool: tool, input: input, opts: opts, prio: prio || 0, seq: upSeq++, tries: 0, ok: ok, bad: bad }); upPump(); });
+  }
+  function upPump() {
+    clearTimeout(upTimer); upTimer = null;
+    upQ.sort(function (a, b) { return a.prio - b.prio || a.seq - b.seq; });
+    var now = Date.now(), wait = Infinity;
+    for (var i = 0; i < upQ.length && upBusy < UP_PAR; ) {
+      var t = upQ[i], k = upKind(t.tool);
+      if ((upHold[k] || 0) > now) { wait = Math.min(wait, upHold[k] - now); i++; continue; }
+      upQ.splice(i, 1); upBusy++;
+      if (upGap[k]) upHold[k] = now + upGap[k];
+      upRun(t);
+    }
+    if (upQ.length && wait < Infinity) upTimer = setTimeout(upPump, wait);
+  }
+  function upRun(t) {
+    MCP.callTool(UPWORK, t.tool, t.input, t.opts).then(function (res) { upBusy--; t.ok(res); upPump(); }, function (err) {
+      upBusy--;
+      if (throttled(err) && t.tries < UP_TRIES) {
+        var k = upKind(t.tool), m = /retry_after_seconds\D{0,4}(\d+)/.exec(String(err.message || "") + " " + JSON.stringify(err.result || ""));
+        upHold[k] = Math.max(upHold[k] || 0, Date.now() + (m ? +m[1] : 5) * 1000 + Math.random() * 600);
+        upGap[k] = UP_PACE[k]; t.tries++; upQ.push(t); upPump(); return;
+      }
+      t.bad(err); upPump();
+    });
+  }
   S.leadsById = {};
 
   function watch(server, tool, input, onData, onErr) {
@@ -2410,7 +2448,7 @@
     function page(cursor, n) {
       var input = { action: "connects_balance", org_uid: ORG };
       if (cursor) input.params = { cursor: cursor };
-      return MCP.callTool(UPWORK, "upwork__get_freelancer_financials", input, { cache: CACHE }).then(function (res) {
+      return upCall("upwork__get_freelancer_financials", input, { cache: CACHE }).then(function (res) {
         touch(res);
         var p = payloadOf(res) || {};
         if (!first) first = p;
@@ -2485,7 +2523,7 @@
     function page(cursor, n) {
       var params = { status: src.status, sort_field: src.sort, sort_order: "DESC", limit: 10 };
       if (cursor) params.cursor = cursor;
-      return MCP.callTool(UPWORK, "upwork__list_freelancer_proposals", { action: "list", org_uid: ORG, params: params }, { cache: CACHE }).then(function (res) {
+      return upCall("upwork__list_freelancer_proposals", { action: "list", org_uid: ORG, params: params }, { cache: CACHE }).then(function (res) {
         touch(res);
         var pl = payloadOf(res) || {};
         var edges = (((pl.data || {}).vendorProposals) || {}).edges || [];
@@ -2535,33 +2573,42 @@
       var x = S.extra[id], written = Date.parse(S.sentById[id]["date:Written:start"] || "");
       if (have[id] || !/^\d+$/.test(id) || !(written >= cutoff) || (x && (x.pending || !x.stale))) return;
       S.extra[id] = { pending: true, p: x && x.p };
-      MCP.callTool(UPWORK, "upwork__list_freelancer_proposals", { action: "get", org_uid: ORG, params: { id: id } }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
+      upCall("upwork__list_freelancer_proposals", { action: "get", org_uid: ORG, params: { id: id } }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
         var vp = ((payloadOf(res) || {}).data || {}).vendorProposal, p = vp && vp.id ? mapProposal(vp, false) : null;
         S.extra[id] = { p: p && p.status !== "Hired" ? p : null }; // a hire is a contract, shown under Contracts
         var at = -1; S.proposals.forEach(function (q, i) { if (q.id === id) at = i; });
         if (at >= 0) S.proposals.splice(at, 1);
         if (S.extra[id].p) { S.proposals.push(S.extra[id].p); if (!S.prooms[id]) fetchProposalRoom(S.extra[id].p); }
         renderApplied(); renderLeads();
-      }, function () { S.extra[id] = { p: x && x.p }; });
+      }, function (err) { S.extra[id] = { p: x && x.p }; checkFailed(err); });
     });
+  }
+  // A check that could not run at all (the page may not call find_jobs yet, the connector is down) is said on the list —
+  // otherwise a filled job would stay in Sent / In talks with no sign why. A job that is gone or private is not such a failure.
+  function checkFailed(err) {
+    if (!err || err.code === "tool_error") return; // a job that is gone, or Upwork still throttling after the retries
+    S.checkErr = err; renderApplied();
   }
   // The posting behind an open proposal: filled (hires reach the number sought; 0 sought counts as 1) or closed.
   function fetchJob(id) {
-    if (!id || S.jobs[id]) return;
+    if (!id || (S.jobs[id] && !(S.jobs[id].retry < Date.now()))) return;
     S.jobs[id] = { pending: true };
-    MCP.callTool(UPWORK, "upwork__find_jobs", { action: "get", org_uid: ORG, params: { id: id } }, { cache: { staleTime: 3600000, gcTime: 86400000 } }).then(function (res) {
+    upCall("upwork__find_jobs", { action: "get", org_uid: ORG, params: { id: id } }, { cache: { staleTime: 3600000, gcTime: 86400000 } }, 2).then(function (res) {
       var jp = ((payloadOf(res) || {}).data || {}).marketplaceJobPosting;
       if (!jp) { S.jobs[id] = { err: true }; return; }
+      if (S.checkErr) { S.checkErr = null; renderApplied(); }
       var hired = num(((jp.activityStat || {}).jobActivity || {}).totalHired) || 0, sought = num((jp.contractTerms || {}).personsToHire) || 1;
       S.jobs[id] = { hired: hired, over: hired >= sought || /^closed$/i.test((jp.workFlowState || {}).status || "") };
       if (S.jobs[id].over) { renderApplied(); renderLeads(); }
-    }, function () { S.jobs[id] = { err: true }; }); // gone or private: nothing is known, the proposal stays as Upwork has it
+    }, function (err) { // gone or private (a tool error): nothing is known, the proposal stays as Upwork has it; still throttled: asked again in a minute
+      S.jobs[id] = throttled(err) ? { err: true, retry: Date.now() + 60000 } : { err: true }; checkFailed(err);
+    });
   }
   function fetchProposalRoom(p) {
     S.prooms[p.id] = { pending: true };
-    MCP.callTool(UPWORK, "upwork__get_messages", { action: "find_room", org_uid: ORG, params: { context_type: "proposal", context_id: p.id } }, { cache: { staleTime: 300000, gcTime: 86400000 } })
+    upCall("upwork__get_messages", { action: "find_room", org_uid: ORG, params: { context_type: "proposal", context_id: p.id } }, { cache: { staleTime: 300000, gcTime: 86400000 } }, p.status === "Activated" ? 0 : 1) // Activated: the client opened a chat
       .then(function (res) { var pl = payloadOf(res) || {}; S.prooms[p.id] = { room: ((pl.data || {}).proposalRoom) || null }; renderApplied(); },
-            function (err) { S.prooms[p.id] = err && err.code === "tool_error" ? { room: null } : { err: err }; renderApplied(); });
+            function (err) { S.prooms[p.id] = err && err.code === "tool_error" && !throttled(err) ? { room: null } : { err: err }; renderApplied(); });
   }
   function renderBalance() {
     if (S.balanceErr && !S.balance) { $("balanceValue").textContent = "—"; $("balanceSub").textContent = errText(S.balanceErr, UPWORK); return; }
