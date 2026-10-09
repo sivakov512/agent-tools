@@ -1,6 +1,6 @@
 # Chats from the dashboard
 
-The dashboard has a **Claude chat** button on a project and on each of its milestones, tasks and problems. The first click starts a chat whose first message names the row: `<Project / Milestone / Task / Problem>: <name>[ — <project>] (Project Tracker, <page url>). Load it with the project-tracker skill.` — kind and name first, so the app titles the chat by them. Later clicks on that row open the same chat, through the row's `Chat`; the ▾ beside the button starts it over with `Its old chat is gone: this is its chat from now on.` before the last sentence. The chat is that row's thread: keep its context, and handle whatever the user says in it with the usual scenarios and rules — they may well change other rows of the project.
+The dashboard has a **Claude chat** button on a project and on each of its milestones, tasks and problems. The first click starts a chat whose first message names the row and the chat: `<Project / Milestone / Task / Problem>: <name>[ — <project>] (Project Tracker, <page url>). Chat title: "<the same kind, name and project>". Load it with the project-tracker skill.` — the app titles a chat by a guess of its own, which the user would otherwise rename by hand, so the chat names itself (step 1). Later clicks on that row open the same chat, through the row's `Chat`; the ▾ beside the button starts it over with `Its old chat is gone: this is its chat from now on.` before `Chat title`. The chat is that row's thread: keep its context, and handle whatever the user says in it with the usual scenarios and rules — they may well change other rows of the project.
 
 ## The first message
 
@@ -10,10 +10,12 @@ The dashboard has a **Claude chat** button on a project and on each of its miles
    - `Chat` empty → write this link to it (`update_properties`, `Chat`).
    - `Chat` holds another session's link → this row has its chat: one line with that link ("this already has a chat — continue there: <link>") and stop; write nothing. When the first message says the old chat is gone, or the user says so in this chat → write this link over it, without asking.
    - No link of its own in the session's context → load and answer anyway, and say in one line that the dashboard will not reopen this chat.
+
+   **The chat's name** is the message's `Chat title: "…"`: set it with the tool that renames this session, at any point of this first reply — in the desktop app `set_session_title` with `session_id: "self"`. No such tool (a chat on the web) or a refusal (the user named the chat already) → leave it. Either way not a word about the name in the reply: done, skipped or failed.
 2. **Load it with its surroundings**, in as few turns as the calls allow: the row (properties and its page: description, notes, private notes, history); its project's callout and `Summary`; for a project — its `Schedule`, `Tasks` and `Problems` views; for a milestone — its tasks and problems; for a task — its milestone and its problems; for a problem — the milestone or task it is on.
 3. **Reply** in one or two lines, in the user's language: the row and its state (status, dates, lateness by the rule, what it waits on). No overview, no suggestions: the chat is for the user's own questions, and what to do next is theirs to say. The **Overdue check** applies as usual.
 
-The claim and this reply are an exception to SKILL.md's "never change something silently": the `Chat` write is not reported (unless it failed) and needs no was → now line. The dashboard-update offer (SKILL.md → **Dashboard updates**) is skipped in this first reply; it may come later in the chat.
+The claim, the chat's name and this reply are an exception to SKILL.md's "never change something silently": the `Chat` write and the name are not reported (unless it failed) and needs no was → now line. The dashboard-update offer (SKILL.md → **Dashboard updates**) is skipped in this first reply; it may come later in the chat.
 
 ## Claude project
 
