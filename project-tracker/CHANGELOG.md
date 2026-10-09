@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.4](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.3...project-tracker-v1.7.4) (2026-10-09)
+
+
+### Bug Fixes
+
+* **project-tracker:** a chat started from the dashboard names itself, from the chat title its first message gives ([bb48991](https://github.com/sivakov512/agent-tools/commit/bb48991473c4157e84d6fc0d82c72a6316c39682))
+
 ## [1.7.3](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.2...project-tracker-v1.7.3) (2026-10-08)
 
 
