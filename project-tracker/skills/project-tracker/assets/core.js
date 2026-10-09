@@ -222,6 +222,18 @@
     if (!d.length) return null;
     return { start: Math.min.apply(null, d.map(function (k) { return k.start; })), end: Math.max.apply(null, d.map(dEnd)), nodate: true };
   }
+  // Where each open milestone without dates is drawn: in the plan's order, after the milestone before it ends (a dated one, or the placeholder
+  // before it) — today at the earliest, so one following the milestone in progress starts when that one ends. ph: the days a placeholder spans.
+  function placeholders(ms, t, ph) {
+    var out = {}, at = t;
+    sortItems(ms).forEach(function (m) {
+      var sp = spanOf(m);
+      if (sp) { at = Math.max(at, sp.end + 1); return; }
+      if (!needsPlaceholder(m)) return;
+      out[key(m.url)] = { start: at, end: at + ph - 1, nodate: true, placeholder: true }; at += ph;
+    });
+    return out;
+  }
   function kidsIn(m, sp) { return (m.tasks || []).filter(function (k) { return k.start != null && dEnd(k) >= sp.start && k.start <= sp.end; }); }
   function datedIn(m, sp) { return kidsIn(m, sp).map(function (k) { return { m: k, start: Math.max(k.start, sp.start), end: Math.min(dEnd(k), sp.end) }; }); } // clipped to the card
   // Tasks without dates are normal — only the milestone is promised — so they sit in the card after the dated ones
@@ -241,7 +253,7 @@
       ib.setAttribute("aria-label", "What the colours mean"); ib.setAttribute("aria-expanded", "false"); pop.hidden = true;
       var lg = el("div", "lg");
       [["tl-b box prog", "Milestone in progress"], ["tl-b box", "Milestone planned"], ["tl-b box late", "Past its end date"], ["tl-b box done", "Done"], ["tl-b box paused", "Paused (❚❚), never counted as late"], ["tl-b box nodate", "No dates yet (?): drawn from today"], ["tl-chip wait", "A task waiting on someone"]].forEach(function (x) { var sw = el("span", "sw"); sw.appendChild(el("span", x[0])); lg.appendChild(sw); lg.appendChild(span(x[1])); });
-      pop.appendChild(lg); pop.appendChild(el("div", "", "A milestone is a striped card over its dates in its state's colour: ◆ and its name, its tasks below — a line when closed, named chips when ▸ opens the project. A grey card with ? has no dates yet: it is drawn over its tasks, or from today if it has none. Drag or scroll sideways to move in time. Click anything to read the details."));
+      pop.appendChild(lg); pop.appendChild(el("div", "", "A milestone is a striped card over its dates in its state's colour: ◆ and its name, its tasks below — a line when closed, named chips when ▸ opens the project. A grey card with ? has no dates yet: it is drawn over its tasks, or else after the milestone before it in the plan — from today at the earliest. Drag or scroll sideways to move in time. Click anything to read the details."));
       ib.addEventListener("click", function (e) { e.stopPropagation(); pop.hidden = !pop.hidden; ib.setAttribute("aria-expanded", String(!pop.hidden)); });
       ctx.info.appendChild(ib); ctx.info.appendChild(pop);
       dragPan(ctx.host);
@@ -374,9 +386,9 @@
         var nl = pack(bars); bars.forEach(function (g) { bar(g, TL.pad + g.lane * TL.flat); }); h = Math.max(nl, 1) * TL.flat + 16;
       } else if (!open) { // one card per milestone, its tasks as a strip
         var segLanes = Math.max.apply(null, [1].concat(ms.filter(drawn).map(function (m) { return stripLanes(m, spans[key(m.url)] || { start: 0, end: PH - 1 }); })));
-        var BH = hasTasks ? TL.box + (segLanes - 1) * TL.seg : TL.head, HL = BH + TL.gap, ph = t;
+        var BH = hasTasks ? TL.box + (segLanes - 1) * TL.seg : TL.head, HL = BH + TL.gap, places = placeholders(ms, t, PH);
         var items = ms.map(function (m) { var sp = spans[key(m.url)]; return sp ? { m: m, start: sp.start, end: sp.end, sp: sp } : null; }).filter(Boolean); // dated cards
-        ms.filter(function (m) { return !spans[key(m.url)] && needsPlaceholder(m); }).forEach(function (m) { items.push({ m: m, start: ph, end: ph + PH - 1, sp: { start: ph, end: ph + PH - 1, nodate: true, placeholder: true } }); ph += PH; });
+        ms.forEach(function (m) { var sp = places[key(m.url)]; if (sp) items.push({ m: m, start: sp.start, end: sp.end, sp: sp }); });
         var n = pack(items);
         items.forEach(function (g) {
           var top = TL.pad + g.lane * HL, mid = top + (BH - TL.head) / 2;
@@ -386,12 +398,12 @@
         var nl0 = pack(bars); bars.forEach(function (g) { bar(g, TL.pad + n * HL + g.lane * TL.lane, "task"); });
         h = Math.max(n, 1) * HL + TL.pad + nl0 * TL.lane;
       } else { // opened up: each milestone on its own line, its name also in the left column (on a phone, on its card only)
-        var y = ax.top ? TL.pad : ax.two ? 54 : 36, ph2 = t;
+        var y = ax.top ? TL.pad : ax.two ? 54 : 36, places2 = placeholders(ms, t, PH);
         sortItems(ms).forEach(function (m) {
           var sp = spans[key(m.url)];
           if (!sp && !needsPlaceholder(m)) return;
           glab(m.name, y, function () { ctx.open(p, key(m.url)); });
-          if (!sp) { sp = { start: ph2, end: ph2 + PH - 1, nodate: true, placeholder: true }; ph2 += PH; }
+          if (!sp) sp = places2[key(m.url)];
           var lanes = chipLines(m, sp);
           var bh = TL.head + lanes * TL.lane + (lanes ? 4 : 0), b = box(m, sp, y, bh); chips(b, m);
           y += bh + TL.gap;
@@ -408,6 +420,7 @@
       var host = ctx.host, t = todayNum(), ps = ctx.projects();
       if (!ps.length) { clear(host); host.appendChild(el("div", "empty tl-empty", ctx.empty())); view = null; return; }
       var a = t - 30, b = t + 120;
+      ps.forEach(function (p) { var d = ctx.plan(p), pl = d ? placeholders(d.ms || [], t, TL.ph) : {}; Object.keys(pl).forEach(function (k) { if (pl[k].end + 14 > b) b = pl[k].end + 14; }); }); // a placeholder after a long milestone stays in range
       ps.forEach(function (p) { var d = ctx.plan(p); (d ? d.ms.concat(d.tasks) : []).forEach(function (m) { if (m.start != null && m.start - 7 < a) a = m.start - 7; var e = m.start != null ? dEnd(m) : null; if (e != null && e + 14 > b) b = e + 14; }); });
       // a phone has no left column: each project's name is a line of its own above its bars, and the bars get the whole width
       var narrow = window.innerWidth <= 640, LW = narrow ? 0 : 220, vw = host.clientWidth || 700;
