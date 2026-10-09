@@ -36,7 +36,7 @@ evals/
 ├── mocks/notion/          the shared fake workspace (_server.md, below)
 ├── <case>/prompt.md       what the user says; frontmatter: turns, allowed tools, runs, tags, today (append_system_prompt)
 ├── <case>/graders/*.md    checks
-└── <case>/mocks/…         case-specific fakes (empty and half-built trackers for setup; a moved plan for undo; a 0.x tracker for upgrade-detect; a schema-1 tracker in the old page layout for schema-update; a schema-4 tracker and its 1.0.0 dashboard for dashboard-update-migrates; a schema-4 tracker whose Tasks already has `Ref` and whose workspace already uses `PR` for ref-prefix-taken; a risk with no task for ref-link; a task with a checklist for checklist-tick; a published `data.js` for client-dashboard-refresh / -remove; a task that already has a chat for dashboard-chat-taken / -new; mail; Upwork)
+└── <case>/mocks/…         case-specific fakes (empty and half-built trackers for setup; a moved plan for undo; a 0.x tracker for upgrade-detect; a schema-1 tracker in the old page layout for schema-update; a schema-4 tracker and its 1.0.0 dashboard for dashboard-update-migrates; a schema-4 tracker whose Tasks already has `Ref` and whose workspace already uses `PR` for ref-prefix-taken; a risk with no task for ref-link; a task with a checklist for checklist-tick; a published `data.js` for client-dashboard-refresh / -remove; a task that already has a chat for dashboard-chat-taken / -new; the desktop app's `set_session_title` for dashboard-chat (the chat names itself by the message's `Chat title`) and -taken; mail; Upwork)
 ```
 
 ## The shared workspace

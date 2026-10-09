@@ -189,7 +189,7 @@ In a conversation with the user (never a scheduled or unattended run), once per 
 
 | When | Read |
 |---|---|
-| A first message `<Project / Milestone / Task / Problem>: <name> … (Project Tracker, <url>). Load it with the project-tracker skill.`, or a request to change where a project's chats open | `references/chats.md`, before anything else |
+| A first message `<Project / Milestone / Task / Problem>: <name> … (Project Tracker, <url>). … Load it with the project-tracker skill.`, or a request to change where a project's chats open | `references/chats.md`, before anything else |
 | Set up the tracker, the root page is missing, or an existing tracker lacks something (views, tabs, columns); a config `schema` below 5 | `references/setup.md` |
 | A milestone or project paused or resumed; a project finished, reopened, or its fields set (client, origin, repository, source) | `references/state.md` |
 | Long text (call notes, a spec, an email thread) or a file to save to a project, milestone, task or problem; a note for a milestone, task or problem | `references/notes.md` |

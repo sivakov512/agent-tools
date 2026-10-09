@@ -535,9 +535,9 @@
   function newChatUrl(q, cp) { // the web takes the tracker project's claude.ai project; the app's own link has no way to name one
     return MOBILE ? "https://claude.ai/new?mode=cowork&surface=cowork" + (cp ? "&project=" + cp.id : "") + "&q=" + encodeURIComponent(q) : "claude://cowork/new?q=" + encodeURIComponent(q);
   }
-  function chatQ(x, kind, again) { // "Task: <name>" first, since the app titles a chat from its first message; then its page — only what to load, what to do next is the user's to say
-    var pr = kind === "project" ? null : x.project || allProjByKey()[x.pk];
-    return TITLE[kind] + ": " + x.name + (pr ? " — " + pr.name : "") + " (Project Tracker, " + x.url + "). " + (again ? "Its old chat is gone: this is its chat from now on. " : "") + "Load it with the project-tracker skill.";
+  function chatQ(x, kind, again) { // "Task: <name>" first, then its page, then the chat's name, which the chat sets itself (the app's own title is a guess) — only what to load, what to do next is the user's to say
+    var pr = kind === "project" ? null : x.project || allProjByKey()[x.pk], name = TITLE[kind] + ": " + x.name + (pr ? " — " + pr.name : "");
+    return name + " (Project Tracker, " + x.url + "). " + (again ? "Its old chat is gone: this is its chat from now on. " : "") + "Chat title: \"" + name + "\". Load it with the project-tracker skill.";
   }
   function chatLink(href, text, title) { var a = el("a", "", text); a.href = href; a.target = "_blank"; a.rel = "noopener"; a.appendChild(el("span", "arr", " ↗")); if (title) a.title = title; a.addEventListener("click", function (e) { e.stopPropagation(); }); return a; }
   function chatBtn(x, kind) { // open the row's chat; with no chat yet, start it — that chat writes its own link back to the row
