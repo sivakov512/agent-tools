@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.4...project-tracker-v1.8.0) (2026-10-09)
+
+
+### Features
+
+* **project-tracker:** a milestone without dates is drawn in the plan's order — after the milestone before it ends, today at the earliest ([2964133](https://github.com/sivakov512/agent-tools/commit/296413346e408d31eef3f081e9f61e188fe220b5))
+* **project-tracker:** the overview's lists say what each line is — Task, Milestone or the problem's type — with its full path; Your move by what to do, a Risks panel, and every side panel folds ([110fe8f](https://github.com/sivakov512/agent-tools/commit/110fe8f92d64ed74b65f6e9ee1f2c680d0ba86f7))
+
 ## [1.7.4](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.3...project-tracker-v1.7.4) (2026-10-09)
 
 
