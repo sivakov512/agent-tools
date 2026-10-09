@@ -238,7 +238,7 @@
     });
     tb.appendChild(b); tb.appendChild(menu);
   }
-  function goTo(id) { var t = $(id); if (t) t.scrollIntoView({ behavior: smooth(), block: "start" }); }
+  function goTo(id) { var t = $(id); if (!t) return; if (t.tagName === "DETAILS") t.open = true; t.scrollIntoView({ behavior: smooth(), block: "start" }); }
   function renderPills() {
     var host = $("pills"); clear(host);
     if (S.projErr && !S.projects) { host.appendChild(el("span", "pl crit", "Couldn't read the tracker")); return; }
@@ -259,7 +259,7 @@
     var host = $("cards"), ps = sortedProjects(); clear(host);
     if (trackerErr()) { $("projCount").textContent = ""; host.appendChild(errBox("Couldn't read the tracker. ", trackerErr())); return; }
     if (!ps.length) host.appendChild(el("div", "empty", (S.projects || []).length ? "No projects of this kind." : "No active projects."));
-    var mg = moveGroups(); onYouCache = {}; mg.onYou.forEach(function (x) { var k = x.pk || (x.project && x.project.key); onYouCache[k] = (onYouCache[k] || 0) + 1; });
+    var mg = moveGroups(); onYouCache = {}; mg.all.forEach(function (x) { var k = x.pk || (x.project && x.project.key); onYouCache[k] = (onYouCache[k] || 0) + 1; }); // as many as its lines in Your move
     var act = ps.filter(function (p) { return p.status !== "Paused"; }).length;
     $("projCount").textContent = ps.length ? act + " active" + (ps.length - act ? ", " + (ps.length - act) + " paused" : "") : "";
     ps.forEach(function (p) { host.appendChild(card(p)); });
@@ -300,23 +300,27 @@
   function renderGantt(toToday) { TLN.render(toToday); }
 
   // ---------- right column ----------
-  function item(o) { // one line in a list; opens its project with the item in view
-    var b = btn("it", null, o.go);
+  // One grammar for every list line: its kind's tag and its name; where it sits, a word only where the group does not say it, and its ID;
+  // on the right the one number that matters. Every line says what it is — Task, Milestone, or a problem's type, coloured as on a project page.
+  function kindTag(x) {
+    if (x.kind === "problem") return el("span", "tt " + (x.type || ""), x.type || "Problem");
+    return el("span", "tt " + (x.kind === "ms" ? "Ms" : "Tk"), x.kind === "ms" ? "Milestone" : "Task");
+  }
+  function whereOf(x) { // its full path, so it is plain which milestone it is in: project › milestone › task
+    var p = x.kind === "problem" ? allProjByKey()[x.pk] : x.project, idx = itemIndex(), ms = null, tk = null;
+    if (x.kind === "problem") { tk = idx[x.tk] || null; ms = idx[x.mk] || (tk && tk.ms) || null; } else if (x.kind === "task") ms = x.ms;
+    return [p ? p.name : "", ms ? ms.name : "", tk ? tk.name : ""].filter(Boolean).map(function (n) { return n.replace(/ /g, "\u00a0"); }).join(" › "); // it wraps only between steps, never inside a name
+  }
+  function item(x, o) { // one line in a list; opens its project with the item in view. o: mark, tag (false: the group says it), say (the word the group does not say), meta, cls
+    var b = btn("it", null, function () { goItem(x); });
     b.appendChild(el("span", "mk " + (o.mark || "")));
-    var mid = el("span", "mid"); mid.appendChild(PT.titled("t", o.item, o.title)); mid.appendChild(el("span", "s", o.sub)); b.appendChild(mid);
+    var mid = el("span", "mid"), t = el("span", "t"); if (o.tag !== false) t.appendChild(kindTag(x)); t.appendChild(span(x.name)); mid.appendChild(t);
+    var s = el("span", "s"), w = whereOf(x), cut = w.lastIndexOf(" "), r = PT.refTag(x); if (o.say) s.appendChild(span(o.say, "say " + (o.sayCls || "")));
+    if (!r) s.appendChild(span(w)); else { s.appendChild(span(w.slice(0, cut + 1))); var tail = el("span", "nw", w.slice(cut + 1)); tail.appendChild(r); s.appendChild(tail); } // the ID never wraps away from the path's last step
+    mid.appendChild(s); b.appendChild(mid);
     b.appendChild(el("span", "m " + (o.cls || ""), o.meta || ""));
     return b;
   }
-  function problemItem(i, o) {
-    var p = allProjByKey()[i.pk];
-    var ms = itemIndex()[i.mk];
-    return item({ item: i, mark: o.mark, title: i.name, sub: [p ? p.name : "", ms ? ms.name : "", o.sub].filter(Boolean).join(" · "), meta: o.meta, cls: o.cls, go: function () { if (p) openProject(p, key(i.url)); } });
-  }
-  function planItem(m, o) {
-    var where = m.kind === "task" && m.ms ? m.project.name + " · " + m.ms.name : m.project.name;
-    return item({ item: m, mark: o.mark, title: m.name, sub: [where, o.sub].filter(Boolean).join(" · "), meta: o.meta, cls: o.cls, go: function () { openProject(m.project, key(m.url)); } });
-  }
-  function anyItem(x, o) { return x.kind === "problem" ? problemItem(x, o) : planItem(x, o); }
   function gh(host, title, n, cls) { var h = el("div", "gh" + (cls ? " " + cls : "")); h.appendChild(span(title)); if (n != null) h.appendChild(span(String(n), "n")); host.appendChild(h); }
   function moveGroups() { // what asks for an action now, each thing once
     var t = todayNum(), probs = S.problems ? liveProblems() : [], seen = {};
@@ -330,9 +334,9 @@
       return !k.ms || k.ms.status === "In progress"; // an undated step of the work under way
     }).sort(function (a, b) { return (a.status === "In progress" ? 0 : 1) - (b.status === "In progress" ? 0 : 1) || (a.start == null ? 1e9 : a.start) - (b.start == null ? 1e9 : b.start); });
     var questions = probs.filter(function (i) { return !i.waiting && i.type === "Question"; }).sort(function (a, b) { return (a.opened || 1e9) - (b.opened || 1e9); });
-    var onYou = tasksOnMe.concat(questions).filter(once);
+    var doing = tasksOnMe.filter(once), decide = questions.filter(once);
     var needs = allItems().filter(function (m) { return m.kind === "ms" && OPEN_MS[m.status] && m.start == null && !m.paused; }).filter(once);
-    return { blocked: blocked, overdue: overdue, due: due, onYou: onYou, needs: needs };
+    return { blocked: blocked, overdue: overdue, due: due, doing: doing, decide: decide, all: blocked.concat(overdue, due, doing, decide), needs: needs };
   }
   function ageLabel(x) { var a = ageOf(x); return x.kind === "problem" && x.type === "Risk" ? "" : a == null ? "" : a === 0 ? "today" : days(a); } // a risk waits on no one, so its age says nothing
   function context(x) { // where an item sits in its project: a problem's milestone › task, a task's milestone
@@ -342,14 +346,13 @@
   S.needsOpen = false; // Needs dates, folded under Your move until opened
   function renderMove() {
     var host = $("moveList"), mg = moveGroups();
-    var groups = [
-      ["Blocked", "crit", mg.blocked, function (i) { return problemItem(i, { mark: "crit", sub: i.waiting ? "waiting on " + i.waiting : "on you", meta: ageLabel(i), cls: "crit" }); }],
-      ["Overdue", "crit", mg.overdue, function (m) { return planItem(m, { mark: "crit", sub: (m.kind === "task" && m.status === "Waiting" && m.waiting ? "waiting on " + m.waiting + " · " : "") + "was due " + fmt(m.end), meta: days(m.late) + " late", cls: "crit" }); }],
-      ["Due soon", "warn", mg.due, function (m) { return planItem(m, { mark: "warn", sub: m.status === "Planned" ? "not started" : m.status === "Waiting" && m.waiting ? "waiting on " + m.waiting : "", meta: soon(m.end), cls: "warn" }); }],
-      ["On you", "", mg.onYou, function (x) {
-        if (x.kind === "problem") { var a = ageOf(x); return problemItem(x, { sub: "decide", meta: ageLabel(x), cls: ageCls(a) }); }
-        return planItem(x, { sub: x.status === "In progress" ? "in progress" : "", meta: x.start == null ? "no date" : x.start > todayNum() ? "starts " + soon(x.start) : x.openEnd ? "no end date" : "due " + soon(x.end) });
-      }],
+    var waitWord = function (x) { return x.status === "Waiting" && x.waiting ? "waiting on " + x.waiting : ""; };
+    var groups = [ // by what the user does, the most urgent first
+      ["Blocked", "crit", mg.blocked, function (i) { return item(i, { mark: "crit", say: i.waiting ? "waiting on " + i.waiting : "", meta: ageLabel(i), cls: "crit" }); }],
+      ["Overdue", "crit", mg.overdue, function (m) { return item(m, { mark: "crit", say: waitWord(m), meta: days(m.late) + " late", cls: "crit" }); }],
+      ["Due soon", "warn", mg.due, function (m) { return item(m, { mark: "warn", say: m.status === "Planned" ? "not started" : waitWord(m), meta: soon(m.end), cls: "warn" }); }],
+      ["Doing", "", mg.doing, function (x) { return item(x, { say: x.status === "In progress" ? "" : "planned", meta: x.start == null ? "no date" : x.start > todayNum() ? "starts " + soon(x.start) : x.openEnd ? "no end date" : "due " + soon(x.end) }); }],
+      ["To decide", "", mg.decide, function (x) { var a = ageOf(x); return item(x, { meta: ageLabel(x), cls: ageCls(a) }); }],
     ];
     keep(host, function () {
       clear(host); var n = 0;
@@ -360,7 +363,7 @@
       if (mg.needs.length) { // planning, not today's work: one quiet line that opens the list
         var nb = btn("needs" + (S.needsOpen ? " open" : ""), null, function () { S.needsOpen = !S.needsOpen; renderMove(); });
         nb.setAttribute("aria-expanded", String(S.needsOpen)); nb.appendChild(span(plural(mg.needs.length, "milestone") + " without dates")); nb.insertAdjacentHTML("beforeend", CHEV); host.appendChild(nb);
-        if (S.needsOpen) mg.needs.forEach(function (m) { host.appendChild(planItem(m, { sub: m.status === "In progress" ? "in progress" : "planned", meta: "" })); });
+        if (S.needsOpen) mg.needs.forEach(function (m) { host.appendChild(item(m, { tag: false, say: m.status === "In progress" ? "in progress" : "planned" })); }); // the line above says they are milestones
       }
       $("moveCount").textContent = n ? String(n) : "";
     });
@@ -382,9 +385,21 @@
         gh(host, pt.k, pt.g.length > 1 ? pt.g.length : null, "");
         pt.g.forEach(function (x) {
           var a = ageOf(x), late = x.kind === "task" && x.late > 0;
-          host.appendChild(anyItem(x, { mark: late ? "crit" : ageCls(a), sub: x.kind === "problem" ? (x.type === "Blocker" ? "blocks you" : x.type.toLowerCase()) : late ? days(x.late) + " late" : x.end != null ? "due " + fmt(x.end) : "", meta: a != null ? days(a) : "", cls: late ? "crit" : ageCls(a) }));
+          host.appendChild(item(x, { mark: late ? "crit" : ageCls(a), say: late ? days(x.late) + " late" : x.kind === "task" && x.end != null ? "due " + fmt(x.end) : "", sayCls: late ? "crit" : "", meta: a != null ? days(a) : "", cls: late ? "crit" : ageCls(a) }));
         });
       });
+    });
+  }
+  function riskBy(i) { var idx = itemIndex(), on = idx[i.tk] || idx[i.mk]; return on && isOpen(on) && on.end != null && !on.openEnd ? on.end : null; } // the date it matters by: its task's, else its milestone's end
+  function renderRisks() { // risks need no action now, only keeping in mind: each with what it threatens and by when
+    var host = $("riskList"), rs = liveProblems().filter(function (i) { return i.type === "Risk"; });
+    rs.sort(function (a, b) { var x = riskBy(a), y = riskBy(b); return (x == null ? 1e9 : x) - (y == null ? 1e9 : y) || (a.opened || 0) - (b.opened || 0); });
+    keep(host, function () {
+      clear(host); $("riskCount").textContent = rs.length ? String(rs.length) : "";
+      if (trackerErr()) { host.appendChild(el("div", "empty", "Nothing to show until the tracker loads.")); $("riskCount").textContent = ""; return; }
+      if (S.problemsErr && !S.problems) { host.appendChild(errBox("Problems didn't load. ", S.problemsErr)); return; }
+      if (!rs.length) { host.appendChild(el("div", "empty", "No open risks.")); return; }
+      rs.forEach(function (i) { var by = riskBy(i); host.appendChild(item(i, { meta: by != null ? "by " + fmt(by) : "" })); });
     });
   }
   function renderDone() {
@@ -397,7 +412,7 @@
     if (trackerErr()) { $("doneCount").textContent = ""; host.appendChild(el("div", "empty", "Nothing to show until the tracker loads.")); return; }
     if (S.resolvedErr && !S.resolved) host.appendChild(errBox("Resolved problems didn't load. ", S.resolvedErr));
     if (!out.length) { if (!(S.resolvedErr && !S.resolved)) host.appendChild(el("div", "empty", "Nothing finished in the last 7 days.")); return; }
-    out.forEach(function (o) { var x = o.x; host.appendChild(anyItem(x, { sub: x.kind === "problem" ? "resolved" : x.kind === "ms" ? "milestone" : "task", meta: fmt(o.when), cls: "good" })); });
+    out.forEach(function (o) { var x = o.x; host.appendChild(item(x, { meta: fmt(o.when), cls: "good" })); });
   }
 
   // ---------- a client's page: the snapshot, and the open items by whose side they are on ----------
@@ -436,8 +451,8 @@
         if (!g[1].length) return; gh(host, g[0], g[1].length, "");
         g[1].forEach(function (x) {
           var a = ageOf(x), late = x.kind === "task" && x.late > 0, blk = x.kind === "problem" && x.type === "Blocker";
-          var sub = [x.kind === "problem" ? (blk ? "blocker" : x.type.toLowerCase()) : "task", x.waiting && g[1] !== sd.us ? x.waiting : "", late ? days(x.late) + " late" : x.kind === "task" && x.end != null ? "due " + fmt(x.end) : ""].filter(Boolean).join(" · ");
-          host.appendChild(anyItem(x, { mark: late || blk ? "crit" : ageCls(a), sub: sub, meta: ageLabel(x), cls: late ? "crit" : ageCls(a) }));
+          var say = [x.waiting && g[1] === sd.third ? x.waiting : "", late ? days(x.late) + " late" : x.kind === "task" && x.end != null ? "due " + fmt(x.end) : ""].filter(Boolean).join(" · ");
+          host.appendChild(item(x, { mark: late || blk ? "crit" : g[1] === sd.risk ? "" : ageCls(a), say: say, sayCls: late ? "crit" : "", meta: ageLabel(x), cls: late ? "crit" : ageCls(a) }));
         });
       });
     });
@@ -741,7 +756,7 @@
     var fk = focusKey();
     renderHeader();
     if (!S.shown) return;
-    (SNAP ? [renderPills, renderCards, function () { renderGantt(false); }, renderSides, renderDone, renderDrawer] : [renderPills, renderCards, function () { renderGantt(false); }, renderMove, renderWaiting, renderDone, renderDrawer]).forEach(function (f) { try { f(); } catch (e) { if (window.console) console.error(e); } });
+    (SNAP ? [renderPills, renderCards, function () { renderGantt(false); }, renderSides, renderDone, renderDrawer] : [renderPills, renderCards, function () { renderGantt(false); }, renderMove, renderWaiting, renderRisks, renderDone, renderDrawer]).forEach(function (f) { try { f(); } catch (e) { if (window.console) console.error(e); } });
     if (fk) { var n = document.querySelector(fk); if (n) n.focus({ preventScroll: true }); }
   }
   function ready() {
@@ -760,6 +775,14 @@
   }
 
   // ---------- wiring ----------
+  (function () { // every side panel folds; each viewer's choice is remembered
+    var fold = {}; try { fold = JSON.parse(localStorage.getItem("pt.fold") || "{}") || {}; } catch (e) {}
+    ["moveP", "waitP", "riskP", "sideP", "doneP"].forEach(function (id) {
+      var d = $(id); if (!d) return;
+      if (fold[id] != null) d.open = !!fold[id];
+      d.addEventListener("toggle", function () { fold[id] = d.open; try { localStorage.setItem("pt.fold", JSON.stringify(fold)); } catch (e) {} });
+    });
+  })();
   var TLN = PT.timeline({
     host: $("tlScroll"), seg: $("range"), today: $("todayBtn"), info: $("info"),
     range: function () { return S.range; }, setRange: function (r) { S.range = r; try { localStorage.setItem("pt.range", r); } catch (e) {} },
