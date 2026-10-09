@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.15.0...upwork-pulse-v0.15.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** a job's chat started from the dashboard names itself, from the chat title its first message gives, and says what the job has none of yet ([e8780ed](https://github.com/sivakov512/agent-tools/commit/e8780edb6b4fa78fa5e978bc59406c59c98365ff))
+
 ## [0.15.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.14.2...upwork-pulse-v0.15.0) (2026-10-08)
 
 
