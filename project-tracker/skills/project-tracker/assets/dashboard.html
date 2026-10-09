@@ -26,14 +26,18 @@
       </section>
     </div>
     <aside class="side">
-      <section class="panel" id="moveP" aria-label="Your move">
-        <div class="sec-h"><h2>Your move</h2><span class="n" id="moveCount"></span></div>
+      <details class="panel" id="moveP" open>
+        <summary><h2 title="What needs you now, the most urgent first">Your move</h2><span class="n muted" id="moveCount"></span><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></summary>
         <div id="moveList"></div>
-      </section>
-      <section class="panel" id="waitP" aria-label="Waiting on others">
-        <div class="sec-h"><h2>Waiting on others</h2><span class="n" id="waitCount"></span></div>
+      </details>
+      <details class="panel" id="waitP" open>
+        <summary><h2>Waiting on others</h2><span class="n muted" id="waitCount"></span><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></summary>
         <div id="waitList"></div>
-      </section>
+      </details>
+      <details class="panel" id="riskP" open>
+        <summary><h2 title="Open risks: nothing to do now, worth keeping in mind">Risks</h2><span class="n muted" id="riskCount"></span><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></summary>
+        <div id="riskList"></div>
+      </details>
       <details class="panel" id="doneP">
         <summary><h2 title="Finished in the last 7 days">Recently completed</h2><span class="n muted" id="doneCount"></span><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></summary>
         <div id="doneList"></div>

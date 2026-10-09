@@ -361,22 +361,29 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 /* ---------- right column: lists ---------- */
 .panel { background: none; border: 0; padding: 0; }
 .panel > .sec-h { padding: 0; margin-bottom: 12px; }
-#moveList, #waitList, #sideList, #doneList { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-.gh { display: flex; align-items: baseline; gap: 8px; padding: 7px 16px; background: var(--surface-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
-.gh:first-child { border-top: 0; }
+#moveList, #waitList, #riskList, #sideList, #doneList { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+#moveList > .empty, #waitList > .empty, #riskList > .empty, #sideList > .empty, #doneList > .empty { padding-left: 25px; } /* where the lines' text starts */
+.gh { display: flex; align-items: baseline; gap: 8px; padding: 7px 16px 7px 25px; background: var(--surface-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
+.gh:first-child { border-top: 0; } /* group heads start where their lines' text does (10px padding, 3px mark, 12px gap) */
 .gh .n { text-transform: none; letter-spacing: 0; }
 .gh .n { font-weight: 400; color: var(--text-mute); }
 .gh.crit { color: var(--critical); } .gh.warn { color: var(--warn); }
-.it { display: grid; grid-template-columns: 3px minmax(0, 1fr) auto; column-gap: 9px; width: 100%; border: 0; background: none; text-align: left; padding: 11px 16px 11px 10px; cursor: pointer; }
+.it { display: grid; grid-template-columns: 3px minmax(0, 1fr) auto; column-gap: 12px; width: 100%; border: 0; background: none; text-align: left; padding: 11px 16px 11px 10px; cursor: pointer; }
 .it + .it { border-top: 1px solid var(--border); }
 .it:hover { background: var(--surface-2); }
 .it .mk { border-radius: 2px; background: transparent; align-self: stretch; margin: 2px 0; }
 .it .mk.crit { background: var(--critical); } .it .mk.warn { background: var(--warn); }
 .it .t { font-size: 14.5px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
 .it .s { font-size: 13px; color: var(--text-mute); margin-top: 1px; overflow-wrap: anywhere; }
+/* a list line's kind before its name — Task, Milestone, or a problem's type; its ID ends the line under it */
+.it .t .tt { margin: 0 6px 0 -6px; padding: 2px 6px; font-size: 11px; line-height: 13px; vertical-align: 1px; } /* hung left by its own padding, so its text starts where the path under it does */
+.tt.Tk, .tt.Ms { background: var(--sunken); color: var(--text-2); } /* plan items: quiet; problems carry their type's colour */
+.it .s .say { color: var(--text-2); } .it .s .say::after { content: " · "; color: var(--text-mute); } .it .s .say.crit { color: var(--critical); }
+.it .s .ref { margin-left: 6px; padding: 0 4px; font-size: 10.5px; vertical-align: 0; }
+.it .s .nw { display: inline-block; } /* the last step and the ID move to the next line together */
 .it .m { font-size: 13px; color: var(--text-mute); white-space: nowrap; padding-top: 2px; }
 .it .m.crit { color: var(--critical); } .it .m.warn { color: var(--warn); }
-details.panel > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 0; min-height: 30px; }
+details.panel > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 0; min-height: 34px; } /* as tall as a section's head, so the side panels line up with the timeline */
 details.panel[open] > summary { margin-bottom: 12px; }
 details.panel > summary::-webkit-details-marker { display: none; }
 details.panel > summary h2 { margin: 0; font-size: 15px; font-weight: 600; }
@@ -446,7 +453,7 @@ details.panel[open] > summary .chev { transform: rotate(90deg); }
 .md .sub > button { gap: 4px; padding: 2px 0; font-size: 14px; }
 .md .sub > .sub-b { margin-top: 6px; padding: 10px 14px 12px; border-radius: 8px; }
 @media (max-width: 860px) {
-  #moveP, #sideP { order: 1; } #tlS { order: 2; } #projS { order: 3; } #waitP { order: 4; } #doneP { order: 5; }
+  #moveP, #sideP { order: 1; } #tlS { order: 2; } #projS { order: 3; } #waitP { order: 4; } #riskP { order: 5; } #doneP { order: 6; }
   .cards { grid-template-columns: minmax(0, 1fr); }
 }
 .pc-now .pc-task { grid-column: 2; font-size: 13.5px; line-height: 1.4; color: var(--text-2); margin-top: 3px; padding-left: 10px; border-left: 2px solid var(--border); }
@@ -473,7 +480,7 @@ h1 .ref { vertical-align: 4px; }
 .ilink { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-2); text-underline-offset: 2px; } /* another item of the tracker: opens it on this page */
 .ilink:hover { color: var(--accent); text-decoration-color: currentColor; }
 .pline .ilink { font-size: 14px; color: var(--text); }
-.needs { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; border-top: 1px solid var(--border); background: none; padding: 11px 16px; text-align: left; cursor: pointer; font: inherit; font-size: 13px; color: var(--text-mute); } /* Your move: the milestones without dates, folded into one quiet line */
+.needs { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; border-top: 1px solid var(--border); background: none; padding: 11px 16px 11px 25px; text-align: left; cursor: pointer; font: inherit; font-size: 13px; color: var(--text-mute); } /* Your move: the milestones without dates, folded into one quiet line */
 .needs:hover { color: var(--text-2); }
 .needs .chev { margin-left: auto; transition: transform .15s; }
 .needs.open .chev { transform: rotate(90deg); }

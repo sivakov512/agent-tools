@@ -25,10 +25,10 @@
       </section>
     </div>
     <aside class="side">
-      <section class="panel" id="sideP" aria-label="Open items">
-        <div class="sec-h"><h2>Open items</h2><span class="n" id="sideCount"></span></div>
+      <details class="panel" id="sideP" open>
+        <summary><h2>Open items</h2><span class="n muted" id="sideCount"></span><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></summary>
         <div id="sideList"></div>
-      </section>
+      </details>
       <details class="panel" id="doneP">
         <summary><h2 title="Finished in the last 7 days">Recently completed</h2><span class="n muted" id="doneCount"></span><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></summary>
         <div id="doneList"></div>
