@@ -506,6 +506,33 @@
     }
     if (last < s.length) host.appendChild(document.createTextNode(unesc(s.slice(last))));
   }
+  // A file on a page: a chip with its name. Notion keeps a file behind a reference whose download link lives a few minutes, so a click asks for a fresh one
+  // and opens it in a new tab; a link from outside opens as it is; a client's page has the name only (its data keeps no source).
+  function fileName(src, caption, kind) {
+    var c = clean(String(caption || "").replace(/<[^>]+>/g, "")); if (c) return c;
+    var m = /[?&]name=([^&#]+)/.exec(src || ""); if (m) { try { return decodeURIComponent(m[1].replace(/\+/g, " ")); } catch (e) { return m[1]; } }
+    var last = String(src || "").split(/[?#]/)[0].split("/").pop(); if (last) { try { return decodeURIComponent(last); } catch (e) { return last; } }
+    return kind === "image" ? "Image" : "File";
+  }
+  function fileChip(src, caption, kind) {
+    var name = fileName(src, caption, kind), ico = '<svg class="fico" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 1.8H4.5a1 1 0 0 0-1 1v10.4a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V5.3L9 1.8zM9 1.8v3.5h3.5"/></svg>';
+    if (!/^(notion-file-block:|https?:)/.test(src || "")) { var s = el("span", "fchip off"); s.innerHTML = ico; s.appendChild(span(name, "fn")); s.title = "The file is in Notion"; return s; }
+    var a = el("a", "fchip"); a.innerHTML = ico; a.appendChild(span(name, "fn")); a.appendChild(el("span", "arr", " ↗")); a.target = "_blank"; a.rel = "noopener"; a.title = "Open " + name;
+    if (/^https?:/.test(src)) { a.href = src; return a; }
+    a.href = "#";
+    a.addEventListener("click", function (e) {
+      e.preventDefault(); e.stopPropagation(); if (a.classList.contains("busy") || !MCP) return;
+      var w = null; try { w = window.open("", "_blank"); } catch (x) {} // opened now, inside the click, so no blocker stops it; it gets the link when it comes
+      a.classList.add("busy");
+      MCP.callTool(NOTION, "notion-get-file-download-urls", { references: [src] }, { cache: false }).then(function (res) {
+        var f = ((payload(res) || {}).files || [])[0]; a.classList.remove("busy");
+        if (!f || !f.url) throw new Error("no link");
+        if (w && !w.closed) w.location.href = f.url;
+        else { a.href = f.url; a.title = "Click again to open " + name; } // no window could be opened: the fresh link waits on the chip
+      }).catch(function () { a.classList.remove("busy"); if (w && !w.closed) w.close(); a.title = "Couldn't get the file from Notion. Try again."; a.classList.add("failed"); setTimeout(function () { a.classList.remove("failed"); }, 2500); });
+    });
+    return a;
+  }
   function renderMd(text, opts) {
     var root = el("div", "md"), lines = String(text || "").split("\n"), list = null, listTag = null, code = null, box = root;
     opts = opts || {};
@@ -522,6 +549,8 @@
       var pg = /^<page url="([^"]+)"[^>]*>([^<]*)<\/page>/.exec(l);
       if (pg) { endList(); box.appendChild(subPage(cleanUrl(pg[1]), clean(pg[2]) || "Untitled")); continue; }
       if (/^<database/.test(l)) { endList(); box.appendChild(el("div", "muted", "An embedded database — open the page in Notion to see it.")); continue; }
+      var fb = /^<(pdf|file|image|video|audio)\b([^>]*?)\/?>(?:([\s\S]*?)<\/\1>)?\s*$/.exec(l); // a file block, its caption inside; its src a Notion reference, a link, or none (a client's page)
+      if (fb) { endList(); var fsrc = /\bsrc="([^"]*)"/.exec(fb[2]), fp = el("p", "fline"); fp.appendChild(fileChip(fsrc ? fsrc[1] : "", fb[3], fb[1])); box.appendChild(fp); continue; }
       if (/^<\/?(tabs|tab|columns|column|empty-block|table|tr|td|thead|tbody|colgroup|col)\b/.test(l) || /^---+$/.test(l)) { endList(); continue; }
       if (!l.trim()) { endList(); continue; }
       var h = /^(#{1,4})\s+(.*)$/.exec(l);
