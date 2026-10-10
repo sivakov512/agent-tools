@@ -2,6 +2,8 @@
 type: 'llm'
 focus: 'last_message'
 ---
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+
 - Covers both Energy meter and Brightbrush.
 - Due soon (the next 7 days) includes the task Real readings from the CT sensor over Zigbee (Oct 9). Nothing is reported as late.
 - Lists whom to chase, with what: Marko (CI runner set up), Northwind (RFQ reviewed), Acme (Invoice received from Acme), Brightbrush Ltd (Firmware spec approved by Brightbrush Ltd).

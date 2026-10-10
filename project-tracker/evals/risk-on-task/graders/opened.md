@@ -1,5 +1,5 @@
 ---
 type: 'tool_used'
 tool: 'mcp__notion__notion-create-pages'
-input_match: 'date:Opened:start"\s*:\s*"2026-10-09'
+input_match: 'date:Opened:start"\s*:\s*"2026-10-\d\d'
 ---

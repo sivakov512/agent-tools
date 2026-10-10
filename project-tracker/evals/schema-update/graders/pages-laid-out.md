@@ -2,6 +2,8 @@
 type: 'llm'
 focus: 'mock_calls'
 ---
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+
 The update laid out the existing pages in parts (an unheaded description, `## Notes`, `## Private notes`, `## History`) without rewriting them.
 
 - Every Energy meter page whose body had a dated list line (`- **Sep 15** — …`, `- **Sep 22** — …`; milestone 0110, tasks 0101, 0102, 0201, 0202, 0203, 0205) and Brightbrush task 0401 got `## History` directly in front of its first history line. Task 0202 also got `## Notes` in front of its `**Sep 20** — RFQ scope agreed…` paragraph, above the history.

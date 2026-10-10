@@ -2,6 +2,8 @@
 type: 'llm'
 focus: 'last_message'
 ---
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+
 The user wrote only "TK-40 is done." No task in the tracker has that ID (tasks are numbered TK-1 to TK-11), and no other row has the number 40 either.
 
 - Says it could not find TK-40 (no task with that ID) and asks the user which task they mean or to check the ID.

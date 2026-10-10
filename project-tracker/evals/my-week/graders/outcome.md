@@ -2,6 +2,8 @@
 type: 'llm'
 focus: 'last_message'
 ---
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+
 Today is Friday, Oct 9, so the window runs through Sunday, Oct 18.
 
 - Grouped by project: Energy meter and Brightbrush.

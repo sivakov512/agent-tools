@@ -2,6 +2,7 @@
 type: 'llm'
 focus: 'last_message'
 ---
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
 
 - It is a summary of the week for the user, not an email to the client: no greeting or sign-off addressed to the client.
 - Mentions the Zigbee binding error fixed.

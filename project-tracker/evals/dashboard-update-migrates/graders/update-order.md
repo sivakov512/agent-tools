@@ -2,6 +2,8 @@
 type: 'llm'
 focus: 'mock_calls'
 ---
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+
 The tracker started at `schema: 4` with a dashboard published from 1.0.0; the user asked only to update the dashboard. Judge the order of the agent's calls to the Notion and Artifact mocks.
 
 - Each of the four data sources got `ADD COLUMN "Ref" UNIQUE_ID PREFIX '…'` with its own prefix — Projects (`20000000-…-0001`) `PR`, Milestones (`…0002`) `MS`, Tasks (`…0004`) `TK`, Problems (`…0003`) `PB` — and no `Ref` value was written to any row.

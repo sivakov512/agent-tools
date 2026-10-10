@@ -2,6 +2,8 @@
 type: 'llm'
 focus: 'last_message'
 ---
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+
 The user wrote only "Link PB-1 to TK-6." In this tracker PB-1 is the Energy meter risk "Holiday shutdown window" (Open, milestone Hardware, no task yet) and TK-6 is the task "First prototype working on the custom board" — not "Board designed, first boards ordered" (TK-5), the task the risk's text would suggest.
 
 - Reports that the risk Holiday shutdown window is now linked to the task First prototype working on the custom board.

@@ -2,6 +2,8 @@
 type: 'llm'
 focus: 'last_message'
 ---
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+
 The user wrote only "TK-4 is done." In this tracker TK-4 is the Energy meter task "Power measured, module fixed" (Planned, Nov 6 → Nov 13, under the In-progress milestone Firmware on the dev board). It is not the In-progress task "Real readings from the CT sensor over Zigbee" (TK-2), and not the Brightbrush milestone Layout (MS-4).
 
 - Reports "Power measured, module fixed" as Done, finished today (Oct 9).

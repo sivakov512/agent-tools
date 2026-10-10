@@ -2,6 +2,8 @@
 type: 'llm'
 focus: 'last_message'
 ---
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+
 "Firmware spec approved by Brightbrush Ltd" was a Waiting task (on Brightbrush Ltd) under the Planned milestone Firmware, whose agreed dates start on Oct 20 (today is Oct 9); Layout is still In progress.
 
 - Reports the task Firmware spec approved by Brightbrush Ltd as Done.

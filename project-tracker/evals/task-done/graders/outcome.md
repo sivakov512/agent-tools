@@ -2,6 +2,8 @@
 type: 'llm'
 focus: 'last_message'
 ---
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+
 "Sleep modes and sampling with the processor asleep" is a task (Oct 9 → Nov 6) of the In-progress milestone Firmware on the dev board, which still has other open tasks (Real readings, Power measured, CI runner set up).
 
 - Reports the task as Done, finished today (Oct 9).

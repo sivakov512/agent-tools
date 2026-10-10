@@ -2,6 +2,8 @@
 type: 'llm'
 focus: 'last_message'
 ---
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+
 Sleep modes is a task (Oct 9 → Nov 6) of the milestone Firmware on the dev board (ends Nov 13); Power measured (Nov 6 → Nov 13) follows it in the same milestone.
 
 - Shows what would move if Northwind agrees — at least Sleep modes Nov 6 → Nov 13 — and asks whether the new date is agreed with the client (Northwind).
