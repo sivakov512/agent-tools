@@ -32,8 +32,12 @@ The Notion API cannot delete pages; say so in one line, then do the equivalent w
 
 **Restoring** ("bring the test project back"): find it with `notion-search`, read the removal line in its history, and put the project and every row listed there back to the status recorded; then the callout. Rows dropped for another reason stay dropped. A single problem, task or milestone comes back the same way, from the `Removed (was X)` or `Dropped (was X)` line in its history (a problem removed before schema 4 has it as ` · removed (was X)` at the end of `Summary`; that suffix goes), with a history line `Restored`.
 
-## Undo of an earlier change — "undo the delay I reported last week"
+## Undo — "undo that", "revert", "put it back"
 
-SKILL.md (**Undo**) covers a change made in this conversation. One made earlier is a reconstruction: first make sure which change is meant (ask unless the user named it). Rebuild the old values from what Notion shows — history lines record date moves as `Mar 6 → Mar 13`, pause and removal lines record the previous status — then show what you would restore and ask. A value recorded nowhere is asked for, not guessed. On yes, restore as for an undo in this conversation.
+Undo takes a change back; it is not a new fact.
+
+**Made in this conversation**: you have the old values. Check that each field still holds what you wrote — if the user edited it since, show that and ask. Otherwise restore without asking: old property values back; history or note lines that recorded the change removed (`update_content` with the line as `old_str`, empty `new_str`, with its heading when it was the section's only entry — plain text lines only); a checklist tick taken back; milestones, tasks and problems you created → Dropped, a project you created → Removed. A sub-page or file you added stays: tell the user they can delete it by hand. Then SKILL.md → **Every change**, steps 2–4.
+
+**Made earlier** ("undo the delay I reported last week") is a reconstruction: first make sure which change is meant (ask unless the user named it). Rebuild the old values from what Notion shows — history lines record date moves as `Mar 6 → Mar 13`, pause and removal lines record the previous status — then show what you would restore and ask. A value recorded nowhere is asked for, not guessed. On yes, restore as for an undo in this conversation.
 
 Notion's version history (••• → Version history) is the user's last resort; the API cannot restore versions.

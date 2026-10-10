@@ -1,16 +1,20 @@
 # Client dashboards — make, keep current, remove
 
-A client dashboard is a page the user gives a client: one project, or several projects of one client. It is the user's own dashboard (`references/dashboard.md`) — pills, the timeline, a card per project, the project page sliding in from the right with where it stands and the plan, lateness, risks, Recently completed, and every item opening with what is written on it — with one change on the right: a single list of open items by whose side they are on (the client's, ours, third parties'), in place of Your move and Waiting on others.
+A client dashboard is a page the user gives a client: one project, or several projects of one client. It is the user's own dashboard (`references/dashboard.md`) run on a snapshot of those projects, with one change: a single list of open items by whose side they are on (the client's, ours, third parties'), in place of Your move and Waiting on others.
 
 **What it shows.** The work as it is, so the client sees not only that a task is under way but what is happening in it: names and IDs (`TK-34`, to name a row when talking to the user), statuses, dates and lateness of projects, milestones, tasks and problems; problem types, who is waited on, `Summary` (a project's and a problem's); and every page's public parts (SKILL.md → **Pages**) — the description, `## Notes` (a public sub-page with its text, a file by its name only) and `## History`. Never `## Private notes`, the status callout, links into Notion (a mention of a row the page shows opens that row on the page; any other mention is its plain title), chats, `Claude project`, origin, source or repository. What keeps the private part private is that it is left out of the data — anyone with the link can read the file — and SKILL.md → **Who sees what** decides what is written where.
 
 It is a snapshot, not live: `assets/client.html` runs the dashboard's own code (`assets/app.js`, with `assets/core.js` and `assets/core.css`) on a `data.js` that the skill writes and republishes after every change to what it covers. The client needs no Notion access and no connector; lateness is computed in the browser against the viewer's today, so it stays right between updates.
 
+## What a client may see — "ArcLive can see the supplier prices"
+
+SKILL.md (**Who sees what**) keeps prices, costs, others' contacts and the user's views private by default. The user may open more to one client ("ArcLive can see the supplier prices and the lab correspondence"): save it as a private note on the project page — `**Oct 8** — Client sees: supplier prices and quotes; correspondence with the labs, contacts included.` — and on that project write those things in the public parts from then on. One such note per project, updated in place when the user opens more or takes it back. What is already private stays there until the user asks to move it (SKILL.md → **Bodies**, **Moving an entry**). Read the project page's `Client sees:` note before writing a public part on that project.
+
 ## Where the link lives
 
 In the Projects field `Client dashboard` (URL) of every project it covers — one project's row, or the same link on each of several projects' rows. The field is the dashboard's record: a change to a project with a link refreshes that dashboard, and the dashboard covers exactly the projects that hold its link.
 
-One dashboard per project: asked for one on a project that already has a link, give that link (and offer to change what it covers) instead of making a second. A milestone gets no dashboard of its own — its project's dashboard shows it. A tracker below `schema: 3` has no such field: the update in `references/setup.md` comes first.
+One dashboard per project: asked for one on a project that already has a link, give that link (and offer to change what it covers) instead of making a second. A milestone gets no dashboard of its own — its project's dashboard shows it.
 
 ## Make one — "сделай клиентский дэш для Valokuu", "a dashboard for ArcLive with both projects"
 

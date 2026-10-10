@@ -76,9 +76,9 @@ A live, read-only page over the tracker for you alone, published by setup as a c
 - **timeline** — every project on one axis with today, 1 month / 3 months / 6 months / year / all, drag to move in time; a milestone's tasks are thin marks under its card, ▸ next to a project opens them up as named chips; a milestone without dates is drawn after the one before it in the plan;
 - **projects** — a card per project: state, the milestone in focus with its current task and timing, a blocker if any, a strip of milestones;
 - **your move** (blocked, overdue, due soon, doing, to decide), **waiting on others** (by who, oldest first), **risks** and **recently completed** — every line says what it is (Task, Milestone, Blocker, Question, Risk) and where it sits (`Project › Milestone › Task`); each panel folds;
-- a click on anything opens the project as a page sliding in from the right: where it stands, open items, the plan with each item's description, notes (files open from a chip) and history; ↻ reads it again in place, ↑ / ↓ steps between projects.
+- a click on anything opens the project as a page sliding in from the right: where it stands, open items, the plan with each item's description (drawn as in Notion: tables, toggles, callouts, columns), notes (files open from a chip) and history; ↻ reads it again in place, ↑ / ↓ steps between projects.
 
-Lateness is computed in the page by the same rule as the Notion formulas, for milestones and tasks alike. Nothing on the page writes to Notion: changes go through the chat, where the rules live. The first time it asks to allow the Notion connector for the page. It looks like the upwork-pulse dashboard on purpose. What it is for and how it is republished: [references/dashboard.md](skills/project-tracker/references/dashboard.md). If the tracker was set up before the dashboard existed (or you removed its link from the config), the skill offers to publish it, once; or ask "publish the dashboard".
+Lateness is computed in the page by the same rule as the Notion formulas, for milestones and tasks alike. Nothing on the page writes to Notion: changes go through the chat, where the rules live. The first time it asks to allow the Notion connector for the page. It looks like the upwork-pulse dashboard on purpose. How it is published: [references/dashboard.md](skills/project-tracker/references/dashboard.md); what it is built for: [docs/dashboard-design.md](docs/dashboard-design.md). If the tracker was set up before the dashboard existed (or you removed its link from the config), the skill offers to publish it, once; or ask "publish the dashboard".
 
 **Claude chats.** A project and each of its milestones, tasks and problems has a **Claude chat** button. The first click starts a chat that loads that row and writes its own link into the row's `Chat`; later clicks reopen the same chat, and ▾ → New chat replaces it when the old one is gone. In the chat you talk as usual — it is the row's thread. A project's chats open inside its claude.ai project (`Claude project`, asked when the project is created; "open its chats in <project link>" changes it) on the phone and the web; the desktop app opens them outside projects. Details: [references/chats.md](skills/project-tracker/references/chats.md).
 
@@ -180,6 +180,7 @@ claude plugin eval . --runs 1 --ablation none --scaffold --trust-plugin --judge-
 project-tracker/
 ├── README.md                     this file
 ├── .claude-plugin/plugin.json    Claude plugin packaging (name, version)
+├── docs/dashboard-design.md      the dashboards' design spec, for changing the assets
 ├── evals/                        claude plugin eval suite (mocked Notion)
 └── skills/project-tracker/
     ├── SKILL.md                  loaded on every use: the model, data rules, Notion calls, everyday scenarios
@@ -191,10 +192,10 @@ project-tracker/
         ├── contracts.md          platform contracts (Upwork): mapping and resync
         ├── plan-changes.md       adding / dropping milestones and tasks, pulling in, removing, undoing an earlier change
         ├── state.md              pausing and resuming; a project's status and fields
-        ├── notes.md              long notes and files on a page
+        ├── notes.md              long text and files on a page
         ├── report.md             my week, the overview across projects, the weekly report
         ├── chats.md              Claude chats opened from the dashboard; a project's claude.ai project
-        ├── dashboard.md          what the dashboard is for; publishing and updating it
+        ├── dashboard.md          publishing and updating the dashboard
         └── client-dashboards.md  dashboards for clients: what they show, keeping them current
 ```
 
