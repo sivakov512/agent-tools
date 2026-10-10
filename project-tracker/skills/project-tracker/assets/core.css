@@ -426,7 +426,8 @@ details.panel[open] > summary .chev { transform: rotate(90deg); }
 .dr-bar .chat { flex: none; } .dr-bar .chat-m { left: auto; right: 0; }
 
 /* page text from Notion */
-.md { font-size: 14px; line-height: 1.6; color: var(--text); max-width: 68ch; }
+.md { font-size: 14px; line-height: 1.6; color: var(--text); }
+.md > p, .md > ul, .md > ol, .md > blockquote, .md > h3, .md > h4, .md > h5, .md > .co, .md > .kids, .md > details { max-width: 68ch; } /* text keeps a readable measure; tables and columns may use the width */
 .md > * + * { margin-top: 8px; }
 .md p { margin: 0; }
 .md h3 { font-size: 15px; margin: 16px 0 0; font-weight: 600; }
@@ -440,8 +441,12 @@ details.panel[open] > summary .chev { transform: rotate(90deg); }
 .md ul.hist li::before { content: ""; position: absolute; left: 4px; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: var(--border-2); }
 .md code { font-family: var(--mono); font-size: 12.5px; background: var(--sunken); padding: 1px 5px; border-radius: 4px; }
 .md pre { font-family: var(--mono); font-size: 12.5px; background: var(--sunken); padding: 10px 12px; border-radius: 6px; overflow-x: auto; margin: 0; white-space: pre; }
-.md blockquote, .md .co { margin: 0; padding: 8px 12px; border-radius: 6px; background: var(--surface-2); color: var(--text-2); }
-.md .co > * + * { margin-top: 6px; }
+.md blockquote { margin: 0; padding: 1px 0 1px 12px; border-left: 3px solid var(--border-2); }
+.md .co { margin: 0; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); }
+.md .co:not([class*="-bg"]) { background: var(--sunken); }
+.md .co.ic { display: grid; grid-template-columns: auto 1fr; gap: 10px; }
+.md .co-i { font-size: 16px; line-height: 22px; }
+.md .co > * + *, .md .co.ic > div > * + * { margin-top: 6px; }
 .md a { color: var(--accent); }
 .sub { border-bottom: 1px solid var(--border); }
 .md.pad + .sub { border-top: 1px solid var(--border); }
@@ -533,3 +538,30 @@ h1 .ref { vertical-align: 4px; }
 .fchip:hover { border-color: var(--text-mute); color: var(--text); }
 .fchip.busy { opacity: .6; cursor: progress; } .fchip.failed { border-color: var(--critical); color: var(--critical); }
 .fchip.off { cursor: default; } .fchip.off:hover { border-color: var(--border); color: var(--text-2); }
+/* the rest of Notion's blocks and rich text (its enhanced Markdown) */
+.md s { color: var(--text-mute); } .md .u { text-decoration: underline; }
+.md .kids { padding-left: 18px; } .md li > .kids { padding-left: 0; margin-top: 4px; } .md .kids > * + * { margin-top: 6px; }
+.md hr { border: 0; border-top: 1px solid var(--border); margin: 12px 0; }
+.md details.tgl > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 6px; margin-left: -20px; } /* the chevron hangs left so the title lines up with the text */
+.md details.tgl > summary::-webkit-details-marker { display: none; }
+.md details.tgl > summary > .chev { flex: none; align-self: center; transition: transform .15s; }
+.md details.tgl[open] > summary > .chev { transform: rotate(90deg); }
+.md details.tgl > summary > h3, .md details.tgl > summary > h4 { margin: 0; }
+.md details.tgl:has(> summary > h3) { margin-top: 16px; } .md details.tgl:has(> summary > h4) { margin-top: 12px; }
+.md details.tgl > .kids { margin-top: 6px; }
+.md .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 20px; }
+.md .cols > .col > * + *, .md .grp > * + *, .md .ntab > * + * { margin-top: 6px; }
+.md .ntabs > .ntab + .ntab { margin-top: 12px; }
+.md .tbl { overflow-x: auto; max-width: 100%; border: 1px solid var(--border); border-radius: 8px; } /* a table wider than the page scrolls sideways */
+.md .tblw.more-r > .tbl { -webkit-mask-image: linear-gradient(to left, transparent, #000 40px); mask-image: linear-gradient(to left, transparent, #000 40px); } /* the edge with more to scroll to fades: overlay scrollbars hide until touched */
+.md .tblw.more-l > .tbl { -webkit-mask-image: linear-gradient(to right, transparent, #000 40px); mask-image: linear-gradient(to right, transparent, #000 40px); }
+.md .tblw.more-l.more-r > .tbl { -webkit-mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent); }
+.md table { border-collapse: collapse; font-size: 13px; line-height: 1.45; min-width: 100%; }
+.md th, .md td { padding: 6px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); min-width: 72px; }
+.md .tbl .long { min-width: 200px; } /* long text keeps a readable column; the table scrolls instead of squeezing it */
+.md tr > :last-child { border-right: 0; } .md tr:last-child > * { border-bottom: 0; }
+.md th { background: var(--surface-2); font-weight: 600; color: var(--text-2); }
+.md code.math, .md pre.math { font-style: italic; }
+.md .cite { font-size: 11px; vertical-align: super; text-decoration: none; }
+.nc-gray { color: var(--text-mute); } .nc-brown, .nc-orange, .nc-yellow { color: var(--warn); } .nc-green { color: var(--good); } .nc-blue, .nc-purple, .nc-pink { color: var(--accent); } .nc-red { color: var(--critical); }
+.nc-gray-bg, .nc-brown-bg { background: var(--sunken); } .nc-orange-bg, .nc-yellow-bg { background: var(--warn-soft); } .nc-green-bg { background: var(--good-soft); } .nc-blue-bg, .nc-purple-bg, .nc-pink-bg { background: var(--accent-soft); } .nc-red-bg { background: var(--critical-soft); }

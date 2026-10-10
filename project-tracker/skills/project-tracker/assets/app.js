@@ -487,25 +487,43 @@
         function (err) { S.body[url] = { txt: c.txt, err: err, at: Date.now() }; done(); });
     }
   }
-  function inline(host, s) { // **bold**, *italic*, `code`, [text](url), page mentions, dates
-    s = String(s).replace(/\{color="[^"]*"\}/g, "").replace(/<\/?(span|u|br)[^>]*>/g, "");
-    var re = /\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)|<mention-page url="([^"]+)"[^>]*>([^<]*)<\/mention-page>|<mention-page url="([^"]+)"[^>]*\/>|<mention-date start="([^"]+)"[^>]*\/?>(?:<\/mention-date>)?|<mention-[a-z]+[^>]*>([^<]*)<\/mention-[a-z]+>|\*([^*\s][^*]*)\*/g, last = 0, m;
+  // Notion's rich text (its "enhanced Markdown"): **bold**, *italic*, ~~strike~~, `code`, $`math`$, [links](url), [^citations], <br>, <span underline / color>,
+  // mentions of pages (a tracker item opens here), users, dates and the rest. Nested freely: a token's inside is rich text again.
+  var COLORS = /^(gray|brown|orange|yellow|green|blue|purple|pink|red)(_bg)?$/;
+  function colorCls(c) { var m = COLORS.exec(String(c || "")); return m ? "nc-" + m[1] + (m[2] ? "-bg" : "") : ""; }
+  function attr(tag, name) { var m = new RegExp("\\b" + name + '="([^"]*)"').exec(tag); return m ? m[1] : null; }
+  function mentionDate(tag) {
+    var a = dnum(attr(tag, "start")), b = dnum(attr(tag, "end")), t1 = attr(tag, "startTime"), t2 = attr(tag, "endTime");
+    var x = a != null ? fmt(a, true) + (t1 ? " " + t1 : "") : "";
+    return b != null && b !== a ? x + " – " + fmt(b, true) + (t2 ? " " + t2 : "") : x + (t2 && !b ? "–" + t2 : "");
+  }
+  function inline(host, s) {
+    s = String(s == null ? "" : s).replace(/\s*\{(?:color|toggle)="[^"]*"(?:\s+(?:color|toggle)="[^"]*")*\}\s*$/, "");
+    var re = /\*\*([\s\S]+?)\*\*|~~([\s\S]+?)~~|\$`([^`]+)`\$|`([^`]+)`|\[\^([^\]]+)\]|\[([^\]]+)\]\(([^)\s]+)\)|<br\s*\/?>|<span\b([^>]*)>([\s\S]*?)<\/span>|<mention-page\b([^>]*?)(?:\/>|>([^<]*)<\/mention-page>)|<mention-date\b([^>]*?)(?:\/>|><\/mention-date>)|<mention-[a-z-]+\b[^>]*?(?:\/>|>([^<]*)<\/mention-[a-z-]+>)|\*([^*\s][^*]*?)\*/g, last = 0, m;
     while ((m = re.exec(s))) {
       if (m.index > last) host.appendChild(document.createTextNode(unesc(s.slice(last, m.index))));
-      if (m[1] != null) host.appendChild(el("b", "", unesc(m[1])));
-      else if (m[2] != null) host.appendChild(el("code", "", m[2]));
-      else if (m[3] != null) { if (/^https?:/.test(m[4])) host.appendChild(link(m[4], unesc(m[3]))); else host.appendChild(document.createTextNode(unesc(m[3]))); }
-      else if (m[5] != null || m[7] != null) { // a page mention: an item of the tracker opens here; anything else opens in Notion (a client's page links nowhere into Notion)
-        var mu = m[5] != null ? m[5] : m[7], it = mentioned(mu), nm = clean(m[6] || "") || (it ? it.name : "page");
-        host.appendChild(it ? itemLink(it, nm) : SNAP ? document.createTextNode(nm) : link(cleanUrl(mu), nm));
+      var e;
+      if (m[1] != null) { e = el("b"); inline(e, m[1]); }
+      else if (m[2] != null) { e = el("s"); inline(e, m[2]); }
+      else if (m[3] != null) e = el("code", "math", m[3]);
+      else if (m[4] != null) { e = el("code"); m[4].split(/<br\s*\/?>/).forEach(function (part, k) { if (k) e.appendChild(el("br")); e.appendChild(document.createTextNode(part)); }); }
+      else if (m[5] != null) { var cu = /^https?:/.test(m[5]) ? m[5] : /^[\w.-]+\.[a-z]{2,}/i.test(m[5]) ? "https://" + m[5] : ""; e = cu ? link(cu, "[↗]", "cite") : null; }
+      else if (m[6] != null) { if (/^https?:/.test(m[7])) { e = link(m[7], ""); inline(e, m[6]); } else { e = el("span"); inline(e, m[6]); } }
+      else if (m[0].charAt(0) === "<" && /^<br/.test(m[0])) e = el("br");
+      else if (m[8] != null) { e = el("span", [attr(m[8], "underline") === "true" ? "u" : "", colorCls(attr(m[8], "color"))].filter(Boolean).join(" ")); inline(e, m[9]); }
+      else if (m[10] != null) { // a page mention: an item of the tracker opens here; anything else opens in Notion (a client's page links nowhere into Notion)
+        var mu = attr(m[10], "url") || "", it = mentioned(mu), nm = clean(m[11] || "") || (it ? it.name : "page");
+        e = it ? itemLink(it, nm) : SNAP || !/^https?:/.test(mu) ? document.createTextNode(nm) : link(cleanUrl(mu), nm);
       }
-      else if (m[8] != null) host.appendChild(document.createTextNode(fmt(dnum(m[8]), true)));
-      else if (m[9] != null) host.appendChild(document.createTextNode(m[9]));
-      else if (m[10] != null) host.appendChild(el("i", "", unesc(m[10])));
+      else if (m[12] != null) e = document.createTextNode(mentionDate(m[12]));
+      else if (m[13] != null) e = document.createTextNode(clean(m[13]));
+      else if (m[14] != null) { e = el("i"); inline(e, m[14]); }
+      if (e) host.appendChild(e);
       last = re.lastIndex;
     }
     if (last < s.length) host.appendChild(document.createTextNode(unesc(s.slice(last))));
   }
+
   // A file on a page: a chip with its name. Notion keeps a file behind a reference whose download link lives a few minutes, so a click asks for a fresh one
   // and opens it in a new tab; a link from outside opens as it is; a client's page has the name only (its data keeps no source).
   function fileName(src, caption, kind) {
@@ -533,40 +551,99 @@
     });
     return a;
   }
+  // A page's text in Notion's enhanced Markdown, as blocks: nesting is by tabs — a block's children are the lines after it indented one deeper,
+  // an XML block (<callout>, <details>, <table>, <columns>, <tabs>, a synced block, meeting notes) runs to its closing tag at its own depth.
+  // Read from the spec (notion://docs/enhanced-markdown-spec), so every block type has its place, not only those seen so far.
   function renderMd(text, opts) {
-    var root = el("div", "md"), lines = String(text || "").split("\n"), list = null, listTag = null, code = null, box = root;
     opts = opts || {};
-    function endList() { list = null; listTag = null; }
-    for (var i = 0; i < lines.length; i++) {
-      var l = lines[i].replace(/^\t+/, "");
-      if (code) { if (/^```/.test(l)) { code = null; continue; } code.textContent += (code.textContent ? "\n" : "") + lines[i]; continue; }
-      if (/^```/.test(l)) { endList(); code = el("pre"); box.appendChild(code); continue; }
-      var c1 = /^<callout[^>]*>(.*?)(<\/callout>)?$/.exec(l);
-      if (c1) { endList(); var co = el("div", "co"); box.appendChild(co); if (c1[1].trim()) { var cp = el("p"); inline(cp, c1[1]); co.appendChild(cp); } if (!c1[2]) box = co; continue; }
-      if (/^<\/callout>/.test(l) || /^<\/details>/.test(l)) { endList(); box = root; continue; }
-      if (/^<details/.test(l)) { endList(); continue; }
-      var sm = /^<summary>([\s\S]*)<\/summary>/.exec(l); if (sm) { var sh = el("h5"); inline(sh, sm[1]); box.appendChild(sh); continue; }
-      var pg = /^<page url="([^"]+)"[^>]*>([^<]*)<\/page>/.exec(l);
-      if (pg) { endList(); box.appendChild(subPage(cleanUrl(pg[1]), clean(pg[2]) || "Untitled")); continue; }
-      if (/^<database/.test(l)) { endList(); box.appendChild(el("div", "muted", "An embedded database — open the page in Notion to see it.")); continue; }
-      var fb = /^<(pdf|file|image|video|audio)\b([^>]*?)\/?>(?:([\s\S]*?)<\/\1>)?\s*$/.exec(l); // a file block, its caption inside; its src a Notion reference, a link, or none (a client's page)
-      if (fb) { endList(); var fsrc = /\bsrc="([^"]*)"/.exec(fb[2]), fp = el("p", "fline"); fp.appendChild(fileChip(fsrc ? fsrc[1] : "", fb[3], fb[1])); box.appendChild(fp); continue; }
-      if (/^<\/?(tabs|tab|columns|column|empty-block|table|tr|td|thead|tbody|colgroup|col)\b/.test(l) || /^---+$/.test(l)) { endList(); continue; }
-      if (!l.trim()) { endList(); continue; }
-      var h = /^(#{1,4})\s+(.*)$/.exec(l);
-      if (h) { endList(); var hn = el(h[1].length <= 2 ? "h3" : "h4"); inline(hn, h[2]); box.appendChild(hn); continue; }
-      var li = /^([-*+]|\d+\.)\s+(.*)$/.exec(l);
-      if (li) {
-        var tag = /\d/.test(li[1]) ? "ol" : "ul";
-        if (!list || listTag !== tag) { list = el(tag, opts.history && tag === "ul" ? "hist" : ""); listTag = tag; box.appendChild(list); }
-        var td = /^\[([ xX])\]\s*/.exec(li[2]), itm = el("li", td ? "todo" + (td[1] !== " " ? " done" : "") : ""); // a checklist item: its box, ticked or not, read-only
-        if (td) itm.appendChild(el("span", "cb")); inline(itm, td ? li[2].slice(td[0].length) : li[2]); list.appendChild(itm); continue;
-      }
-      if (/^>\s?/.test(l)) { endList(); var q = el("blockquote"); inline(q, l.replace(/^>\s?/, "")); box.appendChild(q); continue; }
-      endList(); var p = el("p"); inline(p, l); box.appendChild(p);
-    }
-    return root;
+    var rows = String(text || "").split("\n").map(function (l) { var d = /^\t*/.exec(l)[0].length; return { d: d, t: l.slice(d), raw: l }; });
+    var root = el("div", "md"); blocks(rows, 0, rows.length, root, opts, true); return root;
   }
+  var XML = /^<(callout|details|table|columns|column|tabs|tab|synced_block|synced_block_reference|meeting-notes|notes|summary|transcript)\b[^>]*>/;
+  function closeOf(rows, i, tag) { // the line that closes the XML block opened at rows[i]: the same tag, closing, at the same depth or the first one after it
+    var depth = 0, open = new RegExp("^<" + tag + "\\b(?![^>]*\\/>)"), close = new RegExp("^<\\/" + tag + ">");
+    for (var k = i; k < rows.length; k++) { var t = rows[k].t; if (k > i && open.test(t) && !close.test(t)) depth++; if (close.test(t) || (k === i && new RegExp("<\\/" + tag + ">\\s*$").test(t))) { if (!depth) return k; depth--; } }
+    return rows.length;
+  }
+  function childEnd(rows, i) { var k = i + 1; while (k < rows.length && (rows[k].d > rows[i].d || !rows[k].t.trim() && k + 1 < rows.length && rows[k + 1].d > rows[i].d)) k++; return k; }
+  function blocks(rows, i, end, host, opts, top) {
+    var list = null, listTag = null;
+    while (i < end) {
+      var r = rows[i], t = r.t, m, next;
+      if (!t.trim() || /^<empty-block\s*\/?>/.test(t) || /^<table_of_contents\b/.test(t) || /^<custom-block\b/.test(t) || /^<unknown\b/.test(t)) { if (!t.trim() || !/^<empty/.test(t)) list = null; i++; continue; }
+      var li = /^([-*+]|\d+\.)\s+(.*)$/.exec(t);
+      if (li && !/^---+\s*$/.test(t)) {
+        var tag = /\d/.test(li[1]) ? "ol" : "ul";
+        if (!list || listTag !== tag) { list = el(tag, opts.history && top && tag === "ul" ? "hist" : ""); listTag = tag; host.appendChild(list); }
+        var td = /^\[([ xX])\]\s*/.exec(li[2]), itm = el("li", td ? "todo" + (td[1] !== " " ? " done" : "") : ""); // a checklist item: its box, ticked or not, read-only
+        if (td) itm.appendChild(el("span", "cb")); var lt = el("span", "lt"); inline(lt, td ? li[2].slice(td[0].length) : li[2]); itm.appendChild(lt);
+        next = childEnd(rows, i); if (next > i + 1) { var kid = el("div", "kids"); blocks(rows, i + 1, next, kid, opts, false); itm.appendChild(kid); }
+        list.appendChild(itm); i = next; continue;
+      }
+      list = null;
+      if (/^```/.test(t)) { // code: literal, to the closing fence
+        var lang = t.slice(3).trim(), k = i + 1, lines = []; while (k < end && !/^```\s*$/.test(rows[k].t)) { lines.push(rows[k].raw.slice(Math.min(r.d, /^\t*/.exec(rows[k].raw)[0].length))); k++; }
+        var pre = el("pre"); pre.textContent = lines.join("\n"); if (lang) pre.dataset.lang = lang; host.appendChild(pre); i = k + 1; continue;
+      }
+      if (/^\$\$\s*$/.test(t)) { var k2 = i + 1, eq = []; while (k2 < end && !/^\$\$\s*$/.test(rows[k2].t)) eq.push(rows[k2++].t); var ep = el("pre", "math"); ep.textContent = eq.join("\n"); host.appendChild(ep); i = k2 + 1; continue; }
+      if ((m = XML.exec(t))) {
+        var tg = m[1], close = closeOf(rows, i, tg), inner = t.slice(m[0].length).replace(new RegExp("<\\/" + tg + ">\\s*$"), "");
+        if (tg === "table") host.appendChild(table(rows, i, close));
+        else if (tg === "details") { var sm = el("span"), k3 = i + 1, sr = k3 < close ? /^<summary>([\s\S]*?)<\/summary>/.exec(rows[k3].t) : null; if (sr) { inline(sm, sr[1]); k3++; } var dt = toggle(sm), db = el("div", "kids"); blocks(rows, k3, close, db, opts, false); dt.appendChild(db); host.appendChild(dt); }
+        else if (tg === "columns") { var cols = el("div", "cols"); blocks(rows, i + 1, close, cols, opts, false); host.appendChild(cols); }
+        else if (tg === "tabs") { var tbs = el("div", "ntabs"); blocks(rows, i + 1, close, tbs, opts, false); host.appendChild(tbs); }
+        else if (tg === "tab") { var tb = el("div", "ntab"), k4 = i + 1; if (k4 < close) { var th = el("h5"); inline(th, rows[k4].t); tb.appendChild(th); k4++; } blocks(rows, k4, close, tb, opts, false); host.appendChild(tb); }
+        else if (tg === "summary" || tg === "transcript") { /* meeting notes: the AI summary and the raw transcript stay in Notion; the user's notes show */ }
+        else { // callout, a column, a synced block, meeting notes or their notes: a box (callout) or just its children
+          var bx = el("div", tg === "callout" ? "co " + colorCls(attr(t, "color")) : tg === "column" ? "col" : "grp"), bin = bx, ic = tg === "callout" ? attr(t, "icon") : null;
+          if (ic && !/[\/:]/.test(ic)) { bx.classList.add("ic"); bx.appendChild(el("span", "co-i", ic)); bin = el("div"); bx.appendChild(bin); } // an emoji icon; a custom image icon stays in Notion
+          if (inner.trim() && tg !== "meeting-notes") { var ip = el("p"); inline(ip, inner); bin.appendChild(ip); }
+          else if (inner.trim()) { var mh = el("h5"); inline(mh, inner); bin.appendChild(mh); }
+          blocks(rows, i + 1, close, bin, opts, false); host.appendChild(bx);
+        }
+        i = close + 1; continue;
+      }
+      if (/^<\/[a-z-_]+>\s*$/.test(t)) { i++; continue; } // a stray closing tag
+      var pg = /^<page url="([^"]+)"[^>]*>([^<]*)<\/page>/.exec(t);
+      if (pg) { host.appendChild(subPage(cleanUrl(pg[1]), clean(pg[2]) || "Untitled")); i++; continue; }
+      if (/^<(database|folder)\b/.test(t)) { host.appendChild(el("div", "muted", /^<folder/.test(t) ? "A folder — open the page in Notion to see it." : "An embedded database — open the page in Notion to see it.")); i++; continue; }
+      var fb = /^<(pdf|file|image|video|audio|embed)\b([^>]*?)\/?>(?:([\s\S]*?)<\/\1>)?\s*$/.exec(t) || (m = /^!\[([^\]]*)\]\(([^)\s]+)\)/.exec(t)) && [t, "image", 'src="' + m[2] + '"', m[1]]; // a file block, its caption inside; its src a Notion reference, a link, or none (a client's page)
+      if (fb) { var fsrc = /\bsrc="([^"]*)"/.exec(fb[2]), fp = el("p", "fline"); fp.appendChild(fileChip(fsrc ? fsrc[1] : "", fb[3], fb[1])); host.appendChild(fp); i++; continue; }
+      if (/^---+\s*$/.test(t)) { host.appendChild(el("hr")); i++; continue; }
+      next = childEnd(rows, i); var blk;
+      var h = /^(#{1,6})\s+(.*)$/.exec(t);
+      if (h) { blk = el(h[1].length <= 2 ? "h3" : "h4"); inline(blk, h[2]); if (/\{[^{}]*\btoggle="true"/.test(t) && next > i + 1) blk = toggle(blk); } // a toggle heading folds its children
+      else if (/^>\s?/.test(t)) { blk = el("blockquote"); inline(blk, t.replace(/^>\s?/, "")); }
+      else { blk = el("p"); inline(blk, t); }
+      var ba = /\{[^{}]*\bcolor="([^"]+)"[^{}]*\}\s*$/.exec(t), bc = ba ? colorCls(ba[1]) : ""; if (bc) blk.classList.add(bc);
+      host.appendChild(blk);
+      if (next > i + 1) { var kd = el("div", "kids"); blocks(rows, i + 1, next, kd, opts, false); (blk.tagName === "DETAILS" ? blk : host).appendChild(kd); }
+      i = next;
+    }
+  }
+  function toggle(head) { var d = el("details", "tgl"), sm = el("summary"); sm.insertAdjacentHTML("beforeend", CHEV); sm.appendChild(head); d.appendChild(sm); return d; } // Notion's toggle: closed, our chevron for a marker
+  function table(rows, i, close) { // <table header-row header-column> of <tr>s of <td>s (rich text each), scrolled sideways when wider than the page
+    var tag = rows[i].t, hr = attr(tag, "header-row") === "true", hc = attr(tag, "header-column") === "true";
+    var wrap = el("div", "tbl"), tb = el("table"), cur = null, ri = -1, colColors = [];
+    if (attr(tag, "fit-page-width") === "true") tb.classList.add("fit");
+    for (var k = i + 1; k < close; k++) {
+      var t = rows[k].t, m;
+      if (/^<col\b/.test(t)) { colColors.push(colorCls(attr(t, "color"))); continue; }
+      if (/^<tr\b/.test(t)) { cur = el("tr", colorCls(attr(t, "color"))); ri++; tb.appendChild(cur); var one = /^<tr\b[^>]*>([\s\S]*)<\/tr>\s*$/.exec(t); if (one) { cells(one[1]); cur = null; } continue; }
+      if (/^<\/tr>/.test(t)) { cur = null; continue; }
+      if (cur && /^<td\b/.test(t)) cells(t);
+    }
+    function cells(src) {
+      var re = /<td\b([^>]*)>([\s\S]*?)<\/td>/g, m2;
+      while ((m2 = re.exec(src))) { var ci = cur.children.length, c = el(hr && ri === 0 || hc && ci === 0 ? "th" : "td", colorCls(attr(m2[1], "color")) || colColors[ci] || ""); inline(c, m2[2]); if (c.textContent.length > 40) c.classList.add("long"); cur.appendChild(c); } // a cell's column is its place in the row: cells come one per line or all on one
+    }
+    wrap.appendChild(tb);
+    var box = el("div", "tblw"); box.appendChild(wrap); // marks the edges with more to scroll to, for the fade
+    function edge() { box.classList.toggle("more-l", wrap.scrollLeft > 2); box.classList.toggle("more-r", wrap.scrollLeft + wrap.clientWidth < wrap.scrollWidth - 2); }
+    wrap.addEventListener("scroll", edge, { passive: true }); if (window.ResizeObserver) new ResizeObserver(edge).observe(wrap);
+    return box;
+  }
+
   // ---------- Claude chats: one per project, milestone, task or problem, its link kept in the row's `Chat` ----------
   // Desktop: the Claude app's own link (artifacts let claude:// out there). Phone: the web, since iOS keeps claude.ai links in the browser.
   var MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "") || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent || ""));
