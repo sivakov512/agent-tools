@@ -485,7 +485,8 @@ h1 .ref { vertical-align: 4px; }
 .needs .chev { margin-left: auto; transition: transform .15s; }
 .needs.open .chev { transform: rotate(90deg); }
 #moveList > .needs:first-child { border-top: 0; }
-@media (max-width: 600px) { .dr-bar .long { display: none; } .dr-bar .ttl { visibility: hidden; } } /* a phone's drawer bar: "Notion ↗" on one line; the name is in the head below */
+.dr-bar .ext { white-space: nowrap; }
+@media (max-width: 600px) { .dr-bar { gap: 4px; padding-left: 16px; } .dr-bar .long { display: none; } .dr-bar .ttl { visibility: hidden; } } /* a phone's drawer bar: everything on one line, "Notion ↗" whole; the name is in the head below */
 .tl-b.open, .tl-chip.open, .tl-seg.open { -webkit-mask-image: linear-gradient(to right, #000 70%, transparent); mask-image: linear-gradient(to right, #000 70%, transparent); } /* an edge that is no date fades: a start with no agreed end, drawn for a set span, fades where the end would be */
 .tl-b.box.ph { -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); } /* and a milestone with no dates at all, placed for a month from today, fades at both */
 .x-lede { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--text); max-width: 68ch; } /* a problem's summary, first in its details */
@@ -517,3 +518,9 @@ h1 .ref { vertical-align: 4px; }
 .tl-cout.done, .tl-cout.doneLate { color: var(--text-mute); background: color-mix(in srgb, var(--good) 7%, transparent); }
 .tl-cout.paused { color: var(--text-mute); }
 .tl-chip.lit, .tl-cout.lit { filter: brightness(1.15); }
+/* Refresh: in the header ↻ and the word, in the project page's bar ↻ alone; the arrow turns while the page reads again */
+.rbtn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 28px; font-family: inherit; }
+.rbtn .rico { width: 13px; height: 13px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes pt-spin { to { transform: rotate(360deg); } }
+.rbtn.spin .rico, .icon-btn.spin .ico { animation: pt-spin .8s linear infinite; } .icon-btn.spin { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .rbtn.spin .rico, .icon-btn.spin .ico { animation: none; } }

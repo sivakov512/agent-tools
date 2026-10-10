@@ -793,13 +793,22 @@
   var resizeT = null;
   window.addEventListener("resize", function () { clearTimeout(resizeT); resizeT = setTimeout(function () { if (S.shown) renderGantt(false); }, 150); });
   document.addEventListener("visibilitychange", function () { if (!document.hidden && MCP && Date.now() - S.lastUpdate > POLL) loadAll(); }); // back after a while: fresh data at once
-  if (!SNAP) $("refreshBtn").addEventListener("click", function () {
-    if (!MCP) return;
+  function refreshNow() { // everything read again from Notion; resolves when the load is done
+    if (!MCP) return Promise.resolve();
     $("liveText").textContent = "Refreshing…";
     var p = MCP.invalidate ? MCP.invalidate(NOTION) : Promise.resolve();
     S.body = {};
-    p.catch(function () {}).then(function () { S.cfg = null; loadAll(); });
-  });
+    return p.catch(function () {}).then(function () {
+      S.cfg = null; loadAll();
+      return new Promise(function (ok) { var n = 0, t = setInterval(function () { if (!loading || ++n > 100) { clearInterval(t); ok(); } }, 150); });
+    });
+  }
+  function refreshBy(b) { // the header's Refresh and the project page's: the same button, its arrow turning until the load ends; the open project page reads again in place
+    if (b.classList.contains("spin")) return;
+    var bs = [$("refreshBtn"), $("drRefresh")]; bs.forEach(function (x) { x.classList.add("spin"); x.setAttribute("aria-busy", "true"); });
+    refreshNow().then(function () { bs.forEach(function (x) { x.classList.remove("spin"); x.removeAttribute("aria-busy"); }); });
+  }
+  if (!SNAP) ["refreshBtn", "drRefresh"].forEach(function (id) { $(id).addEventListener("click", function () { refreshBy(this); }); });
   setInterval(function () { if (MCP && !document.hidden) loadAll(); }, POLL);
   setInterval(function () { if (!document.hidden && S.shown) paint(); }, 3600000);
   function noLive(msg) {
