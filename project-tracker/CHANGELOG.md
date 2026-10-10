@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.8.0...project-tracker-v1.9.0) (2026-10-10)
+
+
+### Features
+
+* **project-tracker:** refresh button in the project drawer ([7a99722](https://github.com/sivakov512/agent-tools/commit/7a99722b8fe707d9933ce07bed7f3fae052a2693))
+* **project-tracker:** record placement rules, clickable files ([88967db](https://github.com/sivakov512/agent-tools/commit/88967dbc8ead4714a999be63e34fd0606f722b2e))
+
 ## [1.8.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.4...project-tracker-v1.8.0) (2026-10-09)
 
 
