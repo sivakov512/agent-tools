@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.15.1...upwork-pulse-v0.16.0) (2026-10-10)
+
+
+### Features
+
+* **upwork-pulse:** refresh button in the drawer ([3ccb058](https://github.com/sivakov512/agent-tools/commit/3ccb058d2c27ca054abed12461d03b931a5364c9))
+
 ## [0.15.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.15.0...upwork-pulse-v0.15.1) (2026-10-09)
 
 
