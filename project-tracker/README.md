@@ -1,6 +1,6 @@
 # project-tracker
 
-Keeps client project plans in Notion up to date from plain conversation. You tell the agent what happened — "readings are coming through", "the vendor ate a week", "the runner is up" — and it updates the plan, records why, tells you what it changed, and keeps a one-screen status page per project that you can also show the client.
+Keeps client project plans in Notion up to date from plain conversation. You tell the agent what happened — "readings are coming through", "the vendor ate a week", "the runner is up" — and it updates the plan, records why, puts notes and files where they belong, and tells you what it changed. A live dashboard shows everything at a glance; a client dashboard shows a client their projects.
 
 The plugin and the skill inside it are both called `project-tracker`.
 
@@ -31,7 +31,9 @@ Late, days  7                                   ← live, computed by Notion
    Open: 2 risks
    On hold: Firmware on the dev board — set aside for the demo prototype, since Oct 6
 
-[ Plan ] [ Tasks ] [ Schedule ] [ Problems ] [ Notes ]
+[ Plan ] [ Tasks ] [ Schedule ] [ Problems ]
+
+Description, then ## Notes · ## Private notes · ## History
 ```
 
 The callout holds only what changes when something happens (what is in progress, what blocks you, whom you wait on, what is on hold). Lateness depends on today's date, so it is never written as text — Notion computes it live and shows it as `Late, days` at the top of the page and in every table.
@@ -42,9 +44,8 @@ The callout holds only what changes when something happens (what is in progress,
 | Tasks | a table of tasks grouped by milestone (undated ones too), then their Gantt as a second view | the steps inside each stage |
 | Schedule | every milestone with its agreed dates, the day it was finished and days late | what is late and by how much |
 | Problems | the project's open blockers, risks and questions | what is in the way |
-| Notes | notes, call summaries, client emails, docs, files; the original plan the project was made from | anything that is not the plan |
 
-Click a milestone or a task to see **why**: its page body is a dated history — what was done, when dates were moved with the client and why, what was paused. A milestone page also lists its tasks.
+Every page — the project's below its tabs, and each milestone's, task's and problem's — has the same parts: a **description** (what it is, a checklist), **Notes** (dated material: call summaries, emails, specs, files, expenses), **Private notes** (what the client must not see: supplier prices, your margins, others' contacts, anything you mark "for myself") and **History** (what happened and why: done, dates moved with the client, paused). The agent decides where a record belongs — the item the conversation is about, or the task, milestone or project it really concerns — and keeps only what will be needed later, not the whole conversation.
 
 Pages, databases and tabs have no icons.
 
@@ -57,13 +58,13 @@ Pages, databases and tabs have no icons.
   - `Order` — its place in the plan (tasks: within their milestone), so the sequence holds where there are no dates.
   - `Late, days` — live: finished − due for a done milestone; today − due for an open one past its date; nothing while it (or its project) is paused.
 - **Tasks** — steps of days or weeks, with an optional milestone, status Planned / In progress / Waiting / Done / Dropped. `Dates` follow the same rule as milestones: every date in the tracker is one the client was given, and a late task counts in the project's lateness; steps you plan only for yourself simply have no dates. A handover the plan expects — an RFQ the labs must answer, a sign-off, files from the client — is a task in `Waiting`, with whom it waits on, named by its result ("Lab quotes received").
-- **Problems** — only what was not in the plan: `Blocker` (stuck on something nobody planned for), `Risk`, `Question`, with status Open / Waiting / Resolved / Dropped, who it is waiting on (a person, a vendor or the client by name; empty = on you) and an optional link to the milestone and task it affects.
+- **Problems** — only what was not in the plan: `Blocker` (stuck on something nobody planned for), `Risk`, `Question`, with status Open / Waiting / Resolved / Dropped, a one-line `Summary`, who it is waiting on (a person, a vendor or the client by name; empty = on you) and an optional link to the milestone and task it affects.
 
-All four databases have `Chat` — the link of the Claude chat about that row, filled in by the chat itself (see [Dashboard](#dashboard)).
+All four databases have `Ref` — an ID Notion numbers itself (`PR-2`, `MS-6`, `TK-34`, `PB-5`), so you can say "TK-34 is done" — and `Chat`, the link of the Claude chat about that row, filled in by the chat itself (see [Dashboard](#dashboard)). Projects also have `Client dashboard`, the link of the client dashboard that shows them.
 
 `Removed` and `Dropped` are for things you threw away: they disappear from every view, overview and report instead of showing up as finished work.
 
-The root page's **Config** toggle lists the four database IDs. The skill finds the root page by this toggle and reads it on every run, so nothing is hardcoded: rename or move the page as you like; if you move or recreate the databases, edit the IDs. Keep the toggle's title line — that is what the skill searches for. Setup also adds a `dashboard` line with the dashboard's link, `dashboard_version` with the version it was published from, and `schema`, the version of the structure. When a newer plugin changes the structure, the first conversation that finds an older tracker brings it up to date by itself (for schema 2: adds `Order` and numbers the existing rows), says so in one line, then answers you.
+The root page's **Config** toggle lists the four database IDs. The skill finds the root page by this toggle and reads it on every run, so nothing is hardcoded: rename or move the page as you like; if you move or recreate the databases, edit the IDs. Keep the toggle's title line — that is what the skill searches for. Setup also adds a `dashboard` line with the dashboard's link, `dashboard_version` with the version it was published from, `ref_prefixes` (the ID prefixes, `PR, MS, TK, PB` unless taken elsewhere in your workspace) and `schema`, the version of the structure. When a newer plugin changes the structure, the first conversation that finds an older tracker brings it up to date by itself, whatever you asked, says so in one line, then answers you.
 
 **Coming from 0.x** (three databases, `Phase` on milestones, Issues with a `Task` type)? The skill recognises the old tracker and offers the upgrade: it sets up the new structure next to the old one, copies the live data by fixed rules (phases become milestones and their milestones tasks, `Task` issues become tasks, everything else problems, histories kept), keeps the same dashboard link, and retires the old page without deleting it — it stays as your backup.
 
@@ -72,14 +73,16 @@ The root page's **Config** toggle lists the four database IDs. The skill finds t
 A live, read-only page over the tracker for you alone, published by setup as a claude.ai artifact that reads Notion with your Notion connector:
 
 - **pills** in the header — blocked, overdue, due soon — always there, coloured only when not zero;
-- **timeline** — every project on one axis with today, 1 month / 3 months / 6 months / year / all, drag to move in time; a bar under the cursor widens to its full name; a milestone's tasks are thin marks under its bar, ▸ next to a project opens them up as bars;
+- **timeline** — every project on one axis with today, 1 month / 3 months / 6 months / year / all, drag to move in time; a milestone's tasks are thin marks under its card, ▸ next to a project opens them up as named chips; a milestone without dates is drawn after the one before it in the plan;
 - **projects** — a card per project: state, the milestone in focus with its current task and timing, a blocker if any, a strip of milestones;
-- **your move** (blocked, overdue, due soon, on you, needs dates), **waiting on others** — waiting tasks and problems grouped by who, oldest first — and **recently completed**;
-- a click on anything opens the project as a page sliding in from the right: status note, where it stands, open items, the plan with tasks under their milestones and each one's history, notes; ↑ / ↓ steps between projects.
+- **your move** (blocked, overdue, due soon, doing, to decide), **waiting on others** (by who, oldest first), **risks** and **recently completed** — every line says what it is (Task, Milestone, Blocker, Question, Risk) and where it sits (`Project › Milestone › Task`); each panel folds;
+- a click on anything opens the project as a page sliding in from the right: where it stands, open items, the plan with each item's description, notes (files open from a chip) and history; ↻ reads it again in place, ↑ / ↓ steps between projects.
 
 Lateness is computed in the page by the same rule as the Notion formulas, for milestones and tasks alike. Nothing on the page writes to Notion: changes go through the chat, where the rules live. The first time it asks to allow the Notion connector for the page. It looks like the upwork-pulse dashboard on purpose. What it is for and how it is republished: [references/dashboard.md](skills/project-tracker/references/dashboard.md). If the tracker was set up before the dashboard existed (or you removed its link from the config), the skill offers to publish it, once; or ask "publish the dashboard".
 
 **Claude chats.** A project and each of its milestones, tasks and problems has a **Claude chat** button. The first click starts a chat that loads that row and writes its own link into the row's `Chat`; later clicks reopen the same chat, and ▾ → New chat replaces it when the old one is gone. In the chat you talk as usual — it is the row's thread. A project's chats open inside its claude.ai project (`Claude project`, asked when the project is created; "open its chats in <project link>" changes it) on the phone and the web; the desktop app opens them outside projects. Details: [references/chats.md](skills/project-tracker/references/chats.md).
+
+**Client dashboards.** "Make a client dashboard for the meter" publishes a page for the client with the same timeline, cards and pages — their open items grouped by whose side they are on, never Private notes, the callout or internal links. It refreshes itself after every change to a project it covers. Details: [references/client-dashboards.md](skills/project-tracker/references/client-dashboards.md).
 
 **Updates.** The page carries a version on its first line and the config remembers which version you published. When the skill ships a newer one, the next time you talk to the skill it says what is new and asks whether to update; yes republishes to the same link, no means that version is not offered again. With no dashboard in the config at all, it offers to publish one the same way.
 
@@ -135,7 +138,8 @@ Talk normally. After every change the agent replies with one line per change, **
 | "It's the client who has to answer, not Marko" | updates the task or problem |
 | "No, that was yesterday" / "it wasn't fixed after all" | corrects what was recorded |
 | "Undo that" | reverts the agent's last change |
-| "Save the notes from today's call: …" / "attach this datasheet" | goes into the project's Notes tab (correspondence about one task goes into that task's history) |
+| "Save the notes from today's call: …" / "attach this datasheet" / "for myself: …" | a dated note (a sub-page for long text, a file as uploaded) on the page it belongs to — the item the talk is about, or the milestone or project it concerns, said in the reply; private when it is for you only |
+| "TK-34 is done" / "link PB-5 to TK-34" | IDs name rows exactly; the reply leads every change with the row's ID |
 | "The meter is on hold" / "Brightbrush is finished" | sets the project's status |
 | "The client added a second enclosure revision" / "break the demo into these steps: …" / "drop the accuracy validation" / "finished early, pull the rest in" | proposes the plan change, asks, applies it with history lines |
 | "Hardware comes before firmware — swap them" | renumbers the plan without asking; if the dates now contradict the new order, says so and offers to move them |
@@ -179,7 +183,7 @@ project-tracker/
 ├── evals/                        claude plugin eval suite (mocked Notion)
 └── skills/project-tracker/
     ├── SKILL.md                  loaded on every use: the model, data rules, Notion calls, everyday scenarios
-    ├── assets/dashboard.html     the dashboard page; setup fills in the root page ID and publishes it
+    ├── assets/                   the dashboards: dashboard.html (yours) and client.html, sharing app.js, core.js, core.css
     └── references/               loaded only when the scenario needs them
         ├── setup.md              create or finish the Notion structure; bring an older tracker up to date
         ├── upgrade.md            move a 0.x tracker to this version
@@ -187,10 +191,11 @@ project-tracker/
         ├── contracts.md          platform contracts (Upwork): mapping and resync
         ├── plan-changes.md       adding / dropping milestones and tasks, pulling in, removing, undoing an earlier change
         ├── state.md              pausing and resuming; a project's status and fields
-        ├── notes.md              long notes and files in a project's Notes tab
+        ├── notes.md              long notes and files on a page
         ├── report.md             my week, the overview across projects, the weekly report
         ├── chats.md              Claude chats opened from the dashboard; a project's claude.ai project
-        └── dashboard.md          what the dashboard is for; publishing and updating it
+        ├── dashboard.md          what the dashboard is for; publishing and updating it
+        └── client-dashboards.md  dashboards for clients: what they show, keeping them current
 ```
 
 To change behaviour, edit `SKILL.md` or the reference for that scenario, push; release-please bumps `version` in `plugin.json`.
