@@ -524,3 +524,12 @@ h1 .ref { vertical-align: 4px; }
 @keyframes pt-spin { to { transform: rotate(360deg); } }
 .rbtn.spin .rico, .icon-btn.spin .ico { animation: pt-spin .8s linear infinite; } .icon-btn.spin { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .rbtn.spin .rico, .icon-btn.spin .ico { animation: none; } }
+/* a file on a page: a chip with its name, opened in a new tab; on a client's page the name only */
+.md .fline { margin: 6px 0; }
+.fchip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 5px 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--text-2); font-size: 13px; text-decoration: none; cursor: pointer; }
+.fchip .fn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fchip .fico { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
+.fchip .arr { color: var(--text-mute); }
+.fchip:hover { border-color: var(--text-mute); color: var(--text); }
+.fchip.busy { opacity: .6; cursor: progress; } .fchip.failed { border-color: var(--critical); color: var(--critical); }
+.fchip.off { cursor: default; } .fchip.off:hover { border-color: var(--border); color: var(--text-2); }
