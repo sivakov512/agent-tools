@@ -826,7 +826,7 @@
     if (!MCP) return Promise.resolve();
     $("liveText").textContent = "Refreshing…";
     var p = MCP.invalidate ? MCP.invalidate(NOTION) : Promise.resolve();
-    S.body = {};
+    Object.keys(S.body).forEach(function (u) { if (S.body[u]) S.body[u].at = 0; }); // read again, but shown as they were meanwhile: the page keeps its height, so the scroll stays where the user was
     return p.catch(function () {}).then(function () {
       S.cfg = null; loadAll();
       return new Promise(function (ok) { var n = 0, t = setInterval(function () { if (!loading || ++n > 100) { clearInterval(t); ok(); } }, 150); });
