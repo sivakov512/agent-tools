@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.10.0...project-tracker-v1.11.0) (2026-10-10)
+
+
+### Features
+
+* **project-tracker:** foldable groups, Up next, smooth folding ([a4e74c5](https://github.com/sivakov512/agent-tools/commit/a4e74c5e358cb8144fe1fd0c1fdfe853a08cce03))
+
 ## [1.10.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.9.0...project-tracker-v1.10.0) (2026-10-10)
 
 
