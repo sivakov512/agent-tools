@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.10.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.9.0...project-tracker-v1.10.0) (2026-10-10)
+
+
+### Features
+
+* **project-tracker:** draw Notion markup and tables in the dashboard ([18b0f00](https://github.com/sivakov512/agent-tools/commit/18b0f00c8b9f98f084b8f80044fa2f1385818502))
+
+
+### Bug Fixes
+
+* **project-tracker:** keep the scroll in place on refresh ([4c15309](https://github.com/sivakov512/agent-tools/commit/4c15309726ebe161041b390833275c58fc949544))
+* **project-tracker:** no task history line when relinking a problem ([044bfdf](https://github.com/sivakov512/agent-tools/commit/044bfdf3ebf437662fd03e758fba435690e52ee7))
+
 ## [1.9.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.8.0...project-tracker-v1.9.0) (2026-10-10)
 
 
