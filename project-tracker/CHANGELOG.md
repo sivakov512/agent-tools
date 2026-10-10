@@ -5,108 +5,108 @@
 
 ### Features
 
-* **project-tracker:** refresh button in the project drawer ([7a99722](https://github.com/sivakov512/agent-tools/commit/7a99722b8fe707d9933ce07bed7f3fae052a2693))
-* **project-tracker:** record placement rules, clickable files ([88967db](https://github.com/sivakov512/agent-tools/commit/88967dbc8ead4714a999be63e34fd0606f722b2e))
+* **project-tracker:** refresh button in the project drawer ([bd6e9be](https://github.com/sivakov512/agent-tools/commit/bd6e9beffd5373d073b1cdf883ce8cc939666e60))
+* **project-tracker:** record placement rules, clickable files ([ba1399c](https://github.com/sivakov512/agent-tools/commit/ba1399c8c753f0dde498d818a205522122914003))
 
 ## [1.8.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.4...project-tracker-v1.8.0) (2026-10-09)
 
 
 ### Features
 
-* **project-tracker:** place undated milestones in plan order ([2964133](https://github.com/sivakov512/agent-tools/commit/296413346e408d31eef3f081e9f61e188fe220b5))
-* **project-tracker:** rework overview lists, add Risks panel ([110fe8f](https://github.com/sivakov512/agent-tools/commit/110fe8f92d64ed74b65f6e9ee1f2c680d0ba86f7))
+* **project-tracker:** place undated milestones in plan order ([1760ab9](https://github.com/sivakov512/agent-tools/commit/1760ab9c4fce2e42d35a18620e5a335fa19613a5))
+* **project-tracker:** rework overview lists, add Risks panel ([6fdf188](https://github.com/sivakov512/agent-tools/commit/6fdf18881f6bd0084f8b524c394aca9ffe8e48b6))
 
 ## [1.7.4](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.3...project-tracker-v1.7.4) (2026-10-09)
 
 
 ### Bug Fixes
 
-* **project-tracker:** dashboard chats name themselves ([bb48991](https://github.com/sivakov512/agent-tools/commit/bb48991473c4157e84d6fc0d82c72a6316c39682))
+* **project-tracker:** dashboard chats name themselves ([bcfa5d3](https://github.com/sivakov512/agent-tools/commit/bcfa5d30a0145ade7d4e82f90ef206648cc53f87))
 
 ## [1.7.3](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.2...project-tracker-v1.7.3) (2026-10-08)
 
 
 ### Bug Fixes
 
-* **project-tracker:** never truncate names on the timeline ([6b3dcaf](https://github.com/sivakov512/agent-tools/commit/6b3dcafe517bfda56707468882060b5d010283f3))
+* **project-tracker:** never truncate names on the timeline ([b5cffa9](https://github.com/sivakov512/agent-tools/commit/b5cffa9b30b3c394cd17eee8c18bcbe0f1942b02))
 
 ## [1.7.2](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.1...project-tracker-v1.7.2) (2026-10-08)
 
 
 ### Bug Fixes
 
-* **project-tracker:** fall back when a Ref prefix is taken ([44a5975](https://github.com/sivakov512/agent-tools/commit/44a59751180c108d3896a24751b61930dee99335))
+* **project-tracker:** fall back when a Ref prefix is taken ([0d1f7a5](https://github.com/sivakov512/agent-tools/commit/0d1f7a57db6afe6ce73f738c112f03e79fb938b5))
 
 ## [1.7.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.7.0...project-tracker-v1.7.1) (2026-10-08)
 
 
 ### Bug Fixes
 
-* **project-tracker:** schema update first, open-ended dates ([98ffeca](https://github.com/sivakov512/agent-tools/commit/98ffecac3298f36ea56d58646d9d2599c5b55899))
+* **project-tracker:** schema update first, open-ended dates ([7a37d79](https://github.com/sivakov512/agent-tools/commit/7a37d79641cf0e725f01a30ecba42e7cc2153485))
 
 ## [1.7.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.6.1...project-tracker-v1.7.0) (2026-10-08)
 
 
 ### Features
 
-* **project-tracker:** row IDs and item links ([0f35579](https://github.com/sivakov512/agent-tools/commit/0f35579ae0860d5a3d0ea176466cbbf0a1e21cdb))
-* **project-tracker:** dashboard design review fixes ([2962183](https://github.com/sivakov512/agent-tools/commit/2962183551dc647a9d09a3b404873cc1de98999e))
+* **project-tracker:** row IDs and item links ([9e585e2](https://github.com/sivakov512/agent-tools/commit/9e585e2f91a39c432ebef38d2624c999a85033ac))
+* **project-tracker:** dashboard design review fixes ([571ca58](https://github.com/sivakov512/agent-tools/commit/571ca58469081818bc2386b875a6857b9feb9f40))
 
 ## [1.6.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.6.0...project-tracker-v1.6.1) (2026-10-08)
 
 
 ### Bug Fixes
 
-* **project-tracker:** dashboard header layout on phones ([459efc8](https://github.com/sivakov512/agent-tools/commit/459efc827c6415002fcd96dad4c8f4bea6df8fc6))
+* **project-tracker:** dashboard header layout on phones ([7850c53](https://github.com/sivakov512/agent-tools/commit/7850c53cf5d26588fe41876f61c3319674c87338))
 
 ## [1.6.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.5.0...project-tracker-v1.6.0) (2026-10-08)
 
 
 ### Features
 
-* **project-tracker:** segmented origin filter ([2927bae](https://github.com/sivakov512/agent-tools/commit/2927bae8a679787aa8f644cc74aa161468f68b71))
+* **project-tracker:** segmented origin filter ([01a705e](https://github.com/sivakov512/agent-tools/commit/01a705e03533a7b2d84a5ab5acbb85209cdfa7ea))
 
 ## [1.5.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.4.0...project-tracker-v1.5.0) (2026-10-08)
 
 
 ### Features
 
-* **project-tracker:** page parts and private notes ([ecc387a](https://github.com/sivakov512/agent-tools/commit/ecc387af11d4e8b53e2ee39bb14a86ac30418422))
-* **project-tracker:** shade weekends on the 1-month timeline ([0ccdfa1](https://github.com/sivakov512/agent-tools/commit/0ccdfa18e6d8501faa88709099065730b6306bb3))
+* **project-tracker:** page parts and private notes ([d30ba3f](https://github.com/sivakov512/agent-tools/commit/d30ba3fb82e6c99818b8f0a10fbb4bde4ec72c81))
+* **project-tracker:** shade weekends on the 1-month timeline ([1a07c16](https://github.com/sivakov512/agent-tools/commit/1a07c165fdbbf3d53c605eed1f8c896d6dfc1674))
 
 
 ### Bug Fixes
 
-* **project-tracker:** keep source wording as descriptions ([970b7d4](https://github.com/sivakov512/agent-tools/commit/970b7d49eba24e5c4b0165d2819b21ad7f2a1017))
+* **project-tracker:** keep source wording as descriptions ([240239f](https://github.com/sivakov512/agent-tools/commit/240239f528861034c4e9b82e2581e647134fa7eb))
 
 ## [1.4.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.3.0...project-tracker-v1.4.0) (2026-10-08)
 
 
 ### Features
 
-* **project-tracker:** link existing material in notes ([3028042](https://github.com/sivakov512/agent-tools/commit/3028042c20118cec7baba459233ead879be7c2a8))
+* **project-tracker:** link existing material in notes ([79929bf](https://github.com/sivakov512/agent-tools/commit/79929bfe524f904aaf73c093e10cba96dbc76a3c))
 
 ## [1.3.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.2.0...project-tracker-v1.3.0) (2026-10-07)
 
 
 ### Features
 
-* **project-tracker:** naming and history rules ([d4d73ab](https://github.com/sivakov512/agent-tools/commit/d4d73ab1b47828e7e96b0a0c9149153c8d62284f))
+* **project-tracker:** naming and history rules ([da0a0c0](https://github.com/sivakov512/agent-tools/commit/da0a0c06a81bebbde6769db01eecbe765f7e7277))
 
 ## [1.2.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.1.0...project-tracker-v1.2.0) (2026-10-07)
 
 
 ### Features
 
-* **project-tracker:** client dashboards ([56ffd60](https://github.com/sivakov512/agent-tools/commit/56ffd60597e5d007a397dda14e96d4812c90b6a4))
+* **project-tracker:** client dashboards ([15a7329](https://github.com/sivakov512/agent-tools/commit/15a73292fbb6797ff3a948029f2cbda20ab1c038))
 
 ## [1.1.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.0.0...project-tracker-v1.1.0) (2026-10-07)
 
 
 ### Features
 
-* **project-tracker:** undated tasks and hover tips on timeline ([de29d00](https://github.com/sivakov512/agent-tools/commit/de29d00aac16e14c51b0ac0263792b2d7ed82fda))
-* **project-tracker:** plan order, schema updates, slimmer SKILL.md ([07ac275](https://github.com/sivakov512/agent-tools/commit/07ac275a809563032bc3bbc532d6ed76a65199c5))
+* **project-tracker:** undated tasks and hover tips on timeline ([f1d1314](https://github.com/sivakov512/agent-tools/commit/f1d1314c93c3418dd2db594f2445302ede6f2ae5))
+* **project-tracker:** plan order, schema updates, slimmer SKILL.md ([0e5c5bd](https://github.com/sivakov512/agent-tools/commit/0e5c5bdeb8d226fd623a1f1c2e42577a01aae165))
 
 ## [1.0.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v0.3.3...project-tracker-v1.0.0) (2026-10-07)
 
@@ -117,24 +117,24 @@
 
 ### Features
 
-* **project-tracker:** Claude chat for every row ([622cb97](https://github.com/sivakov512/agent-tools/commit/622cb97864167aa191af4eb2aece1b4ef30594ea))
-* **project-tracker:** dashboard project summary and widen ([d0f09a6](https://github.com/sivakov512/agent-tools/commit/d0f09a633bd0a66b42626804fa0b57663fecea1c))
-* **project-tracker:** dashboard tasks, cards and zoom ([38fd904](https://github.com/sivakov512/agent-tools/commit/38fd90436596006929b3efb0b202c6f528212f58))
-* **project-tracker:** origin filter as a dropdown ([63348f2](https://github.com/sivakov512/agent-tools/commit/63348f2daa2a65f9e02c4b7bc722338b761b3116))
-* **project-tracker:** tasks under milestones, problems ([80ab03f](https://github.com/sivakov512/agent-tools/commit/80ab03f71e2502e118cb9bdc036905d5278c79f2))
-* **project-tracker:** upgrade a 0.x tracker to 1.0 ([b703db8](https://github.com/sivakov512/agent-tools/commit/b703db8a28b40c1850839ffe46428a4cae58328f))
+* **project-tracker:** Claude chat for every row ([e48a843](https://github.com/sivakov512/agent-tools/commit/e48a843c6dc130b89087951e5676a40144ac8c43))
+* **project-tracker:** dashboard project summary and widen ([486fb35](https://github.com/sivakov512/agent-tools/commit/486fb35318b5fb659b132202d661141582320731))
+* **project-tracker:** dashboard tasks, cards and zoom ([23c07fd](https://github.com/sivakov512/agent-tools/commit/23c07fd909b001942bac5de4e4d3bc6412067ec1))
+* **project-tracker:** origin filter as a dropdown ([a1023b2](https://github.com/sivakov512/agent-tools/commit/a1023b2f44138b12321766d4d0430ebe06bad805))
+* **project-tracker:** tasks under milestones, problems ([01d85bc](https://github.com/sivakov512/agent-tools/commit/01d85bc76acb5c98f93595390c751685b028e097))
+* **project-tracker:** upgrade a 0.x tracker to 1.0 ([a594682](https://github.com/sivakov512/agent-tools/commit/a5946821d7a4efcec605807376fd1c90e389edcd))
 
 
 ### Bug Fixes
 
-* **project-tracker:** resolve rule conflicts ([8b8e7a7](https://github.com/sivakov512/agent-tools/commit/8b8e7a7e1f6d6ecbc8678f52d340ccef7e589ed5))
+* **project-tracker:** resolve rule conflicts ([bcdff28](https://github.com/sivakov512/agent-tools/commit/bcdff28f9650a19786928ab0d7e7aa7645683432))
 
 ## [0.3.3](https://github.com/sivakov512/agent-tools/compare/project-tracker-v0.3.2...project-tracker-v0.3.3) (2026-10-04)
 
 
 ### Bug Fixes
 
-* **project-tracker:** the dashboard version follows the plugin release, ([a27c6a7](https://github.com/sivakov512/agent-tools/commit/a27c6a7726c777aaf8ad532cb23391c8281a0fc4))
+* **project-tracker:** dashboard version follows releases ([a55c893](https://github.com/sivakov512/agent-tools/commit/a55c8938c12eb21f3626ee980eb06f985ab957e2))
 
 ## [0.3.2](https://github.com/sivakov512/agent-tools/compare/project-tracker-v0.3.1...project-tracker-v0.3.2) (2026-10-02)
 
