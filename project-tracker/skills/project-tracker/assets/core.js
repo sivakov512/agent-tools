@@ -30,6 +30,25 @@
   function key(u) { var m = /([0-9a-f]{32})/i.exec(nodash(u)); return m ? m[1].toLowerCase() : String(u); }
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : null; }
   function plural(n, one, many) { return n + " " + (n === 1 ? one : (many || one + "s")); }
+  var MOTION = !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  function slide(box, show, done) { // a part opens or folds smoothly — its height, the gap above it and its opacity; done runs at the end
+    if (!MOTION || !box.animate) { if (done) done(); return; }
+    box.getAnimations().forEach(function (a) { a.cancel(); }); // a click while it moves starts from where it stands, at its full size
+    var cs = getComputedStyle(box), h = box.getBoundingClientRect().height, full = { height: h + "px", opacity: 1 }, none = { height: "0px", opacity: 0 };
+    ["marginTop", "paddingTop", "paddingBottom", "borderTopWidth", "borderBottomWidth"].forEach(function (k) { full[k] = cs[k]; none[k] = "0px"; }); // all of it goes to zero, or the padding stays and jumps at the end
+    box.style.overflow = "clip"; // clip, not hidden: hidden would make it a scroll box and unstick the timeline's names
+    var an = box._an = box.animate(show ? [none, full] : [full, none], { duration: 200, easing: "cubic-bezier(.2, 0, 0, 1)", fill: show ? "none" : "forwards" });
+    function end() { if (end.ran) return; end.ran = 1; if (done) done(); if (box._an !== an) return; an.cancel(); box.style.overflow = ""; }
+    an.onfinish = end; setTimeout(end, 260); // also where frames are not drawn (a hidden tab), so it never stays half-way
+  }
+  function showPart(box, open, isOpen) { // shows or hides a part, smoothly; isOpen() says, at the end, whether it should still be shown
+    if (open) { box.hidden = false; slide(box, true); } else slide(box, false, function () { if (!isOpen()) box.hidden = true; });
+  }
+  function growTo(box, from) { // a box redrawn at a new height grows or shrinks to it from the old one
+    if (!MOTION || !box.animate || from == null) return; var to = box.offsetHeight; if (Math.abs(to - from) < 2) return;
+    box.style.overflow = "clip"; var an = box.animate([{ height: from + "px" }, { height: to + "px" }], { duration: 200, easing: "cubic-bezier(.2, 0, 0, 1)" });
+    function end() { if (end.ran) return; end.ran = 1; an.cancel(); box.style.overflow = ""; } an.onfinish = end; setTimeout(end, 260);
+  }
   function smooth() { return matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"; }
   function sel(v) { return window.CSS && CSS.escape ? CSS.escape(v) : String(v).replace(/["\\]/g, "\\$&"); } // values from data inside a selector
   function keep(host, fn) { var y = host.scrollTop; fn(); host.scrollTop = y; } // updates never jump a list back to the top
@@ -431,7 +450,7 @@
       drawAxis(tl, ax);
       ps.forEach(function (p) {
         var st = ctx.state(p), r = el("div", "tl-row" + (narrow ? " top" : "")), lab = el("div", "tl-label"), area = narrow ? el("div", "tl-area") : r;
-        var car = btn("car", null, function (e) { e.stopPropagation(); if (ctx.opened[p.key]) delete ctx.opened[p.key]; else ctx.opened[p.key] = 1; ctx.saveOpen(); render(false); });
+        var car = btn("car", null, function (e) { e.stopPropagation(); var h0 = r.offsetHeight; if (ctx.opened[p.key]) delete ctx.opened[p.key]; else ctx.opened[p.key] = 1; ctx.saveOpen(); render(false); var r2 = ctx.host.querySelector('.tl-row[data-k="' + sel(p.key) + '"]'); if (r2) growTo(r2, h0); }); r.dataset.k = p.key;
         car.addEventListener("mousedown", function (e) { e.preventDefault(); }); // focusing it would scroll the chart back to its start
         car.innerHTML = CHEV; lab.appendChild(car); lab.appendChild(el("span", "dot " + st.dot));
         var nb = btn("nm", p.name, function () { ctx.open(p); }); nb.title = p.name; lab.appendChild(nb); r.appendChild(lab); if (narrow) r.appendChild(area);
@@ -527,21 +546,22 @@
       if (o.line) mid.appendChild(o.line);
       h.appendChild(mid); h.appendChild(el("span", "r", o.right || "")); h.insertAdjacentHTML("beforeend", CHEV);
       var x = el("div", "acc-x"); x.hidden = !on0; if (on0) o.expand(x);
-      h.addEventListener("click", function () { var on = !ui.open[k]; if (on) ui.open[k] = 1; else delete ui.open[k]; r.classList.toggle("open", on); h.setAttribute("aria-expanded", String(on)); if (on && !x.firstChild) o.expand(x); x.hidden = !on; });
+      h.addEventListener("click", function () { var on = !ui.open[k]; if (on) ui.open[k] = 1; else delete ui.open[k]; r.classList.toggle("open", on); h.setAttribute("aria-expanded", String(on)); if (on && !x.firstChild) o.expand(x); showPart(x, on, function () { return r.classList.contains("open"); }); r.dispatchEvent(new CustomEvent("fold", { bubbles: true })); });
       r.appendChild(h); r.appendChild(x); return r;
     }
     function dsec(host, ico, title, n, right) { // a big section of the page; its header folds it, open by default
       var s = el("section", "dsec" + (ui.col[ico] ? " folded" : "")); s.dataset.sec = ico;
-      var hh = btn("dsec-h", null); hh.setAttribute("aria-expanded", String(!ui.col[ico])); hh.innerHTML = DICO[ico]; hh.appendChild(el("h3", "", title));
+      var hh = el("div", "dsec-h"); hh.setAttribute("role", "button"); hh.tabIndex = 0; hh.setAttribute("aria-expanded", String(!ui.col[ico])); hh.innerHTML = DICO[ico]; hh.appendChild(el("h3", "", title)); // not a <button>: a tool button may sit in it
       if (n != null) hh.appendChild(el("span", "cnt", String(n))); if (right) { right.classList.add("r"); hh.appendChild(right); }
       hh.insertAdjacentHTML("beforeend", CHEV);
       var b = el("div", "dsec-b"); b.hidden = !!ui.col[ico];
-      hh.addEventListener("click", function () { setFold(s, !s.classList.contains("folded")); });
+      hh.addEventListener("click", function (e) { if (e.target.closest(".gall")) return; setFold(s, !s.classList.contains("folded")); });
+      hh.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target === hh) { e.preventDefault(); setFold(s, !s.classList.contains("folded")); } });
       s.appendChild(hh); s.appendChild(b); host.appendChild(s); return b;
     }
     function setFold(s, fold) {
       var k = s.dataset.sec; if (fold) ui.col[k] = 1; else delete ui.col[k];
-      s.classList.toggle("folded", fold); s.querySelector(".dsec-h").setAttribute("aria-expanded", String(!fold)); s.querySelector(".dsec-b").hidden = fold;
+      s.classList.toggle("folded", fold); s.querySelector(".dsec-h").setAttribute("aria-expanded", String(!fold)); showPart(s.querySelector(".dsec-b"), !fold, function () { return !s.classList.contains("folded"); });
     }
     function taskRow(k) { return acc({ k: key(k.url), item: k, tsk: true, dot: itemDot(k), title: k.name, line: phraseEl(rowPhrase(k)), right: k.start == null ? "" : range(k.start, k.end), expand: function (x) { ctx.taskBody(x, k, true); } }); }
     function msGroup(m, openByDefault) { // a milestone and everything in it: opening it shows its details, then its tasks
@@ -555,13 +575,27 @@
       var det = el("div", "mdet"); b.appendChild(det);
       function fill() { if (!det.firstChild) ctx.msBody(det, m); }
       if (on) fill();
-      if (m.tasks.length) { var tl = el("div", "mtl"); tl.appendChild(span("Tasks")); tl.appendChild(span(String(m.tasks.length), "n")); b.appendChild(tl); }
-      m.tasks.forEach(function (x) { b.appendChild(taskRow(x)); });
+      if (m.tasks.length) b.appendChild(taskList(m.tasks));
       g._fill = fill;
       h.addEventListener("click", function () { setGroup(g, k, !g.classList.contains("open")); });
       g.dataset.g = k; g.appendChild(h); g.appendChild(b); return g;
     }
-    function setGroup(g, k, on) { ui.grp[k] = on; if (on && g._fill) g._fill(); g.classList.toggle("open", on); g.querySelector(".mh").setAttribute("aria-expanded", String(on)); g.querySelector(".mgrp-b").hidden = !on; }
+    function allBtn(rows, isOpen, set, what) { // "Expand all" / "Collapse all" for a list of rows that open; it follows their state
+      var b = btn("gall", ""); b.title = "Open or fold all the " + what;
+      function paint() { var closed = rows().some(function (r) { return !isOpen(r); }); b.textContent = closed ? "Expand all" : "Collapse all"; b.dataset.open = closed ? "1" : ""; }
+      b.addEventListener("click", function (e) { e.stopPropagation(); var on = !!b.dataset.open; rows().forEach(function (r) { if (isOpen(r) !== on) set(r, on); }); paint(); });
+      b.paint = paint; return b;
+    }
+    function taskList(tasks) { // "Tasks N" and the tasks; with several, one button opens or folds them all
+      var w = el("div", "mtw"), tl = el("div", "mtl"); tl.appendChild(span("Tasks")); tl.appendChild(span(String(tasks.length), "n")); w.appendChild(tl);
+      tasks.forEach(function (x) { w.appendChild(taskRow(x)); });
+      if (tasks.length > 1) {
+        var all = allBtn(function () { return [].slice.call(w.querySelectorAll(":scope > .arow")); }, function (r) { return r.classList.contains("open"); }, function (r) { r.querySelector(".acc-h").click(); }, "tasks");
+        tl.appendChild(all); w.addEventListener("fold", all.paint); all.paint();
+      }
+      return w;
+    }
+    function setGroup(g, k, on) { ui.grp[k] = on; if (on && g._fill) g._fill(); g.classList.toggle("open", on); g.querySelector(".mh").setAttribute("aria-expanded", String(on)); showPart(g.querySelector(".mgrp-b"), on, function () { return g.classList.contains("open"); }); g.dispatchEvent(new CustomEvent("fold", { bubbles: true })); }
     function projectHead(host, p, st, plan, extra, desc) { // who, the name with its state, what the project is (its description), the project at a glance
       var hd = el("header", "dr-head");
       hd.appendChild(el("div", "dr-who", whoOf(p)));
@@ -591,6 +625,10 @@
       else if (!ms0.length && !tk0.length) b2.appendChild(el("div", "empty", o.empty));
       else {
         sortItems(ms0).forEach(function (m) { b2.appendChild(msGroup(m, m.status === "In progress" || (m.late > 0 && OPEN_MS[m.status]) || m === head)); });
+        if (ms0.length > 1) { // as a panel on the overview: its head opens or folds every milestone
+          var ma = allBtn(function () { return [].slice.call(b2.querySelectorAll(":scope > .mgrp")); }, function (g) { return g.classList.contains("open"); }, function (g, on) { setGroup(g, g.dataset.g, on); }, "milestones");
+          var hd = b2.parentNode.querySelector(".dsec-h"); hd.insertBefore(ma, hd.querySelector(".chev")); b2.addEventListener("fold", function (e) { if (e.target.classList.contains("mgrp")) ma.paint(); }); ma.paint();
+        }
         var loose = sortItems(tk0.filter(function (k) { return !k.ms; }));
         if (loose.length) {
           if (ms0.length) { var gt2 = el("div", "grp-t"); gt2.appendChild(span("Other tasks")); gt2.appendChild(span(String(loose.length), "n")); b2.appendChild(gt2); }
@@ -615,7 +653,7 @@
     DAY: DAY, OPEN_MS: OPEN_MS, OPEN_TASK: OPEN_TASK, SPANS: SPANS, CHEV: CHEV, MON: MON,
     whoOf: whoOf,
     refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled, copyText: copyText,
-    el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, clean: clean, rel: rel, key: key, num: num, plural: plural, smooth: smooth, sel: sel, keep: keep,
+    el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, clean: clean, rel: rel, key: key, num: num, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, fold: showPart, grow: growTo,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
     msOf: msOf, taskOf: taskOf, problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate,
     currentTask: currentTask, focusOf: focusOf, whenOf: whenOf, projectState: projectState, planPhrase: planPhrase, itemDot: itemDot, tipOf: tipOf,

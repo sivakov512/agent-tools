@@ -334,37 +334,58 @@
       return !k.ms || k.ms.status === "In progress"; // an undated step of the work under way
     }).sort(function (a, b) { return (a.status === "In progress" ? 0 : 1) - (b.status === "In progress" ? 0 : 1) || (a.start == null ? 1e9 : a.start) - (b.start == null ? 1e9 : b.start); });
     var questions = probs.filter(function (i) { return !i.waiting && i.type === "Question"; }).sort(function (a, b) { return (a.opened || 1e9) - (b.opened || 1e9); });
-    var doing = tasksOnMe.filter(once), decide = questions.filter(once);
+    var mine = tasksOnMe.filter(once), decide = questions.filter(once);
+    var doing = mine.filter(function (k) { return k.status === "In progress"; }), next = mine.filter(function (k) { return k.status !== "In progress"; }); // started, and what starts within the week or is an undated step of the work under way
     var needs = allItems().filter(function (m) { return m.kind === "ms" && OPEN_MS[m.status] && m.start == null && !m.paused; }).filter(once);
-    return { blocked: blocked, overdue: overdue, due: due, doing: doing, decide: decide, all: blocked.concat(overdue, due, doing, decide), needs: needs };
+    return { blocked: blocked, overdue: overdue, due: due, doing: doing, next: next, decide: decide, all: blocked.concat(overdue, due, doing, decide), needs: needs };
   }
   function ageLabel(x) { var a = ageOf(x); return x.kind === "problem" && x.type === "Risk" ? "" : a == null ? "" : a === 0 ? "today" : days(a); } // a risk waits on no one, so its age says nothing
   function context(x) { // where an item sits in its project: a problem's milestone › task, a task's milestone
     if (x.kind === "problem") { var idx = itemIndex(), ms = idx[x.mk], tk = idx[x.tk]; return [ms ? ms.name : "", tk ? tk.name : ""].filter(Boolean).join(" › "); }
     return x.ms ? x.ms.name : "";
   }
-  S.needsOpen = false; // Needs dates, folded under Your move until opened
+  var gFold = {}; try { gFold = JSON.parse(localStorage.getItem("pt.gfold") || "{}") || {}; } catch (e) {} // a group folds from its head; each viewer's choice is remembered, per panel
+  var slide = PT.slide;
+  function groupList(host, panel, groups, allBtn) { // groups: {name, cls, list, row, folded (at first)}; allBtn in the panel's head opens or folds them all
+    var shown = groups.filter(function (g) { return g.list.length; }), parts = [];
+    function isFolded(g) { var k = panel + ":" + g.name; return k in gFold ? gFold[k] : !!g.folded; }
+    function paintAll() { if (!allBtn) return; var any = parts.some(function (p) { return p.folded; }); allBtn.hidden = shown.length < 2; allBtn.textContent = any ? "Expand all" : "Collapse all"; }
+    function set(p, folded) { // in place, so the rest of the panel stays as it is
+      if (p.folded === folded) return; p.folded = folded; gFold[panel + ":" + p.g.name] = folded;
+      p.h.classList.toggle("open", !folded); p.h.setAttribute("aria-expanded", String(!folded));
+      if (!folded) { if (!p.b.firstChild) p.g.list.forEach(function (x) { p.b.appendChild(p.g.row(x)); }); p.b.hidden = false; slide(p.b, true); }
+      else slide(p.b, false, function () { if (p.folded) p.b.hidden = true; });
+    }
+    function save() { try { localStorage.setItem("pt.gfold", JSON.stringify(gFold)); } catch (e) {} paintAll(); }
+    shown.forEach(function (g) {
+      var p = { g: g, folded: isFolded(g) };
+      p.h = btn("gh gf" + (g.cls ? " " + g.cls : "") + (p.folded ? "" : " open"), null, function () { set(p, !p.folded); save(); });
+      p.h.setAttribute("aria-expanded", String(!p.folded)); p.h.appendChild(span(g.name)); p.h.appendChild(span(String(g.list.length), "n")); p.h.insertAdjacentHTML("beforeend", CHEV);
+      p.b = el("div", "gb"); p.b.hidden = p.folded; if (!p.folded) g.list.forEach(function (x) { p.b.appendChild(g.row(x)); });
+      host.appendChild(p.h); host.appendChild(p.b); parts.push(p);
+    });
+    paintAll();
+    if (allBtn) allBtn.onclick = function (e) { e.preventDefault(); e.stopPropagation(); var any = parts.some(function (p) { return p.folded; }); parts.forEach(function (p) { set(p, !any); }); save(); }; // inside the panel's head: it must not fold the panel
+  }
   function renderMove() {
     var host = $("moveList"), mg = moveGroups();
     var waitWord = function (x) { return x.status === "Waiting" && x.waiting ? "waiting on " + x.waiting : ""; };
-    var groups = [ // by what the user does, the most urgent first
+    var groups = [ // by what the user does, the most urgent first; Up next and Milestones without dates are not today's work: folded at first and not counted
       ["Blocked", "crit", mg.blocked, function (i) { return item(i, { mark: "crit", say: i.waiting ? "waiting on " + i.waiting : "", meta: ageLabel(i), cls: "crit" }); }],
       ["Overdue", "crit", mg.overdue, function (m) { return item(m, { mark: "crit", say: waitWord(m), meta: days(m.late) + " late", cls: "crit" }); }],
       ["Due soon", "warn", mg.due, function (m) { return item(m, { mark: "warn", say: m.status === "Planned" ? "not started" : waitWord(m), meta: soon(m.end), cls: "warn" }); }],
-      ["Doing", "", mg.doing, function (x) { return item(x, { say: x.status === "In progress" ? "" : "planned", meta: x.start == null ? "no date" : x.start > todayNum() ? "starts " + soon(x.start) : x.openEnd ? "no end date" : "due " + soon(x.end) }); }],
+      ["Doing", "", mg.doing, function (x) { return item(x, { meta: x.start == null ? "no date" : x.openEnd ? "no end date" : "due " + soon(x.end) }); }],
+      ["Up next", "", mg.next, function (x) { return item(x, { meta: x.start == null ? "no date" : x.start > todayNum() ? "starts " + soon(x.start) : x.openEnd ? "no end date" : "due " + soon(x.end) }); }, true], // the timeline shows them better
       ["To decide", "", mg.decide, function (x) { var a = ageOf(x); return item(x, { meta: ageLabel(x), cls: ageCls(a) }); }],
+      ["Milestones without dates", "", mg.needs, function (m) { return item(m, { tag: false, say: m.status === "In progress" ? "in progress" : "planned" }); }, true], // planning; the head says they are milestones
     ];
     keep(host, function () {
       clear(host); var n = 0;
-      if (trackerErr()) { host.appendChild(el("div", "empty", "Nothing to show until the tracker loads.")); $("moveCount").textContent = ""; return; }
+      if (trackerErr()) { host.appendChild(el("div", "empty", "Nothing to show until the tracker loads.")); $("moveCount").textContent = ""; $("moveAll").hidden = true; return; }
       if (S.problemsErr && !S.problems) host.appendChild(errBox("Problems didn't load. ", S.problemsErr));
-      groups.forEach(function (g) { if (!g[2].length) return; n += g[2].length; gh(host, g[0], g[2].length, g[1]); g[2].forEach(function (x) { host.appendChild(g[3](x)); }); });
+      groups.forEach(function (g) { if (!g[4]) n += g[2].length; });
       if (!n) host.appendChild(el("div", "empty", "Nothing needs you right now."));
-      if (mg.needs.length) { // planning, not today's work: one quiet line that opens the list
-        var nb = btn("needs" + (S.needsOpen ? " open" : ""), null, function () { S.needsOpen = !S.needsOpen; renderMove(); });
-        nb.setAttribute("aria-expanded", String(S.needsOpen)); nb.appendChild(span(plural(mg.needs.length, "milestone") + " without dates")); nb.insertAdjacentHTML("beforeend", CHEV); host.appendChild(nb);
-        if (S.needsOpen) mg.needs.forEach(function (m) { host.appendChild(item(m, { tag: false, say: m.status === "In progress" ? "in progress" : "planned" })); }); // the line above says they are milestones
-      }
+      groupList(host, "move", groups.map(function (g) { return { name: g[0], cls: g[1], list: g[2], row: g[3], folded: g[4] }; }), $("moveAll"));
       $("moveCount").textContent = n ? String(n) : "";
     });
   }
@@ -372,6 +393,7 @@
     var host = $("waitList");
     keep(host, function () {
       clear(host);
+      $("waitAll").hidden = true;
       if (trackerErr()) { host.appendChild(el("div", "empty", "Nothing to show until the tracker loads.")); $("waitCount").textContent = ""; return; }
       if (S.problemsErr && !S.problems) host.appendChild(errBox("Problems didn't load. ", S.problemsErr));
       var w = []; projs().forEach(function (p) { w = w.concat(waitingOf(p)); });
@@ -381,13 +403,10 @@
         .sort(function (a, b) { return b.oldest - a.oldest || a.k.localeCompare(b.k); });
       $("waitCount").textContent = w.length ? String(w.length) : "";
       if (!parties.length) { if (!(S.problemsErr && !S.problems)) host.appendChild(el("div", "empty", "No one to chase.")); return; }
-      parties.forEach(function (pt) {
-        gh(host, pt.k, pt.g.length > 1 ? pt.g.length : null, "");
-        pt.g.forEach(function (x) {
-          var a = ageOf(x), late = x.kind === "task" && x.late > 0;
-          host.appendChild(item(x, { mark: late ? "crit" : ageCls(a), say: late ? days(x.late) + " late" : x.kind === "task" && x.end != null ? "due " + fmt(x.end) : "", sayCls: late ? "crit" : "", meta: a != null ? days(a) : "", cls: late ? "crit" : ageCls(a) }));
-        });
-      });
+      groupList(host, "wait", parties.map(function (pt) { return { name: pt.k, list: pt.g, row: function (x) {
+        var a = ageOf(x), late = x.kind === "task" && x.late > 0;
+        return item(x, { mark: late ? "crit" : ageCls(a), say: late ? days(x.late) + " late" : x.kind === "task" && x.end != null ? "due " + fmt(x.end) : "", sayCls: late ? "crit" : "", meta: a != null ? days(a) : "", cls: late ? "crit" : ageCls(a) });
+      } }; }), $("waitAll"));
     });
   }
   function riskBy(i) { var idx = itemIndex(), on = idx[i.tk] || idx[i.mk]; return on && isOpen(on) && on.end != null && !on.openEnd ? on.end : null; } // the date it matters by: its task's, else its milestone's end
@@ -446,15 +465,12 @@
     var host = $("sideList"), sd = sidesOf(null), n = sd.you.length + sd.us.length + sd.third.length + sd.risk.length;
     keep(host, function () {
       clear(host); $("sideCount").textContent = n ? String(n) : "";
-      if (!n) { host.appendChild(el("div", "empty", "Nothing open right now.")); return; }
-      [["On your side", sd.you], ["On our side", sd.us], ["With third parties", sd.third], ["Risks to keep in mind", sd.risk]].forEach(function (g) {
-        if (!g[1].length) return; gh(host, g[0], g[1].length, "");
-        g[1].forEach(function (x) {
-          var a = ageOf(x), late = x.kind === "task" && x.late > 0, blk = x.kind === "problem" && x.type === "Blocker";
-          var say = [x.waiting && g[1] === sd.third ? x.waiting : "", late ? days(x.late) + " late" : x.kind === "task" && x.end != null ? "due " + fmt(x.end) : ""].filter(Boolean).join(" · ");
-          host.appendChild(item(x, { mark: late || blk ? "crit" : g[1] === sd.risk ? "" : ageCls(a), say: say, sayCls: late ? "crit" : "", meta: ageLabel(x), cls: late ? "crit" : ageCls(a) }));
-        });
-      });
+      if (!n) { host.appendChild(el("div", "empty", "Nothing open right now.")); $("sideAll").hidden = true; return; }
+      groupList(host, "side", [["On your side", sd.you], ["On our side", sd.us], ["With third parties", sd.third], ["Risks to keep in mind", sd.risk]].map(function (g) { return { name: g[0], list: g[1], row: function (x) {
+        var a = ageOf(x), late = x.kind === "task" && x.late > 0, blk = x.kind === "problem" && x.type === "Blocker";
+        var say = [x.waiting && g[1] === sd.third ? x.waiting : "", late ? days(x.late) + " late" : x.kind === "task" && x.end != null ? "due " + fmt(x.end) : ""].filter(Boolean).join(" · ");
+        return item(x, { mark: late || blk ? "crit" : g[1] === sd.risk ? "" : ageCls(a), say: say, sayCls: late ? "crit" : "", meta: ageLabel(x), cls: late ? "crit" : ageCls(a) });
+      } }; }), $("sideAll"));
     });
   }
 
@@ -675,6 +691,12 @@
     w.appendChild(mb); w.appendChild(menu); return w;
   }
   document.addEventListener("click", function (e) { if (!e.target.closest(".dd-m, .chat-m, .info")) closeMenus(); });
+  document.addEventListener("click", function (e) { // a Notion toggle in a page's text opens and folds smoothly, as the rest of the page does
+    var sm = e.target.closest(".md details.tgl > summary"); if (!sm || e.target.closest("a, button")) return;
+    var d = sm.parentNode, body = sm.nextElementSibling; if (!body) return; e.preventDefault();
+    if (!d.open || d.classList.contains("shut")) { d.classList.remove("shut"); d.open = true; slide(body, true); }
+    else { d.classList.add("shut"); slide(body, false, function () { if (d.classList.contains("shut")) { d.open = false; d.classList.remove("shut"); } }); }
+  });
   function fixChat(err) { return err && err.chat ? chatLink(newChatUrl(err.chat), "Fix it in a chat with Claude") : null; }
   function trackerErr() { return S.projErr && !S.projects ? S.projErr : null; }
   function errBox(text, err) { var d = el("div", "err", (err && err.code === "config" ? "" : text) + errText(err)); /* a config error names itself */ var c = fixChat(err); if (c) { c.classList.add("fix"); d.appendChild(c); } return d; }
@@ -684,7 +706,7 @@
     var body = el("div", "sub-b"); body.hidden = !S.open[k];
     function fill() { pageBody(body, u, { empty: "This page is empty." }); if (SNAP) return; var a = el("div", "actions sub-acts"); a.appendChild(link(u, "Open in Notion ↗", "ext")); body.appendChild(a); }
     if (S.open[k]) fill();
-    b.addEventListener("click", function () { var on = !S.open[k]; if (on) S.open[k] = 1; else delete S.open[k]; d.classList.toggle("open", on); b.setAttribute("aria-expanded", String(on)); if (on && !body.firstChild) fill(); body.hidden = !on; });
+    b.addEventListener("click", function () { var on = !S.open[k]; if (on) S.open[k] = 1; else delete S.open[k]; d.classList.toggle("open", on); b.setAttribute("aria-expanded", String(on)); if (on && !body.firstChild) fill(); PT.fold(body, on, function () { return d.classList.contains("open"); }); });
     d.appendChild(b); d.appendChild(body); return d;
   }
   S.col = {}; // sections folded in this visit; every new visit starts with all of them open
@@ -887,6 +909,12 @@
       var d = $(id); if (!d) return;
       if (fold[id] != null) d.open = !!fold[id];
       d.addEventListener("toggle", function () { fold[id] = d.open; try { localStorage.setItem("pt.fold", JSON.stringify(fold)); } catch (e) {} });
+      d.querySelector("summary").addEventListener("click", function (e) { // opens and folds smoothly; the chevron and the head's button turn at once (.shut)
+        if (e.target.closest(".gall")) return; e.preventDefault();
+        var body = d.querySelector("summary").nextElementSibling;
+        if (!d.open || d.classList.contains("shut")) { d.classList.remove("shut"); d.open = true; slide(body, true); }
+        else { d.classList.add("shut"); slide(body, false, function () { if (d.classList.contains("shut")) { d.open = false; d.classList.remove("shut"); } }); }
+      });
     });
   })();
   var TLN = PT.timeline({

@@ -168,16 +168,16 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .stat .arr { color: var(--text-mute); }
 .stat .v { font-size: 17px; font-weight: 600; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dsec { margin-top: 32px; }
-.dsec-h { display: flex; align-items: center; gap: 9px; width: 100%; margin-bottom: 10px; padding: 4px 4px 4px 0; border: 0; background: none; text-align: left; cursor: pointer; color: var(--text-2); border-radius: 8px; }
+.dsec-h { display: flex; align-items: center; gap: 9px; width: 100%; padding: 4px 4px 4px 0; border: 0; background: none; text-align: left; cursor: pointer; color: var(--text-2); border-radius: 8px; }
 .dsec-h:hover h3 { color: var(--accent); }
 .dsec-h > .chev { margin-left: 8px; transform: rotate(90deg); transition: transform .15s; }
 .dsec.folded .dsec-h > .chev { transform: none; }
-.dsec.folded .dsec-h { margin-bottom: 0; }
+.dsec-b { margin-top: 10px; } /* the gap under the head belongs to the body, so it folds with it */
 .dsec-h .ico { width: 17px; height: 17px; }
 .dsec-h h3 { margin: 0; font-size: 17px; font-weight: 600; color: var(--text); }
 .dsec-h .cnt { font-size: 12.5px; font-weight: 600; line-height: 1; padding: 4px 7px; border-radius: 99px; background: var(--sunken); color: var(--text-2); }
 .dsec-h .r { margin-left: auto; font-size: 13px; }
-.dsec-h .r + .chev { margin-left: 8px; }
+.dsec-h .r + .chev, .dsec-h .r + .gall { margin-left: 8px; }
 .dsec-h .cnt + .chev, .dsec-h h3 + .chev { margin-left: auto; }
 .dsec-b { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .dsec-b > .empty, .dsec-b > .md.pad { padding: 14px 16px; }
@@ -312,7 +312,8 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .mdet { padding: 14px 16px 18px 36px; background: var(--surface-2); }
 .mdet > * + * { margin-top: 12px; }
 .mtl { display: flex; align-items: baseline; gap: 8px; padding: 7px 16px 7px 36px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-mute); }
-.mtl .n { margin-left: auto; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.mtl .n { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.mtl .gall { margin: -4px -6px -4px auto; } /* right, without making the line taller */
 .mgrp.flash { animation: flash 1.4s ease-out; }
 @media (max-width: 860px) { .mdet, .mtl { padding-left: 16px; } }
 .mgrp-b > .arow:last-child { border-bottom: 0; }
@@ -368,6 +369,11 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .gh .n { text-transform: none; letter-spacing: 0; }
 .gh .n { font-weight: 400; color: var(--text-mute); }
 .gh.crit { color: var(--critical); } .gh.warn { color: var(--warn); }
+.gh.gf { width: 100%; border-left: 0; border-right: 0; text-align: left; cursor: pointer; font-family: inherit; } /* a panel group's head folds it */
+.gh.gf:hover { color: var(--text); } .gh.gf.crit:hover, .gh.gf.warn:hover { filter: brightness(1.15); }
+.gh.gf .chev { margin-left: auto; align-self: center; transition: transform .15s; }
+.gh.gf.open .chev { transform: rotate(90deg); }
+.gh.gf { border-bottom: 0; } .gb { border-top: 1px solid var(--border); } /* a group's lines fold under its head */
 .it { display: grid; grid-template-columns: 3px minmax(0, 1fr) auto; column-gap: 12px; width: 100%; border: 0; background: none; text-align: left; padding: 11px 16px 11px 10px; cursor: pointer; }
 .it + .it { border-top: 1px solid var(--border); }
 .it:hover { background: var(--surface-2); }
@@ -384,11 +390,17 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .it .m { font-size: 13px; color: var(--text-mute); white-space: nowrap; padding-top: 2px; }
 .it .m.crit { color: var(--critical); } .it .m.warn { color: var(--warn); }
 details.panel > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 0; min-height: 34px; } /* as tall as a section's head, so the side panels line up with the timeline */
-details.panel[open] > summary { margin-bottom: 12px; }
+details.panel > summary + * { margin-top: 12px; } /* the gap below the head belongs to the body, so it folds with it */
 details.panel > summary::-webkit-details-marker { display: none; }
 details.panel > summary h2 { margin: 0; font-size: 15px; font-weight: 600; }
 details.panel > summary .chev { margin-left: auto; transition: transform .15s; }
+.gall { letter-spacing: 0; text-transform: none; margin-left: auto; border: 0; background: none; padding: 4px 6px; font: inherit; font-weight: 400; font-size: 12.5px; color: var(--text-mute); cursor: pointer; border-radius: 6px; } /* a panel with groups: every group open or folded at once */
+.gall:hover { color: var(--text); background: var(--surface-2); }
+.gall:not([hidden]) + .chev { margin-left: 2px; }
+details.panel > summary .gall { transition: opacity .15s, visibility .15s; } /* fades with the panel's fold; elsewhere it shows at once */
+details.panel:not([open]) .gall, details.panel.shut .gall { opacity: 0; visibility: hidden; pointer-events: none; } /* fades out with the chevron's turn and keeps its place, so the chevron does not move */
 details.panel[open] > summary .chev { transform: rotate(90deg); }
+details.panel.shut > summary .chev { transform: none; } /* folding: the chevron turns at once, the body follows */
 /* ---------- the project page, sliding in from the right ---------- */
 .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .2s; }
 .scrim.on { opacity: 1; pointer-events: auto; }
@@ -485,11 +497,6 @@ h1 .ref { vertical-align: 4px; }
 .ilink { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-2); text-underline-offset: 2px; } /* another item of the tracker: opens it on this page */
 .ilink:hover { color: var(--accent); text-decoration-color: currentColor; }
 .pline .ilink { font-size: 14px; color: var(--text); }
-.needs { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; border-top: 1px solid var(--border); background: none; padding: 11px 16px 11px 25px; text-align: left; cursor: pointer; font: inherit; font-size: 13px; color: var(--text-mute); } /* Your move: the milestones without dates, folded into one quiet line */
-.needs:hover { color: var(--text-2); }
-.needs .chev { margin-left: auto; transition: transform .15s; }
-.needs.open .chev { transform: rotate(90deg); }
-#moveList > .needs:first-child { border-top: 0; }
 .dr-bar .ext { white-space: nowrap; }
 @media (max-width: 600px) { .dr-bar { gap: 4px; padding-left: 16px; } .dr-bar .long { display: none; } .dr-bar .ttl { visibility: hidden; } } /* a phone's drawer bar: everything on one line, "Notion ↗" whole; the name is in the head below */
 .tl-b.open, .tl-chip.open, .tl-seg.open { -webkit-mask-image: linear-gradient(to right, #000 70%, transparent); mask-image: linear-gradient(to right, #000 70%, transparent); } /* an edge that is no date fades: a start with no agreed end, drawn for a set span, fades where the end would be */
@@ -546,6 +553,7 @@ h1 .ref { vertical-align: 4px; }
 .md details.tgl > summary::-webkit-details-marker { display: none; }
 .md details.tgl > summary > .chev { flex: none; align-self: center; transition: transform .15s; }
 .md details.tgl[open] > summary > .chev { transform: rotate(90deg); }
+.md details.tgl.shut > summary > .chev { transform: none; }
 .md details.tgl > summary > h3, .md details.tgl > summary > h4 { margin: 0; }
 .md details.tgl:has(> summary > h3) { margin-top: 16px; } .md details.tgl:has(> summary > h4) { margin-top: 12px; }
 .md details.tgl > .kids { margin-top: 6px; }
