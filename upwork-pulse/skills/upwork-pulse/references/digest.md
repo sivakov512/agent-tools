@@ -44,4 +44,4 @@ Cards N · take M · maybe K · connects L
 
 As soon as the user writes in this session, automatic mode ends: answer normally, the format is no longer required, and `references/chat.md` applies. Two things follow directly from the digest:
 
-- **"details N"** or **"details #584350"** → the full card of that item in the hourly message format (`references/hourly.md` §9, one card, no number), from the card's properties and body.
+- **"details N"** or **"details #584350"** → the full card of that item in the hourly message format (`references/hourly.md` §7, one card, no number), from the card's properties and body.

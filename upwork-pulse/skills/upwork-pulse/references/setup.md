@@ -54,7 +54,7 @@ Create only the missing ones, titled exactly `Jobs`, `Proposals`, `Runs`, `Quest
 CREATE TABLE ("Run" TITLE COMMENT 'DD.MM HH:MM, a label only',
   "Created" CREATED_TIME, "Status" SELECT('ok':green, 'empty':gray, 'partial':yellow),
   "Scanned" NUMBER, "Title pass" NUMBER, "Detailed" NUMBER, "Take" NUMBER, "Maybe" NUMBER,
-  "Budget hit" CHECKBOX, "Tool calls" NUMBER, "Window" RICH_TEXT)
+  "Budget hit" CHECKBOX, "Tool calls" NUMBER, "Window" RICH_TEXT, "Found by" RICH_TEXT COMMENT 'The model that ran the search', "Reviewed by" RICH_TEXT COMMENT 'The model that reviewed the survivors')
 
 -- Jobs
 CREATE TABLE ("Title" TITLE, "Job ID" RICH_TEXT COMMENT 'Numeric Upwork id; the duplicate key', "Link" URL,
@@ -70,6 +70,7 @@ CREATE TABLE ("Title" TITLE, "Job ID" RICH_TEXT COMMENT 'Numeric Upwork id; the 
   "Score" NUMBER COMMENT 'Sum of the Ranking points', "Score why" RICH_TEXT,
   "Complexity" SELECT('Low':green, 'Medium':yellow, 'High':red),
   "My hours" NUMBER, "My $" NUMBER FORMAT 'dollar' COMMENT 'Hourly: the rate; fixed: the total',
+  "Reviewed by" RICH_TEXT COMMENT 'The model that last reviewed the job: assessment, estimate or advice',
   "Estimate" RICH_TEXT COMMENT 'Hours by part of the work, one per line; they add up to My hours',
   "Flags" MULTI_SELECT('no client history':gray, 'unfamiliar tech':gray, 'budget mismatch':gray, 'mandatory calls':gray, 'timezone lock':gray, 'partially hired':gray, 'full-time':gray, 'invited':blue),
   "Advice" SELECT('Apply':green, 'Skip':gray), "Advice why" RICH_TEXT, "Advised on" DATE COMMENT 'When Advice was last written',
@@ -84,6 +85,7 @@ CREATE TABLE ("Title" TITLE COMMENT 'The job title', "Job" RELATION('<jobs>', DU
   "Job ID" RICH_TEXT COMMENT 'Numeric Upwork job id; the key',
   "State" SELECT('Writing':yellow, 'Ready':green) COMMENT 'While a draft is written; empty once sent',
   "Written" DATE COMMENT 'When this text was written; for a sent one, when it was sent',
+  "Drafted by" RICH_TEXT COMMENT 'The model that drafted this text; empty when written outside the pipeline',
   "Proposal ID" RICH_TEXT COMMENT 'Upwork proposal id; set once sent',
   "Boost" NUMBER COMMENT 'Connects bid on top, as sent')
 
@@ -147,7 +149,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 	auto_drafts: `off`
 	auto_skip: `off`
 	drafts_task: `<trigger id of the Upwork drafts task>`
-	schema: `7`
+	schema: `8`
 </details>
 ```
 
@@ -159,7 +161,7 @@ The dashboard is a single HTML page (`assets/dashboard.html`) that reads Notion 
 
 What is on it, 1180px wide, one screen on a laptop:
 
-- **Header**: name, three pills — `replies` · `overdue` · `invitations` — always shown, coloured only when not zero, a click scrolls to Your move; `Live · updated hh:mm` — also the **status**: its dot is green while everything runs, red with a short note (`· job pages paused`, `· 3 issues`) when something is degraded, and a click lists each part with what is wrong — the job scanner (idle over 3 hours, or its last run could not read Search rules), job pages (paused by Upwork: Run state's `JOB_PAGES_PAUSE` and `DEFERRED` lines, `references/hourly.md` §4), the Notion and Upwork connectors, a pipeline update pending or stopped, an outdated dashboard, a Proposal guide not filled while auto proposals are on —, Refresh, **Settings** (a popover with the `auto_drafts` / `auto_skip` switches, written to the config, and the `chat_project` the job chats open in, shown read-only — it is changed in chat).
+- **Header**: name, three pills — `replies` · `overdue` · `invitations` — always shown, coloured only when not zero, a click scrolls to Your move; `Live · updated hh:mm` — also the **status**: its dot is green while everything runs, red with a short note (`· job pages paused`, `· 3 issues`) when something is degraded, and a click lists each part with what is wrong — the job scanner (idle over 3 hours, or its last run could not read Search rules), job pages (paused by Upwork: Run state's `JOB_PAGES_PAUSE` and `DEFERRED` lines, `references/assess.md` §2), the Notion and Upwork connectors, a pipeline update pending or stopped, an outdated dashboard, a Proposal guide not filled while auto proposals are on —, Refresh, **Settings** (a popover with the `auto_drafts` / `auto_skip` switches, written to the config, and the `chat_project` the job chats open in, shown read-only — it is changed in chat).
 - **Leads** (left): `New` cards from `Inbox` minus jobs already applied to, Take / Maybe / Skipped tabs (Skipped: the last 2 days, more on request, Auto / Manual on the right), an "Only ready" switch, a "Proposal ready" / "Writing…" mark on the right of a row from the job's row in Proposals `Open`, grouped by day, posting time on the right, the client's numbers against the user's estimate in a Client / Me grid, flags on each side; a green mark for a score at or above `match_score`. Every value is a column shown as stored — the page never parses text.
 - **Connects** and **Balance** tiles (right, top).
 - **Your move**: everything that waits on the user, each thing once — contracts that need a reply or have an overdue milestone (a short row: what it needs — the overdue milestone named — and the summary; the card itself stays under Contracts), other chats where the next message is the user's, invitations and offers. Each chat and contract carries Claude's summary of the thread and the next step (`Your move: …`), made with `sample` from the last 12 messages and redone when a new message arrives; a chat's or contract's drawer opens with the same summary, the thread folded below it. An invitation shows its job card's advice (the hourly run gives every pending invitation a card) and opens that card's lead drawer — Write a proposal, Skip, Claude chat; until the card exists it says the next hourly run assesses it.
@@ -194,12 +196,12 @@ Five tasks, each a fresh session, each with the Notion and Upwork connectors. Th
 | Upwork questions — weekly | e.g. Sunday 20:00 | `Use the upwork-pulse skill in weekly review mode on <root>. Scheduled run. Work silently: write nothing until the final reply.` |
 | Upwork drafts | no schedule — started by the dashboard's Write a proposal / Rewrite button | `Use the upwork-pulse skill in drafts mode on <root>. Scheduled run; the jobs come with the run. Work silently: write nothing until the final reply.` |
 
-The drafts task has no schedule of its own: the hourly run writes drafts through an Opus subagent, and this task exists so the dashboard can write or redo one job's proposal. Write its id into the config as `drafts_task`.
+The drafts task has no schedule of its own: the hourly run assesses its finds and writes their drafts through an Opus subagent of its own (`references/assess.md`), and this task exists so the dashboard can write or redo one job's proposal. Write its id into the config as `drafts_task`.
 
 Each digest's window starts at the other digest's time, so the two cover the day without gaps; put the user's times into both prompts. Schedule the digests and the weekly review at exactly the minute the user gave — no shifting of the minute to spread load, even where the scheduling tool suggests it: a digest that runs at 10:48 while the next one's window starts at 11:00 loses whatever was found in between. Only the hourly search may run at any minute.
 
 Where the surface has a task-creation tool (Cowork: `create_trigger`), create the five tasks yourself — this is the user's request, so `initiation` is `human_request`; cron in UTC per the tool's rules. The tool takes no model and no approval mode, so two things follow it:
-- **Model**: the runs are written for Sonnet, the drafts task for Opus. Ask once, in the setup questions (default: Sonnet for the four, Opus for drafts), and set each with `update_trigger` `model` — that is the user's explicit choice, which the tool requires.
+- **Model**: the runs are written for Sonnet, the drafts task for Opus; the hourly run starts Opus itself for what it finds (`model: "opus"`, the alias, so a newer Opus is picked up without a change here). Ask once, in the setup questions (default: Sonnet for the four, Opus for drafts), and set each with `update_trigger` `model` — that is the user's explicit choice, which the tool requires.
 - **Notifications**: the push comes from the run itself (the `PushNotification` tool, SKILL.md → automatic mode), not from the task's notification setting; the task's final reply is not pushed. Leave that setting as it is.
 - **Approval**: the runs write to Notion unattended. If a created task reports that its runs will ask for approval, tell the user to switch it to "Automatically approve" in its settings.
 
@@ -213,7 +215,7 @@ Fetch the root page: the config toggle first with every key filled (except `dash
 
 If you created the tasks: fire the hourly one once (`fire_trigger`), wait a few minutes, and query `runs_latest`. A new row means the task session has the skill, the connectors and write access. No row → the task's last run tells why (the plugin not installed on that surface, a connector missing, approval pending); say so to the user plainly — the pipeline does not run until it is fixed.
 
-Reply in `language` with: what was created, adopted or already in place; the placeholders left in the rules pages for the user to fill; **the tasks** — created, or, when this session cannot create them, the §8 table itself in the reply: every task with its schedule and its full prompt carrying the real root URL (saying they are not created without the table leaves the user with nothing to act on); **the dashboard** — its URL; where no artifact tool exists, fill the file anyway (§7 step 1) and say where it is and what can host it. Add one line on models: the scheduled tasks run on Sonnet; proposals are best written in a chat on Opus. End with the first live check: "run the hourly search now" in this chat.
+Reply in `language` with: what was created, adopted or already in place; the placeholders left in the rules pages for the user to fill; **the tasks** — created, or, when this session cannot create them, the §8 table itself in the reply: every task with its schedule and its full prompt carrying the real root URL (saying they are not created without the table leaves the user with nothing to act on); **the dashboard** — its URL; where no artifact tool exists, fill the file anyway (§7 step 1) and say where it is and what can host it. Add one line on models: the search, digests and weekly review run on Sonnet; the hourly run assesses what it finds and writes its proposals on Opus through a subagent, and the drafts task runs on Opus; a proposal written in chat uses the chat's model. End with the first live check: "run the hourly search now" in this chat.
 
 ## 10. Updating an existing pipeline — "update the pipeline"
 
@@ -279,8 +281,17 @@ Auto skip covers every Skip advice, not only the one just written, and `Locked` 
 
 ### To 7 (from 6)
 
-The estimate becomes a column: `Estimate` holds the hours by part of the work and is written in the same call as `My hours` and `My $`, so the breakdown and the numbers can no longer disagree (a card's body text was a second write that could fail on its own). New cards have four body sections (`references/hourly.md` §5).
+The estimate becomes a column: `Estimate` holds the hours by part of the work and is written in the same call as `My hours` and `My $`, so the breakdown and the numbers can no longer disagree (a card's body text was a second write that could fail on its own). New cards have four body sections (`references/assess.md` §4).
 
 1. **Jobs**: `ADD COLUMN "Estimate" RICH_TEXT COMMENT 'Hours by part of the work, one per line; they add up to My hours'` when missing. `Flags` without the `invited` option gets it: `ALTER COLUMN "Flags" SET MULTI_SELECT(...)` with every option the column has now, in its order and colours, plus `'invited':blue` — an option left out of that list is removed from the cards, so fetch the data source first and copy them all.
 2. **Old cards** stay as they are: their `## Estimate` body section is kept, the column stays empty, and the dashboard shows the section in About the job. Nothing is converted.
 3. **Report** in `language`: the estimate is now a breakdown by part of the work in the `Estimate` column, shown in the dashboard's Client vs me and in the hourly report; old cards keep their text; the `invited` flag option was added (or was there).
+
+### To 8 (from 7)
+
+Every piece of work records the model that did it (SKILL.md → *Which model*), so the user can see which model found the jobs, which reviewed each one and which drafted its proposal.
+
+1. **Columns**, each when missing (`ADD COLUMN`): Jobs `"Reviewed by" RICH_TEXT COMMENT 'The model that last reviewed the job: assessment, estimate or advice'`; Proposals `"Drafted by" RICH_TEXT COMMENT 'The model that drafted this text; empty when written outside the pipeline'`; Runs `"Found by" RICH_TEXT COMMENT 'The model that ran the search'` and `"Reviewed by" RICH_TEXT COMMENT 'The model that reviewed the survivors'`.
+2. **Old rows** stay empty: who wrote them is not known, and a guess would be the very thing the column exists to catch. Nothing is converted.
+3. **Report** in `language`: from now on the cards, proposals and runs record the model that wrote them, and the dashboard shows it on the job; older ones have none.
+

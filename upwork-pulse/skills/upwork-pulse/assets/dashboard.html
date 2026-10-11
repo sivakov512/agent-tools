@@ -208,6 +208,7 @@
   .dr-actbar button.no.hint { border-color: color-mix(in srgb, var(--warn) 55%, var(--border)); color: var(--warn); }
   .dr-dec { margin: 12px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--text-2); max-width: 68ch; }
   .dr-dec b { font-weight: 600; }
+  .dr-dec .by { color: var(--text-mute); white-space: nowrap; } /* the model that wrote the advice */
   .dr-dec.apply b { color: var(--good); } .dr-dec.skip b { color: var(--warn); } .dr-dec.busy b { color: var(--accent); } .dr-dec.fail b { color: var(--critical); }
   .dr-next { margin-top: 10px; border: 0; background: none; padding: 0; cursor: pointer; font-size: 13.5px; font-weight: 500; color: var(--accent); }
   .dr-next:hover { text-decoration: underline; text-underline-offset: 2px; }
@@ -619,7 +620,7 @@
   var VIEW_APPLIED = "__VIEW_APPLIED__";
   var VIEW_SKIPPED = "__VIEW_SKIPPED__";
   var VIEW_PROPOSALS_OPEN = "__VIEW_PROPOSALS_OPEN__", VIEW_PROPOSALS_SENT = "__VIEW_PROPOSALS_SENT__";
-  var SCHEMA = 7; // the Notion structure this page reads (config `schema`)
+  var SCHEMA = 8; // the Notion structure this page reads (config `schema`)
   var DASH_VERSION = "0.16.0"; // x-release-please-version
   var STALL_MIN = 20; // a proposal still "Writing" after this many minutes: the task stopped without writing it
   var REMOTE = "Claude Code Remote"; // fire_trigger: the Rewrite button starts the drafts task
@@ -945,8 +946,15 @@
     if (extra) { var xw = el("div", "dsec-x"); xw.appendChild(extra); hw.appendChild(xw); }
     s.appendChild(hw); s.appendChild(b); host.appendChild(s); return b;
   }
-  function decLine(kind, label, text) {
-    var d = el("p", "dr-dec " + kind); d.appendChild(el("b", "", label)); if (text) d.appendChild(document.createTextNode(" — " + text)); return d;
+  function decLine(kind, label, text, by) {
+    var d = el("p", "dr-dec " + kind); d.appendChild(el("b", "", label)); if (text) d.appendChild(document.createTextNode(" — " + text)); if (by) d.appendChild(el("span", "by", " · by " + by)); return d;
+  }
+  function runModels(r) { // a run's Found by and Reviewed by → "found by Sonnet 5.5, reviewed by Opus 5.5"; "" when it recorded neither
+    var f = modelName(r["Found by"]), v = modelName(r["Reviewed by"]);
+    return [f && "found by " + f, v && "reviewed by " + v].filter(Boolean).join(", ");
+  }
+  function modelName(id) { // the model a row records (Reviewed by, Drafted by, Found by): each "claude-opus-5-5" → "Opus 5.5", the rest as written
+    return plain(id || "").trim().replace(/\bclaude-([a-z]+)-(\d+)(?:-(\d{1,2}))?(?:-\d{8})?\b/gi, function (_, f, a, b) { return f.charAt(0).toUpperCase() + f.slice(1).toLowerCase() + " " + a + (b ? "." + b : ""); });
   }
   function noteHead(text) { // the header line of a plaque in the drawer
     var h = el("div", "ch"); h.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></svg>';
@@ -1293,7 +1301,7 @@
     b.addEventListener("click", go); b.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") go(e); });
     return b;
   }
-  function jobSections(host, card, jobId, aboutShut, scoreLine) { // the first two sections of every drawer about a job: Client vs me (always open), then About the job
+  function jobSections(host, card, jobId, aboutShut, scoreLine, byShown) { // the first two sections of every drawer about a job: Client vs me (always open), then About the job
     if (!card) {
       if (jobId) dsec(host, "About the job", "", null, aboutShut).appendChild(el("div", "dr-empty", "This job has no card in Notion yet; the proposals sync adds one."));
       return;
@@ -1307,7 +1315,7 @@
       sl.appendChild(document.createTextNode(card._why.join(" · ")));
       cv.appendChild(sl);
     }
-    notesInto(dsec(host, "About the job", "", null, aboutShut), card);
+    notesInto(dsec(host, "About the job", card["Reviewed by"] && !byShown ? "by " + modelName(card["Reviewed by"]) : "", null, aboutShut), card); // who judged the job, unless the advice line above says it
   }
   function leadDrawer(r0) {
     var id0 = r0["Job ID"];
@@ -1355,21 +1363,23 @@
         dec = decLine("skip", r["Skipped by"] === "auto" ? "Skipped automatically" : "Skipped manually", (plain(r["Skip reason"]) || "no reason given") + (sw ? " · " + fmtWall(sw, true) : ""));
       } else if (ps === "Writing") dec = decLine("busy", "Writing the proposal", "it shows up below in a few minutes");
       else if (ps === "Stalled") dec = decLine("fail", "Not written", "the task stopped without a proposal (its run in Claude says why); Rewrite to try again");
-      else if (r.Advice) dec = decLine(r.Advice === "Apply" ? "apply" : "skip", r.Advice, plain(r["Advice why"]));
+      else if (r.Advice) dec = decLine(r.Advice === "Apply" ? "apply" : "skip", r.Advice, plain(r["Advice why"]), modelName(r["Reviewed by"]));
       if (dec) x.head.appendChild(dec);
       if (ready) { // where to look next: the proposal; the count of points to confirm arrives with the page
         var go = el("button", "dr-next", "Proposal ready ↓"); go.type = "button"; go.id = "drNextProp";
         go.addEventListener("click", function () { var t = $("secProposal"); if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); });
         x.head.appendChild(go);
       }
-      jobSections(x.inner, r, r["Job ID"], r.Status === "Applied", true); // applied: the job is known by now, the proposal and what follows matter
+      jobSections(x.inner, r, r["Job ID"], r.Status === "Applied", true, !!(dec && r.Advice && r["Reviewed by"] && ps !== "Writing" && ps !== "Stalled" && r.Status !== "Skipped")); // applied: the job is known by now, the proposal and what follows matter
       draftSection(x.inner, r);
       dsec(x.inner, "Facts", "", null, true).appendChild(factsBox([
         ["Job ID", fullIdBadge(r["Job ID"])],
         ["Posted", pub ? fmtWall(pub, true) : "unknown"],
         ["Found", fnd ? fmtWall(fnd, true) : ""],
         ["Advised", wallFromNotion(r["date:Advised on:start"]) ? fmtWall(wallFromNotion(r["date:Advised on:start"]), true) : ""],
+        ["Reviewed by", modelName(r["Reviewed by"])],
         ["Proposal written", wpr && pr.State !== "Writing" ? fmtWall(wpr, true) : ""],
+        ["Drafted by", pr && pr.State !== "Writing" ? modelName(pr["Drafted by"]) : ""],
         ["Proposal sent", spr ? fmtWall(spr, true) : ""],
         [r.Status === "Skipped" ? "Skipped" : "Applied", r.Status !== "New" && dcd ? fmtWall(dcd, true) : ""]
       ]));
@@ -1520,6 +1530,7 @@
     if (!ps && !(live && canDraft())) return;
     var dw = pr ? wallFromNotion(pr["date:Written:start"]) : null, sw = wallFromNotion(r["date:Decided on:start"]);
     var right = ps === "Writing" ? "writing…" : ps === "Stalled" ? "not written" : ps === "Sent" ? (sw ? "sent " + fmtWall(sw, true) : "as sent") : dw && ps === "Ready" ? "written " + fmtWall(dw, true) + (propBeforeSkip(r, pr) ? ", before the Skip advice" : "") : "";
+    if (pr && pr["Drafted by"] && ps !== "Writing" && ps !== "Stalled") right += (right ? " · " : "") + "by " + modelName(pr["Drafted by"]); // which model drafted the text
     var fs = el("div", "dfs"), pb = dsec(host, ps === "Sent" ? "What you sent" : "Proposal", right); pb.appendChild(fs); pb.parentNode.id = "secProposal";
     if (!ps) { fs.appendChild(el("div", "dr-empty", "No proposal yet. Write a proposal (above) has Claude write one from fresh data in a few minutes.")); return; }
     if (!pr || ps === "Writing" || ps === "Stalled") { fs.appendChild(el("div", "dr-empty", ps === "Stalled" ? "The task stopped before writing a proposal. Rewrite (above) starts it again." : "Claude is writing the proposal; it shows up here in a few minutes.")); return; }
@@ -1628,7 +1639,7 @@
     }, function () {});
   }
 
-  // Upwork refuses job pages opened too fast; the hourly run then pauses them and defers what it found (Run state, hourly.md §4)
+  // Upwork refuses job pages opened too fast; the hourly run then pauses them and defers what it found (Run state, assess.md §2)
   function checkJobPages() {
     if (!S.cfg.state) { S.jobPages = null; return; }
     MCP.callTool(NOTION, "notion-fetch", { id: S.cfg.state }, { cache: { staleTime: 300000, gcTime: 86400000 } }).then(function (res) {
@@ -2332,7 +2343,7 @@
     var what = last.r.Status === "ok" ? "found " + (last.r.Take || 0) + " take, " + (last.r.Maybe || 0) + " maybe" : last.r.Status === "partial" ? "hit its budget, continues next run" : "nothing new";
     S.scanner = { age: age, w: last.w, idle: age > 3 * 3600000, what: what, rulesFailed: /rules read failed/i.test(last.r.Window || "") }; renderStatus();
     if (age > 3 * 3600000) host.appendChild(el("span", "chip bad", "Job scanner idle for " + ago(age) + " — check the hourly search task"));
-    else host.appendChild(el("span", "", "Job scanner ran " + ago(age) + " ago · " + what));
+    else host.appendChild(el("span", "", "Job scanner ran " + ago(age) + " ago · " + (runModels(last.r) ? what.replace(/^found /, "") + " · " + runModels(last.r) : what)));
   }
 
   function renderQuestions() {
