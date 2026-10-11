@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.16.0...upwork-pulse-v0.17.0) (2026-10-11)
+
+
+### Features
+
+* **upwork-pulse:** Opus reviews jobs, records which model did what ([4c9f4b2](https://github.com/sivakov512/agent-tools/commit/4c9f4b2dbadb3ba9fa8c9adc9ca910d54a0844b8))
+
 ## [0.16.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.15.1...upwork-pulse-v0.16.0) (2026-10-10)
 
 
