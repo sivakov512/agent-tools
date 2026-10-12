@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.12.0...project-tracker-v1.12.1) (2026-10-12)
+
+
+### Bug Fixes
+
+* **project-tracker:** name items with their IDs, shorter change reports ([3cca32b](https://github.com/sivakov512/agent-tools/commit/3cca32b5772afee486e0ef10264a2c57adeb86ec))
+
 ## [1.12.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.11.0...project-tracker-v1.12.0) (2026-10-12)
 
 
