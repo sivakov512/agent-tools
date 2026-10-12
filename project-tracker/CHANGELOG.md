@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.11.0...project-tracker-v1.12.0) (2026-10-12)
+
+
+### Features
+
+* **project-tracker:** history keeps outcomes, not every message ([d92be3e](https://github.com/sivakov512/agent-tools/commit/d92be3e3a73b008d2fb3da1f3992cd51b0f49c26))
+
 ## [1.11.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.10.0...project-tracker-v1.11.0) (2026-10-10)
 
 
