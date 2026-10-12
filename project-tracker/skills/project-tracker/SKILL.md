@@ -15,7 +15,7 @@ A root page, named as the user likes, with four databases. A project is planned 
 - **Milestones** — the stages the client was promised: `Name`, `Project`, `Status` (Planned / In progress / Paused / Done / Dropped), `Dates` (agreed with the client; they draw the Gantt), `Finished` (the day it was actually done), `Order`, `Late, days` (computed), `Tasks`. `Project status` and `Open late` are helpers.
 - **Tasks** — steps of days or weeks: `Name`, `Project` (always), `Milestone` (empty in a project without milestones), `Status` (Planned / In progress / Waiting / Done / Dropped), `Dates` (agreed with the client; empty for a step the user plans only for themselves), `Waiting on`, `Finished`, `Order` (within its milestone), `Late, days` (computed). `Project status`, `Milestone status`, `Open late` are helpers.
 - **Problems** (config key `problems`) — only what was not in the plan: `Name`, `Project`, `Type` (Blocker / Risk / Question), `Status` (Open / Waiting / Resolved / Dropped), `Waiting on`, `Milestone`, `Task`, `Summary` (one sentence: what is wrong and what it would cost — for a risk, its consequence; once resolved, how it ended; rewritten in place), `Opened`, `Resolved on`.
-- On all four: `Ref` — the row's ID, numbered by Notion, never written (`PR-2`, `MS-12`, `TK-34`, `PB-5`, with the prefixes the config's `ref_prefixes` lists in the order projects, milestones, tasks, problems); `Chat` — the row's Claude chat, written only as `references/chats.md` says. On Projects also `Claude project` (`references/chats.md`) and `Client dashboard` (`references/client-dashboards.md`).
+- On all four: `Ref` — the row's ID, numbered by Notion, never written (`PR-2`, `MS-12`, `TK-34`, `PB-5`, with the prefixes the config's `ref_prefixes` lists in the order projects, milestones, tasks, problems). Whenever you name a row to the user — in a reply, a question, a report — the ID comes with the row's name (`TK-3 Prototype run cost estimate`) — once per item in a list, at its first mention in prose: the user does not keep IDs in mind, the ID is there so they can name the row back; `Chat` — the row's Claude chat, written only as `references/chats.md` says. On Projects also `Claude project` (`references/chats.md`) and `Client dashboard` (`references/client-dashboards.md`).
 
 `Removed` and `Dropped` are for things the user threw away; views, counts, overviews and reports look only at the other ("live") statuses.
 
@@ -187,16 +187,19 @@ Changing one line or block: `update_content` with `old_str` exactly as fetched. 
 1. Before writing, note the current values of everything you are about to change — you have them from the read.
 2. Write the rows first. Only after they succeeded, bring `Summary`, `Target end` and the status callout in line with what changed — never in parallel with the row writes, so a failed write never leaves the page describing a change that did not happen.
 3. **Client dashboard.** If the project's `Client dashboard` holds a link (from its `Active` or `Closed` row, or a fetch of the project page), refresh that page once, after all the writes: `references/client-dashboards.md` → **Keeping it current**. A change that touched nothing but Private notes (a `Client side:` note aside), the callout, `Chat`, `Claude project` or the link itself refreshes nothing — none of them shows there.
-4. Reply with the changes, one short line each, led by the item's ID — fields as **was → now**, what was written quoted exactly as it went in (a history entry, a field value, a short note: a sentence or two each; a rewritten entry as old → new). A long note, a sub-page, a table or a file is named by where it went and what it holds, in a few words, never pasted into the chat:
+4. Reply with the changes, grouped by item: its ID and name once, then one short line per change — fields as **was → now**, what was written quoted exactly as it went in (a history entry, a field value, a short note: a sentence or two each; a rewritten entry as old → new). A long note, a sub-page, a table or a file is named by where it went and what it holds, in a few words, never pasted into the chat:
 
    ```
-   TK-95 Boards bring-up → Done, finished Oct 8 (due Oct 9)
-   TK-95 history: "Oct 8 — All five rev B boards brought up, without the accelerometer."
-   PR-13 note: "For rev C: the accelerometer footprint is rotated 90°." — on the project, so rev C finds it
-   MS-6 private note: Cell Pack's quote — prices at 1k, 3k and 5k, MOQ, lead time
+   TK-95 Boards bring-up
+     → Done, finished Oct 8 (due Oct 9)
+     history: "Oct 8 — All five rev B boards brought up, without the accelerometer."
+   PR-13 Bike radar
+     note: "For rev C: the accelerometer footprint is rotated 90°." — on the project, so rev C finds it
+   MS-6 Demo prototype
+     private note: Cell Pack's quote — prices at 1k, 3k and 5k, MOQ, lead time
    ```
 
-   Nothing around the list beyond what a rule here asks for (a delay's preview, an offer to move dates, a line on what was made private): no reasons for what was left out, nothing about what did not change, no word on what you will write later, no offers of your own, no retelling of the plan. A place the user would not expect gets its reason in a few words; a question only when something is needed to go on. When nothing was written, one line says so. Never change something silently; the user should not have to open Notion to know what happened.
+   The list is the whole reply. A sentence is added only when a rule here asks for one (a delay's preview, an offer to move dates, a few words on why something went private or somewhere unexpected) or for a question the next step needs. Nothing else — not why something was left out or rewritten, not what did not change, not what you will do later: the user reads this between other work, and every extra sentence is one more thing to read. When nothing was written and the user seemed to expect a write, one line says so (**What is worth writing**). Never change something silently; the user should not have to open Notion to know what happened.
 
 These steps hold for every write, whichever reference describes it. **Undo** ("undo that", "revert", "put it back") takes a change back, it is not a new fact: `references/plan-changes.md` → **Undo**.
 
