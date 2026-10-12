@@ -26,7 +26,7 @@ The root page holds the config toggle, then the views you read: Projects `Active
 1. **Description** — under no heading: what the item is now — its scope, "done when", a checklist (`- [ ] …`), where its material lives. Edited in place; a checklist item is ticked when done. The test against a note: the description is what the item *is*, kept current; a note is dated material, kept as it was.
 2. **`## Notes`** — dated material, oldest first: `**Oct 2** — …` paragraphs, long text as sub-pages, files. Added to, never rewritten.
 3. **`## Private notes`** — the same, for what only the user may see (**Who sees what**).
-4. **`## History`** — what happened to the item and why: dated list lines `- **Mar 4** — …`, oldest first. Only appended. A line never says what comes next or which row follows: plans change and such a line goes stale; the order of the plan is `Order`'s job.
+4. **`## History`** — what happened to the item and why: dated list lines `- **Mar 4** — …`, oldest first. Appended; an entry is rewritten only to settle an exchange into its outcome (**What is worth writing**) or to correct it. A line never says what comes next or which row follows: plans change and such a line goes stale; the order of the plan is `Order`'s job.
 
 The headings are exactly `## Notes`, `## Private notes` and `## History` and mark nothing else; a section's heading comes with its first entry, so a page never shows an empty one. The dashboard reads the parts by these headings. A step done gets both its checklist tick (the current state) and a history line (the dated record).
 
@@ -54,9 +54,9 @@ A history line keeps the event; an internal reason behind it is a private note b
 - A problem says what is wrong: `No CI runners in GitLab`, `Battery cell doesn't fit the pocket`.
 - A source's longer wording, when it says more than the name, becomes the row's description (`From the demo plan: "Flashed and working in the US".`), so nothing of it is lost.
 
-**How big a task is.** A task deserves its own line in a weekly report: days or weeks of work, or a handover worth chasing. Anything smaller — "flashed the dev board", "wrote the driver" — is progress: a history line on the task or milestone it belongs to, never a new row. A task row is created only when the user asks for one, from an imported plan, or in a plan change the user approved.
+**How big a task is.** A task deserves its own line in a weekly report: days or weeks of work, or a handover worth chasing. Anything smaller — "flashed the dev board", "wrote the driver" — is progress: a result for a history line on the task or milestone it belongs to (**What is worth writing**), never a new row. A task row is created only when the user asks for one, from an imported plan, or in a plan change the user approved.
 
-**Dates are always agreed.** Every date in the tracker is one the client was given; a step the user plans only for themselves has no `Dates`, placed by its milestone and `Order`. A date not agreed yet goes into the history (`- **Oct 6** — Proposed to Fjord Labs: Oct 20 – Oct 31, not agreed yet.`) or, when someone has to confirm it, into a Question waiting on them. `Dates` move only when the user says the new dates are agreed with the client (or that the project runs on the user's own plan), each move a history line `old → new` — moving them silently would erase the lateness they exist to show. A task whose agreed dates would run past its milestone's end moves the milestone's end too — shown as part of the same change and agreed with it.
+**Dates are always agreed.** Every date in the tracker is one the client was given; a step the user plans only for themselves has no `Dates`, placed by its milestone and `Order`. A date not agreed yet goes into the history (`- **Oct 6** — Proposed to Fjord Labs: Oct 20 – Oct 31, not agreed yet.`) until it is agreed. `Dates` move only when the user says the new dates are agreed with the client (or that the project runs on the user's own plan), each move a history line `old → new` — moving them silently would erase the lateness they exist to show. A task whose agreed dates would run past its milestone's end moves the milestone's end too — shown as part of the same change and agreed with it.
 
 **How lateness works.** Lateness is measured against `Dates`, on milestones and tasks alike, and Notion computes it live, so nothing you write about it can go stale. A Done item is late by `Finished` − end of `Dates` (negative = early). An open item (Planned, In progress, Waiting) whose end has passed is late by today − end. Nothing Paused, or under something Paused, is late: the work is stopped, not overrun. The project's `Late, days` is the worst of its open milestones and tasks. The API returns formula values as opaque references, so when you need a number, compute it from the dates by the same rule.
 
@@ -81,12 +81,34 @@ A history line keeps the event; an internal reason behind it is a private note b
 
 ### What is worth writing
 
-Pages are read by the user and the client; a page that grows by everything said stops being read. So:
+Pages are read by the user and the client, and a page that grows by everything said stops being read — then the tracker is worth nothing. Everything written is written to be used later. So for each message decide what the pages should say once it is taken in, rather than how to log the message — sometimes that is nothing new.
 
-- **Only the user's or the source's facts** — no added causes, details or commitments on the user's behalf.
-- **Only what someone will need later**: facts, decisions, agreements, numbers, dates, who did what and why. Leave out how the user got there, thinking aloud, moods, asides, and what the page already says. A message may need no write at all — then nothing is written, and the reply says so if the user seemed to expect it.
-- **A history line is one sentence** on what happened and why, in your words from the user's facts — not a quote of the message.
+**What a record is for.** Someone opens a page to see where the item stands and since when; to settle dates and money with the client — what was agreed, sent, delivered and when, who waited on whom and how long; to answer an exact question — an amount and its breakdown, a limit, a formula, a part number, a dimension; to know why something changed. What serves none of these is not written.
+
+**Each fact in one place.** What is true now — status, whom it waits on, what the item is, what is left to do — lives in the fields and the description, kept current: after every message the fields say who holds the ball (the item Waits on the party who has to answer, and is back In progress when the user has work on it again). What happened and when lives in History. Material — a reply's full terms, a quote, a spec — is a note, and the history entry that it came with says so in a few words instead of repeating it. Nothing is written twice: not in the description and again in an entry (a request that becomes checklist items gets a dated entry saying who asked, pointing to the checklist rather than listing it again), not on a task and again on its milestone, its project or a new problem (a line naming the problem is a pointer, not a repeat). "Still waiting on Element", "70% done" are state: the fields say it, or nothing does.
+
+**An exchange settles into its outcome.** Asking, proposing, quoting, promising or sending something for approval opens an exchange; the answer, the agreement, the delivery or the decision settles it. The opening is worth an entry when someone else now holds the ball — it shows since when — and so is every reminder sent while it stays open. When it settles:
+
+- the wait did not matter — answered the same or the next working day, nothing held up, no promised date passed → the opening entry is rewritten into the outcome, dated by it, so one entry is left (moved to the end if entries came after it, so the history stays oldest first) (`- **Oct 3** — Board 1.2 mm thick instead of 1.6, agreed with Dana.`). Only the opening entry is rewritten — an entry for something else done meanwhile (a fix, a result) stays as it is, with its date. The rewrite keeps what the opening holds that someone may ask about — above all who asked for what, and when (`- **Oct 10** — Second board variant, asked for by Medica on Oct 8: agreed at +$600, end Oct 31 → Nov 4.`);
+- the wait mattered — it held the work up, needed chasing, took longer, or a promised date passed → the opening stays and the outcome is an entry of its own: that gap is the record of who held things up. A delay and the agreement on it are always two entries: the slip is the record.
+
+Options and proposals that were not taken leave no entry of their own; the entry for what was agreed says what was agreed. With several parties — quotes asked from three suppliers — the exchange settles at the decision: until then an answer may have its entry; the decision rewrites those entries into one, their material staying in notes.
+
+**Work is recorded by its results.** While an item is under way, a result a client update would name — a part working, a value measured, a finding ("BLE connects to a phone", "TIMER1 erratum, worked around with TIMER2") — is an entry: the weekly report is built from these, and they date how the work went, so they stay when the item is done. The checks and sub-steps on the way to a result ("power rails OK", "70% routed") are not entries.
+
+**What an entry holds.**
+
+- **The facts, exact**: amounts with their breakdown, limits, formulas, part numbers, dimensions, dates, names. An entry is short in words, never by dropping a number someone may ask about.
+- **One subject.** A message about three items is three entries, each where it belongs. Where nothing fits better, a fact goes on the item the conversation is about, and the reply says where — never left out while you ask where it should go.
+- **Only what the user or the source said.** An unclear statement is not recorded as a fact — ask what was meant, or leave it out. No causes, plans or commitments added on the user's behalf.
+- **No facts riding inside a request.** "Make sure the open point with the enclosure maker doesn't move the connector" claims an open point; if the pages know nothing of it, record the request without the claim and ask the user what is meant.
+- **Never what comes next** ("priced once she chooses"): plans change and such an entry goes stale.
+- **A history line is one sentence** on what happened and why, in your words — not a quote of the message.
 - **A note is a short summary**, never a transcript. Material that already lives somewhere (a doc, an email in the user's mailbox, a link) is summarised with the link, never copied. A sub-page keeps text as given only when it has no other home — call notes, a spec or an email thread the user pasted — so its source is not lost (`references/notes.md`).
+
+**The user's word decides.** When the user asks for something to be recorded ("write down that the rails check out", "note this"), it is recorded, whatever the rules above would leave out: they know what they will need. It still goes where it belongs (**Every record goes where it belongs**) and is written as an entry holds.
+
+**Nothing is a fine answer.** Progress chatter, a mood, thinking aloud, a step the next entry will cover: nothing is written, and the reply says so in a few words if the user seemed to expect a write. When unsure, keep a fact and drop a step: a fact that may be asked about — a number, a request someone made, a reminder, a date — is kept; a step of an exchange that its outcome will cover is left out.
 
 ### Every record goes where it belongs
 
@@ -98,7 +120,8 @@ A note, a file, a history line, a problem's links — each goes where it will be
   - another task, milestone or problem → that one;
   - what adds up across several tasks of a stage — money spent and its documents, decisions, agreements, contacts, context shared by all its tasks ("added with the demo plan shown to the client") → their milestone, once, not on each task;
   - what spans milestones, or the project as a whole (paused, finished, removed, its target end changed) → the project;
-  - progress on a milestone with an In-progress task → that task.
+  - progress on a milestone with an In-progress task → that task;
+  - what later work must not forget (a defect to fix in the next revision, a lesson for the next batch) → where that work will look: its item if it exists, else a note on the project — not only the history of the item where it was found.
 - **An expense** — a receipt, an invoice, a payment for the client — is one dated note on the milestone it was spent for (else the project): the amount, the document's number, its file. Public or private by **Who sees what**.
 - **Not where the conversation is** → write it where it belongs and say so in the reply's line for it, with why (`Noted on MS-6 Demo prototype, not the task: the demo's expenses are kept there`); the user can still move it.
 - **The user named the place** and you see a clearly better one → ask first, in one line: their word is what was asked for.
@@ -118,7 +141,7 @@ A note, a file, a history line, a problem's links — each goes where it will be
 
 A project: query the `Active` view and match by meaning ("the rain gauge" → "Weather station", "the masts" → "Weather station" whose repository is `wx_mast`). A Done project: `Closed`. A Removed one only when the user names it or asks to bring it back. A milestone, task or open problem: the project's `Schedule` / `Tasks` / `Problems` views; a Resolved problem ("it came back, not fixed"): the root `Recently resolved` view, older ones by `notion-search`. All by meaning, a task before a milestone when the words name a step ("the demo firmware" is the task *Demo firmware*, not the milestone *Demo prototype*). One candidate → no question; several plausible ones → ask.
 
-**Overdue check.** When you work on one project and one of its open milestones or tasks has an end before today (not Paused, nor its milestone or project), mention it and ask what happened — finished (on which day), a new date agreed with the client, or still going — unless its latest history line already explains it or the user answered earlier in this conversation. "Still going" with a reason gets a history line (`- **Mar 24** — Still going: waiting for the second batch.`); the item stays late, and a Planned one becomes In progress.
+**Overdue check.** When you work on one project and one of its open milestones or tasks has an end before today (not Paused, nor its milestone or project), mention it and ask what happened — finished (on which day), a new date agreed with the client, or still going — unless its latest history line already explains it or the user answered earlier in this conversation. "Still going" with a reason gets a history line with the reason as a fact (`- **Mar 24** — Past its end: the second batch is late.`); the item stays late, and a Planned one becomes In progress.
 
 ## Notion calls
 
@@ -164,7 +187,16 @@ Changing one line or block: `update_content` with `old_str` exactly as fetched. 
 1. Before writing, note the current values of everything you are about to change — you have them from the read.
 2. Write the rows first. Only after they succeeded, bring `Summary`, `Target end` and the status callout in line with what changed — never in parallel with the row writes, so a failed write never leaves the page describing a change that did not happen.
 3. **Client dashboard.** If the project's `Client dashboard` holds a link (from its `Active` or `Closed` row, or a fetch of the project page), refresh that page once, after all the writes: `references/client-dashboards.md` → **Keeping it current**. A change that touched nothing but Private notes (a `Client side:` note aside), the callout, `Chat`, `Claude project` or the link itself refreshes nothing — none of them shows there.
-4. Reply with one short line per change, **was → now**, each item led by its ID: `TK-34 Demo firmware → Done, finished Oct 28 (due Oct 30) · MS-12 Demo prototype: still In progress, 1 task left`. Never change something silently; the user should not have to open Notion to know what happened.
+4. Reply with the changes, one short line each, led by the item's ID — fields as **was → now**, what was written quoted exactly as it went in (a history entry, a field value, a short note: a sentence or two each; a rewritten entry as old → new). A long note, a sub-page, a table or a file is named by where it went and what it holds, in a few words, never pasted into the chat:
+
+   ```
+   TK-95 Boards bring-up → Done, finished Oct 8 (due Oct 9)
+   TK-95 history: "Oct 8 — All five rev B boards brought up, without the accelerometer."
+   PR-13 note: "For rev C: the accelerometer footprint is rotated 90°." — on the project, so rev C finds it
+   MS-6 private note: Cell Pack's quote — prices at 1k, 3k and 5k, MOQ, lead time
+   ```
+
+   Nothing around the list beyond what a rule here asks for (a delay's preview, an offer to move dates, a line on what was made private): no reasons for what was left out, nothing about what did not change, no word on what you will write later, no offers of your own, no retelling of the plan. A place the user would not expect gets its reason in a few words; a question only when something is needed to go on. When nothing was written, one line says so. Never change something silently; the user should not have to open Notion to know what happened.
 
 These steps hold for every write, whichever reference describes it. **Undo** ("undo that", "revert", "put it back") takes a change back, it is not a new fact: `references/plan-changes.md` → **Undo**.
 
@@ -177,8 +209,8 @@ Find the item: a task first when the words name a step or a handover, else the m
 ### Tasks — "add a task: order a debugger", "sent the RFQ, now waiting on the labs", "Kestrel replied"
 
 - **New**: the user named it, so create it without a preview — `Project`, `Milestone` (the stage it serves, by meaning; the In-progress one if the words fit it; none in a project without milestones), `Status` Planned, `Order` after the milestone's last task, `Dates` only if the user gave them as agreed with the client. First history line `- **Oct 6** — Added.` plus the reason if given. One plausible milestone → no question; several → ask.
-- **Waiting**: the user did their part and someone else has to act → `Status` Waiting, `Waiting on` the party, a history line with what was sent. Back to In progress when the user has work on it again; Done when the result is in. A later message about it gets a history line when it changes what is awaited or from whom ("they asked for the block diagram too"); material worth keeping from it (a spec, the terms of a reply) is a note on the task.
-- **Dates proposed, not agreed** ("I'll suggest Oct 20–31 for the enclosure"): no `Dates`; a history line with the proposal and, if the client has to confirm, a Question waiting on them. When they agree, the dates go in.
+- **Waiting**: the user did their part and someone else has to act → `Status` Waiting, `Waiting on` the party, a history line with what was sent. Back to In progress when the user has work on it again; Done when the result is in. The answer settles the exchange (**What is worth writing**). A later message about it gets a history line when it changes what is awaited or from whom ("they asked for the block diagram too"); material worth keeping from it (a spec, the terms of a reply) is a note on the task.
+- **Dates proposed, not agreed** ("suggested Oct 20–31 for the enclosure"): no `Dates`; a history line with the proposal. When they agree, the dates go in, and the proposal settles into the agreement (**What is worth writing**).
 
 ### Delay — "the boards are three days late", "the supplier slipped a week"
 
@@ -196,7 +228,7 @@ A milestone or project stopped for a reason outside the work gets `Status` Pause
 
 ### Problems — new, resolved, changed
 
-- **New**: the type by what it is — **Blocker** (work cannot proceed until someone acts, and the plan did not expect it), **Risk** (might happen and would move dates; the consequence in `Summary`), **Question** (a decision; `Waiting on` = who decides). Links: `Task` = the task it is about, if the words name one; `Milestone` = the milestone it threatens or blocks ("the lab quote is late, a risk for certification" → `Task` the lab quote task, `Milestone` Certification). `Status` Waiting if someone else has to act on the problem itself, else Open — a risk about a task that already waits on that party is Open with `Waiting on` empty, the task carries the wait. `Opened` today; `Summary` the one sentence; the user's longer account, if any, its description. A new problem about a task gets a history line on that task too; no milestone history line — problems show on the page. Linking an existing problem to a task later is a change to the problem alone (**Changed**).
+- **New**: the type by what it is — **Blocker** (work cannot proceed until someone acts, and the plan did not expect it), **Risk** (might happen and would move dates; the consequence in `Summary`), **Question** (a decision nobody planned for; `Waiting on` = who decides). A question the user asks someone about an item in the plan is not a problem: the item waits on them (**Tasks** → **Waiting**) or its history records the ask. Links: `Task` = the task it is about, if the words name one; `Milestone` = the milestone it threatens or blocks ("the lab quote is late, a risk for certification" → `Task` the lab quote task, `Milestone` Certification). `Status` Waiting if someone else has to act on the problem itself, else Open — a risk about a task that already waits on that party is Open with `Waiting on` empty, the task carries the wait. `Opened` today; `Summary` the one sentence; the user's longer account, if any, its description. A new problem about a task gets a history line on that task too, naming the problem rather than repeating it (`- **Oct 5** — Blocked: see the problem "Battery cell doesn't fit the pocket".`); no milestone history line — problems show on the page. Linking an existing problem to a task later is a change to the problem alone (**Changed**).
 - **Resolved**: `Status` Resolved, `Resolved on` today, `Summary` = how it ended, and a history line (`- **Oct 9** — Resolved: Halden quoted 6 weeks.`). If the answer changes the plan, continue as a delay or plan change.
 - **Changed** ("Dana isn't the one, the client decides", "this risk is now a blocker"): update in place — `Waiting on`, `Type`, `Status` (Waiting ↔ Open by whether someone else has to act), `Milestone`, `Task`; `Summary` rewritten if what it says changed; a history line with what changed and why (`- **Oct 9** — Now a blocker: the lab won't quote without the full BOM.`). A "problem" that turns out to be planned work becomes a task: create it with the problem's description and `Summary` as its description and a first history line `Was the problem "<name>"`, then drop the problem with `Moved to the task <name>.`
 
