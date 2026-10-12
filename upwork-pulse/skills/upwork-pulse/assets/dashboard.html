@@ -1848,19 +1848,24 @@
     }
     return box;
   }
-  function contractDrawer(c) {
+  function linkedChats(c) { // the group chats and direct messages put under this contract (roomContract)
+    return (S.rooms || []).filter(function (r) { var k = !r.contractId && roomContract(r); return k && String(k.id) === String(c.id); });
+  }
+  function contractDrawer(c, chat) { // chat: one of linkedChats(c), opened from Your move — its thread shows instead of the contract's own
     return function (body) {
-      var room = roomByContract(c.id);
+      var own = roomByContract(c.id), room = chat || own;
       var since = c.start_date ? new Date(c.start_date) : null;
-      var x = drHead(body, ["Contract", clean(c.client), since ? "since " + MON[since.getUTCMonth()] + " " + since.getUTCDate() + ", " + since.getUTCFullYear() : "", turnChip(room)], clean(c.title));
+      var x = drHead(body, ["Contract" + (chat ? " · " + chatKind(chat) : ""), clean(c.client), since ? "since " + MON[since.getUTCMonth()] + " " + since.getUTCDate() + ", " + since.getUTCFullYear() : "", turnChip(room)], clean(c.title));
       loadContractJob(c.id);
       if (!S.contractJobs[c.id].busy) setChat(chatLink(contractJob(c.id), clean(c.title), { contract: c.id }));
-      var owe = needsMe(c);
+      var owe = chat ? { reply: myTurn(chat) } : needsMe(c);
       if (room && owe && owe.reply) { x.acts.appendChild(navLink(roomUrl(room.id), "Reply on Upwork")); x.acts.appendChild(navLink(workroom(c.id), "Workroom")); }
       else { x.acts.appendChild(navLink(workroom(c.id), "Workroom")); if (room) x.acts.appendChild(navLink(roomUrl(room.id), "Chat")); }
+      if (chat && own) x.acts.appendChild(navLink(roomUrl(own.id), "Contract chat"));
+      linkedChats(c).forEach(function (r) { if (r !== chat) x.acts.appendChild(navLink(roomUrl(r.id), chatKind(r) === "group chat" ? "Group chat" : "Chat with " + (clientOf(r) || "client"))); });
       if (room && room.latestStory) x.inner.appendChild(summaryCallout(room));
-      var cj = contractJob(c.id);
-      jobSections(x.inner, cardFor(cj), cj, true);
+      var cj = contractJob(c.id), cjCard = cardFor(cj);
+      if (cjCard) jobSections(x.inner, cjCard, cj, true); // no card is normal for a contract won before the pipeline: nothing will add one, so nothing to promise
       var ms = msSorted(c), msData = S.milestones[c.id];
       var sec = dsec(x.inner, "Milestones", ms && ms.length ? ms.filter(function (m) { return m.state === "Paid"; }).length + " of " + ms.length + " paid" : "");
       if (ms && ms.length) {
@@ -2046,16 +2051,37 @@
     if (jobId) { f.appendChild(idBadge(jobId)); f.appendChild(document.createTextNode(" ")); }
     f.appendChild(titleLink(href, title, tip)); return f;
   }
+  // What a chat is about when Upwork does not say (a group chat the client opened, a direct message): the client's
+  // organisation, read once from the chat's last messages and remembered, matched to an active contract's client.
+  function roomContract(r) {
+    if (!r || r.contractId) return null;
+    var org = MEM.orgs[r.id];
+    if (org === undefined) { roomOrg(r); return null; }
+    var hit = null;
+    (((S.dash || {}).active_contracts || {}).contracts || []).forEach(function (c) { if (!hit && org && clean(c.client).toLowerCase() === org.toLowerCase()) hit = c; });
+    return hit;
+  }
+  var orgAsked = {};
+  function roomOrg(r) {
+    if (orgAsked[r.id]) return; orgAsked[r.id] = true;
+    // the same call as the thread summary's, so a summarised chat costs nothing more
+    upCall("upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: r.id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } }, 1).then(function (res) {
+      var org = "";
+      ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []).forEach(function (e) { var n = e.node || {}; if (!org && n.from_side === "client" && n.from_organization) org = clean(n.from_organization); });
+      MEM.orgs[r.id] = org || "-"; memSave(); renderSoon();
+    }, function () {});
+  }
+  function chatKind(r) { return r.roomType === "GROUP" ? "group chat" : r.roomType === "ONE_ON_ONE" ? "direct message" : r.roomType === "INTERVIEW" ? "job chat" : "chat"; }
   function moveChat(x, now) {
-    var r = x.room, p = x.proposal;
-    var title = p ? p.title : clientOf(r) || clean(r.roomName) || "Chat";
-    var meta = [el("span", "kind", p ? "Reply · proposal" : "Reply")];
+    var r = x.room, p = x.proposal, c = p ? null : roomContract(r), kind = chatKind(r);
+    var title = p ? p.title : c ? clean(c.title) : clientOf(r) || clean(r.roomName) || "Chat";
+    var meta = [el("span", "kind", p ? "Reply · proposal" : c ? "Reply · contract " + kind : "Reply · " + kind)];
     var who = clientOf(r);
     if (who && who !== title) meta.push(who);
     if (r.numUnread) meta.push(r.numUnread + " unread");
     if (p && p.rate) meta.push(p.rate.replace(/\.0$/, ""));
     var key = "room-" + r.id;
-    var open = function () { openDrawer(key, "moveList", p ? "Proposal" : "Chat", chatDrawer(r, p)); };
+    var open = function () { openDrawer(key, "moveList", c ? "Contract" : p ? "Proposal" : "Chat", c ? contractDrawer(c, r) : chatDrawer(r, p)); };
     return moveRow(key, "turn", titleWithId(p && p.jobId, title, roomUrl(r.id), "Open the thread on Upwork to reply"), roomAct(r) ? "waiting " + ago(now - roomAct(r)) : "", meta, open, null, summaryInline(r));
   }
   function moveContract(x, now) { // what the contract needs from you and the thread's summary; its milestones and money stay on its card under Contracts
@@ -2104,7 +2130,7 @@
       var nr = p && (S.appliedNotion[p.jobId] || S.leadsById[p.jobId]), sr = p && sentRowOf(p);
       var title = p ? p.title : clientOf(room) || clean(room.roomName) || "Chat";
       var t = roomAct(room), over = p && shut(p);
-      var x = drHead(body, [p ? "Proposal" : "Chat", clientOf(room) !== title ? clientOf(room) : "", over ? el("span", "chip", over.label) : turnChip(room), t ? "last message " + ago(Date.now() - t) + " ago" : ""], title, p && p.jobId);
+      var x = drHead(body, [p ? "Proposal" : "Chat" + (chatKind(room) !== "chat" ? " · " + chatKind(room) : ""), clientOf(room) !== title ? clientOf(room) : "", over ? el("span", "chip", over.label) : turnChip(room), t ? "last message " + ago(Date.now() - t) + " ago" : ""], title, p && p.jobId);
       if (p) setChat(chatLink(p.jobId, p.title));
       else { if (room.contractId) loadContractJob(room.contractId); if (!room.contractId || !S.contractJobs[room.contractId].busy) setChat(chatLink(room.contractId ? contractJob(room.contractId) : null, title, { contract: room.contractId, room: room.id })); }
       x.acts.appendChild(navLink(roomUrl(room.id), myTurn(room) ? "Reply on Upwork" : "Chat"));
@@ -2618,7 +2644,7 @@
   // Later loads skip those reads. Browser storage: per device, may be empty — then the reads simply run again.
   var MEM_KEY = "pulse.proposals." + ORG;
   var MEM = (function () { try { var m = JSON.parse(localStorage.getItem(MEM_KEY) || "{}"); return m && typeof m === "object" ? m : {}; } catch (e) { return {}; } })();
-  MEM.finals = MEM.finals || {}; MEM.rooms = MEM.rooms || {}; MEM.jobs = MEM.jobs || {};
+  MEM.finals = MEM.finals || {}; MEM.rooms = MEM.rooms || {}; MEM.jobs = MEM.jobs || {}; MEM.orgs = MEM.orgs || {};
   function memSave() {
     try {
       var old = Date.now() - 90 * DAY;
@@ -2733,16 +2759,18 @@
       renderApplied();
     }, function (err) { if (/opened too quickly/i.test(String((err && err.message) || "") + JSON.stringify((err && err.result) || ""))) { S.jobsStop = true; MEM.jobsPausedUntil = Date.now() + 3600000; memSave(); } });
   }
-  // A proposal's chat: remembered, or looked up once the client has opened one (Activated, Offered); a submitted proposal has none.
+  // A proposal's chat: remembered, or looked up once the client has opened one (Activated, Offered). A closed proposal may
+  // have had one too — the client wrote "we hired someone else" and archived it — so its chat is looked up once and
+  // remembered, found or not ("-"): without the link that last message would keep the chat in Your move.
   function roomFor(p) {
     var r = S.prooms[p.id]; if (r && (r.room || r.pending)) return;
-    if (MEM.rooms[p.id]) { S.prooms[p.id] = { room: { id: MEM.rooms[p.id] } }; return; }
-    if (!/^(Activated|Offered)$/.test(p.status || "")) { S.prooms[p.id] = { room: null }; return; }
+    if (MEM.rooms[p.id]) { S.prooms[p.id] = { room: MEM.rooms[p.id] === "-" ? null : { id: MEM.rooms[p.id] } }; return; }
+    if (!/^(Activated|Offered)$/.test(p.status || "") && !p.closed) { S.prooms[p.id] = { room: null }; return; }
     S.prooms[p.id] = { pending: true };
     upCall("upwork__get_messages", { action: "find_room", org_uid: ORG, params: { context_type: "proposal", context_id: p.id } }, { cache: { staleTime: 300000, gcTime: 86400000 } }, 1)
       .then(function (res) {
         var room = ((payloadOf(res) || {}).data || {}).proposalRoom || null;
-        if (room && room.id) { MEM.rooms[p.id] = room.id; memSave(); }
+        if (room && room.id) { MEM.rooms[p.id] = room.id; memSave(); } else if (p.closed) { MEM.rooms[p.id] = "-"; memSave(); }
         S.prooms[p.id] = { room: room }; renderApplied();
       }, function (err) { S.prooms[p.id] = err && err.code === "tool_error" && !throttled(err) ? { room: null } : { err: err }; renderApplied(); });
   }
@@ -2818,6 +2846,7 @@
       ["Red bar", "a client chat where the last message is theirs or unread (contract chats always, other chats for " + QUIET_DAYS + " days), or a contract with a milestone past its due date. A contract here shows what it needs from you; its card with the milestones stays under Contracts."],
       ["Summary", "Claude reads the last 12 messages of each chat here and of each contract and writes where it stands and whose move it is; it is redone when a new message arrives."],
       ["Green bar", "invitations and offers you haven't answered."],
+      ["What it is about", "a proposal's chat carries the job; a contract's, the contract. A group chat or direct message is put under the contract whose client wrote in it; with no such contract it says it is a group chat or a direct message."],
       ["Order", "offers, overdue milestones, chats waiting longest, then invitations."]
     ];
   });
