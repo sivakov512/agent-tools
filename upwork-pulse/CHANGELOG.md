@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.17.0...upwork-pulse-v0.17.1) (2026-10-12)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** link chats to their proposal or contract ([0b635e4](https://github.com/sivakov512/agent-tools/commit/0b635e48106286f034946f316652a1e3fe0139a8))
+
 ## [0.17.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.16.0...upwork-pulse-v0.17.0) (2026-10-11)
 
 
