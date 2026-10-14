@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.2](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.12.1...project-tracker-v1.12.2) (2026-10-14)
+
+
+### Bug Fixes
+
+* **project-tracker:** files in notes open on the first click ([9a81c26](https://github.com/sivakov512/agent-tools/commit/9a81c262b338b2988fa477800c0af04af5dd9cab))
+
 ## [1.12.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.12.0...project-tracker-v1.12.1) (2026-10-12)
 
 
