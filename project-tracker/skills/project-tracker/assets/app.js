@@ -540,30 +540,51 @@
     if (last < s.length) host.appendChild(document.createTextNode(unesc(s.slice(last))));
   }
 
-  // A file on a page: a chip with its name. Notion keeps a file behind a reference whose download link lives a few minutes, so a click asks for a fresh one
-  // and opens it in a new tab; a link from outside opens as it is; a client's page has the name only (its data keeps no source).
+  // A file on a page: a chip with its name. Notion keeps a file behind a reference whose download link lives a few minutes. The page can
+  // neither show it inline (the artifact frame loads images only from its own files) nor open a tab after a call returns (window.open
+  // works for few viewers), so the chip asks for a link as soon as it is drawn, again when it is pointed at once that link is old, and
+  // stays a plain link that a click opens at once; a link from outside opens as it is; a client's page has the name only (its data keeps no source).
   function fileName(src, caption, kind) {
     var c = clean(String(caption || "").replace(/<[^>]+>/g, "")); if (c) return c;
     var m = /[?&]name=([^&#]+)/.exec(src || ""); if (m) { try { return decodeURIComponent(m[1].replace(/\+/g, " ")); } catch (e) { return m[1]; } }
     var last = String(src || "").split(/[?#]/)[0].split("/").pop(); if (last) { try { return decodeURIComponent(last); } catch (e) { return last; } }
     return kind === "image" ? "Image" : "File";
   }
+  var FILE_FRESH = 3 * 60000, fileLinks = {}; // a Notion reference → { url, at } or { pending }
+  function fileLink(src) {
+    var c = fileLinks[src];
+    if (c && c.pending) return c.pending;
+    if (c && Date.now() - c.at < FILE_FRESH) return Promise.resolve(c.url);
+    var p = MCP.callTool(NOTION, "notion-get-file-download-urls", { references: [src] }, { cache: false }).then(function (res) {
+      var f = ((payload(res) || {}).files || [])[0];
+      if (!f || !f.url) throw { code: "no_link" };
+      fileLinks[src] = { url: f.url, at: Date.now() }; return f.url;
+    }, function (err) { delete fileLinks[src]; throw err; });
+    fileLinks[src] = { pending: p }; return p;
+  }
+  function fileFresh(src) { var c = fileLinks[src]; return !!(c && !c.pending && Date.now() - c.at < FILE_FRESH); }
   function fileChip(src, caption, kind) {
-    var name = fileName(src, caption, kind), ico = '<svg class="fico" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 1.8H4.5a1 1 0 0 0-1 1v10.4a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V5.3L9 1.8zM9 1.8v3.5h3.5"/></svg>';
+    var name = fileName(src, caption, kind), ico = kind === "image"
+      ? '<svg class="fico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="6.8" r="1.2"/><path d="m2.5 12 3.8-3.6 2.7 2.4 2-1.8 2.5 2.4"/></svg>'
+      : '<svg class="fico" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 1.8H4.5a1 1 0 0 0-1 1v10.4a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V5.3L9 1.8zM9 1.8v3.5h3.5"/></svg>';
     if (!/^(notion-file-block:|https?:)/.test(src || "")) { var s = el("span", "fchip off"); s.innerHTML = ico; s.appendChild(span(name, "fn")); s.title = "The file is in Notion"; return s; }
     var a = el("a", "fchip"); a.innerHTML = ico; a.appendChild(span(name, "fn")); a.appendChild(el("span", "arr", " ↗")); a.target = "_blank"; a.rel = "noopener"; a.title = "Open " + name;
     if (/^https?:/.test(src)) { a.href = src; return a; }
     a.href = "#";
-    a.addEventListener("click", function (e) {
-      e.preventDefault(); e.stopPropagation(); if (a.classList.contains("busy") || !MCP) return;
-      var w = null; try { w = window.open("", "_blank"); } catch (x) {} // opened now, inside the click, so no blocker stops it; it gets the link when it comes
-      a.classList.add("busy");
-      MCP.callTool(NOTION, "notion-get-file-download-urls", { references: [src] }, { cache: false }).then(function (res) {
-        var f = ((payload(res) || {}).files || [])[0]; a.classList.remove("busy");
-        if (!f || !f.url) throw new Error("no link");
-        if (w && !w.closed) w.location.href = f.url;
-        else { a.href = f.url; a.title = "Click again to open " + name; } // no window could be opened: the fresh link waits on the chip
-      }).catch(function () { a.classList.remove("busy"); if (w && !w.closed) w.close(); a.title = "Couldn't get the file from Notion. Try again."; a.classList.add("failed"); setTimeout(function () { a.classList.remove("failed"); }, 2500); });
+    function get() {
+      if (!MCP) return;
+      a.classList.add("busy"); a.classList.remove("failed");
+      fileLink(src).then(function (u) { a.href = u; a.classList.remove("busy"); a.title = "Open " + name; }, function (err) {
+        a.classList.remove("busy"); a.classList.add("failed"); a.href = "#";
+        a.title = /not_declared|not_granted|capability/.test(String((err && err.code) || "")) ? "This dashboard can't open Notion files yet: ask Claude to update the dashboard" : "Couldn't get the file from Notion: click to try again";
+      });
+    }
+    get();
+    function refresh() { if (!fileFresh(src) && !a.classList.contains("busy")) get(); }
+    a.addEventListener("mouseenter", refresh); a.addEventListener("focus", refresh);
+    a.addEventListener("click", function (e) { // a fresh link opens as a plain link; an old one is fetched again and the next click opens it
+      e.stopPropagation();
+      if (!fileFresh(src) || a.getAttribute("href") === "#") { e.preventDefault(); get(); }
     });
     return a;
   }
