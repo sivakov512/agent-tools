@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/sivakov512/agent-tools/compare/alter-ego-v0.1.0...alter-ego-v0.1.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **alter-ego:** move the CLI out of bin/ so claude.ai accepts it ([51a4c0f](https://github.com/sivakov512/agent-tools/commit/51a4c0fac97491df8203b79efe37ffaf274a5aa8))
+
 ## 0.1.0 (2026-10-14)
 
 
