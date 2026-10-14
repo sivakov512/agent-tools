@@ -115,14 +115,14 @@ alter-ego/
 ├── README.md                     this file
 ├── .claude-plugin/plugin.json    Claude plugin packaging (name, version)
 ├── hooks/hooks.json              SessionStart (wrappers on PATH, the mode as context) and PreToolUse (git/gh by name only)
-├── bin/alter-ego                 the CLI and all the logic, wrappers included
-├── shims/git, shims/gh           the wrappers PATH finds; they hand over to bin/alter-ego
+├── libexec/alter-ego             the CLI and all the logic, wrappers included (not bin/: claude.ai refuses plugins with one)
+├── shims/git, shims/gh           the wrappers PATH finds; they hand over to libexec/alter-ego
 ├── skills/alter-ego/SKILL.md     the conversation: asking, switching, adding bots, clean-mode writing
 ├── tests/test.sh                 offline tests
 └── evals/                        claude plugin eval suite
 ```
 
-To change behaviour, edit `bin/alter-ego` and `SKILL.md`, run the tests, push; release-please bumps `version` in `plugin.json`.
+To change behaviour, edit `libexec/alter-ego` and `SKILL.md`, run the tests, push; release-please bumps `version` in `plugin.json`.
 
 ## Limits
 

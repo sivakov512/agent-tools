@@ -5,7 +5,7 @@
 set -u
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-AE="$ROOT/bin/alter-ego"
+AE="$ROOT/libexec/alter-ego"
 T="$(mktemp -d)"; T="$(cd "$T" && pwd -P)"; trap 'rm -rf "$T"' EXIT
 FAKE="$T/fake"; mkdir -p "$FAKE"
 export ALTER_EGO_CONFIG="$T/config/config.json" ALTER_EGO_CLAUDE_SETTINGS="$T/claude/settings.json"
@@ -48,7 +48,7 @@ EOF
 chmod +x "$FAKE"/*
 [ -n "${TEST_BASH:-}" ] && ln -s "$TEST_BASH" "$FAKE/bash"
 # As in a Claude session: the wrappers and the CLI first on PATH.
-export PATH="$ROOT/shims:$ROOT/bin:$FAKE:$PATH"
+export PATH="$ROOT/shims:$ROOT/libexec:$FAKE:$PATH"
 secret() { printf '%s' "$2" >"$FAKE_SECRETS_DIR/$(echo "$1" | tr / _)"; }
 
 pass=0 fail=0
@@ -107,9 +107,9 @@ check "read-only gh runs as the user" "$(last_gh)" "^token=none pr list"
 ctx="$(echo "{\"cwd\": \"$PWD\"}" | CLAUDE_ENV_FILE="$T/envfile" "$AE" session-start)"
 echo "{\"cwd\": \"$PWD\"}" | CLAUDE_ENV_FILE="$T/envfile" "$AE" session-start >/dev/null
 check "session-start asks" "$ctx" "no identity is chosen"
-check "session-start puts the wrappers on PATH" "$(cat "$T/envfile")" "export PATH=$ROOT/shims:$ROOT/bin"
+check "session-start puts the wrappers on PATH" "$(cat "$T/envfile")" "export PATH=$ROOT/shims:$ROOT/libexec"
 check "the env line is written once" "$(wc -l <"$T/envfile" | tr -d ' ')" "^1$"
-check "the env line adds PATH once" "$(PATH=/usr/bin:/bin; eval "$(cat "$T/envfile")"; eval "$(cat "$T/envfile")"; echo "$PATH")" "^$ROOT/shims:$ROOT/bin:/usr/bin:/bin$"
+check "the env line adds PATH once" "$(PATH=/usr/bin:/bin; eval "$(cat "$T/envfile")"; eval "$(cat "$T/envfile")"; echo "$PATH")" "^$ROOT/shims:$ROOT/libexec:/usr/bin:/bin$"
 
 # --- clean mode
 "$AE" use clean >/dev/null

@@ -11,9 +11,9 @@ set -u
 
 CONFIG="${ALTER_EGO_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/alter-ego/config.json}"
 CLAUDE_SETTINGS="${ALTER_EGO_CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
-BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SELF="$BIN_DIR/alter-ego"
-SHIMS="$(cd "$BIN_DIR/../shims" 2>/dev/null && pwd)"
+LIBEXEC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SELF="$LIBEXEC/alter-ego"
+SHIMS="$(cd "$LIBEXEC/../shims" 2>/dev/null && pwd)"
 DEFAULT_FORMAT='Claude({bot})'
 US=$'\x1f'
 # What gives away an AI author in commit messages and GitHub text.
@@ -465,7 +465,7 @@ cmd_session_start() {
   local input cwd key mode line
   input="$(cat)"
   if [ -n "${CLAUDE_ENV_FILE:-}" ] && [ -n "$SHIMS" ]; then
-    line="case \":\$PATH:\" in *:$(printf %q "$SHIMS"):*) ;; *) export PATH=$(printf %q "$SHIMS"):$(printf %q "$BIN_DIR"):\"\$PATH\" ;; esac; export ALTER_EGO_HOOKED=1"
+    line="case \":\$PATH:\" in *:$(printf %q "$SHIMS"):*) ;; *) export PATH=$(printf %q "$SHIMS"):$(printf %q "$LIBEXEC"):\"\$PATH\" ;; esac; export ALTER_EGO_HOOKED=1"
     grep -qxF "$line" "$CLAUDE_ENV_FILE" 2>/dev/null || printf '%s\n' "$line" >>"$CLAUDE_ENV_FILE"
   fi
   have jq || { echo "alter-ego is installed but jq is missing, so it cannot tell repositories apart and refuses every push and gh write: tell the user to install jq."; return 0; }
