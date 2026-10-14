@@ -1,0 +1,737 @@
+#!/usr/bin/env bash
+# alter-ego: per-repository git and GitHub identity for Claude sessions.
+# Clean mode works as the user with no AI marks; bot mode works as a GitHub
+# bot account whose token lives in the OS secret store. See ../README.md.
+#
+# The work is done by the git and gh wrappers in ../shims, which a SessionStart
+# hook puts first on PATH for Claude's Bash commands. They decide at the moment
+# git or gh runs, from its own arguments and folder, so a cd, -C, subshell or
+# alias cannot carry work into a repository under the wrong name.
+set -u
+
+CONFIG="${ALTER_EGO_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/alter-ego/config.json}"
+CLAUDE_SETTINGS="${ALTER_EGO_CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
+BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SELF="$BIN_DIR/alter-ego"
+SHIMS="$(cd "$BIN_DIR/../shims" 2>/dev/null && pwd)"
+DEFAULT_FORMAT='Claude({bot})'
+US=$'\x1f'
+# What gives away an AI author in commit messages and GitHub text.
+TELLS='Co-Authored-By:.*(Claude|Anthropic)|noreply@anthropic\.com|Generated (with|by) \[?Claude|claude\.(ai|com)/(code|claude-code)|🤖'
+
+die() { echo "alter-ego: $*" >&2; exit 1; }
+# A wrapper refusing an operation: the message is what Claude reads.
+refuse() { echo "alter-ego: $*" >&2; exit 1; }
+have() { command -v "$1" >/dev/null 2>&1; }
+lower() { printf '%s' "$1" | tr 'A-Z' 'a-z'; }
+
+# The real program behind a wrapper: the first one on PATH outside alter-ego's shims.
+real_bin() {
+  local name="$1" d IFS=:
+  for d in $PATH; do
+    [ -n "$d" ] || continue
+    [ -f "$d/.alter-ego-shims" ] && continue
+    [ -x "$d/$name" ] && [ ! -d "$d/$name" ] && { printf '%s\n' "$d/$name"; return 0; }
+  done
+  return 1
+}
+GIT="$(real_bin git || echo /usr/bin/git)"
+
+# ---------------------------------------------------------------- config
+
+cfg() { [ -f "$CONFIG" ] && jq -r "$@" "$CONFIG" 2>/dev/null; }
+
+# Rewrites the config in place, so a symlinked dotfile and its mode survive.
+cfg_write() {
+  local filter="$1" out; shift
+  if [ ! -f "$CONFIG" ]; then
+    [ -d "$(dirname "$CONFIG")" ] || { mkdir -p "$(dirname "$CONFIG")" && chmod 700 "$(dirname "$CONFIG")"; } || die "cannot create $(dirname "$CONFIG")"
+    (umask 077; printf '{"name_format": "%s", "bots": {}, "repos": {}}\n' "$DEFAULT_FORMAT" >"$CONFIG") || die "cannot create $CONFIG"
+  fi
+  out="$(jq "$@" "$filter" "$CONFIG")" || die "cannot update $CONFIG"
+  printf '%s\n' "$out" >"$CONFIG" || die "cannot write $CONFIG"
+}
+
+bot_names() { cfg '.bots // {} | keys | join(", ")'; }
+
+# Loads one bot into BOT, BOT_LOGIN, BOT_ID, BOT_SECRET, BOT_SECRET_CMD, BOT_NAME, BOT_EMAIL.
+load_bot() {
+  local line fmt
+  line="$(cfg --arg b "$1" '.bots[$b] as $x | if $x == null then empty else [$x.login // "", ($x.id // "" | tostring), $x.secret // "", $x.secret_command // "", $x.name_format // .name_format // ""] | join("\u001f") end')"
+  [ -n "$line" ] || return 1
+  IFS="$US" read -r BOT_LOGIN BOT_ID BOT_SECRET BOT_SECRET_CMD fmt <<EOF
+$line
+EOF
+  BOT="$1"
+  [ -n "$BOT_SECRET" ] || BOT_SECRET="alter-ego/$BOT_LOGIN"
+  fmt="${fmt:-$DEFAULT_FORMAT}"; fmt="${fmt//\{bot\}/$BOT}"; BOT_NAME="${fmt//\{login\}/$BOT_LOGIN}"
+  BOT_EMAIL="$BOT_ID+$BOT_LOGIN@users.noreply.github.com"
+}
+
+# "the bot forge (GitHub forge-robot, commits signed Claude(forge)), " for each bot.
+bot_options() {
+  local b
+  for b in $(cfg '.bots // {} | keys[]'); do
+    load_bot "$b" && printf 'the bot %s (GitHub %s, commits signed %s), ' "$b" "$BOT_LOGIN" "$BOT_NAME"
+  done
+}
+
+bot_emails() { cfg '[.bots[]? | select(.id and .login) | "\(.id)+\(.login)@users.noreply.github.com"] | .[]'; }
+
+# --------------------------------------------------------------- secrets
+
+secret_backend() {
+  local b; b="$(cfg '.secret_backend // empty')"
+  [ -n "$b" ] && { echo "$b"; return; }
+  case "$(uname -s)" in
+    Darwin) echo keychain ;;
+    *) if have secret-tool; then echo secret-service; elif have pass; then echo pass; else echo none; fi ;;
+  esac
+}
+
+# The loaded bot's token, or nothing.
+read_token() {
+  if [ -n "$BOT_SECRET_CMD" ]; then bash -c "$BOT_SECRET_CMD" 2>/dev/null | head -n1; return; fi
+  case "$(secret_backend)" in
+    keychain) security find-generic-password -s "$BOT_SECRET" -w 2>/dev/null ;;
+    secret-service) secret-tool lookup service "$BOT_SECRET" 2>/dev/null ;;
+    pass) pass show "$BOT_SECRET" 2>/dev/null | head -n1 ;;
+  esac
+}
+
+# The command the user runs to put the loaded bot's token into the secret store.
+store_command() {
+  case "$(secret_backend)" in
+    keychain) echo "security add-generic-password -U -s $BOT_SECRET -a $BOT_LOGIN -w" ;;
+    secret-service) echo "secret-tool store --label='alter-ego: $BOT_LOGIN' service $BOT_SECRET account $BOT_LOGIN" ;;
+    pass) echo "pass insert $BOT_SECRET" ;;
+    *) echo "(no secret store found: install libsecret-tools for secret-tool, or pass, or give the bot a --secret-command)" ;;
+  esac
+}
+
+# Empty when the loaded bot is ready to act, otherwise why it is not.
+bot_problem() {
+  [ -n "$BOT_ID" ] || { echo "bot '$BOT' has no GitHub account id yet (run: alter-ego check $BOT)"; return; }
+  [ -n "$(read_token)" ] || echo "no token for bot '$BOT' in the secret store ($(secret_backend), $BOT_SECRET); store it with: $(store_command)"
+}
+
+# ------------------------------------------------------------- repo + mode
+
+# host/owner/repo for a remote URL, "-R" value or "owner/repo"; path:<dir> for a local remote.
+normalize_url() {
+  local u="$1" host path ssh=""
+  case "$u" in
+    file://*) echo "path:${u#file://}"; return ;;
+    /*|./*|../*) echo "path:$u"; return ;;
+    *://*)
+      case "$u" in ssh://*|git+ssh://*|ssh+git://*) ssh=1 ;; esac
+      u="${u#*://}"
+      case "${u%%/*}" in *@*) u="${u#*@}" ;; esac
+      host="${u%%/*}"; path="${u#*/}"; host="${host%%:*}" ;;
+    *:*)
+      case "${u%%:*}" in */*) host="${u%%/*}"; path="${u#*/}" ;; *) ssh=1; u="${u#*@}"; host="${u%%:*}"; path="${u#*:}" ;; esac ;;
+    */*/*) host="${u%%/*}"; path="${u#*/}" ;;
+    */*) host=github.com; path="$u" ;;
+    *) echo "$u"; return ;;
+  esac
+  # An SSH host alias (Host github-work in ~/.ssh/config) stands for its real host.
+  if [ -n "$ssh" ] && [ "$host" != github.com ] && have ssh; then
+    local real; real="$(ssh -G "$host" 2>/dev/null | awk '$1 == "hostname" { print $2; exit }')"
+    [ -n "$real" ] && host="$real"
+  fi
+  [ "$host" = ssh.github.com ] && host=github.com
+  path="${path#/}"; path="${path%/}"; path="${path%.git}"
+  lower "$host/$path"; echo
+}
+
+# The repository git acts on with these global options: its normalized origin
+# (or first remote), or path:<main worktree> while it has none.
+repo_key() {
+  local url remote
+  "$GIT" "$@" rev-parse --git-dir >/dev/null 2>&1 || return 1
+  url="$("$GIT" "$@" config --get remote.origin.url)"
+  if [ -z "$url" ]; then
+    remote="$("$GIT" "$@" remote 2>/dev/null | head -n1)"
+    [ -n "$remote" ] && url="$("$GIT" "$@" config --get "remote.$remote.url")"
+  fi
+  if [ -n "$url" ]; then normalize_url "$url"; else echo "path:$(main_worktree "$@")"; fi
+}
+
+main_worktree() {
+  local gitdir; gitdir="$("$GIT" "$@" rev-parse --absolute-git-dir)" || return 1
+  (cd "$gitdir" && cd "$("$GIT" rev-parse --git-common-dir)" && cd .. && pwd -P)
+}
+
+# clean | <bot> | unset (no choice yet)
+mode_for_key() {
+  local m; m="$(cfg --arg k "$1" '.repos[$k] // empty')"
+  [ "$m" = off ] && m=clean
+  echo "${m:-unset}"
+}
+
+# A path-keyed choice moves to the remote key once the repository gets a remote.
+migrate_key() {
+  local key path m
+  key="$(repo_key "$@")" || return 0
+  case "$key" in path:*) return 0 ;; esac
+  path="path:$(main_worktree "$@")"
+  m="$(cfg --arg k "$path" '.repos[$k] // empty')"
+  [ -n "$m" ] && [ -z "$(cfg --arg k "$key" '.repos[$k] // empty')" ] && \
+    cfg_write '.repos[$k] = $m | del(.repos[$p])' --arg k "$key" --arg m "$m" --arg p "$path"
+  return 0
+}
+
+ask_text() {
+  echo "no identity is chosen for $1 yet. Ask the user once: clean (as them, with no AI marks), $(bot_options)or adding a new bot. Then run \`alter-ego use <clean|bot>\` in the repository and retry."
+}
+
+# ------------------------------------------------------------ git wrapper
+
+# Exports the loaded bot's identity for this git process; $1 is the repo key,
+# the rest are git's global options.
+bot_git_env() {
+  local key="$1" https k v; shift
+  case "$key" in github.com/*/*) ;; *) refuse "bot mode works with github.com repositories only, and $key is not one; switch it with: alter-ego use clean" ;; esac
+  export GIT_AUTHOR_NAME="$BOT_NAME" GIT_AUTHOR_EMAIL="$BOT_EMAIL" GIT_COMMITTER_NAME="$BOT_NAME" GIT_COMMITTER_EMAIL="$BOT_EMAIL"
+  https="https://github.com/${key#github.com/}.git"
+  # Pushes to this repository go over https with the bot's token: every URL its
+  # remotes use is rewritten, and an identity rewrite outranks a global
+  # https-to-ssh insteadOf (the longest match wins).
+  add_git_config "url.$https.insteadOf" "$https"
+  while read -r k v; do
+    [ -n "$v" ] && [ "$(normalize_url "$v")" = "$key" ] || continue
+    case "$k" in *.pushurl) add_git_config "url.$https.insteadOf" "$v" ;; *) add_git_config "url.$https.pushInsteadOf" "$v" ;; esac
+  done < <("$GIT" "$@" config --get-regexp '^remote\..*\.(url|pushurl)$' 2>/dev/null)
+  add_git_config credential.https://github.com.helper ""
+  add_git_config credential.https://github.com.helper "!\"$SELF\" credential $BOT"
+  add_git_config commit.gpgsign false
+  add_git_config tag.gpgsign false
+}
+
+# Appends to GIT_CONFIG_* without disturbing entries someone else set.
+add_git_config() {
+  local n="${GIT_CONFIG_COUNT:-0}"
+  export "GIT_CONFIG_KEY_$n=$1" "GIT_CONFIG_VALUE_$n=$2" GIT_CONFIG_COUNT=$((n + 1))
+}
+
+# Splits push arguments into PUSH_REMOTE (remote name or URL), PUSH_REFS and PUSH_FLAGS.
+parse_push() {
+  PUSH_REMOTE=""; PUSH_REFS=(); PUSH_FLAGS=" "
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --repo) PUSH_REMOTE="${2:-}"; shift ;;
+      --repo=*) PUSH_REMOTE="${1#--repo=}" ;;
+      -o|--push-option|--receive-pack|--exec) shift ;;
+      --) ;;
+      -*) PUSH_FLAGS="$PUSH_FLAGS$1 " ;;
+      *) if [ -z "$PUSH_REMOTE" ]; then PUSH_REMOTE="$1"; else PUSH_REFS+=("$1"); fi ;;
+    esac
+    shift
+  done
+}
+
+# The URLs a push goes to, with the bot's rewrites applied. Global options first, then "--", then push args.
+push_urls() {
+  local -a g=(); while [ $# -gt 0 ] && [ "$1" != -- ]; do g+=("$1"); shift; done; shift
+  parse_push "$@"
+  local remote="$PUSH_REMOTE" cur
+  if [ -z "$remote" ]; then
+    cur="$("$GIT" ${g[@]+"${g[@]}"} symbolic-ref --short -q HEAD)"
+    remote="$("$GIT" ${g[@]+"${g[@]}"} config --get "branch.$cur.pushRemote" || "$GIT" ${g[@]+"${g[@]}"} config --get remote.pushDefault || "$GIT" ${g[@]+"${g[@]}"} config --get "branch.$cur.remote" || echo origin)"
+  fi
+  if [ -n "$("$GIT" ${g[@]+"${g[@]}"} config --get "remote.$remote.url")" ]; then
+    "$GIT" ${g[@]+"${g[@]}"} remote get-url --push --all "$remote"
+  else
+    echo "$remote"
+  fi
+}
+
+bot_push_check() {
+  local token url
+  token="$(read_token)"
+  [ -n "$token" ] || refuse "no token for bot '$BOT' in the secret store ($(secret_backend), $BOT_SECRET), so this push would not go out as the bot. Ask the user to store it with: $(store_command)"
+  while IFS= read -r url; do
+    case "$url" in
+      https://github.com/*) ;;
+      *) refuse "this push would go to $url, which the bot's token cannot be used for, so it would act as the user. Push to the repository's GitHub remote by name (origin)." ;;
+    esac
+  done < <(push_urls "$@")
+}
+
+# Clean mode: the commits (and tags) a push sends must carry no AI marks and no bot authorship.
+clean_push_check() {
+  local -a g=(); while [ $# -gt 0 ] && [ "$1" != -- ]; do g+=("$1"); shift; done; shift
+  parse_push "$@"
+  local -a revs=() tags=()
+  local r src sha
+  case "$PUSH_FLAGS" in
+    *" --all "*|*" --branches "*) revs+=(--branches) ;;
+    *" --mirror "*) revs+=(--all) ;;
+  esac
+  case "$PUSH_FLAGS" in *" --tags "*|*" --follow-tags "*|*" --mirror "*)
+    while IFS= read -r r; do tags+=("$r"); done < <("$GIT" ${g[@]+"${g[@]}"} for-each-ref --format='%(refname)' refs/tags) ;;
+  esac
+  for r in ${PUSH_REFS[@]+"${PUSH_REFS[@]}"}; do
+    src="${r#+}"; src="${src%%:*}"
+    [ -n "$src" ] || continue
+    if "$GIT" ${g[@]+"${g[@]}"} rev-parse --verify -q "refs/tags/${src#refs/tags/}" >/dev/null; then tags+=("refs/tags/${src#refs/tags/}"); fi
+    sha="$("$GIT" ${g[@]+"${g[@]}"} rev-parse --verify -q "$src^{commit}")" && revs+=("$sha")
+  done
+  [ ${#revs[@]} -gt 0 ] || [ ${#PUSH_REFS[@]} -gt 0 ] || revs+=(HEAD)
+  [ ${#revs[@]} -gt 0 ] || [ ${#tags[@]} -gt 0 ] || return 0
+  local hits emails
+  if [ ${#revs[@]} -gt 0 ]; then
+    hits="$("$GIT" ${g[@]+"${g[@]}"} log "${revs[@]}" --not --remotes --format='%h %B' 2>/dev/null | grep -iE "$TELLS" | head -n5)"
+    [ -z "$hits" ] || refuse "clean mode: commits in this push carry AI marks, and this repository must show none. Reword them and push again — the last commit: git commit --amend; several: git rebase --exec 'git commit --amend --no-edit -m \"\$(git log -1 --format=%B | grep -viE \"co-authored-by: .*(claude|anthropic)|generated with|🤖\")\"' <base>. Found: $hits"
+    emails="$(bot_emails)"
+    if [ -n "$emails" ]; then
+      hits="$("$GIT" ${g[@]+"${g[@]}"} log "${revs[@]}" --not --remotes --format='%h %ae %ce' 2>/dev/null | grep -iF "$emails" | head -n5)"
+      [ -z "$hits" ] || refuse "clean mode: commits in this push were authored or committed by a bot account. Ask the user whether to re-author them as themselves (git commit --amend --reset-author, or git rebase --exec 'git commit --amend --no-edit --reset-author' <base>) or to switch this repository to that bot. Found: $hits"
+    fi
+  fi
+  for r in ${tags[@]+"${tags[@]}"}; do
+    [ "$("$GIT" ${g[@]+"${g[@]}"} cat-file -t "$r" 2>/dev/null)" = tag ] || continue
+    "$GIT" ${g[@]+"${g[@]}"} for-each-ref --format='%(contents)' "$r" | grep -qiE "$TELLS" && \
+      refuse "clean mode: the message of tag ${r#refs/tags/} carries AI marks. Recreate the tag with a plain message (git tag -f -a ${r#refs/tags/} -m '…') and push again."
+  done
+  return 0
+}
+
+cmd_git() {
+  local -a argv=("$@") g=()
+  local n=$# i=0 a sub="" alias
+  while [ $i -lt $n ]; do
+    a="${argv[$i]}"
+    case "$a" in
+      -C|-c|--git-dir|--work-tree|--namespace|--config-env) g+=("$a" "${argv[$((i + 1))]:-}"); i=$((i + 2)) ;;
+      -*) g+=("$a"); i=$((i + 1)) ;;
+      *) sub="$a"; break ;;
+    esac
+  done
+  case "$sub" in
+    ""|help|version|init|clone|credential) exec "$GIT" "$@" ;;
+    push|commit|status|diff|log|show|add|fetch|pull|branch|checkout|switch|merge|rebase|reset|restore|stash|tag|remote|config|rev-parse|ls-files|grep|blame|cherry-pick|revert|am|notes|worktree|submodule|for-each-ref|cat-file|rev-list|merge-base|describe|show-ref|symbolic-ref|reflog|clean|rm|mv|apply|format-patch|shortlog|ls-tree|ls-remote|bisect|gc|archive) ;;
+    *)
+      # A plain alias counts as the command it stands for: a push through one is a push.
+      alias="$("$GIT" ${g[@]+"${g[@]}"} config --get "alias.$sub" 2>/dev/null)"
+      case "$alias" in push*) sub=push ;; esac ;;
+  esac
+  # In a bot repository every git process (and what it runs: hooks, rebase --exec,
+  # helper scripts) carries the bot's identity; elsewhere only push is checked.
+  local key mode
+  key="$(repo_key ${g[@]+"${g[@]}"})" || exec "$GIT" "$@"
+  mode="$(mode_for_key "$key")"
+  if [ "$mode" = unset ]; then migrate_key ${g[@]+"${g[@]}"}; key="$(repo_key ${g[@]+"${g[@]}"})"; mode="$(mode_for_key "$key")"; fi
+  local -a rest=(); [ $((i + 1)) -lt $n ] && rest=("${argv[@]:$((i + 1))}")
+  case "$mode" in
+    unset) [ "$sub" = push ] && refuse "$(ask_text "$key")" ;;
+    clean) [ "$sub" = push ] && clean_push_check ${g[@]+"${g[@]}"} -- ${rest[@]+"${rest[@]}"} ;;
+    *)
+      if ! load_bot "$mode" || [ -z "$BOT_ID" ]; then
+        # A broken bot setup never falls back to the user for what goes out under a name.
+        case "$sub" in
+          push|commit|merge|rebase|cherry-pick|revert|am|notes|pull|tag|stash)
+            refuse "$key works as bot '$mode', which is not ready (not configured, or no GitHub account id: alter-ego check $mode); ask the user to fix it or choose again" ;;
+        esac
+        exec "$GIT" "$@"
+      fi
+      bot_git_env "$key" ${g[@]+"${g[@]}"}
+      [ "$sub" = push ] && bot_push_check ${g[@]+"${g[@]}"} -- ${rest[@]+"${rest[@]}"} ;;
+  esac
+  exec "$GIT" "$@"
+}
+
+# The credential helper git calls in bot mode: the bot's token for github.com.
+cmd_credential() {
+  [ "${2:-}" = get ] || exit 0
+  cat >/dev/null
+  load_bot "${1:-}" || exit 1
+  local token; token="$(read_token)"; [ -n "$token" ] || exit 1
+  printf 'username=x-access-token\npassword=%s\n' "$token"
+}
+
+# ------------------------------------------------------------- gh wrapper
+
+# Commands that change something on GitHub, by their second word.
+GH_WRITE_VERBS=' create edit delete close reopen comment review merge ready lock unlock transfer pin unpin develop upload update-branch revert rerun run enable disable set add remove rename archive unarchive fork sync cancel delete-asset item-add item-create item-edit item-delete item-archive field-create field-delete copy mark-template link unlink '
+
+cmd_gh() {
+  local -a argv=("$@")
+  local n=$# i=0 a v sub1="" sub2="" repo="" method="" fields="" mutation="" files="" stdin=""
+  while [ $i -lt $n ]; do
+    a="${argv[$i]}"; v="${argv[$((i + 1))]:-}"
+    case "$a" in
+      -R|--repo) repo="$v"; i=$((i + 2)); continue ;;
+      --repo=*) repo="${a#--repo=}" ;;
+      -X|--method) method="$v"; i=$((i + 2)); continue ;;
+      --method=*) method="${a#--method=}" ;;
+      -X?*) method="${a#-X}" ;;
+      -f|--raw-field|--field) fields=1; gh_field "$v"; i=$((i + 2)); continue ;;
+      -F)
+        if [ "$sub1" = api ]; then fields=1; gh_field "$v"; else files="$files$v$US"; fi
+        i=$((i + 2)); continue ;;
+      --field=*|--raw-field=*) fields=1; gh_field "${a#*=}" ;;
+      -f?*|-F?*) [ "$sub1" = api ] && { fields=1; gh_field "${a#-?}"; } ;;
+      --input|--body-file) [ "$a" = --input ] && fields=1; files="$files$v$US"; i=$((i + 2)); continue ;;
+      --input=*|--body-file=*) [ "${a%%=*}" = --input ] && fields=1; files="$files${a#*=}$US" ;;
+      -*) ;;
+      *) if [ -z "$sub1" ]; then sub1="$a"; elif [ -z "$sub2" ]; then sub2="$a"; fi ;;
+    esac
+    i=$((i + 1))
+  done
+  local write=""
+  if [ "$sub1" = api ]; then
+    method="$(printf '%s' "$method" | tr 'a-z' 'A-Z')"
+    if [ -n "$method" ] && [ "$method" != GET ]; then write=1
+    elif [ -n "$fields" ]; then
+      if [ "${sub2#/}" = graphql ]; then [ -n "$mutation" ] && write=1; else write=1; fi
+    fi
+    # repos/OWNER/NAME/... names the repository; {owner}/{repo} is gh's placeholder for the current one.
+    case "${sub2#/}" in
+      repos/*/*) local o r; o="${sub2#*repos/}"; r="${o#*/}"; o="${o%%/*}"; r="${r%%/*}"; r="${r%%\?*}"
+        case "$o$r" in *"{"*) ;; *) [ -n "$repo" ] || repo="$o/$r" ;; esac ;;
+    esac
+  else
+    case "$GH_WRITE_VERBS" in *" $sub2 "*) write=1 ;; esac
+    [ "$sub1 $sub2" = "label clone" ] && write=1
+  fi
+  local gh; gh="$(real_bin gh)" || refuse "gh is not installed"
+  # Account-level and cross-repository commands are the user's own.
+  case "$sub1" in ""|auth|config|alias|extension|completion|help|version|gpg-key|ssh-key|codespace|search|status|browse|gist|org) exec "$gh" "$@" ;; esac
+  local key mode
+  [ -n "$repo" ] || repo="${GH_REPO:-}"
+  if [ -n "$repo" ]; then key="$(normalize_url "$repo")"; else key="$(repo_key)" || exec "$gh" "$@"; fi
+  mode="$(mode_for_key "$key")"
+  # In a bot repository gh is the bot, reads included; elsewhere it is the user,
+  # and only writes are checked.
+  case "$mode" in
+    unset) [ -n "$write" ] || exec "$gh" "$@"; refuse "$(ask_text "$key")" ;;
+    clean)
+      [ -n "$write" ] || exec "$gh" "$@"
+      local text f
+      local -a list=()
+      text="$(printf '%s\n' "$@")"
+      IFS="$US" read -r -a list <<<"$files"
+      for f in ${list[@]+"${list[@]}"}; do
+        case "$f" in
+          -) stdin="$(cat)"; text="$text"$'\n'"$stdin" ;;
+          *) [ -f "$f" ] && text="$text"$'\n'"$(cat "$f")" ;;
+        esac
+      done
+      printf '%s' "$text" | grep -qiE "$TELLS" && refuse "clean mode in $key: the text carries AI marks (Co-Authored-By, \"Generated with Claude\", 🤖 or a Claude link), and this repository must show none. Remove them and retry."
+      if [ -n "$stdin" ]; then exec "$gh" "$@" <<<"$stdin"; fi
+      exec "$gh" "$@" ;;
+    *)
+      load_bot "$mode" || refuse "$key works as bot '$mode', which is not configured any more; ask the user to choose again"
+      case "$key" in github.com/*/*) ;; *) refuse "bot mode works with github.com repositories only, and $key is not one" ;; esac
+      local token; token="$(read_token)"
+      if [ -z "$token" ]; then
+        [ -n "$write" ] || exec "$gh" "$@"
+        refuse "no token for bot '$BOT' in the secret store ($(secret_backend), $BOT_SECRET), so this would act as the user. Ask the user to store it with: $(store_command)"
+      fi
+      GH_TOKEN="$token" exec "$gh" "$@" ;;
+  esac
+}
+
+# A gh api field: notes files it reads (key=@file) and GraphQL mutations.
+gh_field() {
+  case "$1" in
+    *=@*) files="$files${1#*=@}$US" ;;
+  esac
+  case "$1" in query=*mutation*) mutation=1 ;; esac
+}
+
+# ------------------------------------------------------------------ hooks
+
+context_for() {
+  local key="$1" mode="$2"
+  case "$mode" in
+    unset)
+      echo "alter-ego: no identity is chosen for this repository ($key). Before the first push, pull request, issue, review or comment here, ask the user once which to use: clean (as the user, with no AI marks), $(bot_options)or adding a new bot. Then run \`alter-ego use <clean|bot>\`. Until then pushes and gh writes are refused. Load the alter-ego skill for the details." ;;
+    clean)
+      echo "alter-ego: clean mode in $key. Commits, pull requests, issues, reviews and comments go out as the user and must carry no AI marks: no Co-Authored-By or \"Generated with\" lines, no 🤖, no mention of Claude or AI. A push or gh write that carries them is refused." ;;
+    *)
+      if ! load_bot "$mode"; then
+        echo "alter-ego: $key is set to bot '$mode', which is not configured; pushes and gh writes are refused. Tell the user."
+      elif [ -n "$(bot_problem)" ]; then
+        echo "alter-ego: $key works as bot '$mode', but $(bot_problem). Pushes and gh writes are refused until that is fixed; tell the user."
+      else
+        echo "alter-ego: $key works as bot '$mode' (GitHub $BOT_LOGIN). Your git commits here are signed \"$BOT_NAME\", and pushes and gh writes act as the bot, so the user can tell your work from theirs. Commit, push and open pull requests yourself with git and gh in Bash, called by name; do not offer the app's own commit or create-PR actions here — they don't go through your Bash and would act as the user."
+      fi ;;
+  esac
+}
+
+cmd_session_start() {
+  local input cwd key mode line
+  input="$(cat)"
+  if [ -n "${CLAUDE_ENV_FILE:-}" ] && [ -n "$SHIMS" ]; then
+    line="case \":\$PATH:\" in *:$(printf %q "$SHIMS"):*) ;; *) export PATH=$(printf %q "$SHIMS"):$(printf %q "$BIN_DIR"):\"\$PATH\" ;; esac; export ALTER_EGO_HOOKED=1"
+    grep -qxF "$line" "$CLAUDE_ENV_FILE" 2>/dev/null || printf '%s\n' "$line" >>"$CLAUDE_ENV_FILE"
+  fi
+  have jq || { echo "alter-ego is installed but jq is missing, so it cannot tell repositories apart and refuses every push and gh write: tell the user to install jq."; return 0; }
+  cwd="$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null)"; cwd="${cwd:-$PWD}"
+  migrate_key -C "$cwd"
+  key="$(repo_key -C "$cwd")" || return 0
+  mode="$(mode_for_key "$key")"
+  jq -n --arg c "$(context_for "$key" "$mode")" '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $c}}'
+}
+
+# git and gh called by full path, or with PATH replaced, skip the wrappers.
+cmd_guard() {
+  local input cmd
+  input="$(cat)"
+  have jq || exit 0
+  cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"
+  printf '%s' "$cmd" | grep -qE '(^|[;&|({`[:space:]]|\$\()/[^[:space:];&|()]*/(git|gh)([[:space:]]|$)|(^|[;&|[:space:]])PATH=|env[[:space:]]+-i|command[[:space:]]+-p' || exit 0
+  printf '%s' "$cmd" | grep -qE 'push|commit|merge|rebase|cherry-pick|revert|tag|pull|[[:space:]](pr|issue|release|api|repo|label|workflow|secret|variable|gist|run)[[:space:]]' || exit 0
+  jq -n --arg r "alter-ego: call git and gh by name, without a full path or a replaced PATH: alter-ego's wrappers decide whose name they act under, and bypassing them could put work out under the wrong one." \
+    '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $r}}'
+}
+
+# ---------------------------------------------------------- user commands
+
+wrappers_active() { [ -n "$SHIMS" ] && [ "$(command -v git)" = "$SHIMS/git" ]; }
+
+cmd_status() {
+  local key mode
+  if key="$(repo_key)"; then
+    mode="$(mode_for_key "$key")"
+    echo "repository: $key"
+    case "$mode" in
+      unset) echo "mode: not chosen yet" ;;
+      clean) echo "mode: clean (as you, no AI marks)" ;;
+      *)
+        if load_bot "$mode"; then
+          echo "mode: bot $mode — commits signed \"$BOT_NAME\" <$BOT_EMAIL>, GitHub $BOT_LOGIN"
+          local p; p="$(bot_problem)"; [ -z "$p" ] || echo "problem: $p"
+          [ -n "$BOT_ID" ] && case "$key" in github.com/*/*) echo "bot pushes go to: $( (bot_git_env "$key" >/dev/null 2>&1; push_urls -- 2>/dev/null) | tr '\n' ' ')" ;; esac
+        else
+          echo "mode: bot $mode, which is not configured"
+        fi ;;
+    esac
+  else
+    echo "repository: none (not inside a git repository)"
+  fi
+  echo "bots: $(bot_names | sed 's/^$/none/')"
+  echo "secret store: $(secret_backend)"
+  echo "git and gh wrappers active in this shell: $(wrappers_active && echo yes || echo no)"
+  echo "Claude attribution lines: $(attribution_state)"
+}
+
+cmd_bots() {
+  [ -n "$(bot_names)" ] || { echo "no bots"; return; }
+  local b p repos
+  for b in $(cfg '.bots | keys[]'); do
+    load_bot "$b" || continue
+    p="$(bot_problem)"
+    repos="$(cfg --arg b "$b" '[(.repos // {}) | to_entries[] | select(.value == $b) | .key] | join(", ")')"
+    echo "$b: GitHub $BOT_LOGIN, commits signed \"$BOT_NAME\", ${p:-ready}, chosen for: ${repos:-no repository yet}"
+  done
+}
+
+cmd_use() {
+  local m="${1:?usage: alter-ego use <clean|bot>}" key
+  [ "$m" = off ] && m=clean
+  key="$(repo_key)" || die "not inside a git repository"
+  if [ "$m" != clean ]; then
+    load_bot "$m" || die "no bot named $m (alter-ego bots lists them)"
+    case "$key" in github.com/*/*) ;; *) die "bot mode works with github.com repositories only, and $key is not one" ;; esac
+    local p; p="$(bot_problem)"; [ -z "$p" ] || die "$p"
+  fi
+  cfg_write '.repos[$k] = $m' --arg k "$key" --arg m "$m"
+  echo "$key -> $m"
+}
+
+cmd_forget() {
+  local key; key="$(repo_key)" || die "not inside a git repository"
+  cfg_write 'del(.repos[$k])' --arg k "$key"
+  echo "$key: choice removed, it will be asked again"
+}
+
+cmd_add_bot() {
+  local name="${1:-}" login="${2:-}"
+  [ -n "$name" ] && [ -n "$login" ] || die "usage: alter-ego add-bot <name> <github-login> [--secret NAME] [--secret-command CMD] [--name-format FMT]"
+  shift 2
+  local -a set=()
+  while [ $# -gt 0 ]; do
+    [ $# -ge 2 ] || die "$1 needs a value"
+    case "$1" in
+      --secret) set+=(secret "$2") ;;
+      --secret-command) set+=(secret_command "$2") ;;
+      --name-format) set+=(name_format "$2") ;;
+      *) die "unknown option $1" ;;
+    esac
+    shift 2
+  done
+  printf '%s' "$name" | grep -qE '^[A-Za-z0-9][A-Za-z0-9_.-]*$' || die "bot name: letters, digits, . _ - only"
+  case " clean off unset none " in *" $name "*) die "'$name' is reserved, pick another bot name" ;; esac
+  # Re-adding a bot keeps what it had (id, format, secret) unless given anew.
+  local filter='.bots[$n] = ((.bots[$n] // {}) + {login: $l})' i=0
+  local -a args=(--arg n "$name" --arg l "$login")
+  while [ $i -lt ${#set[@]} ]; do
+    filter="$filter | .bots[\$n][\$k$i] = \$v$i"; args+=(--arg "k$i" "${set[$i]}" --arg "v$i" "${set[$((i + 1))]}"); i=$((i + 2))
+  done
+  # A different account is a different bot: its id no longer applies.
+  [ "$(lower "$(cfg --arg n "$name" '.bots[$n].login // empty')")" = "$(lower "$login")" ] || filter="$filter | del(.bots[\$n].id)"
+  cfg_write "$filter" "${args[@]}"
+  load_bot "$name"
+  if [ -z "$(read_token)" ]; then
+    echo "saved bot $name ($login), but its token is not in the secret store yet. The user stores it with:"
+    echo "  $(store_command)"
+    echo "then: alter-ego check $name"
+    return 0
+  fi
+  cmd_check "$name"
+}
+
+# Reads the token, asks GitHub whose it is and stores the account id.
+cmd_check() {
+  local name="${1:?usage: alter-ego check <bot>}" token user login id gh scopes
+  load_bot "$name" || die "no bot named $name"
+  gh="$(real_bin gh)" || die "gh is not installed"
+  token="$(read_token)"
+  [ -n "$token" ] || die "no token for $name in the secret store; the user stores it with: $(store_command)"
+  user="$(GH_TOKEN="$token" "$gh" api user --jq '"\(.login) \(.id)"' 2>&1)" || die "GitHub rejected the token for $name: $user"
+  login="${user% *}"; id="${user#* }"
+  [ "$(lower "$login")" = "$(lower "$BOT_LOGIN")" ] || die "the token belongs to $login, not $BOT_LOGIN"
+  cfg_write '.bots[$n].id = ($i | tonumber) | .bots[$n].login = $l' --arg n "$name" --arg i "$id" --arg l "$login"
+  load_bot "$name"
+  scopes="$(GH_TOKEN="$token" "$gh" api -i user 2>/dev/null | tr -d '\r' | sed -nE 's/^[Xx]-[Oo]auth-[Ss]copes: *//p')"
+  echo "bot $name ready: GitHub $login (id $id), commits signed \"$BOT_NAME\" <$BOT_EMAIL>${scopes:+, token scopes: $scopes}"
+}
+
+cmd_remove_bot() {
+  local name="${1:?usage: alter-ego remove-bot <bot> [--force]}" repos
+  load_bot "$name" || die "no bot named $name"
+  repos="$(cfg --arg b "$name" '[(.repos // {}) | to_entries[] | select(.value == $b) | .key] | join(", ")')"
+  [ -z "$repos" ] || [ "${2:-}" = --force ] || die "bot $name is chosen for: $repos. Switch those repositories first, or pass --force to drop their choice too."
+  cfg_write 'del(.bots[$b]) | .repos = ((.repos // {}) | with_entries(select(.value != $b)))' --arg b "$name"
+  echo "bot $name removed. Its token is still in the secret store ($BOT_SECRET); delete it there if it is no longer needed."
+}
+
+cmd_name_format() {
+  [ $# -ge 1 ] || die "usage: alter-ego name-format <format> [--bot NAME]; {bot} and {login} in the format are replaced"
+  local fmt="$1"
+  if [ "${2:-}" = --bot ]; then
+    load_bot "${3:?usage: alter-ego name-format <format> --bot NAME}" || die "no bot named $3"
+    cfg_write '.bots[$b].name_format = $f' --arg b "$3" --arg f "$fmt"
+  else
+    cfg_write '.name_format = $f' --arg f "$fmt"
+  fi
+  echo "name format set: $fmt"
+}
+
+cmd_store_command() {
+  load_bot "${1:?usage: alter-ego store-command <bot>}" || die "no bot named $1"
+  store_command
+}
+
+# Invites the bot to a repository as the user and accepts as the bot.
+cmd_invite() {
+  local name="${1:?usage: alter-ego invite <bot> [owner/repo]}" key full gh token id
+  load_bot "$name" || die "no bot named $name"
+  if [ -n "${2:-}" ]; then key="$(normalize_url "$2")"; else key="$(repo_key)" || die "not inside a repository; name it: alter-ego invite $name owner/repo"; fi
+  case "$key" in github.com/*/*) full="${key#github.com/}" ;; *) die "only github.com repositories, and $key is not one" ;; esac
+  gh="$(real_bin gh)" || die "gh is not installed"
+  token="$(read_token)"; [ -n "$token" ] || die "no token for $name; the user stores it with: $(store_command)"
+  env -u GH_TOKEN -u GITHUB_TOKEN "$gh" api -X PUT "repos/$full/collaborators/$BOT_LOGIN" -f permission=push >/dev/null || die "could not invite $BOT_LOGIN to $full with the user's own gh login"
+  id="$(GH_TOKEN="$token" "$gh" api user/repository_invitations --jq ".[] | select(.repository.full_name | ascii_downcase == \"$(lower "$full")\") | .id" | head -n1)"
+  if [ -n "$id" ]; then
+    GH_TOKEN="$token" "$gh" api -X PATCH "user/repository_invitations/$id" >/dev/null || die "invited, but $BOT_LOGIN could not accept: accept it on GitHub signed in as $BOT_LOGIN"
+    echo "$BOT_LOGIN invited to $full and accepted: it can push there now"
+  else
+    echo "$BOT_LOGIN already has access to $full"
+  fi
+}
+
+# Runs one command with the bot's token, for account chores; gh here is the real one.
+cmd_as() {
+  local token
+  load_bot "${1:?usage: alter-ego as <bot> <command...>}" || die "no bot named $1"
+  shift; [ $# -gt 0 ] || die "usage: alter-ego as <bot> <command...>"
+  token="$(read_token)"; [ -n "$token" ] || die "no token for bot $BOT"
+  [ "$1" = gh ] && { shift; set -- "$(real_bin gh || echo gh)" "$@"; }
+  GH_TOKEN="$token" exec "$@"
+}
+
+attribution_state() {
+  [ -f "$CLAUDE_SETTINGS" ] || { echo "on (no ~/.claude/settings.json)"; return; }
+  jq -r 'if .attribution == false or (.attribution.commit == "" and .attribution.pr == "") then "off"
+    elif .attribution == null and .includeCoAuthoredBy == false then "partly off (includeCoAuthoredBy: false hides the commit trailer only)"
+    else "on" end' "$CLAUDE_SETTINGS" 2>/dev/null || echo unknown
+}
+
+# Turns Claude's own Co-Authored-By and "Generated with" lines off for all repositories.
+cmd_attribution() {
+  case "${1:-status}" in
+    status) attribution_state ;;
+    off)
+      local out
+      [ -f "$CLAUDE_SETTINGS" ] || { mkdir -p "$(dirname "$CLAUDE_SETTINGS")" && echo '{}' >"$CLAUDE_SETTINGS"; } || die "cannot create $CLAUDE_SETTINGS"
+      out="$(jq '.attribution = ((.attribution | objects) // {}) + {commit: "", pr: ""}' "$CLAUDE_SETTINGS")" || die "cannot read $CLAUDE_SETTINGS"
+      printf '%s\n' "$out" >"$CLAUDE_SETTINGS" || die "cannot write $CLAUDE_SETTINGS"
+      echo "Claude attribution lines are off in $CLAUDE_SETTINGS (from the next session)" ;;
+    *) die "usage: alter-ego attribution [status|off]" ;;
+  esac
+}
+
+cmd_doctor() {
+  local t p
+  for t in git gh jq; do
+    p="$(real_bin "$t")" && echo "$t: $p" || echo "$t: MISSING"
+  done
+  case "$(secret_backend)" in
+    keychain) have security && echo "secret store: macOS Keychain" || echo "secret store: keychain, but 'security' is missing" ;;
+    secret-service) echo "secret store: Secret Service via secret-tool (GNOME Keyring, KWallet, KeePassXC); needs a desktop session's D-Bus" ;;
+    pass) echo "secret store: pass" ;;
+    *) echo "secret store: NONE — install libsecret-tools (secret-tool) or pass, or give each bot a --secret-command" ;;
+  esac
+  echo "config: $CONFIG$([ -f "$CONFIG" ] || echo ' (not created yet)')"
+  echo "git and gh wrappers active in this shell: $(wrappers_active && echo yes || echo 'no — start a new session after installing')"
+  echo "Claude attribution lines: $(attribution_state)"
+  [ -z "$(bot_names)" ] || cmd_bots
+}
+
+case "${1:-}" in
+  __git) shift; cmd_git "$@" ;;
+  __gh) shift; cmd_gh "$@" ;;
+  credential) shift; cmd_credential "$@" ;;
+  session-start) cmd_session_start ;;
+  guard) cmd_guard ;;
+  status|"") cmd_status ;;
+  use) shift; cmd_use "$@" ;;
+  forget) cmd_forget ;;
+  bots) cmd_bots ;;
+  add-bot) shift; cmd_add_bot "$@" ;;
+  check) shift; cmd_check "$@" ;;
+  invite) shift; cmd_invite "$@" ;;
+  remove-bot) shift; cmd_remove_bot "$@" ;;
+  name-format) shift; cmd_name_format "$@" ;;
+  store-command) shift; cmd_store_command "$@" ;;
+  as) shift; cmd_as "$@" ;;
+  attribution) shift; cmd_attribution "$@" ;;
+  doctor) cmd_doctor ;;
+  key) repo_key ;;
+  help|-h|--help)
+    cat <<'EOF'
+alter-ego — per-repository git and GitHub identity for Claude sessions
+
+  status                       this repository's mode, the bots, the secret store
+  use <clean|bot>              choose the mode for this repository (off = clean)
+  forget                       drop this repository's choice (it is asked again)
+  bots                         list bots, their readiness and repositories
+  add-bot <name> <login> [--secret NAME] [--secret-command CMD] [--name-format FMT]
+                               add or update a bot; NAME is its item in the secret store
+                               (default alter-ego/<login>), CMD a command printing its token
+  check <bot>                  verify the bot's token with GitHub and save its account id
+  invite <bot> [owner/repo]    invite the bot to a repository as you and accept as the bot
+  remove-bot <bot> [--force]
+  name-format <fmt> [--bot NAME]   how commits are signed; {bot} and {login} are replaced
+  store-command <bot>          the command that stores the bot's token on this OS
+  as <bot> <command...>        run one command with the bot's GH_TOKEN (account chores)
+  attribution [status|off]     Claude's own Co-Authored-By / "Generated with" lines
+  doctor                       check dependencies and setup
+EOF
+    ;;
+  *) die "unknown command '$1' (alter-ego help)" ;;
+esac

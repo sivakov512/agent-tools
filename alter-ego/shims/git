@@ -1,0 +1,3 @@
+#!/bin/sh
+# alter-ego: git under the identity chosen for the repository it acts on.
+exec "${0%/*}/../bin/alter-ego" __git "$@"

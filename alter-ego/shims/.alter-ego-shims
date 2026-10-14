@@ -1,0 +1,1 @@
+Marks this folder as alter-ego's git and gh wrappers, so it skips them when looking for the real programs.

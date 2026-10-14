@@ -1,0 +1,8 @@
+{
+  "name": "alter-ego",
+  "version": "0.0.0",
+  "description": "Per-repository git and GitHub identity for Claude: clean mode works as you with no AI marks, bot mode commits, pushes and opens PRs as a GitHub bot account whose token stays in the OS secret store.",
+  "author": {
+    "name": "Nikita Sivakov"
+  }
+}
