@@ -55,4 +55,4 @@ Dashboards: each `assets/dashboard.html` starts with `<!-- dashboard-version: N 
 
 ## Adding a plugin
 
-New folder `<plugin>/` with `README.md`, `.claude-plugin/plugin.json` and `skills/<skill>/SKILL.md` (optionally `commands/`, `hooks/`, `bin/`, `.mcp.json`, `agents/`, `evals/`); add it to `marketplace.json` and to the table above, and to `packages` in `.release-please/config.json` and `.release-please/manifest.json` (same shape as the existing entries, starting at `0.0.0`).
+New folder `<plugin>/` with `README.md`, `.claude-plugin/plugin.json` and `skills/<skill>/SKILL.md` (optionally `commands/`, `hooks/`, `bin/`, `.mcp.json`, `agents/`, `evals/`); add it to `marketplace.json` and to the table above, and to `packages` in `.release-please/config.json` and `.release-please/manifest.json` (same shape as the existing entries, starting at `0.0.0`, with `"initial-version": "0.1.0"` in its config entry — without it release-please makes the first release 1.0.0).
