@@ -13,6 +13,11 @@
       "name": "upwork-pulse",
       "source": "./upwork-pulse",
       "description": "Upwork job search run by scheduled agents with rules and data in Notion: hourly search and assessment, digests, weekly rule review, a live dashboard, proposals drafted in chat and sent on your go."
+    },
+    {
+      "name": "alter-ego",
+      "source": "./alter-ego",
+      "description": "Per-repository git and GitHub identity: clean mode as you with no AI marks, or a GitHub bot account for commits, pushes and PRs, its token kept in the macOS Keychain or a Linux secret store."
     }
   ]
 }

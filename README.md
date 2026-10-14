@@ -6,6 +6,7 @@ Tools for AI agents, one folder per plugin. Skills use the open [Agent Skills](h
 |---|---|---|---|
 | [`project-tracker`](project-tracker/README.md) | `project-tracker` | Keeps client project plans in Notion up to date from plain conversation: milestones and tasks, progress, slips, problems, status, weekly reports, notes, undo; new projects from emails, documents or Upwork contracts. Creates the Notion structure and a live dashboard itself. | Notion MCP (Upwork MCP for contracts) |
 | [`upwork-pulse`](upwork-pulse/README.md) | `upwork-pulse` | Runs an Upwork job search with Notion as the source of truth: hourly search and assessment by your rules, digests, a weekly review that turns open questions into rules, a live dashboard, proposals drafted in chat and sent only on your go. Creates the Notion structure, the dashboard and the scheduled tasks itself. | Notion MCP, Upwork MCP |
+| [`alter-ego`](alter-ego/README.md) | `alter-ego` | Decides per repository whose name Claude's git and GitHub work goes under: clean (as you, no AI marks) or a GitHub bot account that commits, pushes and opens PRs, its token kept in the macOS Keychain or a Linux secret store. Asks once per repository, enforced by hooks. | Claude Code (hooks), `git`, `gh`, `jq` |
 
 ## Install
 
@@ -32,14 +33,17 @@ agent-tools/
 └── <plugin>/
     ├── README.md                     install, usage, model, limits
     ├── .claude-plugin/plugin.json    Claude packaging (name, version)
-    └── skills/<skill>/
-        ├── SKILL.md                  the skill — portable
-        └── references/               loaded only when a scenario needs them
+    ├── skills/<skill>/
+    │   ├── SKILL.md                  the skill — portable
+    │   └── references/               loaded only when a scenario needs them
+    └── evals/                        claude plugin eval suite
 ```
+
+A plugin can also ship `hooks/`, `bin/` and its own `tests/` (alter-ego does). `scripts/eval.sh` runs a plugin's evals with an empty `HOME`, for suites that grant Bash; see [alter-ego/evals/README.md](alter-ego/evals/README.md).
 
 ## Configuration
 
-Skills do not hardcode workspace IDs. Each skill finds its Notion root page by a config toggle (the page can have any name) and reads the IDs from it; if there is none, it creates the whole structure on request, under a name you choose.
+Skills do not hardcode workspace IDs. Each skill finds its Notion root page by a config toggle (the page can have any name) and reads the IDs from it; if there is none, it creates the whole structure on request, under a name you choose. alter-ego is the exception: it keeps its choices in `~/.config/alter-ego/config.json` and bot tokens in the OS secret store.
 
 ## Updating
 
@@ -51,4 +55,4 @@ Dashboards: each `assets/dashboard.html` starts with `<!-- dashboard-version: N 
 
 ## Adding a plugin
 
-New folder `<plugin>/` with `README.md`, `.claude-plugin/plugin.json` and `skills/<skill>/SKILL.md` (optionally `commands/`, `.mcp.json`, `agents/`); add it to `marketplace.json` and to the table above, and to `packages` in `.release-please/config.json` and `.release-please/manifest.json` (same shape as the existing entries, starting at `0.0.0`).
+New folder `<plugin>/` with `README.md`, `.claude-plugin/plugin.json` and `skills/<skill>/SKILL.md` (optionally `commands/`, `hooks/`, `bin/`, `.mcp.json`, `agents/`, `evals/`); add it to `marketplace.json` and to the table above, and to `packages` in `.release-please/config.json` and `.release-please/manifest.json` (same shape as the existing entries, starting at `0.0.0`).
