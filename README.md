@@ -39,7 +39,7 @@ agent-tools/
     └── evals/                        claude plugin eval suite
 ```
 
-A plugin can also ship `hooks/`, `bin/` and its own `tests/` (alter-ego does). `scripts/eval.sh` runs a plugin's evals with an empty `HOME`, for suites that grant Bash; see [alter-ego/evals/README.md](alter-ego/evals/README.md).
+A plugin can also ship `hooks/` and its own `tests/` (alter-ego does), but no top-level `bin/`: claude.ai skips a plugin that has one, since Claude Code would put it on PATH unseen by an admin. Keep executables elsewhere (alter-ego uses `libexec/`) and run them from hooks, commands or MCP servers. `scripts/eval.sh` runs a plugin's evals with an empty `HOME`, for suites that grant Bash; see [alter-ego/evals/README.md](alter-ego/evals/README.md).
 
 ## Configuration
 
@@ -55,4 +55,4 @@ Dashboards: each `assets/dashboard.html` starts with `<!-- dashboard-version: N 
 
 ## Adding a plugin
 
-New folder `<plugin>/` with `README.md`, `.claude-plugin/plugin.json` and `skills/<skill>/SKILL.md` (optionally `commands/`, `hooks/`, `bin/`, `.mcp.json`, `agents/`, `evals/`); add it to `marketplace.json` and to the table above, and to `packages` in `.release-please/config.json` and `.release-please/manifest.json` (same shape as the existing entries, starting at `0.0.0`, with `"initial-version": "0.1.0"` in its config entry — without it release-please makes the first release 1.0.0).
+New folder `<plugin>/` with `README.md`, `.claude-plugin/plugin.json` and `skills/<skill>/SKILL.md` (optionally `commands/`, `hooks/`, `.mcp.json`, `agents/`, `evals/`; never a top-level `bin/`); add it to `marketplace.json` and to the table above, and to `packages` in `.release-please/config.json` and `.release-please/manifest.json` (same shape as the existing entries, starting at `0.0.0`, with `"initial-version": "0.1.0"` in its config entry — without it release-please makes the first release 1.0.0).

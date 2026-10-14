@@ -2,7 +2,7 @@
 # looks like GitHub but resolves to a local bare repository, and a config with
 # one bot, forge, whose token comes from a command (no secret store needed).
 set -euo pipefail
-AE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/bin/alter-ego"
+AE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/libexec/alter-ego"
 WS="$PWD"
 
 setup_repo() {

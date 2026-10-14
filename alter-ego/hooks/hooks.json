@@ -3,7 +3,7 @@
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/bin/alter-ego\" session-start" }
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/libexec/alter-ego\" session-start" }
         ]
       }
     ],
@@ -11,7 +11,7 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/bin/alter-ego\" guard" }
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/libexec/alter-ego\" guard" }
         ]
       }
     ]

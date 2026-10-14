@@ -23,7 +23,7 @@ The plugin enforces; your part is the conversation.
 - A PreToolUse hook refuses `git` or `gh` called by full path or with PATH replaced, because that would skip the wrappers.
 - Choices live in `~/.config/alter-ego/config.json`, keyed by the remote (`github.com/owner/repo`), so every clone and worktree shares one choice. Tokens never go there: they stay in the OS secret store and are read only when a push or a gh call needs one.
 
-The `alter-ego` command is on PATH too. In a session that started before the plugin was installed it isn't, and nothing is enforced yet: use `"${CLAUDE_PLUGIN_ROOT}/bin/alter-ego"` and tell the user a new session is needed.
+The `alter-ego` command is on PATH too. In a session that started before the plugin was installed it isn't, and nothing is enforced yet: use `bash "${CLAUDE_PLUGIN_ROOT}/libexec/alter-ego"` and tell the user a new session is needed.
 
 | Command | Does |
 |---|---|
