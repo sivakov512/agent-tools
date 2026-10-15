@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/sivakov512/agent-tools/compare/alter-ego-v0.1.1...alter-ego-v0.1.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **alter-ego:** ask for the mode as a separate question, with buttons ([6db42c2](https://github.com/sivakov512/agent-tools/commit/6db42c2a2c020c9783804b842cc7df9670f6a445))
+
 ## [0.1.1](https://github.com/sivakov512/agent-tools/compare/alter-ego-v0.1.0...alter-ego-v0.1.1) (2026-10-14)
 
 
