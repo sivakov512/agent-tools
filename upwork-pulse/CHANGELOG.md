@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.2](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.17.1...upwork-pulse-v0.17.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** dashboard header fits a phone ([3a0cc03](https://github.com/sivakov512/agent-tools/commit/3a0cc039059228bfc224c049ae866f5606e8f7c2))
+
 ## [0.17.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.17.0...upwork-pulse-v0.17.1) (2026-10-12)
 
 
