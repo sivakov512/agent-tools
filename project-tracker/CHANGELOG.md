@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.13.0...project-tracker-v1.14.0) (2026-10-15)
+
+
+### Features
+
+* **project-tracker:** propose records first, like a secretary ([9536e86](https://github.com/sivakov512/agent-tools/commit/9536e86381156b000adddfca48eff171fee32b5e))
+
 ## [1.13.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.12.4...project-tracker-v1.13.0) (2026-10-15)
 
 
