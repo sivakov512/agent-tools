@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.17.3...upwork-pulse-v0.18.0) (2026-10-15)
+
+
+### Features
+
+* **upwork-pulse:** fold parked chats under Your move until they write ([8eb2e04](https://github.com/sivakov512/agent-tools/commit/8eb2e0468ab21f2f79542e5af96d7a26530742e8))
+
 ## [0.17.3](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.17.2...upwork-pulse-v0.17.3) (2026-10-15)
 
 
