@@ -50,6 +50,7 @@
   .pl.crit:hover, .pl.good:hover { border-color: currentColor; }
   h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
   .status { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-mute); }
+  @media (max-width: 560px) { header.top .status { margin-left: 0; width: 100%; flex-wrap: wrap; row-gap: 8px; } header.top .status > .setwrap:first-child { margin-right: auto; } } /* a phone: the status takes its own line and the buttons wrap under it rather than push the page wider */
   .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); display: inline-block; margin-right: 6px; vertical-align: middle; }
   .live-dot.on { background: var(--good); }
   .live-dot.bad { background: var(--critical); }
