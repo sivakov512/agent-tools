@@ -270,6 +270,11 @@
   .callout .ch button { margin-left: auto; border: 0; background: none; padding: 0; cursor: pointer; font-size: 12.5px; font-weight: 400; color: var(--text-2); }
   .callout .ch button:hover { color: var(--text); text-decoration: underline; }
   .callout .next { margin-top: 6px; }
+  .callout.parked { background: var(--sunken); border-color: var(--border); }
+  .callout.parked .ch { color: var(--text-2); }
+  .callout .park { margin-top: 8px; font-size: 13px; color: var(--text-2); }
+  .callout .park button { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; color: var(--accent); }
+  .callout .park button:hover { text-decoration: underline; }
   .msgs { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
   .msg { padding: 11px 16px; border-top: 1px solid var(--border); font-size: 14px; line-height: 1.5; }
   .msg:first-child { border-top: 0; }
@@ -968,6 +973,7 @@
   }
   function turnChip(room) {
     if (!room || !room.latestStory) return null;
+    if (parkedOf(room)) return el("span", "chip", "Parked");
     var yours = myTurn(room);
     return el("span", yours ? "chip bad" : "chip good", yours ? "Your turn" : "Waiting on client");
   }
@@ -1894,15 +1900,15 @@
 
   // ---------- thread summaries (sample) ----------
   var SAMPLE = null; // null = unknown yet, false = unavailable, fn = ready
-  var sums = {};
+  var sums = {}, SUM_V = 2; // SUM_V: a summary saved by an older prompt (without "parked") is made again
   function sumKey(room) { return "fp.sum." + room.id; }
-  function summaryFor(room) {
+  function summaryFor(room, peek) { // peek: only what is already made, never start one
     var sid = (room.latestStory || {}).id || "";
     var st = sums[room.id];
     if (st && st.storyId === sid && st.data) return st.data;
     if (!st || st.storyId !== sid) {
-      try { var raw = localStorage.getItem(sumKey(room)); if (raw) { var saved = JSON.parse(raw); if (saved && saved.storyId === sid && saved.data) { sums[room.id] = saved; return saved.data; } } } catch (e) {}
-      if (SAMPLE) { sums[room.id] = { storyId: sid, pending: true }; buildSummary(room, sid, false); }
+      try { var raw = localStorage.getItem(sumKey(room)); if (raw) { var saved = JSON.parse(raw); if (saved && saved.v === SUM_V && saved.storyId === sid && saved.data) { sums[room.id] = saved; return saved.data; } } } catch (e) {}
+      if (SAMPLE && !peek) { sums[room.id] = { storyId: sid, pending: true }; buildSummary(room, sid, false); }
     }
     return null;
   }
@@ -1919,12 +1925,15 @@
         if (!lines.length) throw { code: "empty" };
         var today = new Date(); var todayStr = MON[today.getUTCMonth()] + " " + today.getUTCDate() + ", " + today.getUTCFullYear();
         var prompt = "You are summarizing an Upwork chat (a contract, a job proposal or a direct message) for a freelancer (the \"me\" side). Today is " + todayStr + ". Messages, oldest first:\n\n" + lines.join("\n\n") +
-          "\n\nReply with only a JSON object: {\"summary\": string (1-2 plain sentences: where the work stands right now, in English, no greetings), \"next\": \"me\"|\"client\"|\"none\" (who must act next), \"action\": string (the concrete next step, max 12 words, or \"\"), \"deadline\": string|null (ISO date YYYY-MM-DD if someone promised a date, else null), \"promised_by\": \"me\"|\"client\"|null}. Example: {\"summary\":\"Client approved the schematic; layout revision is in progress.\",\"next\":\"me\",\"action\":\"send revised layout\",\"deadline\":\"2026-09-16\",\"promised_by\":\"me\"}";
+          "\n\nReply with only a JSON object: {\"summary\": string (1-2 plain sentences: where the work stands right now, in English, no greetings), \"next\": \"me\"|\"client\"|\"none\" (who must act next), \"action\": string (the concrete next step, max 12 words, or \"\"), \"deadline\": string|null (ISO date YYYY-MM-DD if someone promised a date, else null), \"promised_by\": \"me\"|\"client\"|null, \"parked\": boolean, \"parked_why\": string, \"back_on\": string|null}. " +
+          "parked is true only when the chat is about getting work (a proposal, an invitation, talks before a hire), not paid work under way, and the client has closed or put it off: hired someone else, cancelled or paused the project, said they will come back later or get in touch if it resumes. Then nothing happens until the client writes again, and a polite reply is not a step. " +
+          "It is false while a question, an offer, a meeting request, files to review or any other real step waits on either side. parked_why: when parked, why, max 10 words (\"client paused the project to test in-house\"), else \"\". back_on: when parked and the client named when they would come back, that ISO date, else null. " +
+          "Example: {\"summary\":\"Client approved the schematic; layout revision is in progress.\",\"next\":\"me\",\"action\":\"send revised layout\",\"deadline\":\"2026-09-16\",\"promised_by\":\"me\",\"parked\":false,\"parked_why\":\"\",\"back_on\":null}";
         return SAMPLE.json(prompt, { modelTier: "quick", cache: refresh ? { gcTime: 86400000, refresh: true } : { gcTime: 86400000 } });
       })
       .then(function (data) {
         if (!data || typeof data !== "object") throw { code: "invalid_json" };
-        sums[room.id] = { storyId: sid, data: data };
+        sums[room.id] = { v: SUM_V, storyId: sid, data: data };
         try { localStorage.setItem(sumKey(room), JSON.stringify(sums[room.id])); } catch (e) {}
         renderContracts(); refreshDrawer();
       }, function (err) {
@@ -1960,19 +1969,60 @@
     var box = el("div", "callout");
     var ch = noteHead("Claude's summary of the thread");
     box.appendChild(ch);
-    if (SAMPLE === false) { box.appendChild(el("div", "muted", "Summaries aren't available in this view.")); return box; }
+    var pk = parkedOf(room);
+    if (SAMPLE === false) { box.appendChild(el("div", "muted", "Summaries aren't available in this view.")); return withPark(box, room, pk); }
     var d = summaryFor(room), st = sums[room.id];
     if (!d) {
       box.appendChild(el("div", "muted", st && st.err ? "Couldn't summarize: " + errText(st.err, "Claude") : "Summarizing the last messages…"));
-      return box;
+      return withPark(box, room, pk);
     }
-    var yours = d.next === "me" || myTurn(room);
+    var yours = !pk && (d.next === "me" || myTurn(room));
     if (yours) box.classList.add("turn");
     box.appendChild(el("div", "", String(d.summary || "")));
     var nl = nextLine(d); if (nl) { nl.classList.add("next"); box.appendChild(nl); }
     var rb = el("button", "", "↻ re-summarize"); rb.type = "button";
     rb.addEventListener("click", function () { if (!SAMPLE) return; var sid = (room.latestStory || {}).id || ""; sums[room.id] = { storyId: sid, pending: true }; refreshDrawer(); buildSummary(room, sid, true); });
     ch.appendChild(rb);
+    return withPark(box, room, pk);
+  }
+
+  // ---------- parked chats: talks about work that the client closed or put off ----------
+  // Claude's summary says so (parked), or the user parks a chat by hand. Either holds until the next message, and a date
+  // the client named brings the chat back on that day. Paid work never parks: an active contract's chats stay in Your move.
+  // The user's call is kept in this browser, like the summaries.
+  function parkKey(room) { return "fp.park." + room.id; }
+  function canPark(room) { // not paid work: no active contract, and not a group chat or direct message put under one (while that is unknown, no)
+    if (!room || !room.latestStory || String(room.contractStatus || "").toUpperCase() === "ACTIVE") return false;
+    return room.contractId || room.roomType === "INTERVIEW" ? true : MEM.orgs[room.id] !== undefined && !roomContract(room);
+  }
+  function parkHand(room) { // the user's own call while no new message came: true (parked), false (kept), null (none)
+    try { var h = JSON.parse(localStorage.getItem(parkKey(room)) || "null"); if (h && h.storyId === room.latestStory.id) return !!h.park; } catch (e) {}
+    return null;
+  }
+  function parkedOf(room) { // null, or { why, back, hand }
+    if (!room || !room.latestStory) return null;
+    var hand = parkHand(room); if (hand === false) return null;
+    var d = SAMPLE === false ? null : summaryFor(room, true), said = !!(d && d.parked);
+    var back = said && d.back_on ? Date.parse(d.back_on + "T00:00:00") || null : null;
+    if (!hand && (!said || (back && back <= Date.now()))) return null;
+    if (!canPark(room)) return null;
+    return { why: said ? String(d.parked_why || "") : "", back: back, hand: !!hand };
+  }
+  function setPark(room, on) {
+    try { localStorage.setItem(parkKey(room), JSON.stringify({ storyId: room.latestStory.id, park: on })); } catch (e) {}
+    renderMove(); renderPills(); renderApplied(); refreshDrawer();
+  }
+  function dayLabel(t) { var d = new Date(t); return MON[d.getMonth()] + " " + d.getDate(); }
+  function withPark(box, room, pk) { // the summary plaque's last line: why the chat is parked and the way back, or the way to park it
+    if (!canPark(room) || !(pk || myTurn(room))) return box;
+    if (pk) box.classList.add("parked");
+    var n = el("div", "park");
+    if (pk) n.appendChild(el("span", "", "Parked" + (pk.hand ? " by you" : "") + (pk.why ? " — " + pk.why : "") + (pk.back ? " · back " + dayLabel(pk.back) : "") + ". It returns to Your move when they write. "));
+    var b = el("button", "", pk ? "Keep in Your move" : "Park until they write"); b.type = "button";
+    b.title = pk ? "Show it in Your move again until the next message" : "Fold it under Parked in Your move; the next message brings it back";
+    b.addEventListener("click", function () { setPark(room, !pk); });
+    n.appendChild(b);
+    box.appendChild(n);
     return box;
   }
 
@@ -2011,7 +2061,7 @@
       if (r) ofRoom[r.id] = true;
       items.push({ type: off ? "offer" : "invite", inv: x, rank: off ? 0 : 3, t: x.t });
     });
-    owedRooms().forEach(function (r) { if (!inContract[r.id] && !ofRoom[r.id]) items.push({ type: "chat", room: r, proposal: byRoom[r.id] || null, rank: 2, t: roomAct(r) }); });
+    owedRooms().forEach(function (r) { if (!inContract[r.id] && !ofRoom[r.id]) items.push({ type: "chat", room: r, proposal: byRoom[r.id] || null, rank: 2, t: roomAct(r), parked: parkedOf(r) }); });
     // offers, then contracts with overdue work, then chats and contracts waiting longest, then invitations (newest first)
     items.sort(function (a, b) { return (a.rank - b.rank) || (a.rank === 3 ? b.t - a.t : a.t - b.t); });
     return items;
@@ -2020,7 +2070,9 @@
     var host = $("moveList");
     if (S.roomsErr && !S.rooms) { errBox(host, S.roomsErr, UPWORK); return; }
     if (!S.rooms && !S.dash) return;
-    var now = Date.now(), items = moveItems();
+    var now = Date.now(), all = moveItems();
+    var items = all.filter(function (x) { return !x.parked; }), parked = all.filter(function (x) { return x.parked; });
+    parked.sort(function (a, b) { return b.t - a.t; });
     S.moveStats = { chats: 0, invites: 0, offers: 0, late: 0 };
     items.forEach(function (x) {
       if (x.type === "contract") { if (x.why.reply) S.moveStats.chats++; S.moveStats.late += x.why.late.length; }
@@ -2031,11 +2083,19 @@
     if (!items.length) {
       var ok = el("div", "move-ok"); ok.appendChild(el("b", "", "Nothing waits on you. "));
       ok.appendChild(document.createTextNode("Replies, invitations and overdue milestones show up here."));
-      host.appendChild(ok); return;
+      host.appendChild(ok);
     }
     items.forEach(function (x) {
       host.appendChild(x.type === "contract" ? moveContract(x, now) : x.type === "chat" ? moveChat(x, now) : moveInvite(x, now));
     });
+    if (parked.length) { // talks the client closed or put off: folded, out of the counts, back up with the next message
+      var d = el("details", "older"); d.dataset.id = "__parked__";
+      try { d.open = !!localStorage.getItem("fp.parkedOpen"); } catch (e) {}
+      d.addEventListener("toggle", function () { try { localStorage.setItem("fp.parkedOpen", d.open ? "1" : ""); } catch (e) {} });
+      d.appendChild(el("summary", "", "Parked · " + parked.length + " — talks the client closed or put off; each comes back when they write"));
+      parked.forEach(function (x) { d.appendChild(moveChat(x, now)); });
+      host.appendChild(d);
+    }
     afterList("moveList");
   }
   function moveRow(id, cls, titleNode, right, metaParts, open, btn, extra) {
@@ -2079,16 +2139,23 @@
   }
   function chatKind(r) { return r.roomType === "GROUP" ? "group chat" : r.roomType === "ONE_ON_ONE" ? "direct message" : r.roomType === "INTERVIEW" ? "job chat" : "chat"; }
   function moveChat(x, now) {
-    var r = x.room, p = x.proposal, c = p ? null : roomContract(r), kind = chatKind(r);
+    var r = x.room, p = x.proposal, c = p ? null : roomContract(r), kind = chatKind(r), pk = x.parked;
     var title = p ? p.title : c ? clean(c.title) : clientOf(r) || clean(r.roomName) || "Chat";
-    var meta = [el("span", "kind", p ? "Reply · proposal" : c ? "Reply · contract " + kind : "Reply · " + kind)];
+    var meta = [el("span", "kind", (pk ? "Parked" : "Reply") + " · " + (p ? "proposal" : c ? "contract " + kind : kind))];
     var who = clientOf(r);
     if (who && who !== title) meta.push(who);
     if (r.numUnread) meta.push(r.numUnread + " unread");
     if (p && p.rate) meta.push(p.rate.replace(/\.0$/, ""));
+    if (pk && pk.back) meta.push("back " + dayLabel(pk.back));
     var key = "room-" + r.id;
     var open = function () { openDrawer(key, "moveList", c ? "Contract" : p ? "Proposal" : "Chat", c ? contractDrawer(c, r) : chatDrawer(r, p)); };
+    if (pk) return moveRow(key, "", titleWithId(p && p.jobId, title, roomUrl(r.id), "Open the thread on Upwork"), roomAct(r) ? "last message " + ago(now - roomAct(r)) + " ago" : "", meta, open, null, parkedInline(r, pk));
     return moveRow(key, "turn", titleWithId(p && p.jobId, title, roomUrl(r.id), "Open the thread on Upwork to reply"), roomAct(r) ? "waiting " + ago(now - roomAct(r)) : "", meta, open, null, summaryInline(r));
+  }
+  function parkedInline(room, pk) { // where it stood (the summary says why it stopped); the reason alone when there is no summary
+    var d = summaryFor(room, true), t = d && d.summary ? String(d.summary) : pk.why ? pk.why.charAt(0).toUpperCase() + pk.why.slice(1) + "." : pk.hand ? "Parked by you." : "";
+    if (!t) return null;
+    var box = el("div", "sm"); box.appendChild(el("div", "tx", t)); return box;
   }
   function moveContract(x, now) { // what the contract needs from you and the thread's summary; its milestones and money stay on its card under Contracts
     var c = x.contract, w = x.why, room = w.room;
@@ -2278,6 +2345,7 @@
   }
   function clientOf(room) { return room && room.roomName ? clean(room.roomName).split(",")[0].trim() : ""; }
   function turnSpan(room) {
+    if (parkedOf(room)) return el("span", "p-state replied", "Parked");
     var yours = myTurn(room);
     return el("span", "p-state " + (yours ? "turn" : "replied"), yours ? "Your turn" : "Waiting on client");
   }
@@ -2889,6 +2957,7 @@
       ["Red bar", "a client chat where the last message is theirs or unread (contract chats always, other chats for " + QUIET_DAYS + " days), or a contract with a milestone past its due date. A contract here shows what it needs from you; its card with the milestones stays under Contracts."],
       ["Summary", "Claude reads the last 12 messages of each chat here and of each contract and writes where it stands and whose move it is; it is redone when a new message arrives."],
       ["Green bar", "invitations and offers you haven't answered."],
+      ["Parked", "talks the client closed or put off — hired someone else, paused the project, will come back later — fold at the bottom and count for nothing. Claude's summary decides it, or you do: Park until they write / Keep in Your move in the chat's summary. A new message brings the chat back, and so does the date the client said they would return. An active contract's chats never park."],
       ["What it is about", "a proposal's chat carries the job; a contract's, the contract. A group chat or direct message is put under the contract whose client wrote in it; with no such contract it says it is a group chat or a direct message."],
       ["Order", "offers, overdue milestones, chats waiting longest, then invitations."]
     ];
