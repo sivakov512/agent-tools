@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.3](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.12.2...project-tracker-v1.12.3) (2026-10-15)
+
+
+### Bug Fixes
+
+* **project-tracker:** answer the user's question first; file links via notion-fetch ([d5df80e](https://github.com/sivakov512/agent-tools/commit/d5df80eff2b9b86eeade3e169501c1644570fc47))
+* **project-tracker:** file links come from notion-fetch, no extra tool ([1488de8](https://github.com/sivakov512/agent-tools/commit/1488de87c7c7d68a5a7b69d7f75ea9f0afcb13be))
+
 ## [1.12.2](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.12.1...project-tracker-v1.12.2) (2026-10-14)
 
 
