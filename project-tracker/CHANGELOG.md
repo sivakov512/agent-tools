@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.13.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.12.4...project-tracker-v1.13.0) (2026-10-15)
+
+
+### Features
+
+* **project-tracker:** drop status callout, show why items are paused ([1d4e46a](https://github.com/sivakov512/agent-tools/commit/1d4e46a255ea0ea5c23d9997aa8f1b914d7d4262))
+* **project-tracker:** filter the dashboard by several origins at once ([f4c1dcd](https://github.com/sivakov512/agent-tools/commit/f4c1dcd136a00eed694ad74f7c9d8cd03719222a))
+
 ## [1.12.4](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.12.3...project-tracker-v1.12.4) (2026-10-15)
 
 
