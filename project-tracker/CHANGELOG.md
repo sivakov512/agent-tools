@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.14.0...project-tracker-v1.14.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* **project-tracker:** dashboard Refresh reads past the cache ([34b4faf](https://github.com/sivakov512/agent-tools/commit/34b4fafbdec96ee8c1874f8e22453264468a99d6))
+
 ## [1.14.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.13.0...project-tracker-v1.14.0) (2026-10-15)
 
 
