@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.3](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.17.2...upwork-pulse-v0.17.3) (2026-10-15)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** offers show their job, terms, proposal and chat ([880b003](https://github.com/sivakov512/agent-tools/commit/880b0032f9b2396f46dd7f05028b4b0f308f8cbe))
+
 ## [0.17.2](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.17.1...upwork-pulse-v0.17.2) (2026-10-15)
 
 
