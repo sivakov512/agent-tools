@@ -182,7 +182,7 @@ migrate_key() {
 }
 
 ask_text() {
-  echo "no identity is chosen for $1 yet. Ask the user once: clean (as them, with no AI marks), $(bot_options)or adding a new bot. Then run \`alter-ego use <clean|bot>\` in the repository and retry."
+  echo "no identity is chosen for $1 yet. Ask the user once: clean (as them, with no AI marks), $(bot_options)or adding a new bot. Ask it as its own question the user cannot miss: with the AskUserQuestion tool, one option per choice; without that tool, as the last paragraph of your reply, under a bold heading, with nothing else asked alongside. Then wait for the answer. Then run \`alter-ego use <clean|bot>\` in the repository and retry."
 }
 
 # ------------------------------------------------------------ git wrapper
@@ -447,7 +447,7 @@ context_for() {
   local key="$1" mode="$2"
   case "$mode" in
     unset)
-      echo "alter-ego: no identity is chosen for this repository ($key). Before the first push, pull request, issue, review or comment here, ask the user once which to use: clean (as the user, with no AI marks), $(bot_options)or adding a new bot. Then run \`alter-ego use <clean|bot>\`. Until then pushes and gh writes are refused. Load the alter-ego skill for the details." ;;
+      echo "alter-ego: no identity is chosen for this repository ($key). Before the first push, pull request, issue, review or comment here, ask the user once which to use: clean (as the user, with no AI marks), $(bot_options)or adding a new bot. Ask it as its own question the user cannot miss: with the AskUserQuestion tool, one option per choice; without that tool, as the last paragraph of your reply, under a bold heading, with nothing else asked alongside. Then wait for the answer. Then run \`alter-ego use <clean|bot>\`. Until then pushes and gh writes are refused. Load the alter-ego skill for the details." ;;
     clean)
       echo "alter-ego: clean mode in $key. Commits, pull requests, issues, reviews and comments go out as the user and must carry no AI marks: no Co-Authored-By or \"Generated with\" lines, no 🤖, no mention of Claude or AI. A push or gh write that carries them is refused." ;;
     *)

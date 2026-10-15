@@ -101,12 +101,14 @@ succeeds "a local commit without a mode" git commit -q --allow-empty -m "x"
 check "it is the user's" "$(author .)" "^Me <me@example.com>"
 refused "a push without a mode" git push
 check "the refusal asks the user" "$OUT" "Ask the user once: clean"
+check "as a question of its own" "$OUT" "AskUserQuestion"
 refused "gh pr create without a mode" gh pr create --title t --body b
 succeeds "read-only gh without a mode" gh pr list
 check "read-only gh runs as the user" "$(last_gh)" "^token=none pr list"
 ctx="$(echo "{\"cwd\": \"$PWD\"}" | CLAUDE_ENV_FILE="$T/envfile" "$AE" session-start)"
 echo "{\"cwd\": \"$PWD\"}" | CLAUDE_ENV_FILE="$T/envfile" "$AE" session-start >/dev/null
 check "session-start asks" "$ctx" "no identity is chosen"
+check "with the question tool" "$ctx" "AskUserQuestion tool"
 check "session-start puts the wrappers on PATH" "$(cat "$T/envfile")" "export PATH=$ROOT/shims:$ROOT/libexec"
 check "the env line is written once" "$(wc -l <"$T/envfile" | tr -d ' ')" "^1$"
 check "the env line adds PATH once" "$(PATH=/usr/bin:/bin; eval "$(cat "$T/envfile")"; eval "$(cat "$T/envfile")"; echo "$PATH")" "^$ROOT/shims:$ROOT/libexec:/usr/bin:/bin$"
