@@ -18,7 +18,7 @@ A contract in a freelance or project platform already has most of what a tracker
 
 Dates:
 
-- Stages submitted or completed on the platform: Done; `Finished` = the submission date; `Dates` end = the stage's due date if the contract has one, else the submission date; start = the previous stage's end, or the contract start for the first one, or the same start as a stage the terms say runs in parallel (a stage that follows parallel ones starts when the one it builds on ends).
+- Stages submitted or completed on the platform: Done; `Finished` = the submission date; `Dates` only when the contract gives the stage a due date (the end) — no due date, no `Dates`, its `Finished` records it; start = the previous stage's end, or the contract start for the first one, or the same start as a stage the terms say runs in parallel (a stage that follows parallel ones starts when the one it builds on ends).
 - Stages with a due date in the contract: that date is the end; the start is the previous stage's end, or the contract start for the first one.
 - Remaining stages without due dates: do not invent dates. In the confirmation step, list them and ask the user for target end dates. If the user does not give them, create the milestones without `Dates` and write `— no date yet` in the callout; they will appear in the table views but not on the Gantt.
 
@@ -40,7 +40,7 @@ Ignore entirely: amounts, funding and payment states (they go stale and are not 
 
 ## Resync — "sync the Upwork project"
 
-For a project whose `Source` is a contract: read the contract again and compare with the tracker. Stage states that moved are applied as in the mapping above (active → In progress; submitted or completed → Done, `Finished` = the submission date, `Dates` stay; a due date changed on the platform was agreed there, so `Dates` follow it with a history line `old → new`). A resync creates no tasks. New or removed stages are a plan change — show them and ask (`plan-changes.md`). Report the changes as was → now; if nothing changed, say so.
+For a project whose `Source` is a contract: read the contract again and compare with the tracker. Stage states that moved are applied as in the mapping above (active → In progress; submitted or completed → Done, `Finished` = the submission date, `Dates` stay; a due date changed on the platform is the new date, so `Dates` follow it with a history line `old → new`). A resync creates no tasks. New or removed stages are a plan change — show them and ask (`plan-changes.md`). Report the changes as was → now; if nothing changed, say so.
 
 ## Upwork specifics
 

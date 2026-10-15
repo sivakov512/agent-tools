@@ -16,7 +16,7 @@ Only what the source says — no risks, milestones or tasks of your own. Follow 
   - **A heading with no items** → a milestone with no tasks.
   - **No headings, a flat list** → each item is a milestone; there are no tasks.
   - **Ongoing work with no stages** ("support the hub", "monthly maintenance") → a project without milestones; each listed item is a task.
-- Work the source reports as already done: a listed item marked done is Done with `Finished` = the date the source gives for it, else the source date. Done work the source mentions without listing it becomes one Done item at the start — a task of the first milestone if there are headings, else a milestone — named with the source's phrase for the result. A Done item with no dates of its own gets `Dates` from a week before `Finished` to `Finished` (the source rarely says when it started, and a week keeps it visible on the Gantt), marked as rule-derived in the confirmation.
+- Work the source reports as already done: a listed item marked done is Done with `Finished` = the date the source gives for it, else the source date. Done work the source mentions without listing it becomes one Done item at the start — a task of the first milestone if there are headings, else a milestone — named with the source's phrase for the result. A Done item with no dates of its own keeps `Dates` empty: its `Finished` records when it was done, and the dashboard shows undated items.
 - Statuses: the first item not done whose start is on or before today (or that has no start) is In progress, and its milestone with it; everything else not done is Planned — a waiting handover keeps its milestone Planned. Problems from a source get `Opened` = the source date.
 - **Tasks and problems**, by what the source says:
   - someone is asked to do something the plan expects (a quote, a sign-off, files) → a task, Waiting, `Waiting on` = that party (the project's `Client` value if none is named), under the milestone it serves — the source wrote it into the plan;
@@ -29,7 +29,7 @@ Only what the source says — no risks, milestones or tasks of your own. Follow 
 
 ## 3. Dates
 
-Every date in the source is one the client was given (the source is a plan, estimate or report the client has, or the user is about to send), so they go into `Dates` on milestones and tasks alike. A source the user says is only their own draft has no agreed dates yet: create the rows without `Dates` and keep the proposed dates in each row's first history line.
+The dates in the source go into `Dates` on milestones and tasks alike. A source the user says is only a draft: create the rows without `Dates` and keep the proposed dates in each row's first history line.
 
 Exact dates as given. Fixed readings of vague ones: "mid-<month>" = the 15th; a bare month as an end = its last day, as a start = the 1st; a range plus a duration ("February to March, about a month") = starts at the range start, ends start + duration.
 
@@ -39,7 +39,7 @@ A milestone with no date in the source and none following from these rules is as
 
 ## 4. Confirm
 
-Show: which source you used (email subject and date, or document name), the project and client, the milestones with their dates and, under each, its tasks with dates, then the problems. Ask for missing milestone dates in the same message. If the config has a `dashboard` line, also ask which claude.ai project the project's chats from the dashboard should open in — this conversation's project as the default when it is in one ("its chats will open in **<name>** — or another project's link, or none?"), else "a project's link, or none?". Wait for OK — this creates many rows, and a wrong assumption means a cleanup.
+Show: which source you used (email subject and date, or document name), the project and client, the milestones with their dates and, under each, its tasks with dates, then the problems — each by its name only: nothing is created yet, so nothing has an ID, and a number like `MS 1` would be mistaken for one. Ask for missing milestone dates in the same message. If the config has a `dashboard` line, also ask which claude.ai project the project's chats from the dashboard should open in — this conversation's project as the default when it is in one ("its chats will open in **<name>** — or another project's link, or none?"), else "a project's link, or none?". Wait for OK — this creates many rows, and a wrong assumption means a cleanup.
 
 ## 5. Create
 

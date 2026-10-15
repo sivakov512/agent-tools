@@ -4,7 +4,7 @@
 (function () {
   "use strict";
   var ROOT_PAGE = window.PT_ROOT || "", SNAP = window.PT_DATA || null; // live from Notion, or a client's snapshot
-  var NOTION = "Notion";
+  var NOTION = window.PT_NOTION && !/^__/.test(window.PT_NOTION) ? window.PT_NOTION : "Notion"; // the Notion connector's name in claude.ai (dashboard.html sets it)
   var STRUCT = { staleTime: 300000, gcTime: 86400000 }; // pages, databases, view ids: change rarely
   var DATA = { staleTime: 60000, gcTime: 86400000 };    // rows and page bodies
   var POLL = 600000;

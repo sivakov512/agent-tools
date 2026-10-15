@@ -1,7 +1,7 @@
 ---
 type: 'tool_used'
 tool: 'mcp__notion__notion-update-page'
-input_match: '^(?=[\s\S]*000000000301)(?=[\s\S]*"Status"\s*:\s*"Dropped")'
+input_match: '000000000103[\s\S]*"Status"\s*:\s*"In progress"'
 min: 0
 max: 0
 arm: 'both'
