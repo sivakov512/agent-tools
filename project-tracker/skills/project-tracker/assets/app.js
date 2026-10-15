@@ -58,7 +58,9 @@
   function payload(res) { var p = res ? res.payload : null; if (typeof p === "string") { try { p = JSON.parse(p); } catch (e) {} } return p; }
   function fetchText(id, cache) {
     return MCP.callTool(NOTION, "notion-fetch", { id: id }, { cache: cache }).then(function (res) {
-      touch(res); var p = payload(res); return p && typeof p === "object" ? String(p.text || "") : String(p || "");
+      touch(res); var p = payload(res), t = p && typeof p === "object" ? String(p.text || "") : String(p || "");
+      var re = /notion-file-block:\/\/[^\s)"'<>]+/g, m; while ((m = re.exec(t))) fileRefPage[m[0].replace(/&amp;/g, "&")] = id; // where each file lives, for its link (fileLink)
+      return t;
     });
   }
   function queryView(viewUrl, max) {
@@ -550,19 +552,22 @@
     var last = String(src || "").split(/[?#]/)[0].split("/").pop(); if (last) { try { return decodeURIComponent(last); } catch (e) { return last; } }
     return kind === "image" ? "Image" : "File";
   }
-  var FILE_FRESH = 3 * 60000, fileLinks = {}; // a Notion reference → { url, at } or { pending }
+  // The link comes from the page the file is on, read again with its file links (notion-fetch, which the page always has): one read per page
+  // gives every file on it a link for the next few minutes, and no tool beyond what the dashboard reads with is needed.
+  var FILE_FRESH = 3 * 60000, fileLinks = {}, fileRefPage = {}, pageLinks = {}; // reference → { url, at }; reference → page id; page id → pending read
   function fileLink(src) {
     var c = fileLinks[src];
-    if (c && c.pending) return c.pending;
     if (c && Date.now() - c.at < FILE_FRESH) return Promise.resolve(c.url);
-    var p = MCP.callTool(NOTION, "notion-get-file-download-urls", { references: [src] }, { cache: false }).then(function (res) {
-      var f = ((payload(res) || {}).files || [])[0];
-      if (!f || !f.url) throw { code: "no_link" };
-      fileLinks[src] = { url: f.url, at: Date.now() }; return f.url;
-    }, function (err) { delete fileLinks[src]; throw err; });
-    fileLinks[src] = { pending: p }; return p;
+    var id = fileRefPage[src];
+    if (!id) return Promise.reject({ code: "no_page" });
+    if (!pageLinks[id]) pageLinks[id] = MCP.callTool(NOTION, "notion-fetch", { id: id, include_file_urls: true }, { cache: false }).then(function (res) {
+      var refs = (payload(res) || {}).references || {}, now = Date.now();
+      Object.keys(refs).forEach(function (k) { fileLinks[k.replace(/&amp;/g, "&")] = { url: refs[k], at: now }; });
+      delete pageLinks[id];
+    }, function (err) { delete pageLinks[id]; throw err; });
+    return pageLinks[id].then(function () { var f = fileLinks[src]; if (!f) throw { code: "no_link" }; return f.url; });
   }
-  function fileFresh(src) { var c = fileLinks[src]; return !!(c && !c.pending && Date.now() - c.at < FILE_FRESH); }
+  function fileFresh(src) { var c = fileLinks[src]; return !!(c && Date.now() - c.at < FILE_FRESH); }
   function fileChip(src, caption, kind) {
     var name = fileName(src, caption, kind), ico = kind === "image"
       ? '<svg class="fico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="6.8" r="1.2"/><path d="m2.5 12 3.8-3.6 2.7 2.4 2-1.8 2.5 2.4"/></svg>'
@@ -570,13 +575,13 @@
     if (!/^(notion-file-block:|https?:)/.test(src || "")) { var s = el("span", "fchip off"); s.innerHTML = ico; s.appendChild(span(name, "fn")); s.title = "The file is in Notion"; return s; }
     var a = el("a", "fchip"); a.innerHTML = ico; a.appendChild(span(name, "fn")); a.appendChild(el("span", "arr", " ↗")); a.target = "_blank"; a.rel = "noopener"; a.title = "Open " + name;
     if (/^https?:/.test(src)) { a.href = src; return a; }
-    a.href = "#";
+    src = src.replace(/&amp;/g, "&"); a.href = "#";
     function get() {
       if (!MCP) return;
       a.classList.add("busy"); a.classList.remove("failed");
       fileLink(src).then(function (u) { a.href = u; a.classList.remove("busy"); a.title = "Open " + name; }, function (err) {
         a.classList.remove("busy"); a.classList.add("failed"); a.href = "#";
-        a.title = /not_declared|not_granted|capability/.test(String((err && err.code) || "")) ? "This dashboard can't open Notion files yet: ask Claude to update the dashboard" : "Couldn't get the file from Notion: click to try again";
+        a.title = "Couldn't get the file from Notion: click to try again";
       });
     }
     get();
