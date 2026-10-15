@@ -10,9 +10,9 @@
   var POLL = 600000;
   var ORIGINS = ["Upwork", "Direct", "Personal"];
 
-  var S = { cfg: null, projects: null, projErr: null, plan: {}, pageInfo: {}, problems: null, problemsErr: null, resolved: null, resolvedErr: null, lastUpdate: 0, range: "3", origin: "All", tlView: null, tlOpen: {}, shown: false };
+  var S = { cfg: null, projects: null, projErr: null, plan: {}, pageInfo: {}, problems: null, problemsErr: null, resolved: null, resolvedErr: null, lastUpdate: 0, range: "3", origins: [], tlView: null, tlOpen: {}, shown: false };
   try { var r0 = localStorage.getItem("pt.range"); if (SPANS[r0] || r0 === "all") S.range = r0; } catch (e) {}
-  try { var o0 = localStorage.getItem("pt.origin"); if (o0) S.origin = o0; } catch (e) {}
+  try { var o0 = JSON.parse(localStorage.getItem("pt.origins") || "null"); if (Array.isArray(o0)) S.origins = o0.filter(function (k) { return typeof k === "string"; }); else { o0 = localStorage.getItem("pt.origin"); if (o0 && o0 !== "All") S.origins = [o0]; } } catch (e) {} // pt.origin: the one origin an older version kept
   try { var t0 = JSON.parse(localStorage.getItem("pt.tlOpen") || "{}"); if (t0 && typeof t0 === "object") S.tlOpen = t0; } catch (e) {}
 
   var $ = function (id) { return document.getElementById(id); };
@@ -185,7 +185,7 @@
   }
 
   // ---------- derived data, filtered by origin ----------
-  function shown(p) { return S.origin === "All" || p.origin === S.origin; }
+  function shown(p) { return !S.origins.length || S.origins.indexOf(p.origin) >= 0; } // no origin picked: all of them
   function projs() { return (S.projects || []).filter(shown); }
   function allProjByKey() { var o = {}; (S.projects || []).forEach(function (p) { o[p.key] = p; }); return o; }
   function projByKey() { var o = {}; projs().forEach(function (p) { o[p.key] = p; }); return o; }
@@ -226,22 +226,33 @@
     if (SNAP) return; // a client's page: one client, no origin filter
     var kinds = {}; (S.projects || []).forEach(function (p) { kinds[p.origin] = (kinds[p.origin] || 0) + 1; });
     var ks = ORIGINS.filter(function (k) { return kinds[k]; }).concat(Object.keys(kinds).filter(function (k) { return ORIGINS.indexOf(k) < 0; }));
-    if (S.origin !== "All" && !kinds[S.origin] && S.projects) S.origin = "All";
+    if (S.projects) { S.origins = S.origins.filter(function (k) { return kinds[k]; }); if (S.origins.length >= ks.length) S.origins = []; } // an origin with no project left drops out
     var tb = $("origin"); clear(tb); if (ks.length < 2) return;
-    var total = (S.projects || []).length, lab = function (k) { return k === "All" ? "All projects" : k; }, cnt = function (k) { return k === "All" ? total : kinds[k]; };
-    var pick = function (k) { S.origin = k; try { localStorage.setItem("pt.origin", k); } catch (e) {} TLN.reset(); closeMenus(); paint(); }; // the menu closes first: paint() waits while a menu is open
+    var total = (S.projects || []).length, on = function (k) { return k === "All" ? !S.origins.length : S.origins.indexOf(k) >= 0; }, cnt = function (k) { return k === "All" ? total : kinds[k]; };
+    var lab = function () { return !S.origins.length ? "All projects" : ks.filter(on).join(", "); }, sum = function () { return S.origins.reduce(function (a, k) { return a + kinds[k]; }, 0) || total; };
+    var pick = function (k) { // several origins at once: All clears the choice, an origin goes in or out of it, and all of them picked is All again
+      var i = S.origins.indexOf(k);
+      if (k === "All") S.origins = []; else if (i < 0) S.origins = S.origins.concat([k]); else S.origins = S.origins.slice(0, i).concat(S.origins.slice(i + 1));
+      if (S.origins.length >= ks.length) S.origins = [];
+      try { localStorage.setItem("pt.origins", JSON.stringify(S.origins)); localStorage.removeItem("pt.origin"); } catch (e) {}
+      TLN.reset();
+    };
     if (ks.length <= 3) { // a few origins: all in view as a segmented control, one click each; more than three take the menu below
-      var seg = el("div", "seg"); seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "Which projects to show, by Origin");
-      ["All"].concat(ks).forEach(function (k) { var o = btn("", null, function () { pick(k); }); o.setAttribute("aria-pressed", String(S.origin === k)); o.appendChild(span(k === "All" ? "All" : k)); o.appendChild(span(String(cnt(k)), "n")); seg.appendChild(o); });
+      var seg = el("div", "seg"); seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "Which projects to show, by Origin: one or several");
+      ["All"].concat(ks).forEach(function (k) { var o = btn("", null, function () { pick(k); paint(); }); o.setAttribute("aria-pressed", String(on(k))); o.appendChild(span(k)); o.appendChild(span(String(cnt(k)), "n")); seg.appendChild(o); });
       tb.appendChild(seg); return;
     }
     var b = btn("", null), menu = el("div", "dd-m"); menu.hidden = true; menu.setAttribute("role", "menu");
-    b.appendChild(span(lab(S.origin))); b.appendChild(span(String(cnt(S.origin)), "n")); b.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.8 5 6.8 8 3.8"/></svg>');
-    b.setAttribute("aria-haspopup", "menu"); b.setAttribute("aria-expanded", "false"); b.title = "Which projects to show, by Origin";
-    b.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; menu.hidden = !on; b.setAttribute("aria-expanded", String(on)); });
-    ["All"].concat(ks).forEach(function (k) {
-      var o = btn("", null, function () { pick(k); });
-      o.setAttribute("role", "menuitemradio"); o.setAttribute("aria-checked", String(S.origin === k)); o.appendChild(span(lab(k))); o.appendChild(span(String(cnt(k)), "n")); menu.appendChild(o);
+    var bl = span(lab()), bn = span(String(sum()), "n");
+    b.appendChild(bl); b.appendChild(bn); b.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.8 5 6.8 8 3.8"/></svg>');
+    b.setAttribute("aria-haspopup", "menu"); b.setAttribute("aria-expanded", "false"); b.title = "Which projects to show, by Origin: one or several";
+    b.addEventListener("click", function (e) { e.stopPropagation(); var op = menu.hidden; menu.hidden = !op; b.setAttribute("aria-expanded", String(op)); });
+    var items = ["All"].concat(ks).map(function (k) {
+      var o = btn("", null, function () { // the menu stays open for the next pick; the page behind follows each one
+        pick(k); items.forEach(function (it) { it.o.setAttribute("aria-checked", String(on(it.k))); }); bl.textContent = lab(); bn.textContent = String(sum()); paint(true);
+      });
+      o.setAttribute("role", "menuitemcheckbox"); o.setAttribute("aria-checked", String(on(k))); o.appendChild(span(k === "All" ? "All projects" : k)); o.appendChild(span(String(cnt(k)), "n")); menu.appendChild(o);
+      return { k: k, o: o };
     });
     tb.appendChild(b); tb.appendChild(menu);
   }
@@ -910,10 +921,10 @@
     var g = a.closest(".mgrp"); if (g && a.classList.contains("mh")) return '.mgrp[data-g="' + sel(g.dataset.g) + '"] > .mh';
     return null;
   }
-  function paint() {
-    if (document.querySelector(".dd-m:not([hidden]), .chat-m:not([hidden])")) { pending = true; return; }
+  function paint(keepHeader) { // keepHeader: the origin menu is open and has updated itself; the rest follows it
+    if (!keepHeader && document.querySelector(".dd-m:not([hidden]), .chat-m:not([hidden])")) { pending = true; return; }
     var fk = focusKey();
-    renderHeader();
+    if (!keepHeader) renderHeader();
     if (!S.shown) return;
     (SNAP ? [renderPills, renderCards, function () { renderGantt(false); }, renderSides, renderDone, renderDrawer] : [renderPills, renderCards, function () { renderGantt(false); }, renderMove, renderWaiting, renderRisks, renderDone, renderDrawer]).forEach(function (f) { try { f(); } catch (e) { if (window.console) console.error(e); } });
     if (fk) { var n = document.querySelector(fk); if (n) n.focus({ preventScroll: true }); }

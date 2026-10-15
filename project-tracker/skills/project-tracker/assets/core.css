@@ -326,7 +326,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 /* Look: the same family as Upwork Pulse (system type, teal accent, green-grey neutrals, 10px cards, header pills, rows with an inset mark, the drawer).
    Layout: a calm overview on one screen — pills with what is overdue or due soon, the timeline of everything, a card per project; on the right
    what needs me and whom I wait on. Anything clicked opens its project as a readable page sliding in from the right. */
-/* the origin filter: a dropdown, since the user may add any number of Origin options */
+/* the origin filter, one origin or several: a segmented control for up to three, a checkbox menu for more (the user may add any number of Origin options) */
 .origin { position: relative; display: inline-flex; }
 .origin:empty { display: none; }
 .origin .seg button { display: inline-flex; align-items: baseline; gap: 5px; }
