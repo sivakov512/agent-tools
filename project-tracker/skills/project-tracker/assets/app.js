@@ -56,8 +56,12 @@
     paintLive();
   }
   function payload(res) { var p = res ? res.payload : null; if (typeof p === "string") { try { p = JSON.parse(p); } catch (e) {} } return p; }
+  // After Refresh, the first read of each page or view goes to Notion past the cache: invalidate() is not there on every host,
+  // and without it a read inside its staleTime would come back from the cache unchanged
+  var fresh = null;
+  function cacheFor(key, cache) { if (!fresh || fresh[key]) return cache; fresh[key] = true; var c = {}; for (var k in cache) c[k] = cache[k]; c.refresh = true; return c; }
   function fetchText(id, cache) {
-    return MCP.callTool(NOTION, "notion-fetch", { id: id }, { cache: cache }).then(function (res) {
+    return MCP.callTool(NOTION, "notion-fetch", { id: id }, { cache: cacheFor("f:" + id, cache) }).then(function (res) {
       touch(res); var p = payload(res), t = p && typeof p === "object" ? String(p.text || "") : String(p || "");
       var re = /notion-file-block:\/\/[^\s)"'<>]+/g, m; while ((m = re.exec(t))) fileRefPage[m[0].replace(/&amp;/g, "&")] = id; // where each file lives, for its link (fileLink)
       return t;
@@ -68,7 +72,7 @@
     function page(cursor, n) {
       var data = { mode: "view", view_url: viewUrl, page_size: 100 };
       if (cursor) data.start_cursor = cursor;
-      return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: DATA }).then(function (res) {
+      return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: cacheFor("q:" + viewUrl + "|" + (cursor || ""), DATA) }).then(function (res) {
         touch(res); var p = payload(res) || {};
         rows = rows.concat(p.results || []);
         return p.has_more && p.next_cursor && n < (max || 5) ? page(p.next_cursor, n + 1) : rows;
@@ -972,6 +976,7 @@
   function refreshNow() { // everything read again from Notion; resolves when the load is done
     if (!MCP) return Promise.resolve();
     $("liveText").textContent = "Refreshing…";
+    fresh = {}; // every page and view read once more past the cache (cacheFor)
     var p = MCP.invalidate ? MCP.invalidate(NOTION) : Promise.resolve();
     Object.keys(S.body).forEach(function (u) { if (S.body[u]) S.body[u].at = 0; }); // read again, but shown as they were meanwhile: the page keeps its height, so the scroll stays where the user was
     return p.catch(function () {}).then(function () {
