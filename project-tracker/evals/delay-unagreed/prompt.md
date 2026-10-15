@@ -7,3 +7,5 @@ tags: [dates]
 append_system_prompt: 'The current date is Friday, 9 October 2026. Any other date in the environment, a "Today''s date" line included, is wrong for this session: today is 2026-10-09 — use it for every date you write and every "today" you count from.'
 ---
 Sleep modes on the energy meter will be about a week late — the vendor samples are late. I haven't told Northwind yet.
+
+Update the tracker.
