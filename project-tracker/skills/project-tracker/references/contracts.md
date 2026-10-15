@@ -20,7 +20,7 @@ Dates:
 
 - Stages submitted or completed on the platform: Done; `Finished` = the submission date; `Dates` only when the contract gives the stage a due date (the end) — no due date, no `Dates`, its `Finished` records it; start = the previous stage's end, or the contract start for the first one, or the same start as a stage the terms say runs in parallel (a stage that follows parallel ones starts when the one it builds on ends).
 - Stages with a due date in the contract: that date is the end; the start is the previous stage's end, or the contract start for the first one.
-- Remaining stages without due dates: do not invent dates. In the confirmation step, list them and ask the user for target end dates. If the user does not give them, create the milestones without `Dates` and write `— no date yet` in the callout; they will appear in the table views but not on the Gantt.
+- Remaining stages without due dates: do not invent dates. In the confirmation step, list them and ask the user for target end dates. If the user does not give them, create the milestones without `Dates`; they will appear in the table views but not on the Gantt.
 
 Status: finished stages → Done; the stage the work is on (active on the platform) → In progress; the rest → Planned. Only one In progress unless the terms say stages run in parallel.
 
@@ -36,7 +36,7 @@ Ignore entirely: amounts, funding and payment states (they go stale and are not 
 ## Project fields and page
 
 - `Source` = the link to the contract on the platform. This is the only link to the platform the tracker keeps; `Repository` is for code and stays empty unless the user gives one.
-- Page body: callout and tabs as for any project. The contract text is not copied onto the page — it is one click away through `Source`.
+- Page body: tabs as for any project. The contract text is not copied onto the page — it is one click away through `Source`.
 
 ## Resync — "sync the Upwork project"
 

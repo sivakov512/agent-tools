@@ -105,12 +105,11 @@
     });
   }
 
-  function parseProjectPage(txt) { // status callout notes + the page's own parts, below its tabs (SKILL.md → Pages)
+  function parseProjectPage(txt, p) { // the page's own parts, below its tabs (SKILL.md → Pages); a paused project's note says why and since when
     var info = { notes: [], parts: partsOf("") };
-    var c = /<callout[^>]*>([\s\S]*?)<\/callout>/.exec(txt);
-    if (c) c[1].split("\n").forEach(function (line) { var l = clean(line); if (l && !/^(Now|Blocked on|Waiting on|Open):/i.test(l)) info.notes.push(l); });
     var body = contentOf(txt), t = body.lastIndexOf("</tabs>");
     info.parts = partsOf(t < 0 ? "" : body.slice(t + 7));
+    if (p && p.status === "Paused") info.notes.push("Paused " + PT.pauseText(PT.pauseOf(info.parts.hist), true));
     return info;
   }
   var PART = /^#{1,3}\s+(Notes|Private notes|History)\s*$/; // the headings that split a page into its parts — by these alone, never by how a line looks
@@ -148,10 +147,16 @@
   }
   function loadProject(p) { // project page → callout, its own parts, Schedule (milestones) and Tasks (tasks) views, Done included
     return fetchText(p.url, DATA).then(function (txt) {
-      S.pageInfo[p.key] = parseProjectPage(txt);
+      S.pageInfo[p.key] = parseProjectPage(txt, p);
       return Promise.all([tabView(txt, "Schedule", "Schedule"), tabView(txt, "Tasks", "Tasks")]);
     }).then(function (r) {
-      S.plan[p.key] = PT.buildPlan(p, r[0], r[1]);
+      var plan = PT.buildPlan(p, r[0], r[1]), old = S.plan[p.key] && S.plan[p.key].ms || [];
+      plan.ms.forEach(function (m) { old.forEach(function (o) { if (o.url === m.url && o.pause) m.pause = o.pause; }); }); // keep what is known while it is read again
+      S.plan[p.key] = plan;
+      // a paused milestone's reason and date live in its history: one read per paused milestone, so the page shows why it waits
+      return Promise.all(plan.ms.filter(function (m) { return m.status === "Paused"; }).map(function (m) {
+        return fetchText(m.url, DATA).then(function (t) { m.pause = PT.pauseOf(partsOf(contentOf(t)).hist); }, function () {});
+      }));
     }, function (err) { if (!(S.plan[p.key] && S.plan[p.key].ms) || isDenial(err)) S.plan[p.key] = { err: err }; });
   }
 

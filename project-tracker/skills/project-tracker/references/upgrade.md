@@ -35,7 +35,7 @@ Dropped milestones and issues, and Removed projects, do not move.
 
 **Notes tab**: its lines and sub-pages become the new project page's notes, in the old tab's order — short lines copied as they are under `## Notes`, each sub-page re-created under the new project page with the same title and its body copied verbatim, then placed as `notes.md` describes; a line or sub-page that **Who sees what** keeps private goes under `## Private notes` instead. A paused, done or removed line becomes a history line. Lines the upgrade itself adds come last.
 
-**Callout**: rebuilt by the rules of this version from the new rows; `On hold` reasons and `Paused` / `Done` lines come from the old callout.
+**Callout**: not carried over — this version keeps no status callout; an `On hold` reason in the old callout becomes the pause line in that milestone's history (`- **<date it was paused, else the upgrade day>** — Paused (was In progress): <reason>.`).
 
 ## 3. Preview
 
@@ -44,7 +44,7 @@ Show, per project: the milestones with their tasks (dates, status), the problems
 ## 4. Copy
 
 1. The new root page. A current tracker with the old page's title already found (SKILL.md → **Finding things**: an interrupted upgrade) → use it. Otherwise create it directly, without a search or a question: `notion-create-pages` with the old page's title, `parent` = the old page's parent (none for a top-level page), and the config toggle as `setup.md` step 1 shows. Then `setup.md` steps 2–6 on it — databases, computed columns, page layouts, config, views, tabs, verify; not step 7: the dashboard is step 5 below. Both pages carry a config toggle while the copy runs; the old one is recognised by its `open_items` line, so it is never written to.
-2. Per project: the Projects row with the fields mapped above, then as `new-project.md` → **Create** steps 2–6 do, with the field values mapped above — the page's views and tabs, milestones, tasks, problems, the callout; then the Notes tab as mapped (no `Source` sub-page: the old Notes come over as they are). `Target end` is copied, not recomputed, and the Claude project question is not asked. Before creating a row, look for it in the new project's views by name; if it exists (an interrupted run), compare and fill what is missing instead of creating a second.
+2. Per project: the Projects row with the fields mapped above, then as `new-project.md` → **Create** steps 2–5 do, with the field values mapped above — the page's views and tabs, milestones, tasks, problems; then the Notes tab as mapped (no `Source` sub-page: the old Notes come over as they are). `Target end` is copied, not recomputed, and the Claude project question is not asked. Before creating a row, look for it in the new project's views by name; if it exists (an interrupted run), compare and fill what is missing instead of creating a second.
 3. Verify by counts, per project: milestones, tasks, problems and notes in the new tracker equal what the preview listed. Fix any gap before going on.
 
 ## 5. Retire the old tracker

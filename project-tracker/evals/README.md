@@ -29,7 +29,7 @@ What is checked:
 - `ref-lookup`, `ref-link`, `ref-unknown` — rows named by ID: "TK-4 is done" closes *Power measured, module fixed* (not the In-progress task, not the milestone MS-4); "Link PB-1 to TK-6" sets the risk's `Task` to *First prototype working on the custom board*, not the *Board designed* task its text suggests (its own mock: the risk has no task yet); no other row changes, and the reply leads the changed item with its ID. "TK-40 is done" names no row: the agent asks and writes nothing.
 - `reorder` — "Hardware comes before Firmware — swap them": `Order` is renumbered without a preview, the dates stay, and the reply offers to move them because they now contradict the order.
 
-Layout (callout, tabs, views) is checked structurally here but a mock cannot render Notion; after changing the page markup, also run the skill once against a scratch page in a real workspace and look at it.
+Layout (tabs, views) is checked structurally here but a mock cannot render Notion; after changing the page markup, also run the skill once against a scratch page in a real workspace and look at it.
 
 Layout:
 

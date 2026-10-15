@@ -154,10 +154,27 @@
     var head = overdue[0] || now.filter(function (m) { return m.late > 0; })[0] || now.filter(function (m) { return !m.paused; })[0] || now[0] || next;
     return { now: now, overdue: overdue, next: next, head: head, task: head && head.kind === "ms" ? currentTask(head.tasks) : null, byTasks: !ms.length };
   }
-  function whenOf(m) {
+  // Why and since when an item is paused: its newest history line `- **Oct 6** — Paused (was In progress): <reason>` (SKILL.md → Pause)
+  function pauseOf(hist) {
+    var last = null;
+    String(hist || "").split("\n").forEach(function (l) {
+      var m = /^\s*-\s*\*\*([A-Z][a-z]{2}) (\d{1,2})(?:, (\d{4}))?\*\*\s*[—-]+\s*Paused\b[^:]*(?::\s*(.*))?$/.exec(l);
+      if (!m || MON.indexOf(m[1]) < 0) return;
+      var t = todayNum(), y = m[3] ? +m[3] : new Date().getFullYear(), n = Math.round(Date.UTC(y, MON.indexOf(m[1]), +m[2]) / DAY);
+      if (!m[3] && n > t) n = Math.round(Date.UTC(y - 1, MON.indexOf(m[1]), +m[2]) / DAY);
+      last = { since: n, reason: clean(String(m[4] || "").replace(/<[^>]+>/g, "")).replace(/\.$/, "") };
+    });
+    return last;
+  }
+  function pauseText(pz, long) { // "since Oct 6 · waiting on Kestrel for parts"; long adds how long
+    if (!pz) return "paused";
+    var d = todayNum() - pz.since;
+    return "since " + fmt(pz.since) + (long && d > 0 ? " (" + days(d) + ")" : "") + " · " + (pz.reason || "no reason given");
+  }
+  function whenOf(m, long) {
     var t = todayNum();
     if (m.status === "Done") return [m.finished != null ? "done " + fmt(m.finished) + (m.late > 0 ? ", " + days(m.late) + " late" : m.late < 0 ? ", " + days(-m.late) + " early" : "") : "done", m.late > 0 ? "crit" : ""];
-    if (m.paused) return [m.kind === "task" && m.ms && m.ms.status === "Paused" ? "its milestone is paused" : "paused", ""];
+    if (m.paused) return [m.kind === "task" && m.ms && m.ms.status === "Paused" ? "its milestone is paused" : pauseText(m.pause, long), ""];
     if (m.start == null) return [m.kind === "task" ? (m.status === "Waiting" && m.waiting ? "waiting on " + m.waiting : "no dates") : "no dates yet", ""];
     if (m.late > 0) return [days(m.late) + " late · was due " + fmt(m.end), "crit"];
     if (m.openEnd) return [(m.start > t ? "starts " + soon(m.start) : "since " + fmt(m.start)) + " · no end date" + (m.status === "Waiting" && m.waiting ? " · waiting on " + m.waiting : ""), ""];
@@ -195,7 +212,7 @@
   function tipOf(x) { // the hover tip: state and dates (the name is on the bar already)
     var d = x.start == null ? (x.kind === "ms" ? "no dates yet" : "no dates") : range(x.start, x.end), ph = planPhrase(x)[0];
     if (x.status === "Done") return ph.charAt(0).toUpperCase() + ph.slice(1) + " · " + d;
-    if (x.paused) return (x.kind === "task" && x.ms && x.ms.status === "Paused" ? "Paused with its milestone" : "Paused") + " · " + d;
+    if (x.paused) return (x.kind === "task" && x.ms && x.ms.status === "Paused" ? "Paused with its milestone" : "Paused " + pauseText(x.pause)) + " · " + d;
     var st = x.status === "Waiting" ? (x.waiting ? "Waiting on " + x.waiting : "Waiting") : x.status || "Planned";
     return st + " · " + d + (x.late > 0 ? " · " + days(x.late) + " late" : x.start != null && !/^(waiting|no dates|in progress)/.test(ph) ? " · " + ph : "");
   }
@@ -610,7 +627,7 @@
       var line = function (label, cls, name, when, wcls, k) { var r = el("div", "fr"); r.appendChild(el("span", "fl " + cls, label)); var c = el("div"); c.appendChild(btn("go", name, function () { reveal(k); })); if (when) c.appendChild(el("div", "w " + (wcls || ""), when)); r.appendChild(c); fc.appendChild(r); return c; };
       f.overdue.forEach(function (m) { line("Overdue", "crit", m.name, whenOf(m)[0], "crit", key(m.url)); });
       f.now.forEach(function (m) {
-        var w = whenOf(m), c = line(m.paused ? "Paused" : m.status === "Waiting" ? "Waiting" : "Now", m.paused ? "" : m.late > 0 ? "crit" : "now", m.name, w[0], w[1], key(m.url));
+        var w = whenOf(m, true), c = line(m.paused ? "Paused" : m.status === "Waiting" ? "Waiting" : "Now", m.paused ? "" : m.late > 0 ? "crit" : "now", m.name, w[0], w[1], key(m.url));
         var ct = m.kind === "ms" && !m.paused ? currentTask(m.tasks) : null;
         if (ct) { var tw = whenOf(ct), sub = el("div", "ct"); sub.appendChild(span("Current task: ", "muted")); sub.appendChild(btn("go2", ct.name, function () { reveal(key(ct.url)); })); sub.appendChild(el("div", "w " + (tw[1] || ""), tw[0])); c.appendChild(sub); }
       });
@@ -656,7 +673,7 @@
     el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, clean: clean, rel: rel, key: key, num: num, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, fold: showPart, grow: growTo,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
     msOf: msOf, taskOf: taskOf, problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate,
-    currentTask: currentTask, focusOf: focusOf, whenOf: whenOf, projectState: projectState, planPhrase: planPhrase, itemDot: itemDot, tipOf: tipOf,
+    currentTask: currentTask, focusOf: focusOf, whenOf: whenOf, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState, planPhrase: planPhrase, itemDot: itemDot, tipOf: tipOf,
     timeline: timeline,
     facts: facts, actions: actions, typeTag: typeTag, phraseEl: phraseEl, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };

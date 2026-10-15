@@ -19,7 +19,7 @@ A root page, named as the user likes, with four databases. A project is planned 
 
 `Removed` and `Dropped` are for things the user threw away; views, counts, overviews and reports look only at the other ("live") statuses.
 
-The root page holds the config toggle, then the views you read: Projects `Active` (Active, Paused) and `Closed`; Milestones `Next up` (open); Tasks `All` (open) and `Waiting on`; Problems `Open` (Open, Waiting) and `Recently resolved`. A **project page is the project's row in Projects**: the status callout, then tabs `Plan` (Gantt), `Tasks` (every live task, by milestone), `Schedule` (milestones), `Problems`, then the parts of **Pages**. The full spec is `references/setup.md`.
+The root page holds the config toggle, then the views you read: Projects `Active` (Active, Paused) and `Closed`; Milestones `Next up` (open); Tasks `All` (open) and `Waiting on`; Problems `Open` (Open, Waiting) and `Recently resolved`. A **project page is the project's row in Projects**: the status tabs `Plan` (Gantt), `Tasks` (every live task, by milestone), `Schedule` (milestones), `Problems`, then the parts of **Pages**. The full spec is `references/setup.md`.
 
 **Pages.** Every page — a project's, milestone's, task's or problem's — holds up to four parts, in this order (on a project page, below its tabs), each there only once it has something in it:
 
@@ -30,7 +30,7 @@ The root page holds the config toggle, then the views you read: Projects `Active
 
 The headings are exactly `## Notes`, `## Private notes` and `## History` and mark nothing else; a section's heading comes with its first entry, so a page never shows an empty one. The dashboard reads the parts by these headings. A step done gets both its checklist tick (the current state) and a history line (the dated record).
 
-**Who sees what.** A client dashboard shows the projects it covers as they are — fields, descriptions, Notes and History — never Private notes, the callout, links into Notion, chats or the repository. So everything outside Private notes is written as if the client reads it: facts about the work, in neutral words. Private notes take:
+**Who sees what.** A client dashboard shows the projects it covers as they are — fields, descriptions, Notes and History — never Private notes, links into Notion, chats or the repository. So everything outside Private notes is written as if the client reads it: facts about the work, in neutral words. Private notes take:
 
 - money the client was not given — supplier prices and quotes, the user's own costs and margins. The terms agreed with the client are no secret to them, nor is an expense the client pays back or is billed for, with its invoice;
 - contact details of others — the user's own name, address and business details on a document are no secret, the client has them;
@@ -160,33 +160,15 @@ Tool names are the Notion MCP tools (`notion-fetch`, `notion-query-data-sources`
 - **Description**: new — on a milestone, task or problem `insert_content`, `position: {"type": "start"}`; on a project page `update_content` with `old_str` `</tabs>`, `new_str` `</tabs>`, a newline, the description. Changed — `update_content` on its lines as fetched; a checklist item done — `- [ ] Pinout fixed` → `- [x] Pinout fixed`.
 - **Moving an entry** ("make that note private", "the client can see this one"): one `update_content` with two `content_updates` — the entry → empty, and the target's heading → the entry, a blank line, that heading (or the heading created, as for a first entry); a section left empty loses its heading.
 
-Changing one line or block: `update_content` with `old_str` exactly as fetched. Block tags (`<callout>`, `<details>`, `<tabs>`, `<tab>`, `<database>`, `<page>`) are sent as raw `<` `>` — in JSON only `"`, tabs and newlines are escaped (`\"`, `\t`, `\n`). Lines inside a callout, toggle or tab are indented with tabs; without them Notion turns the lines into separate blocks. After any write that contains markup, fetch the page and check: tags that show up as text (`&lt;callout`), blocks out of order, or an `icon=` that Notion added → fix with `update_content`. Pages, databases and tabs carry no icons; only the callouts have one.
+Changing one line or block: `update_content` with `old_str` exactly as fetched. Block tags (`<callout>`, `<details>`, `<tabs>`, `<tab>`, `<database>`, `<page>`) are sent as raw `<` `>` — in JSON only `"`, tabs and newlines are escaped (`\"`, `\t`, `\n`). Lines inside a callout, toggle or tab are indented with tabs; without them Notion turns the lines into separate blocks. After any write that contains markup, fetch the page and check: tags that show up as text (`&lt;callout`), blocks out of order, or an `icon=` that Notion added → fix with `update_content`. Pages, databases and tabs carry no icons.
 
-**The status callout** holds only what changes when something happens — never lateness or "on track", which depend on today and would go stale in a text block (the live number is `Late, days` at the top of the page):
-
-```
-<callout icon="🔴" color="red_bg">
-	**Now:** Demo prototype — due Nov 9 → Board order, due Oct 16
-	**Blocked on:** Test rig (Dana)
-	**Waiting on:** Lab quotes (Kestrel Labs, Halden Test) · Layout sign-off (Dana)
-	**Open:** 2 risks · 1 question
-	**On hold:** Firmware on the dev board — set aside for the demo prototype, since Oct 6
-</callout>
-```
-
-- `**Now:**` the In-progress milestones with their due dates (`— no date yet` if none), each followed by its In-progress tasks as ` → <task>, due <date>` (no date → just the name); in a project without milestones, the In-progress tasks as `<task> — due <date>`. Joined by ` · `; `**Now:** nothing in progress` if empty.
-- `**Blocked on:**` every Blocker among the Open/Waiting problems — except those linked to a Paused milestone, which show under On hold — as `<name> (<Waiting on>)`, or just `<name>` when it is on the user. Left out when there is none.
-- `**Waiting on:**` every Waiting task and every Waiting problem that is not a Blocker, as `<name> (<Waiting on>)`, in the order of the project's `Tasks` view, problems after. Left out when there is none.
-- `**Open:**` the Open/Waiting risks and questions not listed above, as counts (`2 risks · 1 question`). Left out when zero.
-- `**On hold:**` each Paused milestone, why and since when (`— no reason given` if none); left out when nothing is paused.
-- Icon and colour: 🔴 `red_bg` if any Blocker is Open or Waiting; else 🟡 `yellow_bg` if a milestone is on hold; else 🔵 `blue_bg`. A project that is not Active gets one first line instead of `Now`: `**Paused** since Mar 3 — <reason>` ⏸️ `gray_bg`, `**Done** Mar 20` ✅ `gray_bg`, `**Removed**` 🗑️ `gray_bg`.
-- To update it: fetch the page, `update_content` with `old_str` = the whole current callout as fetched, `new_str` = the new one.
+**No status callout.** Where a project stands is computed live by the dashboard and the project's views; a text summary on the page would go stale with the first change it missed. A project page made by an older version may still open with a callout (`**Now:** …`): the first time you write to that project, remove it (`update_content`, `old_str` = the whole callout as fetched, `new_str` empty) and say so in the reply.
 
 ## Every change: read, write, check, report
 
 1. Before writing, note the current values of everything you are about to change — you have them from the read.
-2. Write the rows first. Only after they succeeded, bring `Summary`, `Target end` and the status callout in line with what changed — never in parallel with the row writes, so a failed write never leaves the page describing a change that did not happen.
-3. **Client dashboard.** If the project's `Client dashboard` holds a link (from its `Active` or `Closed` row, or a fetch of the project page), refresh that page once, after all the writes: `references/client-dashboards.md` → **Keeping it current**. A change that touched nothing but Private notes (a `Client side:` note aside), the callout, `Chat`, `Claude project` or the link itself refreshes nothing — none of them shows there.
+2. Write the rows first. Only after they succeeded, bring `Summary` and `Target end` in line with what changed — never in parallel with the row writes, so a failed write never leaves the page describing a change that did not happen.
+3. **Client dashboard.** If the project's `Client dashboard` holds a link (from its `Active` or `Closed` row, or a fetch of the project page), refresh that page once, after all the writes: `references/client-dashboards.md` → **Keeping it current**. A change that touched nothing but Private notes (a `Client side:` note aside), `Chat`, `Claude project` or the link itself refreshes nothing — none of them shows there.
 4. Reply to the message, not only about the writes. The reply answers what the user wrote: whatever their message was about — a doubt, a choice they were weighing, something they want your view on — gets its answer first, plainly, with the reason in a sentence or two, and all of it, not just the part that turned into a write. Where things go and in what form is your call by default (**Every record goes where it belongs**, **What is worth writing**). A doubt about how to record something ("not sure where this goes") is not an instruction to record it: propose, and write once the user agrees — unless they left it to you ("sort it out"); then decide, do it, and say why that way is the better one. A list of what was done cannot tell them whether it was the right call.
 
    The changes are always in it, grouped by item: its ID and name once, then one short line per change — fields as **was → now**, what was written quoted exactly as it went in (a history entry, a field value, a short note: a sentence or two each; a rewritten entry as old → new). A long note, a sub-page, a table or a file is named by where it went and what it holds, in a few words, never pasted into the chat:
