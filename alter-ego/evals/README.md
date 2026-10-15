@@ -14,7 +14,7 @@ scripts/eval.sh alter-ego --runs 1 --ablation none --scaffold --allow-tools Bash
 
 What is checked:
 
-- `ask-mode` — a push in a repository with no mode: the agent asks clean or the bot `forge` (or adding a bot), does not pick one itself, and does not route around the refusal.
+- `ask-mode` — a push in a repository with no mode: the agent asks clean or the bot `forge` (or adding a bot) as a question of its own, does not pick one itself, and does not route around the refusal. Eval runs offer no AskUserQuestion tool (nothing could show it), so the case checks the fallback the skill asks for: the question as the reply's last paragraph under a bold heading, nothing else asked with it.
 - `switch-to-bot` — "work as forge here": the agent runs `alter-ego use forge` and confirms in a line.
 - `add-bot` — a second bot: the agent registers it and walks the user through the token, with the macOS store command, never asking for the token in chat.
 - `clean-commit-push` — commit and push in a clean repository: what is pushed carries no AI marks; if a push is refused, the agent rewords instead of working around it.

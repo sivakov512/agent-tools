@@ -45,7 +45,14 @@ The `alter-ego` command is on PATH too. In a session that started before the plu
 
 You learn a repository has no mode from the session context or from a refused command. Ask once, before the first push, PR, issue, review or comment there — not at the start of a session that only reads code.
 
-Ask with the question tool when you have one, else in plain text. Offer: **Clean** (as them, no AI marks), one option per bot from `alter-ego bots` ("as beelzebot-robot, commits signed Claude(beelzebot)"), and **Add a bot**. Recommend nothing: the user knows which kind of repository this is. Then run `alter-ego use <choice>` in the repository and carry on with what was refused.
+The question has to be one the user cannot miss: a mode chosen by accident puts work out under the wrong name. So:
+
+- Ask it with the AskUserQuestion tool whenever you have it: the options appear as buttons. Offer **Clean** (as them, no AI marks), one option per bot from `alter-ego bots` ("as beelzebot-robot, commits signed Claude(beelzebot)"), and **Add a bot**.
+- Ask it on its own. Don't tuck it into a longer report, and don't bundle it with another question ("and shall I release?"): ask the mode first, the rest after.
+- Without that tool, make it the last paragraph of your reply, under a bold heading such as **Whose name for this repository?**, with the options as a short list and nothing after it.
+- Wait for the answer; don't push or post anything meanwhile.
+
+Recommend nothing: the user knows which kind of repository this is. Then run `alter-ego use <choice>` in the repository and carry on with what was refused.
 
 The choice is the user's alone. Don't pick a mode yourself, even when it looks obvious, and don't route around a refusal: no git or gh by full path, no replaced PATH, no editing the config by hand. Each of those would put work out under the wrong name, which is what the user installed this to prevent.
 
