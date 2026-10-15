@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.14.1...project-tracker-v1.15.0) (2026-10-15)
+
+
+### Features
+
+* **project-tracker:** notes by subject, a clear job per page part, tidy-ups ([4478981](https://github.com/sivakov512/agent-tools/commit/44789813b9cbbfb2ac16ac09a358bfa2dc4e2793))
+
 ## [1.14.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.14.0...project-tracker-v1.14.1) (2026-10-15)
 
 
