@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.4](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.12.3...project-tracker-v1.12.4) (2026-10-15)
+
+
+### Bug Fixes
+
+* **project-tracker:** dates are the user's, replies answer the message ([8906ec5](https://github.com/sivakov512/agent-tools/commit/8906ec509e0442230b99adb659f30587c7479026))
+
 ## [1.12.3](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.12.2...project-tracker-v1.12.3) (2026-10-15)
 
 
