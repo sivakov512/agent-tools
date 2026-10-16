@@ -645,7 +645,7 @@
     skipped: null, skippedErr: null, skippedMore: null, // the Skipped view, one page at a time (skippedMore: the next page's cursor)
     appliedNotion: {}, // Job ID → Applied card
     openProps: {}, sentByJob: {}, sentById: {}, // Proposals rows: Open by Job ID, Sent by Job ID and by Proposal ID
-    runs: null, scanner: null, questions: null, questionsErr: null,
+    scanner: null, questions: null, questionsErr: null,
     // from Upwork
     dash: null, dashErr: null, milestones: {}, contractJobs: {}, // the freelancer dashboard (contracts, offers); a contract's milestones and its job
     rooms: null, roomsErr: null, invites: null,
@@ -690,24 +690,21 @@
 
   // ---------- time helpers ----------
   // Notion "Found"/"Published" come back as real UTC instants ("...Z"); everything below works in the configured timezone wall-clock ms.
-  function wallNow() {
-    var p = {}; new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
-      .formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
-    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
-  }
-  function wallOf(ms) { // real instant -> wall-clock ms in TZ
-    var p = {}; new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+  function wallOf(ms, sec) { // real instant -> wall-clock ms in TZ, to the minute (sec: to the second)
+    var p = {}; new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: sec ? "2-digit" : undefined })
       .formatToParts(new Date(ms)).forEach(function (x) { p[x.type] = x.value; });
-    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, sec ? +p.second : 0);
   }
+  function wallNow() { return wallOf(Date.now(), true); }
   var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function monDay(d) { return MON[d.getUTCMonth()] + " " + d.getUTCDate(); } // "Oct 3"
   function dayKey(w) { var d = new Date(w); return d.getUTCFullYear() + "-" + d.getUTCMonth() + "-" + d.getUTCDate(); }
   function dayLabel(w) {
     var now = wallNow(), d = new Date(w);
     if (dayKey(w) === dayKey(now)) return "Today";
     if (dayKey(w) === dayKey(now - DAY)) return "Yesterday";
-    return MON[d.getUTCMonth()] + " " + d.getUTCDate();
+    return monDay(d);
   }
   function fmtWall(w, withDay) {
     var d = new Date(w), t = pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes());
@@ -806,6 +803,7 @@
       refreshDrawer();
     }, function () { S.contractJobs[id] = { job: null }; refreshDrawer(); }); // no job found: the drawer still offers a chat, just not a kept one
   }
+  function upworkJob(id) { return "https://www.upwork.com/jobs/~02" + id; }
   function extLink(href, text, cls) { var a = el("a", cls || "", text); a.href = href; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", function (e) { e.stopPropagation(); }); return a; }
 
   // ---------- error copy ----------
@@ -830,9 +828,10 @@
     if (t > S.lastUpdate) S.lastUpdate = t;
     liveLine();
   }
+  function setDot() { $("liveDot").className = "live-dot " + (S.degraded ? "bad" : "on"); } // green while all runs, red when something is wrong
   function liveLine() { // "Live · updated hh:mm", from the newest data any load brought
     if (!S.lastUpdate) { $("liveText").textContent = "Not updated yet"; return; }
-    $("liveDot").className = "live-dot " + (S.degraded ? "bad" : "on");
+    setDot();
     var w = wallOf(S.lastUpdate);
     $("liveText").textContent = "Live · updated " + fmtWall(w, dayKey(w) !== dayKey(wallNow()));
   }
@@ -847,12 +846,15 @@
   var DR = null, lastFocus = null;
   function rowEl(id, cls, open) {
     var d = el("div", "item" + (cls ? " " + cls : "")); d.dataset.id = id;
-    var s = el("div", "row"); s.tabIndex = 0; s.setAttribute("role", "button");
-    s.addEventListener("click", function (e) { if (e.target.closest("a, .badge-id")) return; e.preventDefault(); open(); });
-    s.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    var s = el("div", "row"); clickable(s, open);
     d.appendChild(s); d._open = open;
     if (DR && DR.key === id) d.classList.add("sel");
     return { d: d, s: s };
+  }
+  function clickable(node, open) { // a row or card that opens its drawer: a click (not on a link or an id), Enter or Space
+    node.tabIndex = 0; node.setAttribute("role", "button");
+    node.addEventListener("click", function (e) { if (e.target.closest("a, .badge-id")) return; e.preventDefault(); open(); });
+    node.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
   }
   function openDrawer(key, hostId, label, render) {
     var same = DR && DR.key === key;
@@ -992,6 +994,7 @@
     var t = turnOf(room); return el("span", t === "yours" ? "chip bad" : t === "theirs" ? "chip good" : "chip", TURN_TEXT[t]);
   }
 
+  function storyEdges(res) { return (((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []; } // list_messages: newest first
   function roomMessages(id, prio) { // a chat's last 12 messages, newest first; the summary, the drawer and the org lookup share this call (and its cache)
     return upCall("upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } }, prio);
   }
@@ -1000,7 +1003,7 @@
     var box = el("div", "msgs"); box.appendChild(el("div", "msg muted", "Loading messages…")); host.appendChild(box);
     roomMessages(room.id)
       .then(function (res) {
-        var edges = ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []);
+        var edges = storyEdges(res);
         clear(box);
         if (!edges.length) { box.appendChild(el("div", "msg muted", "No messages.")); return; }
         edges.forEach(function (e) {
@@ -1062,12 +1065,7 @@
     list.forEach(function (r) {
       var w = leadTime(r);
       var dk = w ? dayKey(w) : "none";
-      if (dk !== lastDay) {
-        var hd = el("div", "day" + (w && dk === dayKey(now) ? " today" : ""));
-        hd.appendChild(el("span", "", w ? dayLabel(w) : "Unknown date"));
-        hd.appendChild(el("span", "n", perDay[dk] + (perDay[dk] === 1 ? " lead" : " leads")));
-        host.appendChild(hd); lastDay = dk;
-      }
+      if (dk !== lastDay) { host.appendChild(dayHead(w, w && dk === dayKey(now), perDay[dk])); lastDay = dk; }
       host.appendChild(leadItem(r, w, now, titles));
     });
     var oldList = older.filter(function (r) { return r.Verdict === S.verdict && df(r); });
@@ -1078,7 +1076,7 @@
       var ld = null;
       oldList.forEach(function (r) {
         var w = leadTime(r); var dk = w ? dayKey(w) : "none";
-        if (dk !== ld) { var h = el("div", "day"); h.appendChild(el("span", "", w ? dayLabel(w) : "Unknown date")); od.appendChild(h); ld = dk; }
+        if (dk !== ld) { od.appendChild(dayHead(w)); ld = dk; }
         od.appendChild(leadItem(r, w, now, titles));
       });
       host.appendChild(od);
@@ -1086,6 +1084,12 @@
     host.scrollTop = scrollTop;
     fitColumns(host);
     afterList("leadList");
+  }
+  function dayHead(w, today, n) { // a day's header in a lead list; n: how many leads it has, when shown
+    var h = el("div", "day" + (today ? " today" : ""));
+    h.appendChild(el("span", "", w ? dayLabel(w) : "Unknown date"));
+    if (n) h.appendChild(el("span", "n", n + (n === 1 ? " lead" : " leads")));
+    return h;
   }
   function skipTime(r) { return wallFromNotion(r["date:Decided on:start"]) || leadTime(r); }
   function skippedInWindow(now) {
@@ -1100,7 +1104,7 @@
     var last = null;
     rows.forEach(function (r) {
       var w = skipTime(r), dk = w ? dayKey(w) : "none";
-      if (dk !== last) { var h = el("div", "day" + (w && dk === dayKey(now) ? " today" : "")); h.appendChild(el("span", "", w ? dayLabel(w) : "Unknown date")); host.appendChild(h); last = dk; }
+      if (dk !== last) { host.appendChild(dayHead(w, w && dk === dayKey(now))); last = dk; }
       host.appendChild(leadItem(r, w, now, titles));
     });
     var older = (S.skipped || []).filter(function (r) { var w = skipTime(r); return w && now - w >= S.skipDays * DAY; }).length;
@@ -1159,7 +1163,8 @@
   }
   var CLIENT_FLAGS = /^(no client history|partially hired|timezone lock|mandatory calls|full-time|budget mismatch)$/; // flags about the client and its terms, shown on the Client line
   // Locked: auto skip leaves the card alone (the user asked about it, or it is an invitation); a manual Skip still works
-  function isLocked(r) { return r.Locked === "__YES__" || r.Locked === true; }
+  function checked(v) { return v === "__YES__" || v === true; } // a Notion checkbox as a view returns it
+  function isLocked(r) { return checked(r.Locked); }
   var LOCK_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
   var UNLOCK_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 4.85-.85"/></svg>';
   function lockMark() { var m = el("span", "lockmk"); m.innerHTML = LOCK_SVG; m.appendChild(document.createTextNode("Locked")); m.title = "Locked: auto skip leaves it; you decide"; return m; }
@@ -1279,7 +1284,7 @@
     row("Competition", comp.join(" · "), r.Connects != null ? r.Connects + " connects to apply" : "");
     var cl = [];
     if (r.Country) cl.push(unesc(r.Country));
-    if (r.Verified === "__YES__" || r.Verified === true) cl.push("verified");
+    if (checked(r.Verified)) cl.push("verified");
     if (num(r.Hires)) cl.push(r.Hires + (+r.Hires === 1 ? " hire" : " hires"));
     if (num(r.Spent)) cl.push(usd(r.Spent) + " spent");
     if (num(r.Rating)) cl.push("rating " + r.Rating);
@@ -1339,7 +1344,7 @@
     return function (body) {
       var r = cardFor(id0) || r0; // after a reload, the fresh row
       scoreLead(r);
-      var pub = wallFromNotion(r["date:Published:start"]), fnd = wallFromNotion(r["date:Found:start"]), dcd = wallFromNotion(r["date:Decided on:start"]);
+      var pub = wallFromNotion(r["date:Published:start"]), fnd = wallFromNotion(r["date:Found:start"]), dcd = wallFromNotion(r["date:Decided on:start"]), adv = wallFromNotion(r["date:Advised on:start"]);
       var verdict = el("span", r._tier === "strong" ? "chip good" : "", r.Verdict + (r._tier === "strong" ? " · strong match" : ""));
       var x = drHead(body, [verdict, r._score > -Infinity ? "score " + r._score : "", pub ? "posted " + fmtWall(pub, true) : "", r.Status === "New" && isLocked(r) ? lockMark() : ""], unesc(r.Title), r["Job ID"]);
       var ps = propState(r), pr = openProp(r) || S.sentByJob[r["Job ID"]];
@@ -1348,39 +1353,9 @@
       setChat(chatLink(r["Job ID"], unesc(r.Title)));
       if (r.Link) { var ul = navLink(r.Link, "Upwork"); if (ready) { ul.classList.add("primary"); ul.title = "Open the job on Upwork and paste the proposal from below"; } x.acts.appendChild(ul); }
       notionLinks(x.acts, r.url, pr && pr.url);
-      if (r.url && r.Status === "New") {
-        if (canDraft() && ps !== "Writing") {
-          var again = ps === "Ready" || ps === "Stalled";
-          var wd = el("button", "ok", again ? "↻ Rewrite" : "✎ Write"); wd.type = "button";
-          wd.title = "Claude takes fresh data and writes the proposal" + (again ? " again" : "") + " (a few minutes)";
-          wd.addEventListener("click", function () { regenerate(r, wd); });
-          x.btns.appendChild(wd);
-        }
-        var ap = el("button", "ok", "Applied"); ap.type = "button"; ap.title = "Mark it Applied now — the sync in the next digest does it on its own";
-        ap.addEventListener("click", function () { setLeadStatus(r, ap, "Applied"); });
-        var sk = el("button", "no" + (r.Advice === "Skip" ? " hint" : ""), "Skip"); sk.type = "button"; sk.title = "Move to Skipped, with a reason";
-        sk.addEventListener("click", function () { openSkipForm(r, x.bar); });
-        x.btns.appendChild(ap); x.btns.appendChild(sk);
-        if (S.cfg.schema >= SCHEMA) {
-          var lk = isLocked(r), lb = el("button", "ok lockb"); lb.type = "button"; lb.innerHTML = lk ? LOCK_SVG : UNLOCK_SVG; lb.setAttribute("aria-pressed", lk ? "true" : "false");
-          lb.title = lk ? "Locked — click to unlock: auto skip may skip it when Claude advises to" : "Lock: keep auto skip away from it, it stays until you decide"; lb.setAttribute("aria-label", lk ? "Unlock" : "Lock");
-          lb.addEventListener("click", function () { setLock(r, lb, !lk); });
-          x.btns.appendChild(lb);
-        }
-      } else if (r.url && r.Status === "Skipped") {
-        var rs = el("button", "ok", "Restore"); rs.type = "button"; rs.title = "Put it back to the leads";
-        rs.addEventListener("click", function () { setLeadStatus(r, rs, "New", { "Skipped by": null, "Skip reason": null, "date:Decided on:start": null }); });
-        x.btns.appendChild(rs);
-      } else if (r.Status && r.Status !== "New") x.btns.appendChild(el("span", "state", "Marked " + r.Status));
-      // the decision sits under the title: what Claude advises (or why it was skipped) is the first thing read
+      leadButtons(x, r, ps);
       if (skipDraft && skipDraft.id === r["Job ID"] && r.Status === "New") openSkipForm(r, x.bar);
-      var dec = null;
-      if (r.Status === "Skipped") {
-        var sw = wallFromNotion(r["date:Decided on:start"]);
-        dec = decLine("skip", r["Skipped by"] === "auto" ? "Skipped automatically" : "Skipped manually", (plain(r["Skip reason"]) || "no reason given") + (sw ? " · " + fmtWall(sw, true) : ""));
-      } else if (ps === "Writing") dec = decLine("busy", "Writing the proposal", "it shows up below in a few minutes");
-      else if (ps === "Stalled") dec = decLine("fail", "Not written", "the task stopped without a proposal (its run in Claude says why); Rewrite to try again");
-      else if (r.Advice) dec = decLine(r.Advice === "Apply" ? "apply" : "skip", r.Advice, plain(r["Advice why"]), modelName(r["Reviewed by"]));
+      var dec = leadDecision(r, ps); // the decision sits under the title: what Claude advises (or why it was skipped) is the first thing read
       if (dec) x.head.appendChild(dec);
       if (ready) { // where to look next: the proposal; the count of points to confirm arrives with the page
         var go = el("button", "dr-next", "Proposal ready ↓"); go.type = "button"; go.id = "drNextProp";
@@ -1393,7 +1368,7 @@
         ["Job ID", fullIdBadge(r["Job ID"])],
         ["Posted", pub ? fmtWall(pub, true) : "unknown"],
         ["Found", fnd ? fmtWall(fnd, true) : ""],
-        ["Advised", wallFromNotion(r["date:Advised on:start"]) ? fmtWall(wallFromNotion(r["date:Advised on:start"]), true) : ""],
+        ["Advised", adv ? fmtWall(adv, true) : ""],
         ["Reviewed by", modelName(r["Reviewed by"])],
         ["Proposal written", wpr && pr.State !== "Writing" ? fmtWall(wpr, true) : ""],
         ["Drafted by", pr && pr.State !== "Writing" ? modelName(pr["Drafted by"]) : ""],
@@ -1401,6 +1376,42 @@
         [r.Status === "Skipped" ? "Skipped" : "Applied", r.Status !== "New" && dcd ? fmtWall(dcd, true) : ""]
       ]));
     };
+  }
+  function leadButtons(x, r, ps) { // the drawer's bar for a lead: Write / Rewrite, Applied, Skip and Lock while New; Restore once skipped
+    if (r.url && r.Status === "New") {
+      if (canDraft() && ps !== "Writing") {
+        var again = ps === "Ready" || ps === "Stalled";
+        var wd = el("button", "ok", again ? "↻ Rewrite" : "✎ Write"); wd.type = "button";
+        wd.title = "Claude takes fresh data and writes the proposal" + (again ? " again" : "") + " (a few minutes)";
+        wd.addEventListener("click", function () { regenerate(r, wd); });
+        x.btns.appendChild(wd);
+      }
+      var ap = el("button", "ok", "Applied"); ap.type = "button"; ap.title = "Mark it Applied now — the sync in the next digest does it on its own";
+      ap.addEventListener("click", function () { setLeadStatus(r, ap, "Applied"); });
+      var sk = el("button", "no" + (r.Advice === "Skip" ? " hint" : ""), "Skip"); sk.type = "button"; sk.title = "Move to Skipped, with a reason";
+      sk.addEventListener("click", function () { openSkipForm(r, x.bar); });
+      x.btns.appendChild(ap); x.btns.appendChild(sk);
+      if (S.cfg.schema >= SCHEMA) {
+        var lk = isLocked(r), lb = el("button", "ok lockb"); lb.type = "button"; lb.innerHTML = lk ? LOCK_SVG : UNLOCK_SVG; lb.setAttribute("aria-pressed", lk ? "true" : "false");
+        lb.title = lk ? "Locked — click to unlock: auto skip may skip it when Claude advises to" : "Lock: keep auto skip away from it, it stays until you decide"; lb.setAttribute("aria-label", lk ? "Unlock" : "Lock");
+        lb.addEventListener("click", function () { setLock(r, lb, !lk); });
+        x.btns.appendChild(lb);
+      }
+    } else if (r.url && r.Status === "Skipped") {
+      var rs = el("button", "ok", "Restore"); rs.type = "button"; rs.title = "Put it back to the leads";
+      rs.addEventListener("click", function () { setLeadStatus(r, rs, "New", { "Skipped by": null, "Skip reason": null, "date:Decided on:start": null }); });
+      x.btns.appendChild(rs);
+    } else if (r.Status && r.Status !== "New") x.btns.appendChild(el("span", "state", "Marked " + r.Status));
+  }
+  function leadDecision(r, ps) { // why it was skipped, that its proposal is being written or did not get written, or Claude's advice; null when none
+    if (r.Status === "Skipped") {
+      var sw = wallFromNotion(r["date:Decided on:start"]);
+      return decLine("skip", r["Skipped by"] === "auto" ? "Skipped automatically" : "Skipped manually", (plain(r["Skip reason"]) || "no reason given") + (sw ? " · " + fmtWall(sw, true) : ""));
+    }
+    if (ps === "Writing") return decLine("busy", "Writing the proposal", "it shows up below in a few minutes");
+    if (ps === "Stalled") return decLine("fail", "Not written", "the task stopped without a proposal (its run in Claude says why); Rewrite to try again");
+    if (r.Advice) return decLine(r.Advice === "Apply" ? "apply" : "skip", r.Advice, plain(r["Advice why"]), modelName(r["Reviewed by"]));
+    return null;
   }
   function pageIdOf(url) { var m = /([0-9a-f]{32})(?:\?|$)/i.exec(String(url || "")); return m ? m[1] : null; }
   function setLeadStatus(r, btn, status, extra) {
@@ -1487,6 +1498,13 @@
       else { ul = null; var pp = el("p", "", l); if (opts && opts.copy) pp.appendChild(cpIcon(l, opts.copy)); box.appendChild(pp); }
     });
   }
+  function rateField(label, text, value) { var d = el("div", "df"); d.appendChild(el("div", "k", label)); var b = el("div", "v big-v", text); b.appendChild(cpIcon(String(value), "the rate")); d.appendChild(b); return d; }
+  function letterField(label, text) { var d = el("div", "df"), k = el("div", "k", label); k.appendChild(cpIcon(text, "the cover letter")); d.appendChild(k); d.appendChild(el("div", "letter", text)); return d; }
+  function qaItem(i, q, ans, warn, copyText) { // a screening question and its answer, the answer copyable
+    var it = el("div"), a = el("div", "a" + (warn ? " warn" : ""), ans);
+    it.appendChild(el("div", "q", (i + 1) + ". " + q)); a.appendChild(cpIcon(copyText, "answer " + (i + 1))); it.appendChild(a);
+    return it;
+  }
   function proposalBody(fs, md, sent) {
     var secs = mdSections(md), nConfirm = 0;
     if (!secs.length) { fs.appendChild(el("div", "dr-empty", "The proposal page is empty.")); return 0; }
@@ -1498,10 +1516,10 @@
         linesInto(d, sec.lines); nConfirm = sec.lines.length; fs.appendChild(d); return;
       }
       if (n === "how it was written") { d = el("div", "how"); d.appendChild(el("h5", "", sec.name)); linesInto(d, sec.lines); fs.appendChild(d); return; }
-      d = el("div", "df"); var k = el("div", "k", sec.name); d.appendChild(k);
       var whole = blocksText(sec.lines);
-      if (n === "cover letter") { k.appendChild(cpIcon(whole, "the cover letter")); d.appendChild(el("div", "letter", whole)); }
-      else if (n === "milestones") {
+      if (n === "cover letter") { fs.appendChild(letterField(sec.name, whole)); return; }
+      d = el("div", "df"); d.appendChild(el("div", "k", sec.name));
+      if (n === "milestones") {
         var ml = el("div", "msl");
         sec.subs.forEach(function (m, i) {
           var mi = el("div", "mi"); mi.appendChild(el("span", "mn", String(i + 1)));
@@ -1513,12 +1531,7 @@
       }
       else if (n === "screening questions") {
         var qb = el("div", "qa");
-        sec.subs.forEach(function (q, i) {
-          var it = el("div"), ans = blocksText(q.lines);
-          it.appendChild(el("div", "q", (i + 1) + ". " + q.title));
-          var a = el("div", "a" + (/⚠️/.test(ans) ? " warn" : ""), ans); a.appendChild(cpIcon(ans.replace(/^⚠️\s*/, ""), "answer " + (i + 1)));
-          it.appendChild(a); qb.appendChild(it);
-        });
+        sec.subs.forEach(function (q, i) { var ans = blocksText(q.lines); qb.appendChild(qaItem(i, q.title, ans, /⚠️/.test(ans), ans.replace(/^⚠️\s*/, ""))); });
         d.appendChild(qb);
       }
       else { var body = el("div", "plain-v"); linesInto(body, sec.lines); d.appendChild(body); }
@@ -1528,10 +1541,7 @@
   }
   // The proposal is a row in Proposals holding only its text; the price is the job card's My $ (one place for money).
   function rateBox(card, label) {
-    var v = num(card["My $"]); if (v == null) return null;
-    var d = el("div", "df"); d.appendChild(el("div", "k", label));
-    var b = el("div", "v big-v", myPrice(card)); b.appendChild(cpIcon(String(v), "the rate")); d.appendChild(b);
-    return d;
+    var v = num(card["My $"]); return v == null ? null : rateField(label, myPrice(card), v);
   }
   function proposalInto(fs, pr, sent, card) { // the card's price, then the row's page as written
     clear(fs);
@@ -1686,7 +1696,7 @@
   function renderStatus() {
     var rows = statusRows(), bad = rows.filter(function (r) { return r[0] === "bad"; });
     S.degraded = bad.length > 0;
-    if (S.lastUpdate || S.degraded) $("liveDot").className = "live-dot " + (S.degraded ? "bad" : "on");
+    if (S.lastUpdate || S.degraded) setDot();
     var issue = $("liveIssue"); issue.hidden = !bad.length;
     issue.textContent = !bad.length ? "" : " \u00b7 " + (bad.length > 1 ? bad.length + " issues" : bad[0][3]);
     var pop = $("statusPop"); clear(pop);
@@ -1704,7 +1714,8 @@
     var pc = p.product_credits || {};
     Object.keys(pc).forEach(function (k) { sub += " · +" + pc[k] + " " + k; });
     $("connectsSub").textContent = sub;
-    $("tileConnects").title = sub + (b.rolloverBalance ? " · rollover " + b.rolloverBalance : "");
+    var tip = sub + (b.rolloverBalance ? " · rollover " + b.rolloverBalance : "");
+    $("tileConnects").title = tip;
 
     var tx = ((p.usage_history || {}).transactions || []).filter(function (t) { return t && t.createdDateTime; });
     var spark = $("connectsSpark"), axis = $("connectsAxis"); clear(spark); clear(axis);
@@ -1736,7 +1747,7 @@
     axis.appendChild(el("span", "", "since " + dayLabel(days[0].w)));
     var tot = el("span", "", total + " spent"); if (back) tot.title = back + " refunded over the same days";
     axis.appendChild(tot);
-    $("tileConnects").title = sub + (b.rolloverBalance ? " · rollover " + b.rolloverBalance : "") + " · last 7 days: " + total + " spent" + (back ? ", " + back + " refunded" : "");
+    $("tileConnects").title = tip + " · last 7 days: " + total + " spent" + (back ? ", " + back + " refunded" : "");
   }
 
   function renderBalance() {
@@ -1777,7 +1788,7 @@
         client: clean(pick(o, ["client.name", "client.user.name", "client.parentOrganization.name", "clientOrganization.name", "organization.name", "clientName", "from"]) || ""),
         amount: am ? usd(am[1]) : amt ? String(amt).replace("USD ", "$") : "", duration: clean(pick(o, ["duration", "terms.duration"]) || ""),
         t: isNaN(t) ? 0 : t, jobUrl: String(pick(o, ["job_url", "jobPosting.url"]) || "").replace(/\?.*$/, ""),
-        href: r.kind === "Offer" ? "https://www.upwork.com/nx/proposals/offers" : jobId ? "https://www.upwork.com/jobs/~02" + String(jobId) : "https://www.upwork.com/nx/proposals/"
+        href: r.kind === "Offer" ? "https://www.upwork.com/nx/proposals/offers" : jobId ? upworkJob(jobId) : "https://www.upwork.com/nx/proposals/"
       };
     });
   }
@@ -1789,7 +1800,7 @@
   function needsMe(c) { // why a contract is on me right now
     var room = roomByContract(c.id), now = Date.now();
     var late = ((S.milestones[c.id] || {}).list || []).filter(function (m) { var due = m.dueDateTime ? Date.parse(m.dueDateTime) : null; return m.state === "Active" && due && due < now; });
-    var reply = !!room && (myTurn(room) || (room.numUnread || 0) > 0);
+    var reply = !!room && owes(room);
     return reply || late.length ? { reply: reply, late: late, room: room } : null;
   }
   function renderContracts() { renderStatus();
@@ -1825,10 +1836,8 @@
   function contractCard(c) {
     var why = needsMe(c), room = roomByContract(c.id);
     var box = el("div", "contract" + (why ? " turn" : "")); box.dataset.id = "c-" + c.id;
-    box.tabIndex = 0; box.setAttribute("role", "button");
     box._open = function () { openDrawer("c-" + c.id, "contractList", "Contract", contractDrawer(c)); };
-    box.addEventListener("click", function (e) { if (e.target.closest("a")) return; box._open(); });
-    box.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); box._open(); } });
+    clickable(box, box._open);
     if (DR && DR.key === "c-" + c.id) box.classList.add("sel");
     var head = el("div", "c-head");
     var ct = el("span", "c-title"); ct.appendChild(contractTitle(c, why)); head.appendChild(ct);
@@ -1837,7 +1846,7 @@
     var since = c.start_date ? new Date(c.start_date) : null;
     var sub = el("div", why ? "c-why" : "c-client");
     if (why) sub.appendChild(el("span", "kind", contractKind(why)));
-    sub.appendChild(document.createTextNode(clean(c.client) + (since ? " · since " + MON[since.getUTCMonth()] + " " + since.getUTCDate() : "") + ""));
+    sub.appendChild(document.createTextNode(clean(c.client) + (since ? " · since " + monDay(since) : "") + ""));
     box.appendChild(sub);
     var smr = summaryInline(room); if (smr) box.appendChild(smr);
 
@@ -1880,7 +1889,7 @@
     return function (body) {
       var own = roomByContract(c.id), room = chat || own;
       var since = c.start_date ? new Date(c.start_date) : null;
-      var x = drHead(body, ["Contract" + (chat ? " · " + chatKind(chat) : ""), clean(c.client), since ? "since " + MON[since.getUTCMonth()] + " " + since.getUTCDate() + ", " + since.getUTCFullYear() : "", turnChip(room)], clean(c.title));
+      var x = drHead(body, ["Contract" + (chat ? " · " + chatKind(chat) : ""), clean(c.client), since ? "since " + monDay(since) + ", " + since.getUTCFullYear() : "", turnChip(room)], clean(c.title));
       loadContractJob(c.id);
       if (!S.contractJobs[c.id].busy) setChat(chatLink(contractJob(c.id), clean(c.title), { contract: c.id }));
       var owe = chat ? { reply: myTurn(chat) } : needsMe(c);
@@ -1968,15 +1977,15 @@
   function buildSummary(room, sid, refresh) {
     roomMessages(room.id)
       .then(function (res) {
-        var edges = ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []).slice().reverse();
+        var edges = storyEdges(res).slice().reverse();
         var lines = edges.map(function (e) {
           var n = e.node || {}; var who = n.from_self ? "Me" : (clean(n.from) || "Someone") + (n.from_side === "client" ? " (client)" : n.from_side === "freelancer" ? " (another freelancer)" : "");
           var d = n.createdDateTime ? new Date(n.createdDateTime) : null;
-          var when = d ? MON[d.getUTCMonth()] + " " + d.getUTCDate() : "";
+          var when = d ? monDay(d) : "";
           return "[" + when + "] " + who + ": " + clean(n.message).slice(0, 1200) + ((n.attachments || []).length ? " (attachment)" : "");
         });
         if (!lines.length) throw { code: "empty" };
-        var today = new Date(wallNow()); var todayStr = MON[today.getUTCMonth()] + " " + today.getUTCDate() + ", " + today.getUTCFullYear(); // the user's date, in their timezone
+        var today = new Date(wallNow()); var todayStr = monDay(today) + ", " + today.getUTCFullYear(); // the user's date, in their timezone
         var prompt = "You are summarizing an Upwork chat (a contract, a job proposal or a direct message) for a freelancer (the \"me\" side). Today is " + todayStr + ". Messages, oldest first:\n\n" + lines.join("\n\n") +
           "\n\nReply with only a JSON object: {\"summary\": string (1-2 plain sentences: where the work stands right now, in English, no greetings), \"next\": \"me\"|\"client\"|\"none\" (who must act next: \"me\" only when something is asked of me, or a step I owe is due now; news, files or updates shared for information, and a step planned for a later date, are not my move — then \"none\", or \"client\" when they owe the next step), \"action\": string (the concrete next step, max 12 words, or \"\"), \"deadline\": string|null (ISO date YYYY-MM-DD if someone promised a date, else null), \"promised_by\": \"me\"|\"client\"|null, \"parked\": boolean, \"parked_why\": string, \"back_on\": string|null}. " +
           "parked is true only when the chat is about getting work (a proposal, an invitation, talks before a hire), not paid work under way, and the client has closed or put it off: hired someone else, cancelled or paused the project, said they will come back later or get in touch if it resumes. Then nothing happens until the client writes again, and a polite reply is not a step. " +
@@ -2087,8 +2096,7 @@
     var now = Date.now(), seen = {}, out = [], over = {};
     (S.proposals || []).forEach(function (p) { var r = proposalRoom(p); if (r && shut(p)) over[r.id] = true; }); // a closed proposal's chat waits on nobody
     (S.rooms || []).forEach(function (r) {
-      var yours = myTurn(r) || (r.numUnread || 0) > 0;
-      if (!yours) return;
+      if (!owes(r)) return;
       var active = String(r.contractStatus || "").toUpperCase() === "ACTIVE";
       if (!active && (over[r.id] || now - roomAct(r) >= QUIET_DAYS * DAY)) return;
       seen[r.id] = true; out.push(r);
@@ -2189,7 +2197,7 @@
     // the same call as the thread summary's, so a summarised chat costs nothing more
     roomMessages(r.id, 1).then(function (res) {
       var org = "";
-      ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []).forEach(function (e) { var n = e.node || {}; if (!org && n.from_side === "client" && n.from_organization) org = clean(n.from_organization); });
+      storyEdges(res).forEach(function (e) { var n = e.node || {}; if (!org && n.from_side === "client" && n.from_organization) org = clean(n.from_organization); });
       MEM.orgs[r.id] = org || "-"; memSave(); renderSoon();
     }, function () {});
   }
@@ -2252,18 +2260,17 @@
     var open = function () { openDrawer(key, "moveList", "Offer", offerDrawer(v)); };
     return moveRow(key, "inv", titleWithId(v.jobId, v.title, v.href, "Open the offer on Upwork to answer"), v.t ? ago(now - v.t) + " ago" : "", meta, open, room ? summaryInline(room) : null);
   }
+  function callout(head, text, cls) { var c = el("div", "callout" + (cls ? " " + cls : "")); c.appendChild(noteHead(head)); c.appendChild(el("div", "", text)); return c; }
   function offerCallout(v) { // what the offer is and where to answer it
-    var c = el("div", "callout good"), terms = [v.amount, v.duration].filter(Boolean).join(" · ");
-    c.appendChild(noteHead("Offer"));
-    c.appendChild(el("div", "", "The client sent you an offer" + (terms ? ": " + terms : "") + ". Accept or decline it on Upwork."));
-    return c;
+    var terms = [v.amount, v.duration].filter(Boolean).join(" · ");
+    return callout("Offer", "The client sent you an offer" + (terms ? ": " + terms : "") + ". Accept or decline it on Upwork.", "good");
   }
   function offerFor(jobId) { return jobId ? inviteRows().filter(function (v) { return v.kind === "Offer" && v.jobId === jobId; })[0] || null : null; }
   // An offer's drawer is its proposal's: the offer on top, then the chat's summary, the job, what was sent, the conversation and the facts
   function offerDrawer(v) {
     return function (body) {
       var p = proposalOfJob(v.jobId), room = p ? proposalRoom(p) : null;
-      var nr = p ? S.appliedNotion[p.jobId] || S.leadsById[p.jobId] : cardFor(v.jobId), sr = p ? sentRowOf(p) : null;
+      var nr = p ? appliedCard(p.jobId) : cardFor(v.jobId), sr = p ? sentRowOf(p) : null;
       var x = drHead(body, [el("span", "chip good", "Offer"), v.client || clientOf(room), room ? turnChip(room) : "", v.t ? "received " + ago(Date.now() - v.t) + " ago" : ""], v.title, v.jobId);
       setChat(chatLink(v.jobId, v.title));
       x.acts.appendChild(navLink(v.href, "Answer the offer"));
@@ -2281,17 +2288,14 @@
     return function (body) {
       var x = drHead(body, [el("span", "chip good", v.kind), v.client, v.t ? "received " + ago(Date.now() - v.t) + " ago" : ""], v.title);
       x.acts.appendChild(navLink(v.href, "Answer on Upwork"));
-      var c = el("div", "callout good");
-      c.appendChild(noteHead("Invitation"));
-      c.appendChild(el("div", "", "The client invited you to this job. Reply on Upwork to accept or decline."));
-      x.inner.appendChild(c);
+      x.inner.appendChild(callout("Invitation", "The client invited you to this job. Reply on Upwork to accept or decline.", "good"));
       if (v.amount) dsec(x.inner, "Terms").appendChild(factsBox([["Rate", v.amount], ["Client", v.client]]));
     };
   }
   // A proposal or plain chat: the summary first, then the job, what was sent, the thread and the facts.
   function chatDrawer(room, p) {
     return function (body) {
-      var nr = p && (S.appliedNotion[p.jobId] || S.leadsById[p.jobId]), sr = p && sentRowOf(p);
+      var nr = p && appliedCard(p.jobId), sr = p && sentRowOf(p);
       var title = p ? p.title : clientOf(room) || clean(room.roomName) || "Chat";
       var t = roomAct(room), over = p && shut(p);
       var x = drHead(body, [p ? "Proposal" : "Chat" + (chatKind(room) !== "chat" ? " · " + chatKind(room) : ""), clientOf(room) !== title ? clientOf(room) : "", over ? el("span", "chip", over.label) : turnChip(room), t ? "last message " + ago(Date.now() - t) + " ago" : ""], title, p && p.jobId);
@@ -2345,6 +2349,7 @@
     var d = SAMPLE === false ? null : summaryFor(room, true);
     return d ? d.next === "me" : true;
   }
+  function owes(room) { return myTurn(room) || (room.numUnread || 0) > 0; } // my turn, or a message I have not read
   // One rule for the whole section: a proposal is shown while something happened on it in the last LIVE_DAYS.
   function hasChat(room) { return !!room && !!room.latestStory; }
   // A proposal is over when Upwork closed it (declined, archived, withdrawn) or put it on hold: a client who hires someone
@@ -2447,6 +2452,7 @@
     return row.d;
   }
   // A proposal from Upwork: its terms, what was sent (the Proposals row) and the job (the Jobs card).
+  function appliedCard(jobId) { return S.appliedNotion[jobId] || S.leadsById[jobId]; } // a proposal's job card: Applied, or still New until the sync
   function sentRowOf(p) { return S.sentById[String(p.id)] || S.sentByJob[p.jobId] || null; }
   function sentInto(host, p, nr, sr, shut) { // what was sent: the Notion copy, or Upwork's while Notion has none
     var fs = el("div", "dfs"), sw = sr && nr ? wallFromNotion(nr["date:Decided on:start"]) : null;
@@ -2471,13 +2477,13 @@
       clear(fs);
       fs.appendChild(el("div", "dr-empty", S.cfg.schema >= SCHEMA ? "From Upwork \u2014 saved to Notion with the next digest." : "From Upwork."));
       var rate = num((t.chargeRate || {}).rawValue);
-      if (rate != null) { var d = el("div", "df"); d.appendChild(el("div", "k", "Rate sent")); var b = el("div", "v big-v", p.rate ? p.rate : usd(rate)); b.appendChild(cpIcon(String(rate), "the rate")); d.appendChild(b); fs.appendChild(d); }
+      if (rate != null) fs.appendChild(rateField("Rate sent", p.rate ? p.rate : usd(rate), rate));
       var cl = clean(vp.proposalCoverLetter);
-      if (cl) { var c = el("div", "df"), k = el("div", "k", "Cover letter"); k.appendChild(cpIcon(cl, "the cover letter")); c.appendChild(k); c.appendChild(el("div", "letter", cl)); fs.appendChild(c); }
+      if (cl) fs.appendChild(letterField("Cover letter", cl));
       var qa = vp.questionsAnswers || [];
       if (qa.length) {
         var q = el("div", "df"); q.appendChild(el("div", "k", "Screening questions")); var qb = el("div", "qa");
-        qa.forEach(function (x, i) { var it = el("div"), ans = clean(x.answer); it.appendChild(el("div", "q", (i + 1) + ". " + clean(x.question))); var a = el("div", "a", ans); a.appendChild(cpIcon(ans, "answer " + (i + 1))); it.appendChild(a); qb.appendChild(it); });
+        qa.forEach(function (x, i) { var ans = clean(x.answer); qb.appendChild(qaItem(i, clean(x.question), ans, false, ans)); });
         q.appendChild(qb); fs.appendChild(q);
       }
       var files = (pl.attachments || []).map(function (f) { return f && f.fileName; }).filter(Boolean);
@@ -2494,7 +2500,7 @@
   }
   function proposalDrawer(p) {
     return function (body) {
-      var nr = S.appliedNotion[p.jobId] || S.leadsById[p.jobId], sr = sentRowOf(p);
+      var nr = appliedCard(p.jobId), sr = sentRowOf(p);
       var rp = S.prooms[p.id];
       var over = shut(p), state = over ? el("span", "chip", over.label) : el("span", "chip", rp && rp.err ? "reply status unknown" : "no reply yet");
       var x = drHead(body, ["Proposal", state, "sent " + ago(Date.now() - p.created) + " ago"], p.title, p.jobId);
@@ -2519,12 +2525,10 @@
   $("tabPClosed").addEventListener("click", function () { setPTab("closed"); });
 
   // ---------- the footer: the job scanner's last run and the open questions ----------
-  function renderRuns() {
-    var host = $("runs"); if (!S.runs) return;
-    clear(host);
+  function scannerOf(runs) { // the job scanner's state from its newest Runs row; null when there is none
     var now = wallNow(), y = new Date(now).getUTCFullYear();
     // Order by the Created timestamp; the "DD.MM HH:MM" title is only a fallback for rows without it.
-    var rows = S.runs.map(function (r) {
+    var rows = runs.map(function (r) {
       var w = wallFromNotion(r.Created || r["date:Created:start"] || r.createdTime);
       if (w == null) {
         var m = /(\d{1,2})\.(\d{1,2})\s+(\d{1,2}):(\d{2})/.exec(r.Run || "");
@@ -2532,14 +2536,18 @@
         if (w > now + DAY) w = Date.UTC(y - 1, +m[2] - 1, +m[1], +m[3], +m[4]);
       }
       return { r: r, w: w };
-    }).sort(function (a, b) { return b.w - a.w; }).slice(0, 24).reverse();
-    var last = rows[rows.length - 1];
-    if (!last) return;
+    }).sort(function (a, b) { return b.w - a.w; });
+    var last = rows[0];
+    if (!last) return null;
     var age = now - last.w;
     var what = last.r.Status === "ok" ? "found " + (last.r.Take || 0) + " take, " + (last.r.Maybe || 0) + " maybe" : last.r.Status === "partial" ? "hit its budget, continues next run" : "nothing new";
-    S.scanner = { age: age, w: last.w, idle: age > 3 * 3600000, what: what, rulesFailed: /rules read failed/i.test(last.r.Window || "") }; renderStatus();
-    if (S.scanner.idle) host.appendChild(el("span", "chip bad", "Job scanner idle for " + ago(age) + " — check the hourly search task"));
-    else host.appendChild(el("span", "", "Job scanner ran " + ago(age) + " ago · " + (runModels(last.r) ? what.replace(/^found /, "") + " · " + runModels(last.r) : what)));
+    return { r: last.r, age: age, w: last.w, idle: age > 3 * 3600000, what: what, rulesFailed: /rules read failed/i.test(last.r.Window || "") };
+  }
+  function renderRuns(sc) { // the footer's line from the latest load's scanner state; none when Runs has no row
+    var host = $("runs");
+    clear(host); if (!sc) return;
+    if (sc.idle) host.appendChild(el("span", "chip bad", "Job scanner idle for " + ago(sc.age) + " — check the hourly search task"));
+    else host.appendChild(el("span", "", "Job scanner ran " + ago(sc.age) + " ago · " + (runModels(sc.r) ? sc.what.replace(/^found /, "") + " · " + runModels(sc.r) : sc.what)));
   }
 
   function renderQuestions() {
@@ -2631,7 +2639,7 @@
     function page(cursor, n) {
       var data = { mode: "view", view_url: viewUrl, page_size: 100 };
       if (cursor) data.start_cursor = cursor;
-      return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: { staleTime: 120000, gcTime: 86400000 } }).then(function (res) {
+      return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: CACHE }).then(function (res) {
         touch(res);
         var p = payloadOf(res) || {};
         rows = rows.concat(p.results || []);
@@ -2642,7 +2650,17 @@
     return page(null, 1);
   }
 
-  var loading = false;
+  function oneAtATime(run) { // a load asked for while it runs runs once more when it ends; .busy() says whether it runs
+    var busy = false, again = false;
+    function go() {
+      if (busy) { again = true; return; }
+      busy = true;
+      var end = function () { busy = false; if (again) { again = false; go(); } };
+      run().then(end, end);
+    }
+    go.busy = function () { return busy; };
+    return go;
+  }
   function loadConfig() { // match_score lives in the root page's config toggle; read it on every load so edits apply at once
     return fetchPage(ROOT_PAGE, { staleTime: 300000, gcTime: 86400000 }).then(function (pg) {
       var txt = pg.text;
@@ -2661,7 +2679,7 @@
     if (!(S.cfg.schema >= SCHEMA) || /^__/.test(VIEW_SKIPPED)) { S.skipped = S.skipped || []; return Promise.resolve(); }
     var data = { mode: "view", view_url: VIEW_SKIPPED, page_size: 100 };
     if (more && S.skippedMore) data.start_cursor = S.skippedMore;
-    return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: { staleTime: 120000, gcTime: 86400000 } }).then(function (res) {
+    return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: CACHE }).then(function (res) {
       var p = payloadOf(res) || {};
       var rows = withSaved((p.results || []).filter(function (r) { return r.Status === "Skipped"; }), "Skipped");
       S.skipped = more ? (S.skipped || []).concat(rows) : rows;
@@ -2714,11 +2732,8 @@
       renderLeads(); renderApplied(); refreshDrawer();
     }, function (err) { S.leadsErr = err; if (isDenial(err)) S.leads = null; renderLeads(); });
   }
-  var loadAgain = false;
-  function loadNotion() {
-    if (loading) { loadAgain = true; return; } // a Refresh during a load runs once more when it ends
-    loading = true;
-    loadConfig().then(loadLeads)
+  var loadNotion = oneAtATime(function () { // a Refresh during a load runs once more when it ends
+    return loadConfig().then(loadLeads)
     .then(function () { return loadPropRows(); })
     .then(function () { return loadSkipped(false); })
     .then(function () { return loadNotionView(VIEW_APPLIED, 3); })
@@ -2728,24 +2743,20 @@
       renderApplied();
     }, function () {})
     .then(function () {
-      return MCP.callTool(NOTION, "notion-query-data-sources", { data: { mode: "view", view_url: VIEW_RUNS, page_size: 30 } }, { cache: { staleTime: 120000, gcTime: 86400000 } });
+      return MCP.callTool(NOTION, "notion-query-data-sources", { data: { mode: "view", view_url: VIEW_RUNS, page_size: 30 } }, { cache: CACHE });
     })
-    .then(function (res) { if (res) { S.runs = (payloadOf(res) || {}).results || []; renderRuns(); } }, function () {})
+    .then(function (res) { if (res) { var sc = scannerOf((payloadOf(res) || {}).results || []); if (sc) { S.scanner = sc; renderStatus(); } renderRuns(sc); } }, function () {})
     .then(function () {
-      return MCP.callTool(NOTION, "notion-query-data-sources", { data: { mode: "view", view_url: VIEW_QUESTIONS, page_size: 100 } }, { cache: { staleTime: 120000, gcTime: 86400000 } });
+      return MCP.callTool(NOTION, "notion-query-data-sources", { data: { mode: "view", view_url: VIEW_QUESTIONS, page_size: 100 } }, { cache: CACHE });
     })
     .then(function (res) {
       var p = payloadOf(res) || {};
       S.questions = Array.isArray(p.results) ? p.results.filter(function (q) { return q.Status === "Open"; }) : null; S.questionsErr = S.questions ? null : { code: "tool_error", message: "unexpected response" };
       renderQuestions();
-    }, function (err) { S.questions = null; S.questionsErr = err; renderQuestions(); })
-    .then(done, done);
-    function done() { loading = false; if (loadAgain) { loadAgain = false; loadNotion(); } }
-  }
+    }, function (err) { S.questions = null; S.questionsErr = err; renderQuestions(); });
+  });
 
-  var connectsLoading = false, connectsAgain = false;
-  function loadConnects() { // balance + usage history, paged until the 7-day window is covered
-    if (connectsLoading) { connectsAgain = true; return; } connectsLoading = true;
+  var loadConnects = oneAtATime(function () { // balance + usage history, paged until the 7-day window is covered
     var since = Date.now() - 7 * DAY, all = [], first = null;
     function page(cursor, n) {
       var input = { action: "connects_balance", org_uid: ORG };
@@ -2761,13 +2772,11 @@
         return more ? page(p.next_cursor, n + 1) : null;
       });
     }
-    page(null, 1).then(function () {
+    return page(null, 1).then(function () {
       first = first || {}; first.usage_history = { transactions: all, complete: all.length ? Date.parse(all[all.length - 1].createdDateTime) <= since : true };
       S.connects = first; S.connectsErr = null; renderConnects(); renderLeads();
-    }, function (err) { S.connectsErr = err; if (isDenial(err)) S.connects = null; renderConnects(); })
-    .then(done, done);
-    function done() { connectsLoading = false; if (connectsAgain) { connectsAgain = false; loadConnects(); } }
-  }
+    }, function (err) { S.connectsErr = err; if (isDenial(err)) S.connects = null; renderConnects(); });
+  });
 
   function watchMilestones() {
     var list = ((S.dash || {}).active_contracts || {}).contracts || [], live = {};
@@ -2835,7 +2844,7 @@
       localStorage.setItem(MEM_KEY, JSON.stringify(MEM));
     } catch (e) {}
   }
-  var propParts = {}, proposalsLoading = false, proposalsAgain = false;
+  var propParts = {};
   function loadProposalSource(src, cutoff) {
     var out = [];
     function page(cursor, n) {
@@ -2856,21 +2865,19 @@
     }
     return page(null, 1);
   }
-  function loadProposals() {
-    if (!MCP) return;
-    if (proposalsLoading) { proposalsAgain = true; return; } proposalsLoading = true;
+  var loadProposals = oneAtATime(function () {
+    if (!MCP) return Promise.resolve();
     var now = Date.now();
     Object.keys(S.extra).forEach(function (id) { S.extra[id].stale = true; }); // read again, shown as they were meanwhile
-    Promise.all(PROPOSAL_SOURCES.map(function (src) {
+    return Promise.all(PROPOSAL_SOURCES.map(function (src) {
       return loadProposalSource(src, now - (src.closed ? LIVE_DAYS : FETCH_DAYS) * DAY).then(function (list) { propParts[src.status] = list; }, function (err) {
         if (src.status === "Accepted") { S.proposalsErr = err; if (isDenial(err)) S.proposals = null; }
         return null;
       });
     })).then(function () {
       if (propParts.Accepted) mergeProposals(); else renderApplied();
-    }).then(done, done);
-    function done() { proposalsLoading = false; if (proposalsAgain) { proposalsAgain = false; loadProposals(); } }
-  }
+    });
+  });
   function mergeProposals() {
     var seen = {}, all = [], changed = false;
     PROPOSAL_SOURCES.forEach(function (src) { (propParts[src.status] || []).forEach(function (p) {
@@ -2917,10 +2924,10 @@
     renderApplied(); renderLeads();
   }
   function rememberedProposal(row, f) { // a proposal this browser knows is over, drawn from its Proposals row and the card
-    var jobId = String(row["Job ID"] || ""), card = S.appliedNotion[jobId] || S.leadsById[jobId], created = Date.parse(row["date:Written:start"] || "") || 0;
+    var jobId = String(row["Job ID"] || ""), card = appliedCard(jobId), created = Date.parse(row["date:Written:start"] || "") || 0;
     var p = {
       id: String(row["Proposal ID"]), jobId: jobId, title: unesc(row.Title || "Untitled"),
-      url: card && card.Link ? String(card.Link) : jobId ? "https://www.upwork.com/jobs/~02" + jobId : null,
+      url: card && card.Link ? String(card.Link) : jobId ? upworkJob(jobId) : null,
       created: created, modified: f.at || created, rate: card ? myPrice(card) : "", bid: num(row.Boost) || null,
       status: "Closed", statusLabel: f.onHold ? jobLabel(jobId) : f.label, reason: f.reason || "", closed: true, onHold: !!f.onHold
     };
@@ -3064,7 +3071,7 @@
     var p = MCP.invalidate ? MCP.invalidate() : Promise.resolve();
     return p.catch(function () {}).then(function () {
       notesCache = {}; loadNotion(); loadConnects(); loadProposals(); refreshDrawer(); // an open drawer reads its conversation again at once
-      return new Promise(function (ok) { var n = 0, t = setInterval(function () { if (!(loading || connectsLoading || proposalsLoading) || ++n > 100) { clearInterval(t); liveLine(); refreshDrawer(); ok(); } }, 150); });
+      return new Promise(function (ok) { var n = 0, t = setInterval(function () { if (!(loadNotion.busy() || loadConnects.busy() || loadProposals.busy()) || ++n > 100) { clearInterval(t); liveLine(); refreshDrawer(); ok(); } }, 150); });
     });
   }
   function refreshBy(b) { // the header's Refresh and the drawer's: the same button, its arrow turning until the loads end; an open drawer reads again in place
