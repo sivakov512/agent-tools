@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.0...project-tracker-v1.15.1) (2026-10-16)
+
+
+### Bug Fixes
+
+* **project-tracker:** plan changes reason from the user's dates ([a13b828](https://github.com/sivakov512/agent-tools/commit/a13b82887669c2afca9ed0bf068ff2c44d0d5423))
+
 ## [1.15.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.14.1...project-tracker-v1.15.0) (2026-10-15)
 
 
