@@ -6,7 +6,7 @@ alter-ego is unlike the other plugins: most of it is enforcement code, not instr
 
 ## What the skill must do
 
-These hold in every repository and every mode. Each is checked by an eval case (`evals/README.md`) or by `tests/test.sh`; a change that breaks one is a bug, not a trade-off.
+These hold in every repository and every mode, except in a cloud session a repository has allowed (15), where no mode applies. Each is checked by an eval case (`evals/README.md`) or by `tests/test.sh`; a change that breaks one is a bug, not a trade-off.
 
 1. **The mode is the user's choice.** Claude never picks or sets a repository's mode itself, even when it looks obvious, and recommends none: a mode chosen by accident puts work out under the wrong name. It runs `alter-ego use` only on the user's answer or request.
 2. **The question is asked on its own.** Once per repository, before the first push, PR, issue, review or comment there — not at the start of a session that only reads. With AskUserQuestion when Claude has it (Clean, one option per bot, Add a bot); without it, as the reply's last paragraph under a bold heading, options as a short list, nothing else asked alongside. Nothing is pushed or posted while the answer is pending.
@@ -22,6 +22,7 @@ These hold in every repository and every mode. Each is checked by an eval case (
 12. **Adding a bot is walked through, step by step.** Account, classic token with `repo`, `alter-ego add-bot`, the store command for this OS, `alter-ego check`, access — Claude does every step it can and leaves the user only what needs them.
 13. **Only Claude's own `git` and `gh` are touched.** No repository config is written, no variables leak into the shell, others' `GIT_CONFIG_*` entries survive, and the user's terminal is unaffected.
 14. **A config the plugin cannot read stops what goes out.** An older config is brought up to the current `schema` in place, safely re-runnable; a newer one, or one that is not valid JSON, is never written, and pushes and `gh` writes are refused with the reason until the user updates the plugin or fixes the file.
+15. **A cloud session puts nothing out unless the repository allows it.** In an Anthropic-hosted cloud session, pushes and `gh` writes are refused, saying why and how to allow it; with `ALTER_EGO_CLOUD=allow` in the repository's cloud environment git and gh run untouched and the session context says whose name the work goes under. Outside a cloud session the variable changes nothing.
 
 | # | Eval case (grader) | `tests/test.sh` | Gap |
 |---|---|---|---|
@@ -39,6 +40,7 @@ These hold in every repository and every mode. Each is checked by an eval case (
 | 12 | `add-bot` (`registers`, `walkthrough`) | *bots* (`add-bot`, `check`, store commands) | |
 | 13 | — | existing `GIT_CONFIG` entries kept; no bot variables in the shell | |
 | 14 | — | *the config's schema* | |
+| 15 | — | *Anthropic-hosted cloud sessions* | |
 
 ## Decisions
 
@@ -60,7 +62,8 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **Classic personal access tokens with `repo`** (plus `workflow` for workflow files): it is what alter-ego is tested with, and a fine-grained token may not reach repositories the bot only collaborates on.
 - **Tokens stay in the OS secret store** — macOS Keychain, Secret Service or `pass` on Linux, or a `secret_command` — read per call, never written by alter-ego: the user stores them with a prompting command, so they reach neither chat nor shell history.
 - **Bot mode is github.com only**: the token, the noreply email and the invite flow are GitHub's.
-- **No bot mode in Anthropic-hosted cloud sessions, and no environment-based config.** There GitHub traffic goes through Anthropic's GitHub proxy, which swaps the git client's credential for the user's own token, and `gh` subcommands that use GraphQL (`gh pr`, `gh issue`) are blocked whatever the token (code.claude.com/docs/en/claude-code-on-the-web, …/cloud-environments): a bot's work would go out as the user or not at all, whatever alter-ego reads. So a config declared through environment variables, for machines that start without `~/.config/alter-ego`, is not built: it could not make bot mode hold there, and no machine in use needs it otherwise. The skill and the README say bot mode is not supported there.
+- **Anthropic-hosted cloud sessions: refused by default, passed through when the repository allows it.** There GitHub traffic goes through Anthropic's GitHub proxy, which swaps the git client's credential for the user's own token, and `gh` subcommands that use GraphQL (`gh pr`, `gh issue`) are blocked whatever the token (code.claude.com/docs/en/claude-code-on-the-web, …/cloud-environments), so no mode can hold. Cloud sessions save the user's quota, and for repositories they opt in they accept commits as Claude and pushes and PRs through their own account. So in a cloud session (`CLAUDE_CODE_REMOTE=true`, which Claude Code sets there) pushes and `gh` writes are refused, with the reason and how to allow it, and `use`/`forget` do not apply; with `ALTER_EGO_CLOUD=allow` in the repository's cloud environment, git and gh run untouched (no identity rewrite, no AI-mark filter) and the session context says whose name the work goes under. A client repository opened in the cloud thus stays protected unless allowed. Outside a cloud session the variable means nothing. alter-ego reads, writes and prints no token for this.
+- **No environment-based config.** A config declared through environment variables, for machines that start without `~/.config/alter-ego`, is not built: it could not make a mode hold in cloud sessions, and no machine in use needs it otherwise.
 - **Claude Code's own attribution is turned off at the source, on request.** `alter-ego attribution off` sets `"attribution": {"commit": "", "pr": ""}` in `~/.claude/settings.json`; it is offered once and asked first, as it applies to every repository.
 - **`invite` asks with the user's `gh` login and accepts as the bot**, so giving a bot access is one confirmed step instead of a trip through two GitHub accounts.
 - **A bot is removed only when no repository uses it** (or with `--force`), and its token is left in the secret store for the user to delete.
@@ -70,13 +73,13 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 
 | File | Owns |
 |---|---|
-| `skills/alter-ego/SKILL.md` | trigger; the modes; talking to the user; how enforcement works, as Claude needs to know it; the command table; asking and switching; clean-mode writing; bot-mode conduct; the procedures table; acting on refusals |
+| `skills/alter-ego/SKILL.md` | trigger; the modes; talking to the user; how enforcement works, as Claude needs to know it; the command table; asking and switching; clean-mode writing; bot-mode conduct; cloud sessions; the procedures table; acting on refusals |
 | `skills/alter-ego/references/bots.md` | adding, checking, inviting, rotating and removing a bot; the store commands |
 | `skills/alter-ego/references/setup.md` | first run on a machine |
 | `hooks/hooks.json` | SessionStart (`libexec/alter-ego session-start`: wrappers on PATH, the repository's mode as session context) and PreToolUse on Bash (`libexec/alter-ego guard`) |
 | `shims/git`, `shims/gh` | the programs PATH finds; each hands over to `libexec/alter-ego __git` / `__gh` |
 | `shims/.alter-ego-shims` | marker that tells `real_bin` to skip this folder when looking for the real git and gh |
-| `libexec/alter-ego` | everything else: config and its schema, repository keys, the git and gh wrappers, the clean-mode filter (`TELLS`), bot identity and pushes, the credential helper, both hooks' logic and the user commands (`status`, `use`, `add-bot`, …) |
+| `libexec/alter-ego` | everything else: config and its schema, repository keys, the git and gh wrappers, the clean-mode filter (`TELLS`), bot identity and pushes, the credential helper, cloud sessions, both hooks' logic and the user commands (`status`, `use`, `add-bot`, …) |
 | `tests/test.sh` | offline tests of the CLI, wrappers and hooks with fake secret stores and a fake `gh` |
 | `evals/` | the `claude plugin eval` suite; `lib.sh` is the shared scaffold |
 
