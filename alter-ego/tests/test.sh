@@ -300,6 +300,35 @@ echo "{\"cwd\": \"$PWD\"}" | "$AE" session-start >/dev/null
 check "the choice moved to the remote key" "$(jq -r '.repos | keys | join(" ")' "$ALTER_EGO_CONFIG")" "github.com/me/local"
 check_not "the path key is gone" "$(jq -r '.repos | keys | join(" ")' "$ALTER_EGO_CONFIG")" "path:"
 
+# --- the config's schema
+cd "$T/work"
+check "a new config carries the schema" "$(jq -r .schema "$ALTER_EGO_CONFIG")" "^1$"
+cp "$ALTER_EGO_CONFIG" "$T/config.kept"
+setcfg 'del(.schema) | .repos["github.com/me/old"] = "off"'
+echo "{\"cwd\": \"$PWD\"}" | "$AE" session-start >/dev/null
+check "an older config is brought up at session start" "$(jq -c '[.schema, .repos["github.com/me/old"], .bots.forge.login]' "$ALTER_EGO_CONFIG")" '^\[1,"clean","forge-robot"\]$'
+cp "$ALTER_EGO_CONFIG" "$T/config.once"
+echo "{\"cwd\": \"$PWD\"}" | "$AE" session-start >/dev/null
+check_empty "bringing it up again changes nothing" "$(diff "$T/config.once" "$ALTER_EGO_CONFIG")"
+setcfg 'del(.schema)'
+"$AE" use clean >/dev/null
+check "a write brings an older config up first" "$(jq -r .schema "$ALTER_EGO_CONFIG")" "^1$"
+setcfg '.schema = 2'
+cp "$ALTER_EGO_CONFIG" "$T/config.newer"
+check "a newer config is reported at session start" "$(echo "{\"cwd\": \"$PWD\"}" | "$AE" session-start)" "newer alter-ego \(schema 2"
+check "use writes nothing to a newer config" "$("$AE" use forge 2>&1)" "out of date"
+check_empty "the newer config is left as it was" "$(diff "$T/config.newer" "$ALTER_EGO_CONFIG")"
+refused "a push with a newer config" git push
+check "it says the plugin is out of date" "$OUT" "out of date"
+refused "a gh write with a newer config" gh pr create --title t --body b
+succeeds "a gh read with a newer config" gh pr list
+succeeds "a local commit with a newer config" git commit -q --allow-empty -m "Local"
+git reset -q --hard HEAD~1
+echo '{"repos": ' >"$ALTER_EGO_CONFIG"
+refused "a push with a broken config" git push
+check "it says the config is not valid JSON" "$OUT" "not valid JSON"
+cp "$T/config.kept" "$ALTER_EGO_CONFIG"
+
 # --- attribution
 mkdir -p "$(dirname "$ALTER_EGO_CLAUDE_SETTINGS")"; echo '{"model": "opus", "includeCoAuthoredBy": false}' >"$ALTER_EGO_CLAUDE_SETTINGS"
 check "attribution partly off" "$("$AE" attribution)" "^partly off"
