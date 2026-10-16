@@ -11,7 +11,7 @@
   var ORIGINS = ["Upwork", "Direct", "Personal"];
 
   var S = { cfg: null, projects: null, projErr: null, plan: {}, pageInfo: {}, problems: null, problemsErr: null, resolved: null, resolvedErr: null, lastUpdate: 0, range: "3", origins: [], tlView: null, tlOpen: {}, shown: false };
-  try { var r0 = localStorage.getItem("pt.range"); if (SPANS[r0] || r0 === "all") S.range = r0; } catch (e) {}
+  try { var r0 = localStorage.getItem("pt.range"); if (PT.SPANS[r0] || r0 === "all") S.range = r0; } catch (e) {} // PT.SPANS: the alias below is not set yet
   try { var o0 = JSON.parse(localStorage.getItem("pt.origins") || "null"); if (Array.isArray(o0)) S.origins = o0.filter(function (k) { return typeof k === "string"; }); else { o0 = localStorage.getItem("pt.origin"); if (o0 && o0 !== "All") S.origins = [o0]; } } catch (e) {} // pt.origin: the one origin an older version kept
   try { var t0 = JSON.parse(localStorage.getItem("pt.tlOpen") || "{}"); if (t0 && typeof t0 === "object") S.tlOpen = t0; } catch (e) {}
 
