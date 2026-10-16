@@ -84,6 +84,7 @@ Not yet in line, each for a change of its own (§9):
 - **No rule for a tracker newer than the plugin** (§4.7): a `schema` above the skill's should write nothing and say the plugin is out of date.
 - **Reference files lack the mode shape** (§3.8): `references/state.md`, `references/notes.md`, `references/contracts.md` (resync), `references/plan-changes.md` and `references/report.md` do not say their inputs, output and what is off limits.
 - **`SKILL.md` carries more than every session needs** (§3.2): about 10,000 words, over 40% of the skill; the moves above, the pause stub, the tidy-sweep procedure and the dashboard-offer details going to their references bring it down.
+- **Russian in the skill** (§3.11): phrases in the description, the example reply in `SKILL.md` → **Every change: read, write, check, report** and two requests in `references/client-dashboards.md`. Once gone, `scripts/check.py` should refuse Cyrillic in any skill's instructions.
 - **The dashboard code** (§6.4–§6.5), from the October audit: the four bugs first — the timeline zoom not restored, a closed project page still re-reading Notion, a client page without `data.js` left blank, a call that never settles leaving the page on Loading — then dead code, logic written twice, unpaced calls and shadows outside the theme tokens.
 
 ## Checking a change
