@@ -5,7 +5,7 @@
 The scope or structure changes. `Dates` are the commitment, so every change here is a change of what the client is told.
 
 1. Work it out on the project's `Schedule` and `Tasks` views.
-   - **Add a milestone**: dates the user stated, or that follow from the rules in `new-project.md` (start = end of the previous milestone); otherwise ask. A milestone inserted into the chain pushes everything starting on or after its start by its length.
+   - **Add a milestone**: dates the user stated, or that follow from the rules in `references/new-project.md` (start = end of the previous milestone); otherwise ask. A milestone inserted into the chain pushes everything starting on or after its start by its length.
    - **Add tasks** — more than the one task the user named ("the demo has these steps: …"): under the milestone they serve, with the dates the user gave, or none. The one task the user asked for is not a plan change — SKILL.md, **Tasks**.
    - **Break a milestone into tasks**: the steps become tasks of that milestone; the milestone keeps its own `Dates`. Steps the user gives dates for get them; if those run past the milestone's end, say so — the milestone's end moves only if the user says so.
    - **Turn a stage into a milestone with tasks** (a phase that grew steps, or a milestone that was really a step of a bigger one): create the new milestone, set the existing rows' `Milestone` to it, keep their histories; nothing is deleted.

@@ -14,7 +14,7 @@ Dropped milestones and issues, and Removed projects, do not move.
 
 ## 2. Map — the fixed rules
 
-**Projects**: every field as is (`Name`, `Client`, `Status`, `Summary`, `Target end`, `Repository`, `Source`); `Origin` from the old rule — `Source` on upwork.com → Upwork, empty `Client` → Personal, else Direct; `Chat` and `Claude project` empty (set later — `chats.md`).
+**Projects**: every field as is (`Name`, `Client`, `Status`, `Summary`, `Target end`, `Repository`, `Source`); `Origin` from the old rule — `Source` on upwork.com → Upwork, empty `Client` → Personal, else Direct; `Chat` and `Claude project` empty (set later — `references/chats.md`).
 
 **Milestones**, by the project's phases:
 
@@ -31,9 +31,9 @@ Dropped milestones and issues, and Removed projects, do not move.
 - `Blocker`, `Risk`, `Question` → a problem of the same type: `Status`, `Waiting on`, `Opened`, `Resolved on` as is, `Note` into `Summary` as is; `Milestone` = the new milestone; `Task` = the new task, if the old milestone it was linked to became a task.
 - An issue's `Note` → history lines of the new task (problems keep theirs, in `Summary`): split at ` · `, each part a line `- **<date>** — <part>`, where the date is the `YYYY-MM-DD:` the part starts with (removed from the text) or else `Opened`; oldest first.
 
-**Bodies**: every history and page body is copied verbatim, as fetched, laid out in the parts of SKILL.md **Pages** by the rule of `setup.md` → **Tracker update** (3 → 4, step 2), then one history line is added at the end: `- **<today>** — Moved from the 0.x tracker.` (for a milestone that became a task: `… was a milestone of the phase "<phase>"`). Mentions of old pages (`<mention-page url="…">`) are rewritten to the new page of the same row once that page exists — write the body as it was, then fix the mention with `update_content` after the target row is created; mentions of pages that did not move stay.
+**Bodies**: every history and page body is copied verbatim, as fetched, laid out in the parts of SKILL.md **Pages** by the rule of `references/setup.md` → **Tracker update** (3 → 4, step 2), then one history line is added at the end: `- **<today>** — Moved from the 0.x tracker.` (for a milestone that became a task: `… was a milestone of the phase "<phase>"`). Mentions of old pages (`<mention-page url="…">`) are rewritten to the new page of the same row once that page exists — write the body as it was, then fix the mention with `update_content` after the target row is created; mentions of pages that did not move stay.
 
-**Notes tab**: its lines and sub-pages become the new project page's notes, in the old tab's order — short lines copied as they are under `## Notes`, each sub-page re-created under the new project page with the same title and its body copied verbatim, then placed as `notes.md` describes; a line or sub-page that **Who sees what** keeps private goes under `## Private notes` instead. A paused, done or removed line becomes a history line. Lines the upgrade itself adds come last.
+**Notes tab**: its lines and sub-pages become the new project page's notes, in the old tab's order — short lines copied as they are under `## Notes`, each sub-page re-created under the new project page with the same title and its body copied verbatim, then placed as `references/notes.md` describes; a line or sub-page that **Who sees what** keeps private goes under `## Private notes` instead. A paused, done or removed line becomes a history line. Lines the upgrade itself adds come last.
 
 **Callout**: not carried over — this version keeps no status callout; an `On hold` reason in the old callout becomes the pause line in that milestone's history (`- **<date it was paused, else the upgrade day>** — Paused (was In progress): <reason>.`).
 
@@ -43,8 +43,8 @@ Show, per project: the milestones with their tasks (dates, status), the problems
 
 ## 4. Copy
 
-1. The new root page. A current tracker with the old page's title already found (SKILL.md → **Finding things**: an interrupted upgrade) → use it. Otherwise create it directly, without a search or a question: `notion-create-pages` with the old page's title, `parent` = the old page's parent (none for a top-level page), and the config toggle as `setup.md` step 1 shows. Then `setup.md` steps 2–6 on it — databases, computed columns, page layouts, config, views, tabs, verify; not step 7: the dashboard is step 5 below. Both pages carry a config toggle while the copy runs; the old one is recognised by its `open_items` line, so it is never written to.
-2. Per project: the Projects row with the fields mapped above, then as `new-project.md` → **Create** steps 2–5 do, with the field values mapped above — the page's views and tabs, milestones, tasks, problems; then the Notes tab as mapped (no `Source` sub-page: the old Notes come over as they are). `Target end` is copied, not recomputed, and the Claude project question is not asked. Before creating a row, look for it in the new project's views by name; if it exists (an interrupted run), compare and fill what is missing instead of creating a second.
+1. The new root page. A current tracker with the old page's title already found (SKILL.md → **Finding things**: an interrupted upgrade) → use it. Otherwise create it directly, without a search or a question: `notion-create-pages` with the old page's title, `parent` = the old page's parent (none for a top-level page), and the config toggle as `references/setup.md` §1 shows. Then `references/setup.md` §2–6 on it — databases, computed columns, page layouts, config, views, tabs, verify; not step 7: the dashboard is step 5 below. Both pages carry a config toggle while the copy runs; the old one is recognised by its `open_items` line, so it is never written to.
+2. Per project: the Projects row with the fields mapped above, then as `references/new-project.md` → **Create** steps 2–5 do, with the field values mapped above — the page's views and tabs, milestones, tasks, problems; then the Notes tab as mapped (no `Source` sub-page: the old Notes come over as they are). `Target end` is copied, not recomputed, and the Claude project question is not asked. Before creating a row, look for it in the new project's views by name; if it exists (an interrupted run), compare and fill what is missing instead of creating a second.
 3. Verify by counts, per project: milestones, tasks, problems and notes in the new tracker equal what the preview listed. Fix any gap before going on.
 
 ## 5. Retire the old tracker
@@ -53,6 +53,6 @@ Only after the counts match:
 
 - The old config toggle's summary becomes `⚙️ **Retired 0.x tracker** — not read by any skill; the live tracker is <mention-page url="<new root>"/>`, so search no longer finds it; its lines stay as they were.
 - The old page title gets ` (0.x)` appended.
-- The dashboard: if the old config had a `dashboard` line, copy it into the new config and update that artifact as `dashboard.md` → **Updating** says, with the new root page — the link the user already has keeps working. Otherwise publish a new one.
+- The dashboard: if the old config had a `dashboard` line, copy it into the new config and update that artifact as `references/dashboard.md` → **Updating** says, with the new root page — the link the user already has keeps working. Otherwise publish a new one.
 
-Tell the user what moved (counts per project), what stayed behind, the new page, that the old page is kept as a backup they can delete by hand once they are satisfied, and the click-through list from `setup.md` step 8.
+Tell the user what moved (counts per project), what stayed behind, the new page, that the old page is kept as a backup they can delete by hand once they are satisfied, and the click-through list from `references/setup.md` §8.

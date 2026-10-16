@@ -44,7 +44,7 @@ A history line keeps the event; an internal reason behind it is a private note b
 **A task or a problem.** One question: *would this be in the plan if everything went as intended?*
 
 - **Yes → a task**, handovers the plan expects included: an RFQ the labs must answer, a sign-off, files from the client. A handover starts with the user's action, then waits — `Status` Waiting, `Waiting on` the party — and is Done when the result is in (`Waiting on` stays, as the record of whom it waited on).
-- **No → a problem**: something that might go wrong and move dates (**Risk**), work that cannot proceed until someone acts on something nobody planned for — under way or still ahead (**Blocker**), a decision someone has to make (**Question**).
+- **No → a problem**: a **Risk** — something that might go wrong and move dates; a **Blocker** — work that cannot proceed until someone acts on something nobody planned for, under way or still ahead; a **Question** — a decision someone has to make.
 - News about an item that exists ("Dana signed", "the boards are late", "they answered") changes that item. It becomes a new problem only when the user calls it a risk, a blocker or a decision, or when it is about nothing in the plan.
 
 **Names.** Two to five words, one style per level, the way a Gantt row is labelled; status, dates, the party waited on and "done when" live in the fields and the history.
