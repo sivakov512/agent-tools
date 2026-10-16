@@ -1,8 +1,8 @@
 # Contracts from connected services
 
-Used with `new-project.md`: this file replaces its extraction and date rules (steps 2–3); confirmation, creation and the project page are as there. Also used for **resync**, at the end.
+Used with `references/new-project.md`: this file replaces its extraction and date rules (steps 2–3); confirmation, creation and the project page are as there. Also used for **resync**, at the end.
 
-A contract in a freelance or project platform already has most of what a tracker needs: a title, a client, a list of stages with states. It also carries a lot that is not plan: legal terms, billing, payments, platform metadata. The goal is the same page a pasted plan would give — no more rows than the contract has real stages. A contract project is **milestones only**: one milestone per stage — names, dates and what "done" means; tasks appear later, when the user adds them or breaks a stage into tasks (`plan-changes.md`).
+A contract in a freelance or project platform already has most of what a tracker needs: a title, a client, a list of stages with states. It also carries a lot that is not plan: legal terms, billing, payments, platform metadata. The goal is the same page a pasted plan would give — no more rows than the contract has real stages. A contract project is **milestones only**: one milestone per stage — names, dates and what "done" means; tasks appear later, when the user adds them or breaks a stage into tasks (`references/plan-changes.md`).
 
 ## General mapping (any service)
 
@@ -11,7 +11,7 @@ A contract in a freelance or project platform already has most of what a tracker
 | Contract title, or the product name the description uses if it is clearer | Project `Name` (short: the product or deliverable, not the job-post headline) |
 | Client company named in the description; else the service's client name | Project `Client` |
 | The service | Project `Origin` (`Upwork`) |
-| Each stage / milestone, in order | One Milestone, named with the stage's own short title (the part before the colon or dash) exactly as the contract writes it — never shortened or reworded, so it matches the platform one to one; `Order` = its number in the contract (at creation; a stage added at resync takes its place as `plan-changes.md` → **Order** says) |
+| Each stage / milestone, in order | One Milestone, named with the stage's own short title (the part before the colon or dash) exactly as the contract writes it — never shortened or reworded, so it matches the platform one to one; `Order` = its number in the contract (at creation; a stage added at resync takes its place as `references/plan-changes.md` → **Order** says) |
 | Stage description | First line of the milestone page body: `Contract milestone N. <one-sentence "done when" from the description>` |
 | Stage state | Milestone `Status` and dates (below) |
 | Explicit dependencies in the terms ("Milestones 1 and 2 run in parallel") | Start dates |
@@ -40,7 +40,7 @@ Ignore entirely: amounts, funding and payment states (they go stale and are not 
 
 ## Resync — "sync the Upwork project"
 
-For a project whose `Source` is a contract: read the contract again and compare with the tracker. Stage states that moved are applied as in the mapping above (active → In progress; submitted or completed → Done, `Finished` = the submission date, `Dates` stay; a due date changed on the platform is the new date, so `Dates` follow it with a history line `old → new`). A resync creates no tasks. New or removed stages are a plan change — show them and ask (`plan-changes.md`). Report the changes as was → now; if nothing changed, say so.
+For a project whose `Source` is a contract: read the contract again and compare with the tracker. Stage states that moved are applied as in the mapping above (active → In progress; submitted or completed → Done, `Finished` = the submission date, `Dates` stay; a due date changed on the platform is the new date, so `Dates` follow it with a history line `old → new`). A resync creates no tasks. New or removed stages are a plan change — show them and ask (`references/plan-changes.md`). Report the changes as was → now; if nothing changed, say so.
 
 ## Upwork specifics
 

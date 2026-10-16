@@ -1,6 +1,6 @@
 # New project
 
-From a plan, estimate or email the user pastes or points to ("my last report in Sent", "the estimate in this PDF", "the Google Doc"), or from a platform contract — then `contracts.md` replaces steps 2–3 below; everything else is as here.
+From a plan, estimate or email the user pastes or points to ("my last report in Sent", "the estimate in this PDF", "the Google Doc"), or from a platform contract — then `references/contracts.md` replaces steps 2–3 below; everything else is as here.
 
 ## 1. Get the source
 
@@ -10,7 +10,7 @@ Pasted → use it. Pointed to → fetch it with whatever tools the session has (
 
 Only what the source says — no risks, milestones or tasks of your own. Follow the rules literally so the same source always gives the same rows.
 
-- **Project** — name (the product or deliverable), client, `Origin`: `Upwork` for an Upwork contract, `Personal` with no client; a client the tracker already has projects for (plainly the same client) takes the `Origin` those projects have; else `Direct` — or the option the user names; `Claude project` as the user gives it (`chats.md` → Claude project).
+- **Project** — name (the product or deliverable), client, `Origin`: `Upwork` for an Upwork contract, `Personal` with no client; a client the tracker already has projects for (plainly the same client) takes the `Origin` those projects have; else `Direct` — or the option the user names; `Claude project` as the user gives it (`references/chats.md` → **Claude project**).
 - **Milestones and tasks** — by the source's structure:
   - **Section headings with items under them** → each heading is a milestone, named in sentence case without dates or durations ("SITE INSTALLATION — until June 5" → `Site installation`); each item under it is a task of that milestone, named as SKILL.md **Names** says — a short noun for the work ("Board designed, first boards ordered — December 4" → `Board design & first order`), the source's longer wording kept as its description when it says more.
   - **A heading with no items** → a milestone with no tasks.
@@ -35,7 +35,7 @@ Exact dates as given. Fixed readings of vague ones: "mid-<month>" = the 15th; a 
 
 Starts: a task starts where the previous task of its milestone ends; the first task of the first milestone starts on the source date; the first task of a later milestone starts where the previous milestone ends. Work described as running alongside something starts with it. A milestone that "starts once X is done" starts at X's end, even if its heading gives a vaguer start. A milestone with tasks spans its tasks — from the first task's start to the last task's end; a heading that gives only an end ("until November 20") sets the end, the start still comes from the first task. A flat-list milestone follows the same rules as a task.
 
-A milestone with no date in the source and none following from these rules is asked about in step 4, never invented. A task with no date stays without one — no question. Dates that came from a rule rather than the literal text are marked in the list ("Mar 15 — from 'mid-March'") so the user can correct them.
+A milestone with no date in the source and none following from these rules is asked about in §4, never invented. A task with no date stays without one — no question. Dates that came from a rule rather than the literal text are marked in the list ("Mar 15 — from 'mid-March'") so the user can correct them.
 
 ## 4. Confirm
 
@@ -53,9 +53,9 @@ Otherwise, in this order — the page comes before the rows, so an interrupted a
 4. Tasks (`Project` = the row, `Milestone` = its milestone, `Order` 1, 2, … within their milestone in the source's order).
 5. Problems, `Opened` = the source date.
 6. The project's description (SKILL.md → **Pages**): the source's own statement of what the project is or delivers, if it has one — a paragraph, never the plan itself.
-7. A source without a URL (pasted text, an email, a local file) goes onto the project page as a sub-page `Mon D — Source: <subject or short description>` (Mon D = the source date), under `## Notes` or `## Private notes` by **Who sees what** (a source with prices the client was not given is private), as for long notes (`notes.md`), so the original plan stays with the project.
+7. A source without a URL (pasted text, an email, a local file) goes onto the project page as a sub-page `Mon D — Source: <subject or short description>` (Mon D = the source date), under `## Notes` or `## Private notes` by **Who sees what** (a source with prices the client was not given is private), as for long notes (`references/notes.md`), so the original plan stays with the project.
 
-Reply with what was created, and remind the user to switch the `Plan` timeline and the Tasks tab's `Timeline` view to **Quarter** or **Month** once — the API cannot set the zoom; Notion remembers it. On the first project, also the helper-property hiding from `setup.md` step 8, now that there are pages to click it on.
+Reply with what was created, and remind the user to switch the `Plan` timeline and the Tasks tab's `Timeline` view to **Quarter** or **Month** once — the API cannot set the zoom; Notion remembers it. On the first project, also the helper-property hiding from `references/setup.md` §8, now that there are pages to click it on.
 
 ## Project page
 
