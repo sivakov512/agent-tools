@@ -58,7 +58,7 @@ Needs bash 3.2 or later (macOS's own will do), `git`, `gh` and `jq`, and a secre
 
 Start a new session: the wrappers are put on PATH at session start.
 
-In Anthropic-hosted cloud sessions (claude.ai/code) the wrappers run, but bot mode is not supported: GitHub traffic there goes through Anthropic's GitHub proxy, which pushes with your own token, and `gh pr` and `gh issue` are blocked, so a bot's work would go out as you or not at all. In Cowork, chat or Codex there are no plugin hooks, so nothing is enforced; the skill alone can only explain the modes.
+In Anthropic-hosted cloud sessions (claude.ai/code) the wrappers run, but no mode can hold: GitHub traffic there goes through Anthropic's GitHub proxy, which pushes with your own token, and `gh pr` and `gh issue` are blocked. So by default Claude's pushes and `gh` writes are refused there, and a client repository opened in the cloud stays protected. To work from the cloud in a repository, set `ALTER_EGO_CLOUD=allow` in its cloud environment: git and gh then run untouched — commits go out as Claude, pushes and PRs through your own GitHub account, with no AI-mark filter. The variable means nothing outside a cloud session. In Cowork, chat or Codex there are no plugin hooks, so nothing is enforced; the skill alone can only explain the modes.
 
 ## First run
 
@@ -127,6 +127,6 @@ To change it, read `docs/skill-design.md` and the repository's `docs/skill-devel
 ## Limits
 
 - It covers Claude's Bash commands that call `git` and `gh` by name — which is how Claude works. Programs that change a repository without the `git` command (libgit2 tools), GitHub MCP connectors and the desktop app's own commit / create-PR buttons are outside it; Claude is told not to use them in bot repositories.
-- Bot mode works with github.com repositories only, and not in Anthropic-hosted cloud sessions (see Install).
+- Bot mode works with github.com repositories only. In Anthropic-hosted cloud sessions neither mode holds (see Install).
 - Clean mode catches the obvious markers. Writing in your voice is the skill's job, not a filter's.
 - Fetches over SSH keep using your own key; only pushes and `gh` go as the bot.
