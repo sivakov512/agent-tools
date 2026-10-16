@@ -2,6 +2,8 @@
 
 One run: read the rules, take the queue of postings published since the watermark, search it and drop the obvious foreign work by title, hand what is left to the assessment on Opus (`references/assess.md`: stage 2, cards, estimates and — with `auto_drafts: on` — advice and proposals), move the watermark, catch up drafts, auto-skip, and end with a short report of what it did — pushed to the phone only when there is something to apply to fast. This run is the cheap half: most hours find nothing to open past the title, and then Opus is never started. It runs in automatic mode (SKILL.md → *Automatic mode*); a config whose `schema` is not 8 is handled before anything here (SKILL.md → *Pipeline update*).
 
+Started by the hourly search task, or by the user asking to scan for new jobs. Inputs: the root page the prompt names; the run reads the config, Search rules and Run state (§1–§2). Output: the cards, the Runs rows and the report (§7).
+
 **Turns.** The first turn reads the config; the second, Search rules and Run state together; then all searches and the invitations in one turn. A write the next one depends on waits for its result: the run row before the hand-off, the cards and the row before the watermark.
 
 ## 1. Read first

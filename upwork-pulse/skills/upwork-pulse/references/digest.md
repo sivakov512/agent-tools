@@ -2,6 +2,8 @@
 
 A recap of what the hourly search found in a window, for the user to read at a fixed time. It reads Jobs, after the proposals sync; no Upwork search, no other writes — automatic mode.
 
+Started by the morning and evening digest tasks, or by the user asking what was found since a time. Inputs: the root page and the window the prompt names (§2). Output: the report and its push (§3).
+
 ## 1. Sync first
 
 Run the proposals sync (`references/sync.md`) before anything else, whether or not the digest has anything to list, so a card the user has just applied to is not listed as a lead. A sync failure is not a reason to skip the digest: it goes in the Log as a `Problems` line. The digest reads no rules page.

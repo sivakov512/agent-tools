@@ -2,6 +2,8 @@
 
 One procedure for three cases (an existing pipeline on an older `schema` is brought up to date by `references/update.md` instead): nothing exists yet; the user already has pages or databases from an earlier version (adopt them); a setup that stopped halfway. Every step checks first and adds only what is missing, so running it again is safe and never makes a second root page or a duplicate database.
 
+Started by the user asking to set up the pipeline or adopt existing pages. Inputs: the user's profile (§2) and whatever already exists in Notion (§1). Output: the pages, databases, views, config, dashboard and scheduled tasks, and the reply of §9.
+
 ## 1. Find or create the root page
 
 First look for an existing pipeline: a page the user names or links, else `notion-search` for `read by the upwork-pulse skill` (the config marker).
@@ -191,3 +193,5 @@ Fetch the root page: the config toggle first with every key filled (except `dash
 If you created the tasks: fire the hourly one once (`fire_trigger`), wait a few minutes, and query `runs_latest`. A new row means the task session has the skill, the connectors and write access. No row → the task's last run tells why (the plugin not installed on that surface, a connector missing, approval pending); say so to the user plainly — the pipeline does not run until it is fixed.
 
 Reply in `language` with: what was created, adopted or already in place; the placeholders left in the rules pages for the user to fill; **the tasks** — created, or, when this session cannot create them, the §8 table itself in the reply: every task with its schedule and its full prompt carrying the real root URL (saying they are not created without the table leaves the user with nothing to act on); **the dashboard** — its URL; where no artifact tool exists, the filled file and what can host it (`references/dashboard.md` → *No Artifact tool*). Add one line on models: the search, digests and weekly review run on Sonnet; the hourly run assesses what it finds and writes its proposals on Opus through a subagent, and the drafts task runs on Opus; a proposal written in chat uses the chat's model. End with the first live check: "run the hourly search now" in this chat.
+
+Off limits here: renaming or dropping what the user already has (§1); a second root page or a duplicate database; the skill's own mechanics copied into the rules pages (§2); any write to Upwork.

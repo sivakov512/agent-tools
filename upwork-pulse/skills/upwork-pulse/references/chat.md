@@ -2,6 +2,8 @@
 
 Everything the user does by hand with the pipeline: look at a posting, get an estimate, draft and send a proposal, set a card's status, ask about connects. The user's own rules for content — what to take, how to price, how to write — are in Search rules and Proposal guide; read the one the scenario needs before acting, every time, since the user edits them.
 
+Started by the user in a conversation, or by a chat the dashboard opens (*A job's chat*). Inputs: the user's message and the config. Each section below is one kind of request, with its steps and its reply; what no request may do is at the end (*What stays off limits here*).
+
 ## Fresh data first
 
 Before you assess, estimate or answer anything about a specific posting in a conversation, fetch it from Upwork (`find_jobs`, action `get`), then give its link and talk. The card is a snapshot from the moment it was found; proposals, hires and the connects price move, and advice on stale numbers is wrong advice. Upwork answers PERMISSION ("can't be opened right now") → say in one line that Upwork would not open the job just now, work from the card as of its date, and do not retry the same job in this conversation. This holds for every conversation about a job, whatever the rules pages say. The facts that changed go back to the card (SKILL.md → *One fact, one place*), in one `update_properties`.

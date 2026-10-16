@@ -2,6 +2,8 @@
 
 `assets/dashboard.html` is the user's live view of the pipeline: leads, Your move (replies, invitations, offers, overdue milestones), contracts, proposals, connects and balance. It reads Notion and Upwork with the viewer's own connectors, asks Claude (`sample`) for chat summaries and keeps them, with the chats the user parks, in the artifact's own store (`db`); it has no server side. It writes to Notion only on a click: Applied / Skip / Restore (`Status`, `Decided on` and the skip fields of a card), Lock / Unlock (`Locked`), the Settings switches (`auto_drafts`, `auto_skip` in the config), and Write / Rewrite (the job's proposal row set to `State` Writing, created when there is none, the card's `Locked` ticked, then the drafts task started with `fire_trigger` — `references/drafts.md` §1). It never writes to Upwork. Its Claude chat links start the chats `references/chat.md` → *A job's chat* describes.
 
+Who publishes or updates it, and when, is *When* below. Inputs: `assets/dashboard.html` and the config's values for its placeholders (*Publish*). Output: the published page, its URL and version in the config.
+
 ## When
 
 The asset's first line is `<!-- dashboard-version: N -->`, N being the plugin's version (`x.y.z`), stamped by the release; read only that line for the check. The config's `dashboard_version` is the version the user's dashboard was last published from (no line = 1; a whole number, from before versions followed the plugin, is older than any `x.y.z`).
@@ -51,3 +53,5 @@ Only a publish that fails after the read waits for the next run.
 ## No Artifact tool
 
 Still do *Publish* step 1: write the filled file into the working directory (`upwork-dashboard.html`), tell the user where it is and that a claude.ai artifact with the `mcp` capability (or any page that can call their Notion and Upwork connectors) can host it.
+
+Off limits here: any change to the page beyond its placeholders (*Publish*); a new artifact for a dashboard the config already has (*Update*); a dashboard from an automatic run when the config has no `dashboard` line (*When*).
