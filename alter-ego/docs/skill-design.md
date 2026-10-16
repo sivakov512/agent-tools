@@ -87,6 +87,7 @@ Not yet in line, each for a change of its own (§9):
 - **The config has no `schema` number** (§4.7). It is a local JSON file read field by field with defaults; `schema` is to be added, with the upgrade of existing files, in a change of its own.
 - **`SKILL.md` does not state §4.1** (answer the message first) **or §4.3** (plain text in chat).
 - **`evals/README.md` names neither the model nor the cost of a full run** (§7.2).
+- **The guard matches words, not calls.** `cmd_guard` greps the whole command text, so a read that only mentions them — `grep -nE 'env -i|command -p|commit.gpgsign' libexec/alter-ego` — is denied though it runs neither git nor gh. A fix comes with a *the guard* case in `tests/test.sh` for that command.
 
 ## Checking a change
 
