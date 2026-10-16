@@ -18,6 +18,7 @@
       --text: #e4e7e6; --text-2: #9ca4a2; --text-mute: #6d7674;
       --accent: #5ec6bc; --accent-soft: #17302e;
       --good: #6cc592; --warn: #b39a5c; --critical: #ec7b70; --critical-soft: #35191a; --scrim: rgba(0, 0, 0, .5); --good-soft: #16291e;
+      color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
@@ -25,8 +26,10 @@
     --text: #e4e7e6; --text-2: #9ca4a2; --text-mute: #6d7674;
     --accent: #5ec6bc; --accent-soft: #17302e;
     --good: #6cc592; --warn: #b39a5c; --critical: #ec7b70; --critical-soft: #35191a; --scrim: rgba(0, 0, 0, .5); --good-soft: #16291e;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; } /* iOS would otherwise enlarge some text after layout and make lines overlap */
   body {
     background: var(--bg); color: var(--text);
     font-family: var(--sans); font-size: 14px; line-height: 1.5;
