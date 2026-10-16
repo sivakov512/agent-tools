@@ -9,7 +9,7 @@ Started by a first message that names a row "(Project Tracker, <url>)", or by a 
 ## The first message
 
 1. **Claim the row first**, before loading anything — before a due Tracker update too (SKILL.md → **Finding things**), which then runs before step 2 — so a second click lands here. This session's own link is `https://claude.ai/code/session_<id>` — the session id is in the session's context (Cowork gives it, e.g. in the line it asks to end commits with); never guess it. Fetch the page by the URL in the message, then:
-   - **Not a row of this tracker** — its parent data source is not one of the config's `projects`, `milestones`, `tasks`, `problems` IDs (find the root as SKILL.md → **Finding things** says), or it is deleted, or the tracker is 0.x → say so in one line and stop.
+   - **Not a row of this tracker** — its parent data source is not one of the config's `projects`, `milestones`, `tasks`, `problems` IDs (find the root as SKILL.md → **Finding things** says), or it is deleted, or the tracker is 0.x or newer than the skill (SKILL.md → **Finding things**) → say so in one line and stop.
    - `Chat` empty → write this link to it (`update_properties`, `Chat`).
    - `Chat` holds another session's link → this row has its chat: one line with that link ("this already has a chat — continue there: <link>") and stop; write nothing. When the first message says the old chat is gone, or the user says so in this chat → write this link over it, without asking.
    - No link of its own in the session's context → load and answer anyway, and say in one line that the dashboard will not reopen this chat.
