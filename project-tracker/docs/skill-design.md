@@ -16,7 +16,7 @@ These hold in every mode. The eval suite (`evals/README.md`) checks each; a chan
 6. **Every record goes where it will be looked for**, and the reply says where when that is not the item the conversation is about. — `note-placement`, `note-placement-asked`, `risk-on-task`, `problem-new`.
 7. **The plan's model holds.** A task is what the plan expects, a problem what it did not; a step smaller than a task is progress on its item, not a new row; the levels move together (a task under way starts its milestone; a milestone is never closed on its own); `Order` keeps the plan's order without dates. — `problem-new`, `risk-on-task`, `checklist-tick`, `progress`, `task-done`, `task-waiting-change`, `reorder`, `pause`, `project-paused`.
 8. **A row named by its ID is exactly that row**, never a guess; an ID that names nothing is asked about. Replies name every row by its ID and name. — `ref-lookup`, `ref-link`, `ref-unknown`.
-9. **The data is never put at risk.** Notion is read through views and page fetches only, never SQL or rows mode; pages are changed a line at a time, never `replace_content`; markup is sent raw, never escaped; tabs carry no icons; a write that errors stops the work. — guards on every case; *a write that errors*.
+9. **The data is never put at risk.** Notion is read through views and page fetches only, never SQL or rows mode; pages are changed a line at a time, never `replace_content`; markup is sent raw, never escaped; text read from a view is written back plain, without its markdown escapes; tabs carry no icons; a write that errors stops the work. — guards on every case, `view-escaped`; *a write that errors*.
 10. **The structure is brought up first.** A tracker below the skill's `schema` is updated in place, without asking, before the request — safely re-runnable, the new number written last; a 0.x tracker is never written to and the upgrade is offered; a tracker newer than the skill is never written to, and the reply says the plugin needs updating. — `schema-update`, `ref-prefix-taken`, `dashboard-update-migrates`, `upgrade-detect`, `schema-newer`; *the 0.x copy itself*.
 11. **Replies answer the message.** Whatever the message asked — a question, a doubt, a choice — is answered first; the user's language in what is said, English in Notion; plain text, never a code block; the changes grouped by item, ending in one question. — `ref-lookup`, `ref-link`, `propose-first`, `status`; *a doubt answered before the records*; *a reply in Russian*; *no code block in a reply*.
 12. **Reading writes nothing.** A status question, my week, the overview and the weekly report only read; a report states only what the tracker records. — `status`, `my-week`, `overview`, `report`, `report-email`, `unrelated`.
@@ -48,6 +48,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **A 0.x tracker is copied to a new one, not converted in place**; the old page stays as the backup.
 - **A newer plugin updates the tracker's structure without asking**: installing it was the go, and nothing in the skill works on the old structure.
 - **A tracker newer than the plugin is left as it is**: the skill writes nothing and says the plugin needs updating, since its rules would misread a structure they do not know.
+- **A report covers the period the user names** ("this week", "two weeks", "since Oct 1"), else the last 7 days: one rule for whatever looks back, so no report counts its days differently.
 - **Removing asks drop or delete**: a dropped row keeps the plan's history, a deleted one goes to Notion's trash.
 - **Each tracker project may have its own claude.ai project** for its dashboard chats, set when the project is made.
 
@@ -75,15 +76,9 @@ Where this plugin departs from `docs/skill-development.md`, and why.
 
 - **The dashboard is offered, not updated by itself** (§6.7): publishing it needs the user's grant of the Notion connector on the page, and the user may have said no to this version. Client dashboards, which read nothing live, are brought to the current page on their next refresh.
 - **The dashboard offer reads the plugin's `CHANGELOG.md`**, outside the skill folder (§2, a skill ships alone), to say in a few words what is new. Where the skill was uploaded alone the file is missing and the offer only says that an update is out; nothing else depends on it.
-
 - **§3.9, compatibility in one place**: besides `references/upgrade.md`, the modes that meet an old shape on a live page — `SKILL.md` (a status callout), `references/client-dashboards.md` (a `data.js` without pages), `references/plan-changes.md` (old removal lines), `references/setup.md` (databases of an older version) — carry a one-line pointer to `references/upgrade.md` → **Old shapes**, since those pages are never converted and the mode must recognise them.
+- **§6.5, nothing read again that the page knows for good**: the dashboard reads a paused milestone's page again on every load, for its pause line. The page must stay live, and it could skip the read only when Notion shows the row unchanged — but the view rows carry no last-edited time to compare (the databases have no such column), so it reads.
 - **§4.4, propose then write**: the Tracker update, clearing an old shape, a client dashboard's refresh and a dashboard chat's claim of its row (`Chat`) go ahead without asking (*Decisions*): they keep the structure and the published pages working and record nothing about the user's affairs.
-
-Not yet in line, each waiting for the user's word since it changes behaviour (§9):
-
-- **Text read from a view is not said to be markdown-escaped** (§5): the rule upwork-pulse carries — write plain text, never copy the backslashes back — is missing here.
-- **Two report windows** (§3.4): the weekly report runs from the same weekday a week ago through today (8 days), the overview's "closed this week" the last 7 days.
-- **A paused milestone's page is read again on every load** of the dashboard (§6.5), though its pause line is already known.
 
 ## Checking a change
 
