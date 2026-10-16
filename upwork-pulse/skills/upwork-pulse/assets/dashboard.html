@@ -74,7 +74,6 @@
   .banner a { color: var(--accent); }
   .banner.alert { background: var(--critical-soft); }
   .banner.alert a { color: var(--critical); }
-  .banner .list { display: flex; flex-wrap: wrap; gap: 6px 16px; font-weight: 400; }
   .lab { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); opacity: .8; margin-right: 4px; }
   .ms-line .due { color: var(--text-mute); }
   .ms-line .late, .ms-line .stuck, .t-meta .late { color: var(--critical); font-weight: 500; }
@@ -134,7 +133,6 @@
   .contract:hover { background: var(--surface-2); }
   .contract.sel { background: var(--accent-soft); }
   .contract .c-title { text-decoration: none; }
-  .ms-line .turn { color: var(--critical); font-weight: 500; }
 
   /* ---------- drawer: details for any row, sliding in from the right ---------- */
   .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .2s; }
@@ -174,10 +172,10 @@
   .dr-actbar .lks a:hover { background: var(--accent-soft); color: var(--accent); }
   .dr-actbar .lks a .arr { color: var(--text-mute); font-size: .9em; }
   .dr-actbar .lks a:hover .arr { color: var(--accent); }
-  .dr-actbar button, .dsec-x button { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 13px; color: var(--text-2); white-space: nowrap; }
-  .dr-actbar button.ok:hover, .dsec-x button:hover { color: var(--accent); border-color: var(--accent); }
+  .dr-actbar button { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 13px; color: var(--text-2); white-space: nowrap; }
+  .dr-actbar button.ok:hover { color: var(--accent); border-color: var(--accent); }
   .dr-actbar button.no:hover { color: var(--critical); border-color: var(--critical); }
-  .dr-actbar button[disabled], .dsec-x button[disabled] { opacity: .5; cursor: default; }
+  .dr-actbar button[disabled] { opacity: .5; cursor: default; }
   /* Notion's two pages as one group: one label, a link per page */
   .dr-actbar .lks .lgrp { display: inline-flex; align-items: center; border-radius: 6px; background: var(--surface-2); font-size: 13px; white-space: nowrap; }
   .dr-actbar .lks .lgrp .gl { padding: 4px 2px 4px 10px; color: var(--text-mute); }
@@ -225,7 +223,6 @@
   .dsec { margin-top: 32px; }
   .dsec-hw { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
   .dsec.folded .dsec-hw { margin-bottom: 0; }
-  .dsec-x { flex: none; display: flex; align-items: center; gap: 8px; }
   .dsec-h { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; margin-bottom: 0; padding: 4px 4px 4px 0; border: 0; background: none; text-align: left; cursor: pointer; color: var(--text-2); border-radius: 8px; font: inherit; }
   .dsec-h:hover h3 { color: var(--accent); }
   .dsec-h .ico { width: 17px; height: 17px; }
@@ -392,17 +389,14 @@
   .badge-id { font-family: var(--mono); font-size: 12px; font-weight: 400; color: var(--text-mute); border-radius: 4px; padding: 1px 4px; margin-left: -4px; margin-right: 2px; cursor: copy; white-space: nowrap; }
   .badge-id:hover { background: var(--accent-soft); color: var(--accent); }
   .chip { font-size: 13px; color: var(--text-mute); }
-  .chip.warn { color: var(--warn); }
   .chip.bad { color: var(--critical); font-weight: 500; }
   .chip.good { color: var(--good); }
-  .chip.accent { color: var(--accent); }
 
   .contract { position: relative; padding: 14px 16px 14px 22px; border-top: 1px solid var(--border); }
   .contract:first-child { border-top: 0; }
   .contract .c-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
   .contract .c-title { font-weight: 500; text-decoration: none; overflow-wrap: anywhere; }
   .contract .c-title:hover { color: var(--accent); }
-  .contract .c-head .chip { display: none; }
   .contract .c-client { font-size: 13px; color: var(--text-mute); margin-top: 1px; }
   .ms-track { display: flex; gap: 2px; margin: 12px 0 6px; }
   .ms-seg { flex: 1; height: 4px; border-radius: 2px; background: var(--border); }
@@ -444,8 +438,6 @@
   .more { display: block; width: 100%; border: 0; border-top: 1px solid var(--border); background: var(--surface-2); padding: 10px 16px; cursor: pointer; font-size: 13px; color: var(--text-2); text-align: left; }
   .more:hover { color: var(--text); }
   #leadNotice .banner { margin-bottom: 10px; font-weight: 400; font-size: 13.5px; }
-  .callout.skip { background: var(--sunken); border-color: var(--border); }
-  .callout.skip .ch { color: var(--warn); }
   .skipform { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 12px; width: 100%; }
   .skipform input { flex: 1 1 240px; min-width: 0; font: inherit; font-size: 13.5px; padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); }
   .skipform button { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 13px; color: var(--text-2); }
@@ -476,8 +468,6 @@
   .df .k { display: flex; align-items: center; gap: 2px; min-height: 24px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); }
   .df .v { font-size: 14px; line-height: 1.55; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
   .df .q { font-size: 13.5px; color: var(--text-2); font-style: italic; margin-bottom: 2px; }
-  .df .sub { font-size: 13px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
-  .df .sub .amt { color: var(--text); }
   .cpi { display: inline-grid; place-items: center; width: 24px; height: 24px; margin: -4px 0 -4px 2px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--text-mute); cursor: pointer; vertical-align: middle; }
   .cpi:hover { color: var(--accent); background: var(--accent-soft); }
   .cpi svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -619,6 +609,12 @@
 <script>
 (function () {
   "use strict";
+  // The page, top to bottom: config and state (S) · helpers (text, time, copy, errors) · the drawer frame · leads and their
+  // drawer · proposals' text (a Proposals row) and the Write / Rewrite task · settings, pipeline issues and the status line ·
+  // connects and balance · invitations and offers · contracts · a chat's state (summary, park) in the artifact's db · Your move ·
+  // the header pills · proposals (Sent / In talks / Closed) · the footer · data loading (the Upwork queue, Notion views,
+  // proposals) · section help (ⓘ) · wiring and boot. Loaders write S and call a render; only the actions in a drawer's bar and
+  // the Settings switches write to Notion, and nothing writes to Upwork.
   var ORG = "__UPWORK_ORG__";
   var NOTION = "Notion", UPWORK = "Upwork";
   var ROOT_PAGE = "__ROOT_PAGE__";
@@ -640,18 +636,27 @@
   var CACHE = { staleTime: 120000, gcTime: 86400000 };
   var POLL = 600000;
 
+  // Everything the page knows, in one place. Loaders write here and call a render; renders read it.
   var S = {
-    verdict: "Take", leads: null, leadsErr: null, appliedNotion: {}, proposals: null, proposalsErr: null,
-    dash: null, dashErr: null, connects: null, connectsErr: null, rooms: null, roomsErr: null,
-    milestones: {}, contractJobs: {}, runs: null, lastUpdate: 0, balance: null, invites: null, balanceErr: null, ptab: "waiting", prooms: {},
-    questions: null, questionsErr: null,
-    openProps: {}, sentByJob: {}, sentById: {}, writing: {}, // Proposals rows by Job ID / Proposal ID; writing: started here
-    extra: {}, jobTried: {}, // Proposal ID → a sent proposal no Upwork list returned; Job ID → its page was asked for this load
-    saved: {} // Job ID → the row as this page last saved it, kept over loads for a few minutes
+    // from Notion
+    cfg: {}, cfgText: "", matchScore: null, guideIssue: null, jobPages: null, // the root page's config (and its raw text, for the switches), the guide's state, Run state's pause
+    leads: null, leadsErr: null, leadsById: {}, // the Inbox: New cards
+    skipped: null, skippedErr: null, skippedMore: null, // the Skipped view, one page at a time (skippedMore: the next page's cursor)
+    appliedNotion: {}, // Job ID → Applied card
+    openProps: {}, sentByJob: {}, sentById: {}, // Proposals rows: Open by Job ID, Sent by Job ID and by Proposal ID
+    runs: null, scanner: null, questions: null, questionsErr: null,
+    // from Upwork
+    dash: null, dashErr: null, milestones: {}, contractJobs: {}, // the freelancer dashboard (contracts, offers); a contract's milestones and its job
+    rooms: null, roomsErr: null, invites: null,
+    proposals: null, proposalsErr: null, prooms: {}, extra: {}, jobTried: {}, jobsStop: false, // proposals; Proposal ID → its chat; a sent proposal no list returned; job pages asked for this load; job pages paused
+    connects: null, connectsErr: null, balance: null, balanceErr: null,
+    // this page
+    writing: {}, saved: {}, // Job ID → when a proposal was started here; Job ID → {row, props, at}: what this page last wrote to the card, laid over loads for a few minutes
+    verdict: "Take", onlyDrafts: false, skipDays: SKIP_DAYS, ptab: "waiting", quietOpen: false, // the lists' tabs and switches
+    moveStats: null, degraded: false, lastUpdate: 0 // the pills' counts; something is wrong (the status dot); the newest data's time
   };
   try { var sv = localStorage.getItem("fp.verdict"); if (sv === "Take" || sv === "Maybe" || sv === "Skipped") S.verdict = sv; } catch (e) {}
   try { S.onlyDrafts = localStorage.getItem("fp.onlyDrafts") === "1"; } catch (e) {}
-  S.skipped = null; S.skippedMore = null; S.skipDays = SKIP_DAYS; S.cfg = {}; S.cfgText = "";
 
   var $ = function (id) { return document.getElementById(id); };
   function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
@@ -734,14 +739,16 @@
     b.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); copy(text, label, function () { b.classList.add("done"); setTimeout(function () { b.classList.remove("done"); }, 1400); }); });
     return b;
   }
-  function idBadge(id) {
-    var b = el("span", "badge-id", shortId(id));
-    b.setAttribute("role", "button"); b.tabIndex = 0; b.title = "Copy " + shortId(id) + " (Job ID " + id + ")";
-    function go(e) { e.preventDefault(); e.stopPropagation(); copy(shortId(id)); }
+  function copyBadge(text, title) { // an id that copies itself on a click or Enter
+    var b = el("span", "badge-id", text);
+    b.setAttribute("role", "button"); b.tabIndex = 0; b.title = title;
+    function go(e) { e.preventDefault(); e.stopPropagation(); copy(text); }
     b.addEventListener("click", go);
     b.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") go(e); });
     return b;
   }
+  function idBadge(id) { return copyBadge(shortId(id), "Copy " + shortId(id) + " (Job ID " + id + ")"); }
+  function fullIdBadge(id) { return copyBadge(String(id || ""), "Copy the full Job ID"); }
   function navLink(href, text) { // a link in the drawer's bar: the destination's name and an arrow
     var a = el("a", "", text); a.appendChild(el("span", "arr", " ↗")); a.href = href; a.target = "_blank"; a.rel = "noopener"; return a;
   }
@@ -757,7 +764,7 @@
   var MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "") || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent || ""));
   function cardFor(jobId) {
     if (!jobId) return null;
-    return (S.saved[jobId] && S.saved[jobId].row) || S.leadsById[jobId] || S.appliedNotion[jobId] || (S.skipped || []).filter(function (x) { return x["Job ID"] === jobId; })[0] || null;
+    return S.leadsById[jobId] || S.appliedNotion[jobId] || (S.skipped || []).filter(function (x) { return x["Job ID"] === jobId; })[0] || (S.saved[jobId] && S.saved[jobId].row) || null;
   }
   function chatSid(card) { var m = card && /session_([A-Za-z0-9]+)/.exec(String(card.Chat || "")); return m ? m[1] : null; }
   function chatLink(jobId, title, ctx) { // the bar's link to the job's chat: open it, or start it with the job named first (the app titles a chat from its first message)
@@ -820,6 +827,10 @@
   function touch(result) {
     var t = result && result.cache && result.cache.storedAt ? result.cache.storedAt : Date.now();
     if (t > S.lastUpdate) S.lastUpdate = t;
+    liveLine();
+  }
+  function liveLine() { // "Live · updated hh:mm", from the newest data any load brought
+    if (!S.lastUpdate) { $("liveText").textContent = "Not updated yet"; return; }
     $("liveDot").className = "live-dot " + (S.degraded ? "bad" : "on");
     var w = wallOf(S.lastUpdate);
     $("liveText").textContent = "Live · updated " + fmtWall(w, dayKey(w) !== dayKey(wallNow()));
@@ -855,9 +866,7 @@
     if (!DR) return;
     var body = $("drBody"), y = body.scrollTop;
     clear(body); clear($("drActs")); $("drActs").hidden = true; DR.render(body);
-    var list = navList(), i = navIndex(list);
-    $("drTitle").textContent = DR.label + (i >= 0 && list.length > 1 ? " · " + (i + 1) + " of " + list.length : "");
-    $("drPrev").disabled = i <= 0; $("drNext").disabled = i < 0 || i >= list.length - 1;
+    updateNav();
     body.scrollTop = reset ? 0 : y;
     if (reset) $("drTop").classList.remove("on");
   }
@@ -886,7 +895,12 @@
     [].forEach.call(h.querySelectorAll(".item, .contract"), function (x) { if (x.dataset.id === DR.key) x.classList.add("sel"); });
   }
   // after a list re-renders: keep the open row highlighted and the position counter right
-  function afterList(hostId) { if (DR && DR.host === hostId) { markSel(); var list = navList(), i = navIndex(list); $("drTitle").textContent = DR.label + (i >= 0 && list.length > 1 ? " · " + (i + 1) + " of " + list.length : ""); $("drPrev").disabled = i <= 0; $("drNext").disabled = i < 0 || i >= list.length - 1; } }
+  function afterList(hostId) { if (DR && DR.host === hostId) { markSel(); updateNav(); } }
+  function updateNav() { // the drawer's title with "N of M" and its ↑ / ↓, from the list the row came from
+    var list = navList(), i = navIndex(list);
+    $("drTitle").textContent = DR.label + (i >= 0 && list.length > 1 ? " · " + (i + 1) + " of " + list.length : "");
+    $("drPrev").disabled = i <= 0; $("drNext").disabled = i < 0 || i >= list.length - 1;
+  }
   function setWide(on) { var d = $("drawer"), b = $("drWide"); d.classList.toggle("wide", on); b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", on ? "Narrow" : "Widen"); b.title = on ? "Back to the narrow panel" : "Widen to the page width"; try { localStorage.setItem("fp.wide", on ? "1" : ""); } catch (e) {} }
   $("drWide").addEventListener("click", function () { setWide(!$("drawer").classList.contains("wide")); });
   try { if (localStorage.getItem("fp.wide")) setWide(true); } catch (e) {}
@@ -921,19 +935,19 @@
   }
   var SICO = {
     "Client vs me": '<path d="M2.5 4h11M2.5 8h11M2.5 12h11M7 2.5v11"/>',
-    "Notes": '<path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 8h4M6 10.5h4"/>',
     "About the job": '<path d="M2.5 5.5h11v7h-11z"/><path d="M6 5.5V4h4v1.5"/>',
     "Facts": '<circle cx="8" cy="8" r="5.5"/><path d="M8 7.3v3.4M8 5.4v.1"/>',
     "Milestones": '<path d="M2.5 4h6M5 8h8.5M3.5 12h5"/>',
     "Conversation": '<path d="M2.5 3.5h11v7.5H7l-3 2.5V11H2.5z"/>',
     "Proposal": '<path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 7h4M6 9.5h4M6 12h2"/>',
+    "What you sent": '<path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 7h4M6 9.5h4M6 12h2"/>',
     "Terms": '<path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 8h4M6 10.5h4"/>'
   };
   var CHEV = '<svg class="ico chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
   // Every drawer lists its sections in one order — Client vs me, About the job, the proposal, Milestones, Conversation, Facts —
   // and only the folding differs: what matters less for this kind of drawer starts folded.
   var folded = {}; // sections folded or opened in this visit, per kind of drawer; a new visit starts from the defaults
-  function dsec(host, title, right, extra, shut) { // a section of the drawer; its header folds it; extra = a control beside the header; shut = folded unless opened in this visit
+  function dsec(host, title, right, shut) { // a section of the drawer; its header folds it; shut = folded unless opened in this visit
     var fk = (DR ? DR.label : "") + "|" + title;
     var isF = folded[fk] != null ? !!folded[fk] : !!shut;
     var s = el("section", "dsec" + (isF ? " folded" : ""));
@@ -949,7 +963,6 @@
       s.classList.toggle("folded", f); hh.setAttribute("aria-expanded", String(!f)); b.hidden = f;
     });
     var hw = el("div", "dsec-hw"); hw.appendChild(hh);
-    if (extra) { var xw = el("div", "dsec-x"); xw.appendChild(extra); hw.appendChild(xw); }
     s.appendChild(hw); s.appendChild(b); host.appendChild(s); return b;
   }
   function decLine(kind, label, text, by) {
@@ -978,10 +991,13 @@
     return el("span", yours ? "chip bad" : "chip good", yours ? "Your turn" : "Waiting on client");
   }
 
+  function roomMessages(id, prio) { // a chat's last 12 messages, newest first; the summary, the drawer and the org lookup share this call (and its cache)
+    return upCall("upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } }, prio);
+  }
   // the conversation, newest first, read from Upwork when the drawer opens
   function messagesInto(host, room) {
     var box = el("div", "msgs"); box.appendChild(el("div", "msg muted", "Loading messages…")); host.appendChild(box);
-    upCall("upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: room.id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } })
+    roomMessages(room.id)
       .then(function (res) {
         var edges = ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []);
         clear(box);
@@ -1024,13 +1040,10 @@
     $("cntSkipped").textContent = S.skipped ? skippedRows.length : "";
     renderLeadNotice();
 
-    var today = take.filter(function (r) { var w = leadTime(r); return w && dayKey(w) === dayKey(now); }).length;
-
     var list = S.verdict === "Take" ? take : maybe;
     var titles = {};
     everything.forEach(function (r) { var t = (r.Title || "").trim().toLowerCase(); titles[t] = (titles[t] || 0) + 1; });
     everything.forEach(function (r) { scoreLead(r); });
-    var strong = take.filter(function (r) { return r._tier === "strong"; }).length;
     renderSoon();
     if (S.verdict === "Skipped") { renderSkipped(host, skippedRows, now, titles); afterList("leadList"); return; }
     list.sort(function (a, b) {
@@ -1121,7 +1134,6 @@
     var tm = el("span", "tm", w ? fmtWall(w) : ""); tr.appendChild(tm);
     tm.title = r.Status === "Skipped" ? "Skipped " + (w ? fmtWall(w, true) : "") : (pub ? "Posted " + fmtWall(pub, true) : "Publication time unknown") + (fw ? " · found " + fmtWall(fw, true) : "");
     s.appendChild(tr);
-    var CLIENT_FLAGS = /^(no client history|partially hired|timezone lock|mandatory calls|full-time|budget mismatch)$/;
     var cflags = [], mflags = [];
     if (r.Connects != null) {
       var bal = S.connects && S.connects.balance ? num(S.connects.balance.connectsBalance) : null;
@@ -1144,6 +1156,7 @@
     if (r.Status === "New" && isLocked(r)) { d.classList.add("locked"); var lm = lockMark(); lm.classList.add("row-lock"); s.appendChild(lm); } // under the mark, in its column (CSS: .row-lock)
     return d;
   }
+  var CLIENT_FLAGS = /^(no client history|partially hired|timezone lock|mandatory calls|full-time|budget mismatch)$/; // flags about the client and its terms, shown on the Client line
   // Locked: auto skip leaves the card alone (the user asked about it, or it is an invitation); a manual Skip still works
   function isLocked(r) { return r.Locked === "__YES__" || r.Locked === true; }
   var LOCK_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
@@ -1153,7 +1166,7 @@
     var pid = pageIdOf(r.url); if (!pid || !MCP) return;
     btn.disabled = true; // an icon: disabled is the "saving" state
     MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { Locked: on ? "__YES__" : "__NO__" } }, { cache: false }).then(function () {
-      r.Locked = on ? "__YES__" : "__NO__"; S.saved[r["Job ID"]] = { row: r, at: Date.now() };
+      r.Locked = on ? "__YES__" : "__NO__"; save(r, { Locked: r.Locked });
       toast((on ? "Locked " : "Unlocked ") + shortId(r["Job ID"])); renderLeads(); refreshDrawer();
     }, function (err) { btn.disabled = false; toast("Couldn't save: " + errText(err, NOTION)); });
   }
@@ -1197,15 +1210,17 @@
 
   // ---------- notes (Notion page body, as-is) ----------
   var notesCache = {};
+  function fetchPage(id, cache) { // a Notion page as notion-fetch returns it: {text: the whole answer, content: the body inside <content>}
+    return MCP.callTool(NOTION, "notion-fetch", { id: id }, { cache: cache }).then(function (res) {
+      var p = payloadOf(res), txt = (p && typeof p === "object" ? p.text : typeof p === "string" ? p : "") || "";
+      var m = /<content>([\s\S]*?)<\/content>/.exec(txt);
+      return { text: txt, content: m ? m[1] : "" };
+    });
+  }
   function pageContent(url, ver) { // a Notion page's body, kept per version (ver: the row's Written time, Proposal ID and State — a rewrite reads afresh)
     var key = url + "|" + (ver || "");
     if (notesCache[key] != null) return Promise.resolve(notesCache[key]);
-    return MCP.callTool(NOTION, "notion-fetch", { id: url }, { cache: ver ? false : { staleTime: 300000, gcTime: 86400000 } }).then(function (res) {
-      var p = payloadOf(res);
-      var txt = p && typeof p === "object" ? p.text : (typeof p === "string" ? p : "");
-      var m = /<content>([\s\S]*?)<\/content>/.exec(txt || "");
-      return (notesCache[key] = m ? m[1] : "");
-    });
+    return fetchPage(url, ver ? false : { staleTime: 300000, gcTime: 86400000 }).then(function (pg) { return (notesCache[key] = pg.content); });
   }
   // a job's proposal: the row in Proposals (Open while written, Sent once it has a Proposal ID), matched by Job ID
   function openProp(r) { return S.openProps[r["Job ID"]] || null; }
@@ -1302,15 +1317,9 @@
     notes.forEach(function (t) { box.appendChild(el("div", "est-note", t)); });
     return box;
   }
-  function fullIdBadge(id) {
-    var b = el("span", "badge-id", String(id || "")); b.setAttribute("role", "button"); b.tabIndex = 0; b.title = "Copy the full Job ID";
-    function go(e) { e.preventDefault(); e.stopPropagation(); copy(String(id || "")); }
-    b.addEventListener("click", go); b.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") go(e); });
-    return b;
-  }
   function jobSections(host, card, jobId, aboutShut, scoreLine, byShown) { // the first two sections of every drawer about a job: Client vs me (always open), then About the job
     if (!card) {
-      if (jobId) dsec(host, "About the job", "", null, aboutShut).appendChild(el("div", "dr-empty", "This job has no card in Notion yet; the proposals sync adds one."));
+      if (jobId) dsec(host, "About the job", "", aboutShut).appendChild(el("div", "dr-empty", "This job has no card in Notion yet; the proposals sync adds one."));
       return;
     }
     var cv = dsec(host, "Client vs me");
@@ -1322,12 +1331,12 @@
       sl.appendChild(document.createTextNode(card._why.join(" · ")));
       cv.appendChild(sl);
     }
-    notesInto(dsec(host, "About the job", card["Reviewed by"] && !byShown ? "by " + modelName(card["Reviewed by"]) : "", null, aboutShut), card); // who judged the job, unless the advice line above says it
+    notesInto(dsec(host, "About the job", card["Reviewed by"] && !byShown ? "by " + modelName(card["Reviewed by"]) : "", aboutShut), card); // who judged the job, unless the advice line above says it
   }
   function leadDrawer(r0) {
     var id0 = r0["Job ID"];
     return function (body) {
-      var r = (S.saved[id0] && S.saved[id0].row) || S.leadsById[id0] || (S.skipped || []).filter(function (x) { return x["Job ID"] === id0; })[0] || r0; // after a reload, the fresh row
+      var r = cardFor(id0) || r0; // after a reload, the fresh row
       scoreLead(r);
       var pub = wallFromNotion(r["date:Published:start"]), fnd = wallFromNotion(r["date:Found:start"]), dcd = wallFromNotion(r["date:Decided on:start"]);
       var verdict = el("span", r._tier === "strong" ? "chip good" : "", r.Verdict + (r._tier === "strong" ? " · strong match" : ""));
@@ -1374,12 +1383,12 @@
       if (dec) x.head.appendChild(dec);
       if (ready) { // where to look next: the proposal; the count of points to confirm arrives with the page
         var go = el("button", "dr-next", "Proposal ready ↓"); go.type = "button"; go.id = "drNextProp";
-        go.addEventListener("click", function () { var t = $("secProposal"); if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); });
+        go.addEventListener("click", function () { goTo("secProposal"); });
         x.head.appendChild(go);
       }
       jobSections(x.inner, r, r["Job ID"], r.Status === "Applied", true, !!(dec && r.Advice && r["Reviewed by"] && ps !== "Writing" && ps !== "Stalled" && r.Status !== "Skipped")); // applied: the job is known by now, the proposal and what follows matter
       draftSection(x.inner, r);
-      dsec(x.inner, "Facts", "", null, true).appendChild(factsBox([
+      dsec(x.inner, "Facts", "", true).appendChild(factsBox([
         ["Job ID", fullIdBadge(r["Job ID"])],
         ["Posted", pub ? fmtWall(pub, true) : "unknown"],
         ["Found", fnd ? fmtWall(fnd, true) : ""],
@@ -1401,11 +1410,10 @@
     MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: props }, { cache: false }).then(function () {
       var id = r["Job ID"], here = DR && DR.key === id, nextId = null;
       if (here) { var list = navList(), i = navIndex(list), n = list[i + 1] || list[i - 1]; nextId = n ? n.dataset.id : null; }
-      r.Status = status;
-      Object.keys(props).forEach(function (k) { if (k !== "Status" && (k.indexOf("date:") !== 0 || /:start$/.test(k))) r[k] = props[k]; });
-      S.saved[id] = { row: r, at: Date.now() }; // a load that started before this save must not bring the old status back
-      S.leads = (S.leads || []).filter(function (x) { return x !== r; });
-      if (S.skipped) S.skipped = S.skipped.filter(function (x) { return x !== r; });
+      var wrote = {}; Object.keys(props).forEach(function (k) { if (k.indexOf("date:") !== 0 || /:start$/.test(k)) wrote[k] = props[k]; }); // the row's own shape: dates as date:<Prop>:start
+      Object.assign(r, wrote); save(r, wrote); // a load that started before this save must not bring the old status back
+      S.leads = (S.leads || []).filter(function (x) { return x["Job ID"] !== id; });
+      if (S.skipped) S.skipped = S.skipped.filter(function (x) { return x["Job ID"] !== id; });
       if (status === "Applied") S.appliedNotion[id] = r;
       if (status === "Skipped" && S.skipped) S.skipped.unshift(r);
       if (status === "New") S.leads.unshift(r);
@@ -1554,7 +1562,7 @@
     var now = new Date().toISOString(), made = null;
     var mark = pid ? MCP.callTool(NOTION, "notion-update-page", { page_id: pid, command: "update_properties", properties: { State: "Writing", "date:Written:start": now, "date:Written:is_datetime": 1 } }, { cache: false })
       : MCP.callTool(NOTION, "notion-create-pages", { parent: { data_source_id: S.cfg.proposals }, pages: [{ properties: { Title: r.Title || shortId(id), Job: [r.url], "Job ID": id, State: "Writing", "date:Written:start": now, "date:Written:is_datetime": 1 } }], allow_async: false }, { cache: false })
-          .then(function (res) { var pg = res && res.payload && res.payload.pages && res.payload.pages[0]; made = pg ? pg.id : null; });
+          .then(function (res) { var pg = ((payloadOf(res) || {}).pages || [])[0]; made = pg ? pg.id : null; });
     var cardId = pageIdOf(r.url); // asking Claude about a job locks it: whatever the advice, the user decides, not auto skip
     mark.then(function () { return isLocked(r) || !cardId ? null : MCP.callTool(NOTION, "notion-update-page", { page_id: cardId, command: "update_properties", properties: { Locked: "__YES__" } }, { cache: false }).then(function () { r.Locked = "__YES__"; }); })
       .then(function () { return MCP.callTool(REMOTE, "fire_trigger", { trigger_id: S.cfg.drafts_task, text: "jobs: " + id }, { cache: false }); })
@@ -1569,41 +1577,36 @@
         toast("Couldn't start writing: " + errText(err, REMOTE));
       });
   }
-  function watchDrafts() { // while a proposal is being written, re-read the open proposals every minute
+  function watchDrafts() { // while a proposal is being written, re-read the leads and the proposal rows every minute: the card's advice and the row both change
     if (draftPoll) return;
     draftPoll = setInterval(function () {
       var busy = (S.leads || []).some(function (r) { return propState(r) === "Writing"; });
       if (!busy || !MCP) { clearInterval(draftPoll); draftPoll = null; return; }
-      MCP.invalidate(NOTION, "notion-query-data-sources").catch(function () {}).then(function () { loadNotion(); }); // the card's advice and the proposal row both change
+      MCP.invalidate(NOTION, "notion-query-data-sources").catch(function () {}).then(function () { loadLeads(); loadPropRows(); });
     }, 60000);
   }
 
   // ---------- settings and notices from the config ----------
+  // What is wrong with the pipeline itself, written once: the banner over the leads shows the first, the status popover all of them
+  function pipelineIssues() {
+    var c = S.cfg || {}, out = [];
+    if (c.loaded && c.update_error) out.push({ title: "Pipeline update stopped", note: "update stopped",
+      text: "The pipeline update stopped: " + c.update_error + ". The scheduled runs are paused until it is finished \u2014 open a chat with Claude and say \u201cupdate the pipeline\u201d." });
+    else if (c.loaded && !(c.schema >= SCHEMA)) out.push({ title: c.updating ? "Pipeline update running" : "Pipeline update pending", note: "updating",
+      text: c.updating ? "The pipeline is being updated to the new version. Leads show without numbers until it is done; refresh in a few minutes."
+        : "The pipeline is about to be updated to the new version: the next hourly run (or your next chat with Claude) does it. Leads show without numbers until then." });
+    else if (c.loaded && (c.schema > SCHEMA || (c.skill_version && verCmp(c.skill_version, DASH_VERSION) > 0))) out.push({ title: "Dashboard older than the skill", note: "dashboard outdated",
+      text: "This page is version " + DASH_VERSION + (c.skill_version ? ", the skill " + c.skill_version : "") + ", so some values may show wrong. The next hourly run republishes it; a chat with Claude does it at once." });
+    if (c.auto_drafts === "on" && S.guideIssue) out.push({ title: "Proposal guide not filled", note: "guide not filled", guide: true,
+      text: "Auto proposals are on, but the Proposal guide is not filled: " + S.guideIssue + ". Claude writes advice only until it is." });
+    return out;
+  }
   function renderLeadNotice() {
     var host = $("leadNotice"); clear(host); renderStatus();
-    if (S.cfg.loaded && S.cfg.update_error) {
-      var e = el("div", "banner alert");
-      e.appendChild(el("span", "", "The pipeline update stopped: " + S.cfg.update_error + ". The scheduled runs are paused until it is finished \u2014 open a chat with Claude and say \u201cupdate the pipeline\u201d."));
-      host.appendChild(e); return;
-    }
-    if (S.cfg.loaded && !(S.cfg.schema >= SCHEMA)) {
-      var n = el("div", "banner alert");
-      n.appendChild(el("span", "", S.cfg.updating
-        ? "The pipeline is being updated to the new version. Leads show without numbers until it is done; refresh in a few minutes."
-        : "The pipeline is about to be updated to the new version: the next hourly run (or your next chat with Claude) does it. Leads show without numbers until then."));
-      host.appendChild(n); return;
-    }
-    if (S.cfg.loaded && S.cfg.schema > SCHEMA) {
-      var o = el("div", "banner alert");
-      o.appendChild(el("span", "", "This dashboard is older than the pipeline and may show some values wrong. The next hourly run republishes it; a chat with Claude does it at once."));
-      host.appendChild(o); return;
-    }
-    if (S.cfg.auto_drafts === "on" && S.guideIssue) {
-      var w = el("div", "banner alert");
-      w.appendChild(el("span", "", "Auto proposals are on, but the Proposal guide is not filled: " + S.guideIssue + ". Claude writes advice only until it is."));
-      if (S.cfg.guide) w.appendChild(extLink("https://www.notion.so/" + S.cfg.guide.replace(/-/g, ""), "Open the guide \u2197"));
-      host.appendChild(w);
-    }
+    var x = pipelineIssues()[0]; if (!x) return;
+    var b = el("div", "banner alert"); b.appendChild(el("span", "", x.text));
+    if (x.guide && S.cfg.guide) b.appendChild(extLink("https://www.notion.so/" + S.cfg.guide.replace(/-/g, ""), "Open the guide \u2197"));
+    host.appendChild(b);
   }
   function renderSettings() {
     var ok = S.cfg.schema >= SCHEMA, on = ok && S.cfg.auto_drafts != null;
@@ -1638,9 +1641,8 @@
   }
   function checkGuide() { // drafts need the user's voice, portfolio and rate in the guide
     if (!S.cfg.guide || S.cfg.auto_drafts !== "on") { S.guideIssue = null; return; }
-    MCP.callTool(NOTION, "notion-fetch", { id: S.cfg.guide }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
-      var p = payloadOf(res), txt = p && typeof p === "object" ? p.text : (typeof p === "string" ? p : "");
-      var body = (/<content>([\s\S]*?)<\/content>/.exec(txt || "") || [])[1] || "";
+    fetchPage(S.cfg.guide, { staleTime: 600000, gcTime: 86400000 }).then(function (pg) {
+      var body = pg.content;
       S.guideIssue = /_to fill_/i.test(body) ? "some parts still say \u201c_to fill_\u201d" : body.replace(/\s+/g, " ").length < 400 ? "it is nearly empty" : null;
       renderLeadNotice();
     }, function () {});
@@ -1649,8 +1651,8 @@
   // Upwork refuses job pages opened too fast; the hourly run then pauses them and defers what it found (Run state, assess.md §2)
   function checkJobPages() {
     if (!S.cfg.state) { S.jobPages = null; return; }
-    MCP.callTool(NOTION, "notion-fetch", { id: S.cfg.state }, { cache: { staleTime: 300000, gcTime: 86400000 } }).then(function (res) {
-      var p = payloadOf(res), txt = p && typeof p === "object" ? p.text : (typeof p === "string" ? p : "");
+    fetchPage(S.cfg.state, { staleTime: 300000, gcTime: 86400000 }).then(function (pg) {
+      var txt = pg.text;
       var pause = /JOB_PAGES_PAUSE:\s*(\S+)/.exec(txt || ""), def = /DEFERRED:\s*([^\n<]*)/.exec(txt || "");
       var until = pause ? Date.parse(pause[1]) : NaN, old = Date.now() - 2 * DAY;
       var waiting = def ? def[1].split(",").filter(function (x) { var t = Date.parse((x.split("@")[1] || "").trim()); return /\d/.test(x) && !(t < old); }).length : 0;
@@ -1662,7 +1664,7 @@
   // ---------- status: the live line in the header, the details on click ----------
   // each row: [ok | bad | wait, title, details, the short note the live line shows when bad]
   function statusRows() {
-    var rows = [], jp = S.jobPages, sc = S.scanner, c = S.cfg || {};
+    var rows = [], jp = S.jobPages, sc = S.scanner;
     rows.push(!sc ? ["wait", "Job scanner", "Loading the last runs\u2026"]
       : sc.idle ? ["bad", "Job scanner idle for " + ago(sc.age), "No hourly run since " + fmtWall(sc.w, true) + ". Check the hourly search task in Claude.", "scanner idle"]
       : sc.rulesFailed ? ["bad", "Job scanner can't read Search rules", "The last hourly run could not read the Search rules page, so it searched nothing. Check that the page is there and not empty.", "rules unreadable"]
@@ -1677,10 +1679,7 @@
     var nErr = isDenial(S.leadsErr) ? S.leadsErr : null, uErr = [S.dashErr, S.connectsErr, S.balanceErr, S.roomsErr].filter(isDenial)[0];
     rows.push(nErr || uErr ? ["bad", (nErr ? "Notion" : "Upwork") + " connector needs attention", errText(nErr || uErr, nErr ? NOTION : UPWORK), (nErr ? "Notion" : "Upwork") + " disconnected"]
       : ["ok", "Notion and Upwork", "Both connectors answer."]);
-    if (c.loaded && c.update_error) rows.push(["bad", "Pipeline update stopped", c.update_error + ". The scheduled runs are paused until a chat with Claude finishes it (\u201cupdate the pipeline\u201d).", "update stopped"]);
-    else if (c.loaded && !(c.schema >= SCHEMA)) rows.push(["bad", c.updating ? "Pipeline update running" : "Pipeline update pending", "Leads show without numbers until the pipeline is on the new version; the next hourly run or a chat with Claude does it.", "updating"]);
-    else if (c.loaded && c.schema > SCHEMA) rows.push(["bad", "Dashboard older than the pipeline", "Some values may show wrong until the next hourly run republishes this page.", "dashboard outdated"]);
-    if (c.auto_drafts === "on" && S.guideIssue) rows.push(["bad", "Proposal guide not filled", "Auto proposals are on, but the guide " + S.guideIssue + ": Claude writes advice only until it is.", "guide not filled"]);
+    pipelineIssues().forEach(function (x) { rows.push(["bad", x.title, x.text, x.note]); });
     return rows;
   }
   function renderStatus() {
@@ -1694,7 +1693,7 @@
   }
 
 
-  // ---------- rendering: stats from Upwork ----------
+  // ---------- connects and balance (the tiles) ----------
   function renderConnects() { renderStatus();
     if (S.connectsErr && !S.connects) { $("connectsValue").textContent = "—"; $("connectsSub").textContent = errText(S.connectsErr, UPWORK); return; }
     var p = S.connects; if (!p) return;
@@ -1739,6 +1738,18 @@
     $("tileConnects").title = sub + (b.rolloverBalance ? " · rollover " + b.rolloverBalance : "") + " · last 7 days: " + total + " spent" + (back ? ", " + back + " refunded" : "");
   }
 
+  function renderBalance() {
+    if (S.balanceErr && !S.balance) { $("balanceValue").textContent = "—"; $("balanceSub").textContent = errText(S.balanceErr, UPWORK); return; }
+    var b = S.balance; if (!b) return;
+    var av = num((b.available_now || {}).rawValue), pend = num((b.pending_balance || {}).rawValue), cred = num((b.pending_credit || {}).rawValue);
+    $("balanceValue").textContent = av != null ? "$" + (av >= 100 ? Math.round(av) : av.toFixed(2)) : "—";
+    var parts = [];
+    if (pend) parts.push("$" + Math.round(pend) + " pending");
+    if (cred) parts.push("$" + Math.round(cred) + " in review");
+    if (b.withdrawal_allowed === false) parts.push("withdrawal blocked");
+    $("balanceSub").textContent = parts.length ? parts.join(" · ") : "available to withdraw";
+  }
+  // ---------- invitations and offers, read defensively (the API shapes differ) ----------
   function listOf(o) {
     if (!o || typeof o !== "object") return [];
     if (Array.isArray(o)) return o;
@@ -1753,14 +1764,14 @@
     var rows = [];
     (S.invites || []).forEach(function (x) { rows.push({ kind: "Invitation", o: x }); });
     listOf((S.dash || {}).offers).forEach(function (x) { rows.push({ kind: "Offer", o: x }); });
-    return rows.map(function (r) {
+    return rows.map(function (r, i) {
       var o = r.o;
       var jobId = pick(o, ["jobPosting.id", "job.id", "jobId", "job_id", "openingId"]);
       var when = pick(o, ["createdDateTime.displayValue", "createdDateTime", "created", "createdAt", "modifiedDateTime.displayValue"]);
       var t = when ? Date.parse(String(when)) : NaN;
       var amt = pick(o, ["terms.chargeRate.displayValue", "chargeRate.displayValue", "amount.displayValue", "rate", "budget"]), am = /^USD\s*([\d.]+)$/.exec(String(amt || "")); // an offer's rate comes as "USD 1000.0"
       return {
-        kind: r.kind, id: String(pick(o, ["id", "invitationId", "offerId"]) || jobId || r.kind + Math.random()), jobId: jobId ? String(jobId) : null,
+        kind: r.kind, id: String(pick(o, ["id", "invitationId", "offerId"]) || jobId || r.kind + "-" + i), jobId: jobId ? String(jobId) : null,
         title: clean(pick(o, ["jobPosting.content.title", "jobPosting.title", "job.title", "job_title", "title", "content.title", "name"]) || (r.kind + " (details on Upwork)")),
         client: clean(pick(o, ["client.name", "client.user.name", "client.parentOrganization.name", "clientOrganization.name", "organization.name", "clientName", "from"]) || ""),
         amount: am ? usd(am[1]) : amt ? String(amt).replace("USD ", "$") : "", duration: clean(pick(o, ["duration", "terms.duration"]) || ""),
@@ -1770,6 +1781,7 @@
     });
   }
 
+  // ---------- contracts: every active one, its milestones and Claude's summary of its thread ----------
   function roomByContract(id) {
     var r = null; (S.rooms || []).forEach(function (x) { if (!r && String(x.contractId) === String(id)) r = x; }); return r;
   }
@@ -1796,7 +1808,7 @@
     clear(host);
     if (!list.length) { host.appendChild(el("div", "empty", "No active contracts.")); return; }
     // every active contract stays here, card and all; one that needs you is also a short row in Your move
-    list.forEach(function (c) { host.appendChild(contractCard(c, "contractList")); });
+    list.forEach(function (c) { host.appendChild(contractCard(c)); });
     afterList("contractList");
     if (total > list.length) host.appendChild(el("div", "note", (total - list.length) + " more on Upwork — open any contract above and switch from there."));
   }
@@ -1804,11 +1816,11 @@
   function msSorted(c) { var d = S.milestones[c.id]; return d && d.list ? d.list.slice().sort(function (a, b) { return (a.sequenceId || 0) - (b.sequenceId || 0); }) : null; }
   function msName(m) { return "M" + m.sequenceId + " " + clean(m.description).split(":")[0].slice(0, 60); }
   // Card: what the contract is, Claude's summary of its thread, where its milestones stand. Click for the drawer.
-  function contractCard(c, hostId) {
+  function contractCard(c) {
     var why = needsMe(c), room = roomByContract(c.id);
     var box = el("div", "contract" + (why ? " turn" : "")); box.dataset.id = "c-" + c.id;
     box.tabIndex = 0; box.setAttribute("role", "button");
-    box._open = function () { openDrawer("c-" + c.id, hostId, "Contract", contractDrawer(c)); };
+    box._open = function () { openDrawer("c-" + c.id, "contractList", "Contract", contractDrawer(c)); };
     box.addEventListener("click", function (e) { if (e.target.closest("a")) return; box._open(); });
     box.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); box._open(); } });
     if (DR && DR.key === "c-" + c.id) box.classList.add("sel");
@@ -1893,27 +1905,62 @@
         });
         sec.appendChild(list);
       } else sec.appendChild(el("div", "dr-empty", msData && msData.err ? errText(msData.err, UPWORK) : msData ? "No milestones (hourly or not set up)." : "Loading milestones…"));
-      if (room) messagesInto(dsec(x.inner, "Conversation", "latest first", null, true), room);
+      if (room) messagesInto(dsec(x.inner, "Conversation", "latest first", true), room);
     };
   }
   function roomUrl(id) { return "https://www.upwork.com/ab/messages/rooms/" + encodeURIComponent(id); }
 
+  // ---------- a chat's state: its summary and whether it is parked, the same on every device ----------
+  // One document per Upwork chat in the artifact's db (collection "threads"): {summary: {v, storyId, data, at}, park: {storyId, on, at}}.
+  // Every device and every reload reads the same summary — made once, by whichever device opens the chat first — and the
+  // same parks. Without db (a runtime that lacks it, or a view that refused it) this browser's storage stands in, per device.
+  var DB = null, THREADS = {}, threadsReady = false, threadWrites = {};
+  function threadPut(id, patch) {
+    THREADS[id] = Object.assign({}, THREADS[id], patch);
+    if (!DB) { try { localStorage.setItem("fp.thread." + id, JSON.stringify(THREADS[id])); } catch (e) {} return; }
+    // one write at a time per document, each with the latest state
+    threadWrites[id] = (threadWrites[id] || Promise.resolve()).then(function () { return DB.doc("threads/" + id).set(THREADS[id]); }).catch(function () {});
+  }
+  function threadsLoaded(map) {
+    THREADS = map; var first = !threadsReady; threadsReady = true;
+    if (first) setTimeout(migrateLocal, 0);
+    renderContracts(); refreshDrawer();
+  }
+  function startThreads(db) {
+    DB = db || null;
+    if (!DB) return threadsLoaded(localThreads());
+    DB.collection("threads").onSnapshot(function (snap) {
+      var map = {}; snap.docs.forEach(function (d) { map[d.id] = d.data(); }); threadsLoaded(map);
+    }, function () { DB = null; threadsLoaded(localThreads()); }); // db gave up for this load: this browser's storage
+  }
+  function localThreads() {
+    var map = {};
+    try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (/^fp\.thread\./.test(k)) map[k.slice(10)] = JSON.parse(localStorage.getItem(k)); } } catch (e) {}
+    return map;
+  }
+  function migrateLocal() { // what earlier versions kept per browser: a park made by hand goes over; old summaries are dropped (an older prompt made them)
+    try {
+      var keys = []; for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+      keys.forEach(function (k) {
+        var m = /^fp\.park\.(.+)$/.exec(k);
+        if (m) { var h = JSON.parse(localStorage.getItem(k) || "null"); if (h && h.storyId && !(THREADS[m[1]] || {}).park) threadPut(m[1], { park: { storyId: h.storyId, on: !!h.park, at: Date.now() } }); }
+        if (m || /^fp\.sum\./.test(k)) localStorage.removeItem(k);
+      });
+    } catch (e) {}
+  }
+
   // ---------- thread summaries (sample) ----------
   var SAMPLE = null; // null = unknown yet, false = unavailable, fn = ready
-  var sums = {}, SUM_V = 3; // SUM_V: a summary saved by an older prompt is made again
-  function sumKey(room) { return "fp.sum." + room.id; }
+  var sums = {}, SUM_V = 3; // sums: a summary being made, or failed, for a chat's last message; SUM_V: a summary made by an older prompt is made again
   function summaryFor(room, peek) { // peek: only what is already made, never start one
-    var sid = (room.latestStory || {}).id || "";
-    var st = sums[room.id];
-    if (st && st.storyId === sid && st.data) return st.data;
-    if (!st || st.storyId !== sid) {
-      try { var raw = localStorage.getItem(sumKey(room)); if (raw) { var saved = JSON.parse(raw); if (saved && saved.v === SUM_V && saved.storyId === sid && saved.data) { sums[room.id] = saved; return saved.data; } } } catch (e) {}
-      if (SAMPLE && !peek) { sums[room.id] = { storyId: sid, pending: true }; buildSummary(room, sid, false); }
-    }
+    var sid = (room.latestStory || {}).id || "", t = (THREADS[room.id] || {}).summary, st = sums[room.id];
+    if (t && t.v === SUM_V && t.storyId === sid) return t.data;
+    if (peek || !SAMPLE || !threadsReady || (st && st.storyId === sid)) return null; // made once the shared copy is known, so two devices don't both pay for it
+    sums[room.id] = { storyId: sid, pending: true }; buildSummary(room, sid, false);
     return null;
   }
   function buildSummary(room, sid, refresh) {
-    upCall("upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: room.id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } })
+    roomMessages(room.id)
       .then(function (res) {
         var edges = ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []).slice().reverse();
         var lines = edges.map(function (e) {
@@ -1923,7 +1970,7 @@
           return "[" + when + "] " + who + ": " + clean(n.message).slice(0, 1200) + ((n.attachments || []).length ? " (attachment)" : "");
         });
         if (!lines.length) throw { code: "empty" };
-        var today = new Date(); var todayStr = MON[today.getUTCMonth()] + " " + today.getUTCDate() + ", " + today.getUTCFullYear();
+        var today = new Date(wallNow()); var todayStr = MON[today.getUTCMonth()] + " " + today.getUTCDate() + ", " + today.getUTCFullYear(); // the user's date, in their timezone
         var prompt = "You are summarizing an Upwork chat (a contract, a job proposal or a direct message) for a freelancer (the \"me\" side). Today is " + todayStr + ". Messages, oldest first:\n\n" + lines.join("\n\n") +
           "\n\nReply with only a JSON object: {\"summary\": string (1-2 plain sentences: where the work stands right now, in English, no greetings), \"next\": \"me\"|\"client\"|\"none\" (who must act next: \"me\" only when something is asked of me, or a step I owe is due now; news, files or updates shared for information, and a step planned for a later date, are not my move — then \"none\", or \"client\" when they owe the next step), \"action\": string (the concrete next step, max 12 words, or \"\"), \"deadline\": string|null (ISO date YYYY-MM-DD if someone promised a date, else null), \"promised_by\": \"me\"|\"client\"|null, \"parked\": boolean, \"parked_why\": string, \"back_on\": string|null}. " +
           "parked is true only when the chat is about getting work (a proposal, an invitation, talks before a hire), not paid work under way, and the client has closed or put it off: hired someone else, cancelled or paused the project, said they will come back later or get in touch if it resumes. Then nothing happens until the client writes again, and a polite reply is not a step. " +
@@ -1933,8 +1980,8 @@
       })
       .then(function (data) {
         if (!data || typeof data !== "object") throw { code: "invalid_json" };
-        sums[room.id] = { v: SUM_V, storyId: sid, data: data };
-        try { localStorage.setItem(sumKey(room), JSON.stringify(sums[room.id])); } catch (e) {}
+        sums[room.id] = { storyId: sid };
+        threadPut(room.id, { summary: { v: SUM_V, storyId: sid, data: data, at: Date.now() } });
         renderContracts(); refreshDrawer();
       }, function (err) {
         var code = err && err.code;
@@ -1949,8 +1996,8 @@
     else if (d.next === "client") n.appendChild(el("span", "who them", "Waiting on client" + (d.action ? ": " : "")));
     if (d.action && d.next !== "none") n.appendChild(document.createTextNode(d.action));
     if (d.deadline) {
-      var dl = Date.parse(d.deadline + "T23:59:59"), days = Math.ceil((dl - Date.now()) / DAY), dd = new Date(d.deadline + "T12:00:00");
-      var lbl = days < 0 ? "overdue by " + (-days) + "d" : days === 0 ? "due today" : "due " + MON[dd.getMonth()] + " " + dd.getDate();
+      var dw = Date.parse(d.deadline + "T00:00:00Z"), now = new Date(wallNow()), days = Math.round((dw - Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())) / DAY); // the deadline's date against today's, both in the user's timezone
+      var lbl = days < 0 ? "overdue by " + (-days) + "d" : days === 0 ? "due today" : "due " + dayLabel(dw);
       n.appendChild(el("span", "dl" + (days <= 0 ? " late" : ""), (n.childNodes.length ? " · " : "") + (d.promised_by === "me" ? "you promised, " : d.promised_by === "client" ? "client promised, " : "") + lbl));
     }
     return n.childNodes.length ? n : null;
@@ -1989,34 +2036,33 @@
   // ---------- parked chats: talks about work that the client closed or put off ----------
   // Claude's summary says so (parked), or the user parks a chat by hand. Either holds until the next message, and a date
   // the client named brings the chat back on that day. Paid work never parks: an active contract's chats stay in Your move.
-  // The user's call is kept in this browser, like the summaries.
-  function parkKey(room) { return "fp.park." + room.id; }
+  // The user's call is kept with the chat's summary (THREADS), on every device.
   function canPark(room) { // not paid work: no active contract, and not a group chat or direct message put under one (while that is unknown, no)
     if (!room || !room.latestStory || String(room.contractStatus || "").toUpperCase() === "ACTIVE") return false;
     return room.contractId || room.roomType === "INTERVIEW" ? true : MEM.orgs[room.id] !== undefined && !roomContract(room);
   }
   function parkHand(room) { // the user's own call while no new message came: true (parked), false (kept), null (none)
-    try { var h = JSON.parse(localStorage.getItem(parkKey(room)) || "null"); if (h && h.storyId === room.latestStory.id) return !!h.park; } catch (e) {}
-    return null;
+    var h = (THREADS[room.id] || {}).park;
+    return h && h.storyId === room.latestStory.id ? !!h.on : null;
   }
   function parkedOf(room) { // null, or { why, back, hand }
     if (!room || !room.latestStory) return null;
     var hand = parkHand(room); if (hand === false) return null;
     var d = SAMPLE === false ? null : summaryFor(room, true), said = !!(d && d.parked);
-    var back = said && d.back_on ? Date.parse(d.back_on + "T00:00:00") || null : null;
-    if (!hand && (!said || (back && back <= Date.now()))) return null;
+    var back = said && d.back_on ? Date.parse(d.back_on + "T00:00:00Z") || null : null; // wall-clock ms: the start of that day in the user's timezone
+    if (!hand && (!said || (back && back <= wallNow()))) return null;
     if (!canPark(room)) return null;
     return { why: said ? String(d.parked_why || "") : "", back: back, hand: !!hand };
   }
   function setPark(room, on) {
-    try { localStorage.setItem(parkKey(room), JSON.stringify({ storyId: room.latestStory.id, park: on })); } catch (e) {}
+    threadPut(room.id, { park: { storyId: room.latestStory.id, on: on, at: Date.now() } });
     renderMove(); renderPills(); renderApplied(); refreshDrawer();
   }
   function withPark(box, room, pk) { // the summary plaque's last line: why the chat is parked and the way back, or the way to park it
     if (!canPark(room) || !(pk || myTurn(room))) return box;
     if (pk) box.classList.add("parked");
     var n = el("div", "park");
-    if (pk) n.appendChild(el("span", "", "Parked" + (pk.hand ? " by you" : "") + (pk.why ? " — " + pk.why : "") + (pk.back ? " · back " + dayLabel(wallOf(pk.back)) : "") + ". It returns to Your move when they write. "));
+    if (pk) n.appendChild(el("span", "", "Parked" + (pk.hand ? " by you" : "") + (pk.why ? " — " + pk.why : "") + (pk.back ? " · back " + dayLabel(pk.back) : "") + ". It returns to Your move when they write. "));
     var b = el("button", "", pk ? "Keep in Your move" : "Park until they write"); b.type = "button";
     b.title = pk ? "Show it in Your move again until the next message" : "Fold it under Parked in Your move; the next message brings it back";
     b.addEventListener("click", function () { setPark(room, !pk); });
@@ -2087,6 +2133,8 @@
     items.forEach(function (x) {
       host.appendChild(x.type === "contract" ? moveContract(x, now) : x.type === "chat" ? moveChat(x, now) : moveInvite(x, now));
     });
+    if (SAMPLE === false && all.some(function (x) { return x.type === "chat" || x.type === "contract"; })) // no summaries in this view: say what that costs, not just show less
+      host.appendChild(el("div", "note", "Claude summaries are off in this view, so chats show their last message and are not parked by themselves. Allow Claude for this page in its prompt and reload; Park until they write still works."));
     if (parked.length) { // talks the client closed or put off: folded, out of the counts, back up with the next message
       var d = el("details", "older"); d.dataset.id = "__parked__";
       try { d.open = !!localStorage.getItem("fp.parkedOpen"); } catch (e) {}
@@ -2097,7 +2145,7 @@
     }
     afterList("moveList");
   }
-  function moveRow(id, cls, titleNode, right, metaParts, open, btn, extra) {
+  function moveRow(id, cls, titleNode, right, metaParts, open, extra) {
     var row = rowEl(id, cls, open), s = row.s;
     var t = el("div", "t-title"); t.appendChild(titleNode); s.appendChild(t);
     s.appendChild(el("span", "t-right", right || ""));
@@ -2130,7 +2178,7 @@
   function roomOrg(r) {
     if (orgAsked[r.id]) return; orgAsked[r.id] = true;
     // the same call as the thread summary's, so a summarised chat costs nothing more
-    upCall("upwork__get_messages", { action: "list_messages", org_uid: ORG, params: { room_id: r.id, limit: 12 } }, { cache: { staleTime: 300000, gcTime: 86400000 } }, 1).then(function (res) {
+    roomMessages(r.id, 1).then(function (res) {
       var org = "";
       ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []).forEach(function (e) { var n = e.node || {}; if (!org && n.from_side === "client" && n.from_organization) org = clean(n.from_organization); });
       MEM.orgs[r.id] = org || "-"; memSave(); renderSoon();
@@ -2144,12 +2192,12 @@
     var who = clientOf(r);
     if (who && who !== title) meta.push(who);
     if (r.numUnread) meta.push(r.numUnread + " unread");
-    if (p && p.rate) meta.push(p.rate.replace(/\.0$/, ""));
-    if (pk && pk.back) meta.push("back " + dayLabel(wallOf(pk.back)));
+    if (p && p.rate) meta.push(p.rate);
+    if (pk && pk.back) meta.push("back " + dayLabel(pk.back));
     var key = "room-" + r.id;
     var open = function () { openDrawer(key, "moveList", c ? "Contract" : p ? "Proposal" : "Chat", c ? contractDrawer(c, r) : chatDrawer(r, p)); };
-    if (pk) return moveRow(key, "", titleWithId(p && p.jobId, title, roomUrl(r.id), "Open the thread on Upwork"), roomAct(r) ? "last message " + ago(now - roomAct(r)) + " ago" : "", meta, open, null, parkedInline(r, pk));
-    return moveRow(key, "turn", titleWithId(p && p.jobId, title, roomUrl(r.id), "Open the thread on Upwork to reply"), roomAct(r) ? "waiting " + ago(now - roomAct(r)) : "", meta, open, null, summaryInline(r));
+    if (pk) return moveRow(key, "", titleWithId(p && p.jobId, title, roomUrl(r.id), "Open the thread on Upwork"), roomAct(r) ? "last message " + ago(now - roomAct(r)) + " ago" : "", meta, open, parkedInline(r, pk));
+    return moveRow(key, "turn", titleWithId(p && p.jobId, title, roomUrl(r.id), "Open the thread on Upwork to reply"), roomAct(r) ? "waiting " + ago(now - roomAct(r)) : "", meta, open, summaryInline(r));
   }
   function parkedInline(room, pk) { // where it stood (the summary says why it stopped); the reason alone when there is no summary
     var d = summaryFor(room, true), t = d && d.summary ? String(d.summary) : pk.why ? pk.why.charAt(0).toUpperCase() + pk.why.slice(1) + "." : pk.hand ? "Parked by you." : "";
@@ -2164,7 +2212,7 @@
     var key = "c-" + c.id;
     var open = function () { openDrawer(key, "moveList", "Contract", contractDrawer(c)); };
     var title = w.reply && room ? titleLink(roomUrl(room.id), clean(c.title), "Open the thread on Upwork to reply") : titleLink(workroom(c.id), clean(c.title), "Open the workroom on Upwork");
-    return moveRow(key, "turn", title, w.reply && roomAct(room) ? "waiting " + ago(now - roomAct(room)) : "", meta, open, null, summaryInline(room));
+    return moveRow(key, "turn", title, w.reply && roomAct(room) ? "waiting " + ago(now - roomAct(room)) : "", meta, open, summaryInline(room));
   }
   function moveInvite(x, now) { // an invitation's job gets a card in the hourly run; with it, the row carries its advice and opens the lead's drawer
     var v = x.inv, card = v.kind === "Invitation" ? cardFor(v.jobId) : null;
@@ -2182,7 +2230,7 @@
     else extra = null;
     var right = card ? draftPill(card) : null, rt = v.t ? ago(now - v.t) + " ago" : "";
     var open = card ? function () { openDrawer(key, "moveList", "Invitation", leadDrawer(card)); } : function () { openDrawer(key, "moveList", v.kind, inviteDrawer(v)); };
-    var row = moveRow(key, "inv", titleWithId(card && v.jobId, v.title, v.href, "Open the " + v.kind.toLowerCase() + " on Upwork to answer"), rt, meta, open, null, extra);
+    var row = moveRow(key, "inv", titleWithId(card && v.jobId, v.title, v.href, "Open the " + v.kind.toLowerCase() + " on Upwork to answer"), rt, meta, open, extra);
     if (right) { var tr = row.querySelector(".t-right"); if (tr) tr.insertBefore(right, tr.firstChild); }
     return row;
   }
@@ -2194,7 +2242,7 @@
     if (v.duration) meta.push(v.duration);
     if (room && room.numUnread) meta.push(room.numUnread + " unread");
     var open = function () { openDrawer(key, "moveList", "Offer", offerDrawer(v)); };
-    return moveRow(key, "inv", titleWithId(v.jobId, v.title, v.href, "Open the offer on Upwork to answer"), v.t ? ago(now - v.t) + " ago" : "", meta, open, null, room ? summaryInline(room) : null);
+    return moveRow(key, "inv", titleWithId(v.jobId, v.title, v.href, "Open the offer on Upwork to answer"), v.t ? ago(now - v.t) + " ago" : "", meta, open, room ? summaryInline(room) : null);
   }
   function offerCallout(v) { // what the offer is and where to answer it
     var c = el("div", "callout good"), terms = [v.amount, v.duration].filter(Boolean).join(" · ");
@@ -2217,7 +2265,7 @@
       if (room && room.latestStory) x.inner.appendChild(summaryCallout(room));
       jobSections(x.inner, nr, v.jobId, true);
       if (p) sentInto(x.inner, p, nr, sr, true);
-      if (room) messagesInto(dsec(x.inner, "Conversation", "latest first", null, true), room);
+      if (room) messagesInto(dsec(x.inner, "Conversation", "latest first", true), room);
       if (p) proposalFacts(x.inner, p, nr, sr);
     };
   }
@@ -2226,8 +2274,8 @@
       var x = drHead(body, [el("span", "chip good", v.kind), v.client, v.t ? "received " + ago(Date.now() - v.t) + " ago" : ""], v.title);
       x.acts.appendChild(navLink(v.href, "Answer on Upwork"));
       var c = el("div", "callout good");
-      c.appendChild(noteHead(v.kind === "Offer" ? "Offer" : "Invitation"));
-      c.appendChild(el("div", "", v.kind === "Offer" ? "The client sent you an offer. Accept or decline it on Upwork." : "The client invited you to this job. Reply on Upwork to accept or decline."));
+      c.appendChild(noteHead("Invitation"));
+      c.appendChild(el("div", "", "The client invited you to this job. Reply on Upwork to accept or decline."));
       x.inner.appendChild(c);
       if (v.amount) dsec(x.inner, "Terms").appendChild(factsBox([["Rate", v.amount], ["Client", v.client]]));
     };
@@ -2247,14 +2295,13 @@
       if (room.latestStory) x.inner.appendChild(summaryCallout(room)); // the same plaque as a contract: where it stands and the next step; the thread itself is folded below
       if (p) { jobSections(x.inner, nr, p.jobId, true); sentInto(x.inner, p, nr, sr, true); }
       else if (room.contractId) { var cj = contractJob(room.contractId); jobSections(x.inner, cardFor(cj), cj, true); }
-      messagesInto(dsec(x.inner, "Conversation", "latest first", null, true), room);
+      messagesInto(dsec(x.inner, "Conversation", "latest first", true), room);
       if (p) proposalFacts(x.inner, p, nr, sr);
     };
   }
 
   // ---------- the header pills ----------
-  function plural(n, one, many) { return n + " " + (n === 1 ? one : (many || one + "s")); }
-  function goTo(id) { var t = $(id); if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }
+  function goTo(id) { var t = $(id); if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); } // smooth, unless the system asks for less motion
   function renderPills() { // a fixed set, always visible: what waits on me. Zero is grey, never hidden.
     var host = $("pills"), mv = S.moveStats;
     clear(host);
@@ -2274,6 +2321,7 @@
     soonTimer = setTimeout(function () { soonTimer = null; renderMove(); renderPills(); }, 0);
   }
 
+  // ---------- proposals: Sent / In talks / Closed, live from Upwork ----------
   function proposalRoom(p) { // the room found for this proposal, with its live state from the rooms list when it is there
     var r = S.prooms[p.id]; if (!r || !r.room) return null;
     var live = (S.rooms || []).filter(function (x) { return x.id === r.room.id; })[0];
@@ -2367,19 +2415,19 @@
     var right = tab === "discussing" && room ? "last message " + ago(now - roomAct(room)) + " ago"
       : tab === "closed" ? "closed " + ago(now - over.at) + " ago"
       : "sent " + ago(now - p.created) + " ago";
-    var tr = el("span", "t-right", right); tr.title = "Sent " + new Date(p.created).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    var tr = el("span", "t-right", right); tr.title = "Sent " + dayLabel(wallOf(p.created));
     s.appendChild(tr);
     var m = el("div", "t-meta");
     if (room && clientOf(room)) m.appendChild(el("span", "", clientOf(room)));
     if (over) {
       metaSep(m); var op = el("span", "dpill " + (over.hired ? "skip" : "busy"), over.label); if (over.reason) op.title = over.reason; m.appendChild(op);
-      if (chat) { metaSep(m); m.appendChild(el("span", "", (room.last_message_from_self ? "you" : "they") + " wrote last · " + new Date(roomAct(room)).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))); }
+      if (chat) { metaSep(m); m.appendChild(el("span", "", (room.last_message_from_self ? "you" : "they") + " wrote last · " + dayLabel(wallOf(roomAct(room))))); }
       s.appendChild(m); return row.d; // the terms matter no more
     }
     else if (chat) { metaSep(m); m.appendChild(turnSpan(room)); }
     else { var rp = S.prooms[p.id]; if (rp && rp.err) { metaSep(m); m.appendChild(el("span", "", "Reply status unknown")); } else if (!rp || rp.pending) { metaSep(m); m.appendChild(el("span", "", "Checking replies…")); } }
     var extra = [];
-    if (p.rate) extra.push(p.rate.replace(/\.0$/, ""));
+    if (p.rate) extra.push(p.rate);
     if (p.bid) extra.push("boosted " + p.bid + " cn");
     if (extra.length) { metaSep(m); m.appendChild(document.createTextNode(extra.join(" · "))); }
     s.appendChild(m);
@@ -2398,15 +2446,15 @@
   function sentRowOf(p) { return S.sentById[String(p.id)] || S.sentByJob[p.jobId] || null; }
   function sentInto(host, p, nr, sr, shut) { // what was sent: the Notion copy, or Upwork's while Notion has none
     var fs = el("div", "dfs"), sw = sr && nr ? wallFromNotion(nr["date:Decided on:start"]) : null;
-    dsec(host, "What you sent", sr ? (sw ? "sent " + fmtWall(sw, true) : "") : "", null, shut).appendChild(fs);
+    dsec(host, "What you sent", sr ? (sw ? "sent " + fmtWall(sw, true) : "") : "", shut).appendChild(fs);
     if (sr) proposalInto(fs, sr, true, nr);
     else upworkSentInto(fs, p);
   }
   function proposalFacts(host, p, nr, sr) { // the proposal on Upwork, last and folded like a lead's Facts: its state is in the drawer's header
-    dsec(host, "Facts", "", null, true).appendChild(factsBox([
+    dsec(host, "Facts", "", true).appendChild(factsBox([
       ["Status", shut(p) ? shut(p).label + (shut(p).reason ? " — " + shut(p).reason : "") : "Open"],
       ["Sent", p.created ? fmtWall(wallOf(p.created), true) + " (" + ago(Date.now() - p.created) + " ago)" : ""],
-      ["My rate", p.rate && !sr ? p.rate.replace(/\.0$/, "") : ""], // with the Notion copy, the rate is shown under What you sent
+      ["My rate", p.rate && !sr ? p.rate : ""], // with the Notion copy, the rate is shown under What you sent
       ["Connects", nr && nr.Connects != null ? nr.Connects + " to apply" + (sr && num(sr.Boost) ? " + " + sr.Boost + " boost" : p.bid ? " + " + p.bid + " boost" : "") : p.bid ? "boosted " + p.bid : ""],
       ["Job ID", p.jobId ? fullIdBadge(p.jobId) : ""]
     ]));
@@ -2414,12 +2462,12 @@
   // What was sent, read from Upwork while Notion has no copy yet: the same blocks as a Proposals row, minus milestones (Upwork does not return them)
   function upworkSentInto(fs, p) {
     fs.appendChild(el("div", "dr-empty", "Loading what you sent from Upwork…"));
-    upCall("upwork__list_freelancer_proposals", { action: "get", org_uid: ORG, params: { proposal_id: p.id } }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
+    upCall("upwork__list_freelancer_proposals", { action: "get", org_uid: ORG, params: { id: p.id } }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
       var pl = payloadOf(res) || {}, vp = (pl.data || {}).vendorProposal || {}, t = vp.terms || {};
       clear(fs);
       fs.appendChild(el("div", "dr-empty", S.cfg.schema >= SCHEMA ? "From Upwork \u2014 saved to Notion with the next digest." : "From Upwork."));
       var rate = num((t.chargeRate || {}).rawValue);
-      if (rate != null) { var d = el("div", "df"); d.appendChild(el("div", "k", "Rate sent")); var b = el("div", "v big-v", p.rate ? p.rate.replace(/\.0$/, "") : usd(rate)); b.appendChild(cpIcon(String(rate), "the rate")); d.appendChild(b); fs.appendChild(d); }
+      if (rate != null) { var d = el("div", "df"); d.appendChild(el("div", "k", "Rate sent")); var b = el("div", "v big-v", p.rate ? p.rate : usd(rate)); b.appendChild(cpIcon(String(rate), "the rate")); d.appendChild(b); fs.appendChild(d); }
       var cl = clean(vp.proposalCoverLetter);
       if (cl) { var c = el("div", "df"), k = el("div", "k", "Cover letter"); k.appendChild(cpIcon(cl, "the cover letter")); c.appendChild(k); c.appendChild(el("div", "letter", cl)); fs.appendChild(c); }
       var qa = vp.questionsAnswers || [];
@@ -2447,6 +2495,7 @@
       var over = shut(p), state = over ? el("span", "chip", over.label) : el("span", "chip", rp && rp.err ? "reply status unknown" : "no reply yet");
       var x = drHead(body, ["Proposal", state, "sent " + ago(Date.now() - p.created) + " ago"], p.title, p.jobId);
       proposalLinks(x, p, nr, sr);
+      var of = offerFor(p.jobId); if (of) { x.acts.insertBefore(navLink(of.href, "Answer the offer"), x.acts.firstChild); x.inner.appendChild(offerCallout(of)); }
       jobSections(x.inner, nr, p.jobId, true); // sent, no reply yet: what was sent is the point
       sentInto(x.inner, p, nr, sr, false);
       proposalFacts(x.inner, p, nr, sr);
@@ -2465,6 +2514,7 @@
   $("tabPClosed").title = "Declined, archived or withdrawn, or the job filled or closed, in the last " + LIVE_DAYS + " days";
   $("tabPClosed").addEventListener("click", function () { setPTab("closed"); });
 
+  // ---------- the footer: the job scanner's last run and the open questions ----------
   function renderRuns() {
     var host = $("runs"); if (!S.runs) return;
     clear(host);
@@ -2482,8 +2532,6 @@
     var last = rows[rows.length - 1];
     if (!last) return;
     var age = now - last.w;
-    var today = rows.filter(function (x) { return dayKey(x.w) === dayKey(now); });
-    var found = today.reduce(function (a, x) { return a + (x.r.Take || 0); }, 0);
     var what = last.r.Status === "ok" ? "found " + (last.r.Take || 0) + " take, " + (last.r.Maybe || 0) + " maybe" : last.r.Status === "partial" ? "hit its budget, continues next run" : "nothing new";
     S.scanner = { age: age, w: last.w, idle: age > 3 * 3600000, what: what, rulesFailed: /rules read failed/i.test(last.r.Window || "") }; renderStatus();
     if (age > 3 * 3600000) host.appendChild(el("span", "chip bad", "Job scanner idle for " + ago(age) + " — check the hourly search task"));
@@ -2566,21 +2614,20 @@
       t.bad(err); upPump();
     });
   }
-  S.leadsById = {};
 
-  function watch(server, tool, input, onData, onErr) {
-    var u = MCP.watchTool(server, tool, input, function (ev) {
+  function watch(server, tool, input, onData, onErr) { // returns the unsubscribe
+    return MCP.watchTool(server, tool, input, function (ev) {
       if (ev.type === "data") { touch(ev.result); onData(payloadOf(ev.result)); }
       else onErr(ev.error);
     }, { cache: CACHE, refetchInterval: POLL });
   }
 
-  function loadNotionView(viewUrl, maxPages, fresh) { // fresh: skip the cache (a proposal being written)
+  function loadNotionView(viewUrl, maxPages) {
     var rows = [];
     function page(cursor, n) {
       var data = { mode: "view", view_url: viewUrl, page_size: 100 };
       if (cursor) data.start_cursor = cursor;
-      return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: fresh ? false : { staleTime: 120000, gcTime: 86400000 } }).then(function (res) {
+      return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: { staleTime: 120000, gcTime: 86400000 } }).then(function (res) {
         touch(res);
         var p = payloadOf(res) || {};
         rows = rows.concat(p.results || []);
@@ -2593,13 +2640,13 @@
 
   var loading = false;
   function loadConfig() { // match_score lives in the root page's config toggle; read it on every load so edits apply at once
-    return MCP.callTool(NOTION, "notion-fetch", { id: ROOT_PAGE }, { cache: { staleTime: 300000, gcTime: 86400000 } }).then(function (res) {
-      var p = payloadOf(res), txt = p && typeof p === "object" ? p.text : (typeof p === "string" ? p : "");
+    return fetchPage(ROOT_PAGE, { staleTime: 300000, gcTime: 86400000 }).then(function (pg) {
+      var txt = pg.text;
       var m = /match_score:\s*`?\s*(-?\d+(?:\.\d+)?)/.exec(txt || "");
       S.matchScore = m ? +m[1] : null;
       var key = function (k) { var x = new RegExp("\\b" + k + ":\\s*`([^`]*)`").exec(txt || ""); return x ? x[1].trim() : null; };
       S.cfgText = txt || "";
-      S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide"), proposals: key("proposals"), updating: key("updating"), update_error: key("update_error"), skill_version: key("skill_version"), dashboard_version: key("dashboard_version") };
+      S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide"), proposals: key("proposals"), updating: key("updating"), update_error: key("update_error"), skill_version: key("skill_version") };
       var cp = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\s*(.*)$/i.exec(key("chat_project") || ""); // `<project id> <name>`, or `none`
       S.cfg.chat_project = cp ? cp[1] : null; S.cfg.chat_project_name = cp ? (cp[2] || "A project") : null;
       S.cfg.state = key("state");
@@ -2618,17 +2665,22 @@
       renderLeads();
     }, function (err) { if (!S.skipped) { S.skipped = []; S.skippedErr = err; } renderLeads(); });
   }
-  function withSaved(rows, status) { // rows of one status, corrected by this page's own recent saves
+  function save(r, props) { var id = r["Job ID"], sv = S.saved[id]; S.saved[id] = { row: r, props: Object.assign({}, sv && sv.props, props), at: Date.now() }; }
+  function withSaved(rows, status) { // rows of one status, corrected by this page's own recent saves (Notion's views lag a write by a moment)
     var now = Date.now(), seen = {};
     Object.keys(S.saved).forEach(function (id) { if (now - S.saved[id].at > 5 * 60000) delete S.saved[id]; });
-    rows = rows.filter(function (r) { var sv = S.saved[r["Job ID"]]; seen[r["Job ID"]] = true; return !sv || sv.row.Status === status; });
+    rows = rows.filter(function (r) {
+      var sv = S.saved[r["Job ID"]]; seen[r["Job ID"]] = true;
+      if (sv) { Object.assign(r, sv.props); sv.row = r; } // the fresh row, with what this page wrote on top
+      return r.Status === status;
+    });
     Object.keys(S.saved).forEach(function (id) { if (!seen[id] && S.saved[id].row.Status === status) rows.unshift(S.saved[id].row); });
     return rows;
   }
-  function loadPropRows(fresh) { // Proposals: Open (written, not sent) and Sent, both keyed by Job ID; Sent also by Proposal ID
+  function loadPropRows() { // Proposals: Open (written, not sent) and Sent, both keyed by Job ID; Sent also by Proposal ID
     if (!(S.cfg.schema >= SCHEMA) || /^__/.test(VIEW_PROPOSALS_OPEN)) return Promise.resolve();
     // each view on its own: a broken Sent view must not hide the ready proposals, and the other way round
-    var safe = function (v, n) { return loadNotionView(v, n, fresh).catch(function () { return null; }); }; // null: keep what we had
+    var safe = function (v, n) { return loadNotionView(v, n).catch(function () { return null; }); }; // null: keep what we had
     return Promise.all([safe(VIEW_PROPOSALS_OPEN, 3), safe(VIEW_PROPOSALS_SENT, 5)]).then(function (res) {
       if (res[0]) {
         var open = {};
@@ -2650,16 +2702,19 @@
       renderLeads(); renderApplied(); refreshDrawer();
     }, function () {});
   }
-  var loadAgain = false;
-  function loadNotion() {
-    if (loading) { loadAgain = true; return; } // a Refresh during a load runs once more when it ends
-    loading = true;
-    loadConfig().then(function () { return loadNotionView(VIEW_INBOX, 10); }).then(function (rows) {
+  function loadLeads() { // the Inbox view: every New card
+    return loadNotionView(VIEW_INBOX, 10).then(function (rows) {
       rows = withSaved(rows, "New");
       S.leads = rows; S.leadsErr = null;
       S.leadsById = {}; rows.forEach(function (r) { if (r["Job ID"]) S.leadsById[r["Job ID"]] = r; });
       renderLeads(); renderApplied(); refreshDrawer();
-    }, function (err) { S.leadsErr = err; if (isDenial(err)) S.leads = null; renderLeads(); })
+    }, function (err) { S.leadsErr = err; if (isDenial(err)) S.leads = null; renderLeads(); });
+  }
+  var loadAgain = false;
+  function loadNotion() {
+    if (loading) { loadAgain = true; return; } // a Refresh during a load runs once more when it ends
+    loading = true;
+    loadConfig().then(loadLeads)
     .then(function () { return loadPropRows(); })
     .then(function () { return loadSkipped(false); })
     .then(function () { return loadNotionView(VIEW_APPLIED, 3); })
@@ -2684,9 +2739,9 @@
     function done() { loading = false; if (loadAgain) { loadAgain = false; loadNotion(); } }
   }
 
-  var connectsLoading = false;
+  var connectsLoading = false, connectsAgain = false;
   function loadConnects() { // balance + usage history, paged until the 7-day window is covered
-    if (connectsLoading) return; connectsLoading = true;
+    if (connectsLoading) { connectsAgain = true; return; } connectsLoading = true;
     var since = Date.now() - 7 * DAY, all = [], first = null;
     function page(cursor, n) {
       var input = { action: "connects_balance", org_uid: ORG };
@@ -2706,15 +2761,17 @@
       first = first || {}; first.usage_history = { transactions: all, complete: all.length ? Date.parse(all[all.length - 1].createdDateTime) <= since : true };
       S.connects = first; S.connectsErr = null; renderConnects(); renderLeads();
     }, function (err) { S.connectsErr = err; if (isDenial(err)) S.connects = null; renderConnects(); })
-    .then(function () { connectsLoading = false; }, function () { connectsLoading = false; });
+    .then(done, done);
+    function done() { connectsLoading = false; if (connectsAgain) { connectsAgain = false; loadConnects(); } }
   }
 
   function watchMilestones() {
-    var list = ((S.dash || {}).active_contracts || {}).contracts || [];
+    var list = ((S.dash || {}).active_contracts || {}).contracts || [], live = {};
+    list.forEach(function (c) { live[c.id] = true; });
+    Object.keys(milestoneWatch).forEach(function (id) { if (!live[id]) { if (typeof milestoneWatch[id] === "function") milestoneWatch[id](); delete milestoneWatch[id]; delete S.milestones[id]; } }); // an ended contract stops polling
     list.forEach(function (c) {
       if (milestoneWatch[c.id]) return;
-      milestoneWatch[c.id] = true;
-      watch(UPWORK, "upwork__list_milestones", { action: "list", org_uid: ORG, params: { contract_id: String(c.id) } },
+      milestoneWatch[c.id] = watch(UPWORK, "upwork__list_milestones", { action: "list", org_uid: ORG, params: { contract_id: String(c.id) } },
         function (p) { S.milestones[c.id] = { list: (p && p.milestones) || [] }; renderContracts(); },
         function (err) { if (!S.milestones[c.id] || isDenial(err)) S.milestones[c.id] = { err: err }; renderContracts(); });
     });
@@ -2737,6 +2794,7 @@
       function (err) { S.balanceErr = err; if (isDenial(err)) S.balance = null; renderBalance(); });
   }
 
+  // ---------- loading proposals: lists by time, the sent ones no list returns, their chats, how their jobs ended ----------
   function mapProposal(n, closed) {
     var jp = n.marketplaceJobPosting || {}, terms = n.terms || {}, st = n.status || {};
     return {
@@ -2744,7 +2802,7 @@
       url: jp.url ? String(jp.url).split("?")[0] : null,
       created: num(((n.auditDetails || {}).createdDateTime || {}).rawValue) || Date.parse(((n.auditDetails || {}).createdDateTime || {}).displayValue) || 0,
       modified: num(((n.auditDetails || {}).modifiedDateTime || {}).rawValue) || 0,
-      rate: terms.chargeRate ? String(terms.chargeRate.displayValue || "").replace("USD ", "$") : "",
+      rate: terms.chargeRate ? String(terms.chargeRate.displayValue || "").replace("USD ", "$").replace(/\.0$/, "") : "", // "$45", not "$45.0"
       bid: n.boosted ? terms.connectsBid : null,
       status: st.status, statusLabel: st.status_label || st.status, reason: st.reason ? clean(st.reason.reason) : "",
       closed: closed || /^(Archived|Declined|Withdrawn)$/.test(st.status || "")
@@ -2771,7 +2829,7 @@
       localStorage.setItem(MEM_KEY, JSON.stringify(MEM));
     } catch (e) {}
   }
-  var propParts = {}, proposalsLoading = false;
+  var propParts = {}, proposalsLoading = false, proposalsAgain = false;
   function loadProposalSource(src, cutoff) {
     var out = [];
     function page(cursor, n) {
@@ -2793,7 +2851,8 @@
     return page(null, 1);
   }
   function loadProposals() {
-    if (!MCP || proposalsLoading) return; proposalsLoading = true;
+    if (!MCP) return;
+    if (proposalsLoading) { proposalsAgain = true; return; } proposalsLoading = true;
     var now = Date.now();
     Object.keys(S.extra).forEach(function (id) { S.extra[id].stale = true; }); // read again, shown as they were meanwhile
     Promise.all(PROPOSAL_SOURCES.map(function (src) {
@@ -2803,7 +2862,8 @@
       });
     })).then(function () {
       if (propParts.Accepted) mergeProposals(); else renderApplied();
-    }).then(function () { proposalsLoading = false; }, function () { proposalsLoading = false; });
+    }).then(done, done);
+    function done() { proposalsLoading = false; if (proposalsAgain) { proposalsAgain = false; loadProposals(); } }
   }
   function mergeProposals() {
     var seen = {}, all = [], changed = false;
@@ -2892,17 +2952,7 @@
         S.prooms[p.id] = { room: room }; renderApplied();
       }, function (err) { S.prooms[p.id] = err && err.code === "tool_error" && !throttled(err) ? { room: null } : { err: err }; renderApplied(); });
   }
-  function renderBalance() {
-    if (S.balanceErr && !S.balance) { $("balanceValue").textContent = "—"; $("balanceSub").textContent = errText(S.balanceErr, UPWORK); return; }
-    var b = S.balance; if (!b) return;
-    var av = num((b.available_now || {}).rawValue), pend = num((b.pending_balance || {}).rawValue), cred = num((b.pending_credit || {}).rawValue);
-    $("balanceValue").textContent = av != null ? "$" + (av >= 100 ? Math.round(av) : av.toFixed(2)) : "—";
-    var parts = [];
-    if (pend) parts.push("$" + Math.round(pend) + " pending");
-    if (cred) parts.push("$" + Math.round(cred) + " in review");
-    if (b.withdrawal_allowed === false) parts.push("withdrawal blocked");
-    $("balanceSub").textContent = parts.length ? parts.join(" · ") : "available to withdraw";
-  }
+
 
   // ---------- section help (ⓘ) — texts are built from the same constants the lists use ----------
   var infos = [];
@@ -2961,10 +3011,11 @@
   addInfo("hMove", function () {
     return [
       ["", "Everything that waits on you, in one list. A proposal chat listed here is also under Proposals → In talks."],
-      ["Red bar", "a client chat where the last message is theirs or unread (contract chats always, other chats for " + QUIET_DAYS + " days), or a contract with a milestone past its due date. A contract here shows what it needs from you; its card with the milestones stays under Contracts."],
-      ["Summary", "Claude reads the last 12 messages of each chat here and of each contract and writes where it stands and whose move it is; it is redone when a new message arrives."],
+      ["Red bar", "a client chat where the next message is yours, or one you have not read (contract chats always, other chats for " + QUIET_DAYS + " days), or a contract with a milestone past its due date. Upwork says whose turn it is in a proposal's or contract's chat; in a group chat or a direct message Claude's summary does."],
+      ["Contract", "a contract here shows what it needs from you; its card with the milestones stays under Contracts."],
+      ["Summary", "Claude reads the last 12 messages of each chat here and of each contract and writes where it stands and whose move it is; it is redone when a new message arrives, and kept with the chat, so every device shows the same one."],
       ["Green bar", "invitations and offers you haven't answered."],
-      ["Parked", "talks the client closed or put off — hired someone else, paused the project, will come back later — fold at the bottom and count for nothing. Claude's summary decides it, or you do: Park until they write / Keep in Your move in the chat's summary. A new message brings the chat back, and so does the date the client said they would return. An active contract's chats never park."],
+      ["Parked", "talks the client closed or put off — hired someone else, paused the project, will come back later — fold at the bottom and count for nothing. Claude's summary decides it, or you do: Park until they write / Keep in Your move in the chat's summary — on every device. A new message brings the chat back, and so does the date the client said they would return. An active contract's chats never park."],
       ["What it is about", "a proposal's chat carries the job; a contract's, the contract. A group chat or direct message is put under the contract whose client wrote in it; with no such contract it says it is a group chat or a direct message."],
       ["Order", "offers, overdue milestones, chats waiting longest, then invitations."]
     ];
@@ -3006,8 +3057,8 @@
     $("liveText").textContent = "Refreshing…";
     var p = MCP.invalidate ? MCP.invalidate() : Promise.resolve();
     return p.catch(function () {}).then(function () {
-      S.prooms = {}; notesCache = {}; loadNotion(); loadConnects(); loadProposals(); refreshDrawer(); // an open drawer reads its conversation again at once
-      return new Promise(function (ok) { var n = 0, t = setInterval(function () { if (!(loading || connectsLoading || proposalsLoading) || ++n > 100) { clearInterval(t); refreshDrawer(); ok(); } }, 150); });
+      notesCache = {}; loadNotion(); loadConnects(); loadProposals(); refreshDrawer(); // an open drawer reads its conversation again at once
+      return new Promise(function (ok) { var n = 0, t = setInterval(function () { if (!(loading || connectsLoading || proposalsLoading) || ++n > 100) { clearInterval(t); liveLine(); refreshDrawer(); ok(); } }, 150); });
     });
   }
   function refreshBy(b) { // the header's Refresh and the drawer's: the same button, its arrow turning until the loads end; an open drawer reads again in place
@@ -3032,6 +3083,7 @@
     MCP = mcp;
     $("liveText").textContent = "Loading…";
     window.claude.use("sample").then(function (fn) { SAMPLE = fn || false; renderContracts(); refreshDrawer(); }, function () { SAMPLE = false; renderContracts(); refreshDrawer(); });
+    window.claude.use("db").then(startThreads, function () { startThreads(null); });
     startUpwork();
     loadNotion();
   }, function () { noLive("Live data isn't available in this view."); });
