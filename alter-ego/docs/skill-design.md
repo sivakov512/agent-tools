@@ -40,7 +40,7 @@ These hold in every repository and every mode, except in a cloud session the use
 | 12 | `add-bot` (`registers`, `walkthrough`) | *bots* (`add-bot`, `check`, store commands) | |
 | 13 | — | existing `GIT_CONFIG` entries kept; no bot variables in the shell | |
 | 14 | — | *the config's schema* | |
-| 15 | — | *Anthropic-hosted cloud sessions* | |
+| 15 | — | *Anthropic-hosted cloud sessions*: the refusal and the session context | the agent's allow question: the eval harness passes a case only `EVAL_*` variables, so no case can stand in a cloud session |
 
 ## Decisions
 
