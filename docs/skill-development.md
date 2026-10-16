@@ -24,7 +24,7 @@ The next agent sees the repository, never the conversation that shaped it. So:
 | `skills/<skill>/assets/` | pages and files the skill publishes |
 | `docs/skill-design.md` | the design doc (below) |
 | `docs/dashboard-design.md` | the spec of each page in `assets/`, if any |
-| `tests/` | static checks only this plugin needs; `scripts/check.py` runs them |
+| `tests/` | offline tests only this plugin needs; `scripts/check.py` runs them |
 | `evals/` | the `claude plugin eval` suite and its `README.md` |
 | `CHANGELOG.md` | written by the release |
 
@@ -82,7 +82,7 @@ A runtime rule two skills need is written in each of them, since each ships alon
 | A dashboard chat link opens a chat whose first message names the item, its ids and the skill; that chat writes its own link to the item's `Chat` | upwork-pulse, project-tracker |
 | The dashboards share one look: tokens, pills, rows, drawer | upwork-pulse, project-tracker |
 
-## 6. Dashboards and other pages
+## 6. Pages and code
 
 Each page in `assets/` has its spec in `docs/dashboard-design.md`, updated in the same change as the page.
 
@@ -111,7 +111,7 @@ Each page in `assets/` has its spec in `docs/dashboard-design.md`, updated in th
 
 ## 8. Committing and releasing
 
-1. **A change reaches `master` through a pull request**, on its own branch; the user merges it with rebase, so each commit's subject reaches release-please. Agents never push to `master`. Whose name the work goes under is alter-ego's: the repository's mode decides it.
+1. **A change reaches `master` through a pull request**, on its own branch, reviewed against this file and the plugin's design doc by someone other than its author — the user, or an agent the user has put in charge of the work, reading the whole diff and re-running the checks itself — and merged with rebase, so each commit's subject reaches release-please. Agents never push to `master`. Whose name the work goes under is alter-ego's: the repository's mode decides it.
 2. **One commit, one plugin.** A commit counts for every plugin whose files it touches, whatever its scope. Shared files (`docs/`, `scripts/`, `templates/`, the root) go in commits of their own.
 3. **The subject is the whole message**: `type(plugin): imperative subject`, one line, at most 72 characters — release-please copies it into the changelog and the release notes. No body, no trailers, no co-author lines. Shared files take no scope (`docs: …`, `ci: …`).
 4. **Types**: `feat` bumps minor, `fix` bumps patch (below 1.0 a breaking `!` bumps minor); `refactor` and `perf` show in the changelog; `docs`, `test`, `ci`, `chore` stay out of it.
@@ -119,4 +119,4 @@ Each page in `assets/` has its spec in `docs/dashboard-design.md`, updated in th
 
 ## 9. Existing plugins
 
-Every plugin follows this file. One that does not yet is brought to it by a change of its own, in this order: audit the plugin against every criterion here (§3–§6) and list each departure; fix them all in that one change; then check it once (§7) on the final text. A regression run before the rework is finished is wasted, since the rework changes what it tested. Until that change, every other change to the plugin adds no new departure and brings the part it touches in line.
+Every plugin follows this file. One that does not yet is brought to it by a change of its own, in this order: audit the plugin against every criterion here (§2–§6) — its files and design doc, its wording, its structure, its pages and code, and whether the rules it shares with other plugins (§5) match theirs — and list each departure; what would change behaviour is put to the user, and their answer goes into the design doc's *Decisions*; fix them all in that one change; then check it once (§7) on the final text, a new preview on real data included when a page changed. A regression run before the rework is finished is wasted, since the rework changes what it tested. Until that change, every other change to the plugin adds no new departure and brings the part it touches in line.
