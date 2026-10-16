@@ -4,6 +4,7 @@
 (function () {
   "use strict";
   var ROOT_PAGE = window.PT_ROOT || "", SNAP = window.PT_DATA || null; // live from Notion, or a client's snapshot
+  var CLIENT = !ROOT_PAGE; // client.html sets no root page: it runs on its snapshot alone, or on nothing if data.js did not load
   var NOTION = window.PT_NOTION && !/^__/.test(window.PT_NOTION) ? window.PT_NOTION : "Notion"; // the Notion connector's name in claude.ai (dashboard.html sets it)
   var STRUCT = { staleTime: 300000, gcTime: 86400000 }; // pages, databases, view ids: change rarely
   var DATA = { staleTime: 60000, gcTime: 86400000 };    // rows and page bodies
@@ -990,7 +991,7 @@
     var bs = [$("refreshBtn"), $("drRefresh")]; bs.forEach(function (x) { x.classList.add("spin"); x.setAttribute("aria-busy", "true"); });
     refreshNow().then(function () { bs.forEach(function (x) { x.classList.remove("spin"); x.removeAttribute("aria-busy"); }); });
   }
-  if (!SNAP) ["refreshBtn", "drRefresh"].forEach(function (id) { $(id).addEventListener("click", function () { refreshBy(this); }); });
+  if (!CLIENT) ["refreshBtn", "drRefresh"].forEach(function (id) { $(id).addEventListener("click", function () { refreshBy(this); }); });
   setInterval(function () { if (MCP && !document.hidden) loadAll(); }, POLL);
   setInterval(function () { if (!document.hidden && S.shown) paint(); }, 3600000);
   function noLive(msg) {
@@ -998,7 +999,12 @@
     clear($("pills")); $("pills").appendChild(el("span", "pl", msg));
     ["cards", "tlScroll", "moveList", "waitList"].forEach(function (id) { clear($(id)); });
   }
-  if (SNAP) { loadSnapshot(SNAP); render(); return; }
+  function noData() { // a client's page without its data.js: said on the page, never a blank one
+    $("ttl").textContent = document.title = "Project status"; $("liveText").textContent = "No data";
+    clear($("pills")); $("pills").appendChild(el("span", "pl", "No data"));
+    $("cards").appendChild(el("div", "empty", "This status page has no data yet. Ask for it to be published again."));
+  }
+  if (CLIENT) { if (SNAP) { loadSnapshot(SNAP); render(); } else noData(); return; }
   renderHeader(); skeleton();
   if (!window.claude || typeof window.claude.use !== "function") { noLive("Open this page in claude.ai to see live data."); return; }
   if (/^__ROOT/.test(ROOT_PAGE)) { noLive("This copy has no tracker page set. Ask Claude to publish the dashboard from setup."); return; }
