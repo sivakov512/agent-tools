@@ -1900,7 +1900,7 @@
 
   // ---------- thread summaries (sample) ----------
   var SAMPLE = null; // null = unknown yet, false = unavailable, fn = ready
-  var sums = {}, SUM_V = 2; // SUM_V: a summary saved by an older prompt (without "parked") is made again
+  var sums = {}, SUM_V = 3; // SUM_V: a summary saved by an older prompt is made again
   function sumKey(room) { return "fp.sum." + room.id; }
   function summaryFor(room, peek) { // peek: only what is already made, never start one
     var sid = (room.latestStory || {}).id || "";
@@ -1917,7 +1917,7 @@
       .then(function (res) {
         var edges = ((((payloadOf(res) || {}).data || {}).roomStories || {}).edges || []).slice().reverse();
         var lines = edges.map(function (e) {
-          var n = e.node || {}; var who = n.from_self ? "Me" : clean(n.from) || "Client";
+          var n = e.node || {}; var who = n.from_self ? "Me" : (clean(n.from) || "Someone") + (n.from_side === "client" ? " (client)" : n.from_side === "freelancer" ? " (another freelancer)" : "");
           var d = n.createdDateTime ? new Date(n.createdDateTime) : null;
           var when = d ? MON[d.getUTCMonth()] + " " + d.getUTCDate() : "";
           return "[" + when + "] " + who + ": " + clean(n.message).slice(0, 1200) + ((n.attachments || []).length ? " (attachment)" : "");
@@ -1925,7 +1925,7 @@
         if (!lines.length) throw { code: "empty" };
         var today = new Date(); var todayStr = MON[today.getUTCMonth()] + " " + today.getUTCDate() + ", " + today.getUTCFullYear();
         var prompt = "You are summarizing an Upwork chat (a contract, a job proposal or a direct message) for a freelancer (the \"me\" side). Today is " + todayStr + ". Messages, oldest first:\n\n" + lines.join("\n\n") +
-          "\n\nReply with only a JSON object: {\"summary\": string (1-2 plain sentences: where the work stands right now, in English, no greetings), \"next\": \"me\"|\"client\"|\"none\" (who must act next), \"action\": string (the concrete next step, max 12 words, or \"\"), \"deadline\": string|null (ISO date YYYY-MM-DD if someone promised a date, else null), \"promised_by\": \"me\"|\"client\"|null, \"parked\": boolean, \"parked_why\": string, \"back_on\": string|null}. " +
+          "\n\nReply with only a JSON object: {\"summary\": string (1-2 plain sentences: where the work stands right now, in English, no greetings), \"next\": \"me\"|\"client\"|\"none\" (who must act next: \"me\" only when something is asked of me, or a step I owe is due now; news, files or updates shared for information, and a step planned for a later date, are not my move — then \"none\", or \"client\" when they owe the next step), \"action\": string (the concrete next step, max 12 words, or \"\"), \"deadline\": string|null (ISO date YYYY-MM-DD if someone promised a date, else null), \"promised_by\": \"me\"|\"client\"|null, \"parked\": boolean, \"parked_why\": string, \"back_on\": string|null}. " +
           "parked is true only when the chat is about getting work (a proposal, an invitation, talks before a hire), not paid work under way, and the client has closed or put it off: hired someone else, cancelled or paused the project, said they will come back later or get in touch if it resumes. Then nothing happens until the client writes again, and a polite reply is not a step. " +
           "It is false while a question, an offer, a meeting request, files to review or any other real step waits on either side. parked_why: when parked, why, max 10 words (\"client paused the project to test in-house\"), else \"\". back_on: when parked and the client named when they would come back, that ISO date, else null. " +
           "Example: {\"summary\":\"Client approved the schematic; layout revision is in progress.\",\"next\":\"me\",\"action\":\"send revised layout\",\"deadline\":\"2026-09-16\",\"promised_by\":\"me\",\"parked\":false,\"parked_why\":\"\",\"back_on\":null}";
@@ -2281,7 +2281,15 @@
     return live || r.room;
   }
   function roomAct(room) { return room ? (Date.parse((room.latestStory || {}).createdDateTime) || num(room.lastActivity) || 0) : 0; } // last message time; lastActivity may include non-message events
-  function myTurn(room) { return !!room && (room.awaiting_reply_from === "you" || (room.awaiting_reply_from == null && room.last_message_from_self === false)); }
+  function myTurn(room) {
+    if (!room) return false;
+    if (room.awaiting_reply_from != null) return room.awaiting_reply_from === "you";
+    if (room.last_message_from_self !== false) return false;
+    // Upwork gives no turn for a group chat or a direct message: the thread's summary says whose move it is, once there is
+    // one (a message from another freelancer on the team, or files shared for information, is not one); until then, mine
+    var d = SAMPLE === false ? null : summaryFor(room, true);
+    return d ? d.next === "me" : true;
+  }
   // One rule for the whole section: a proposal is shown while something happened on it in the last LIVE_DAYS.
   function hasChat(room) { return !!room && !!room.latestStory; }
   // A proposal is over when Upwork closed it (declined, archived, withdrawn) or put it on hold: a client who hires someone
