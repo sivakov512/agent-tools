@@ -63,7 +63,7 @@ These hold in every skill; each skill states them in its own words, since it shi
 
 1. **Answer the message first.** Whatever the message is about — a question, a doubt, a choice, a request for a view — gets its answer before or along with what was done. A report of the work alone does not say whether it was the right call.
 2. **The user's language** in everything said to the user; the structure (titles, columns, config keys) stays English.
-3. **Plain text in chat.** No code blocks for anything the user reads — they are hard to read in a chat, above all on a phone. A code block is only for a command the user runs in a terminal.
+3. **Plain text in chat.** No code blocks for anything the user reads — they are hard to read in a chat, above all on a phone. A code block is only for what the user copies whole, which its copy button makes one tap: a command to run in a terminal, or a text to paste elsewhere as it is (a proposal into a form).
 4. **Propose, then write.** A write the user may not expect is shown first, in plain words, and made on their yes. Anything that goes out — a submission, a message, a push, money — waits for an explicit go about that action, in that conversation; scheduled runs never do it.
 5. **A write that errors stops the work**: re-read, report, no retry with a changed meaning or other escaping.
 6. **No hardcoded IDs.** A skill finds its root through its config and creates its structure on request, under a name the user chooses.
