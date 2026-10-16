@@ -22,7 +22,7 @@ No card and the verdict is Take or Maybe → offer to create an assessed card; d
 
 ## "details N" — after a run report or a digest
 
-"details 3" or "details #584350" → that card in full, in the format of one card of the hourly report (`references/hourly.md` §7, without its number), from the card's properties and body. A number refers to the list this conversation showed; none here → ask which job.
+"details 3" or "details #584350" → that card in full, in the format of one card of the hourly report (`references/hourly.md` §7, without its number), from the card's properties and body. Which card a number means: SKILL.md → *Finding things*.
 
 ## A job's chat — opened from the dashboard
 
@@ -81,12 +81,12 @@ Fresh data: proposals <N> (<M> at find time), hired <N>, <N> connects to apply.
 
 ```
 
-   Before replying, read the draft reply once as the user will. It starts with `Fresh data:` — anything above it (a verdict, a summary of your work) or between the blocks pushes the text down on a phone; a concern about fit fits into the Fresh data line in a few words. The proposal text breaks none of the guide's "never" lines. Every claim about past work can be pointed to in the guide's portfolio lines or the profile — a client who asks about a detail you added and the user never did will stop trusting the rest; what is missing becomes a question to the client instead. The package around the text is in `language`; only the proposal text and screening answers follow the posting's language.
+   Before replying, read the draft reply once as the user will. It starts with `Fresh data:` — anything above it (a verdict, a summary of your work) or between the blocks pushes the text down on a phone; a concern about fit fits into the Fresh data line in a few words. The proposal text breaks none of the guide's "never" lines. Every claim about past work can be pointed to in the guide's portfolio lines or the profile — a client who asks about a detail you added and the user never did will stop trusting the rest; what is missing becomes a question to the client instead. The package around the text is in `language`; the proposal text and screening answers in the posting's (SKILL.md → *Language*).
 
    The package also goes to the job's proposal row (`references/drafts.md` §4 — the same columns, sections and create-or-replace; `State` Ready, `Written` now), and its price and hours to the card (`My $`, `My hours`, `Estimate` and `Reviewed by`, in one call — SKILL.md → *One fact, one place*) in the same turn, and again after every edit — so the latest version is in Notion even if the user sends it from the dashboard or the website.
 
    Then nothing — wait. Any time you show the full text again (an edit, the final), put the link right above it so the user does not scroll for it.
-4. **Send only on the user's plain "send it"** about this proposal, in this conversation. Right before, name the total once more: connects for the application, boost separately, balance after. Attachments are uploaded only after the package is approved, with the mechanics Field notes describe. If the platform cannot take the shape the guide asks for, say so and hand the user what to paste into the web form.
+4. **Send only on the user's plain "send it"** about this proposal, in this conversation (SKILL.md → *Rules that protect the user*). Right before, name the total once more: connects for the application, boost separately, balance after. Attachments are uploaded only after the package is approved, with the mechanics Field notes describe. If the platform cannot take the shape the guide asks for, say so and hand the user what to paste into the web form.
 5. **After sending**: write this proposal exactly as the sync does (`references/sync.md` §2, the `get` of the proposal just sent; the sync's watermark stays): the proposal row becomes what Upwork stored, including the boost it actually took; the card Applied. Then one line to the user with what was sent and what it cost.
 
 Never guess a fact for a screening answer or the text: profile, portfolio, cards and what the user said in this conversation are the only sources. Where an honest answer depends on something only the user knows, mark the draft ⚠️.
