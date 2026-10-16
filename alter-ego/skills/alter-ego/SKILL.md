@@ -14,7 +14,7 @@ The user works in two kinds of repositories. In some — client projects, their 
 
 ## How it works
 
-The plugin enforces; your part is the conversation.
+The plugin enforces; your part is the conversation. alter-ego decides only whose name the work goes out under, never whether it goes out: a push, PR, issue or comment happens when the user has asked for it, and a standing go-ahead counts.
 
 - In your Bash commands, `git` and `gh` are alter-ego's wrappers, put first on PATH by a SessionStart hook. Each call is decided when it runs, from its own arguments and folder: `git -C`, a `cd`, a subshell or an alias land in the repository they act on, under that repository's mode. Only these programs are touched, and only for you; the user's own terminal is unaffected.
 - **No mode yet:** everything runs as the user, but `git push` and `gh` writes are refused with a message that tells you to ask. Local commits are fine.
@@ -68,11 +68,11 @@ If `alter-ego attribution` says `on`, Claude Code itself adds the attribution li
 
 ## Bot mode
 
-- Commit, push, open PRs and comment yourself with `git` and `gh` in Bash, called by name. Those calls carry the bot's identity.
+- Commit, push, open PRs and comment with `git` and `gh` in Bash, called by name, when you do. Those calls carry the bot's identity.
 - Don't offer the app's own commit or create-PR buttons in such a repository: they don't run through your Bash and would act as the user. Offer plain reply buttons ("Commit and open PR") and do the work yourself.
 - Don't write to GitHub through an MCP connector there: connectors use the user's own account.
 - A pull request opened by the bot is one the user can review and approve like a colleague's. Write its description for that reviewer: what changed, why, how it was checked.
-- Bot mode works with github.com repositories only.
+- Bot mode works with github.com repositories only, and not in Anthropic-hosted cloud sessions (claude.ai/code): there GitHub traffic goes through Anthropic's GitHub proxy, which pushes with the user's own token, and `gh pr` and `gh issue` are blocked, so bot work would go out as the user or not at all. If the user wants a bot there, tell them so.
 
 ## Procedures — read the file for what you are doing
 
