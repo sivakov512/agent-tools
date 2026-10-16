@@ -18,7 +18,7 @@ Only these blocks, in `language` (labels translated, structure kept):
 
 ```
 # Digest HH:MM · window HH:MM–HH:MM
-Cards N · take M · maybe K · connects L
+Cards N · take M · maybe K · connects L   ← L: the sum of the listed cards' Connects
 
 ## Take
 **1. #<short id> <Title>** — <My $: `$45/hr` for hourly, `$1,500 fixed` for fixed> · <My hours> h · <Complexity> · <Proposals> proposals · <Found HH:MM> · [Upwork →](<Link>) · [Notion →](<card url>)
@@ -43,3 +43,5 @@ Cards N · take M · maybe K · connects L
 ## 4. After the digest — live chat
 
 As soon as the user writes in this session, automatic mode ends and `references/chat.md` applies — "details N" for a card of this digest included.
+
+Off limits here: writing to Upwork; `PROCESSED_UNTIL`; every Notion write but the sync's.

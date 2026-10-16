@@ -145,14 +145,14 @@ upwork-pulse/
 │   └── dashboard-design.md       the dashboard's spec
 ├── tests/                        static checks: check_links.py (cross-references), check_dashboard.py (the page)
 └── skills/upwork-pulse/
-    ├── SKILL.md                  loaded on every use: data model, guards, finding things, questions, modes, automatic mode
+    ├── SKILL.md                  loaded on every use: data model, guards, finding things, questions, chat project, modes, automatic mode
     ├── references/               loaded only for the mode in use
     │   ├── hourly.md             queue, search, title filter, hand-off, report
     │   ├── assess.md             the Opus pass: full text, verdict, card and estimate, then drafts
     │   ├── drafts.md             advice and ready-to-paste proposals for new cards
     │   ├── digest.md             sync, then the window's New cards
     │   ├── weekly.md             questions → rules
-    │   ├── chat.md               postings, "details N", a job's chat, skip / applied, proposals, connects, chat project
+    │   ├── chat.md               postings, "details N", a job's chat, skip / applied, proposals, connects
     │   ├── sync.md               sent proposals from Upwork into Proposals
     │   ├── setup.md              create / adopt / finish; scheduled tasks
     │   ├── dashboard.md          when and how the dashboard is published and updated

@@ -28,7 +28,7 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 | `dashboard_version` | the dashboard version that page was published from (`references/dashboard.md` → *When*) |
 | `skill_version` | the plugin version the last hourly run used (N from the asset's first line); the dashboard shows it under Settings → Versions. Written by the hourly run when it differs, and by setup |
 | `dashboard_skip` | present (any value) when the user declined a dashboard (`references/dashboard.md` → *When*) |
-| `chat_project` | the claude.ai project new Claude chats from the dashboard open in: `<project id> <name>`, or `none` (`references/chat.md` → *Chat project*) |
+| `chat_project` | the claude.ai project new Claude chats from the dashboard open in: `<project id> <name>`, or `none` (*Chat project*) |
 | `auto_drafts` | `on` / `off` — "Auto proposals" on the dashboard: the hourly run's assessment on Opus goes on from each new card to advice and a proposal draft (`references/drafts.md`) |
 | `auto_skip` | `on` / `off` — with `auto_drafts` on, every hourly run sets Skipped each New card with a Skip advice that is not `Locked`, whenever the advice was written (`references/hourly.md` §6) |
 | `drafts_task` | id of the "Upwork drafts" task the dashboard starts to write or redo a proposal |
@@ -67,7 +67,7 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 
 `Status` is written by several actors: the hourly run (through its assessment) creates cards as New; the proposals sync sets Applied when a proposal for the job shows up on Upwork (creating the card if there is none) and writes what was sent into Proposals; the user, the dashboard and chat set Applied, Skipped or back to New; the hourly run sets Skipped by itself only through auto skip (`references/hourly.md` §6). Digests and the dashboard's lead lists show only New. A Skipped card is never re-evaluated or duplicated when the same job turns up again.
 
-**Every status change carries when, every skip who.** Applied or Skipped sets `Decided on` (now; the sync uses the proposal's send time). A skip also gets `Skipped by` — manual: the user did it, by a button or by asking in chat; auto: the hourly run's auto skip did it, on the card's Skip advice, with nobody involved — and `Skip reason`, one line in `language`: an auto skip always has one (the advice); a manual one has the user's reason when they gave one, else stays empty — the user may skip just because. Putting a card back to New clears all three.
+**Every status change carries when, every skip who.** Applied or Skipped sets `Decided on` (now; the sync uses the proposal's send time). A skip also gets `Skipped by` — manual: the user did it, by a button or by asking in chat; auto: the hourly run's auto skip did it, on the card's Skip advice, with nobody involved — and `Skip reason`, one line in `language`: an auto skip always has one (the advice); a manual one has the reason the user gave or accepted (the dashboard's Skip offers Claude's Skip advice as the reason, editable), else stays empty — the user may skip just because. Putting a card back to New clears all three.
 
 ### One fact, one place
 
@@ -105,7 +105,7 @@ The root page, in this order:
 
 Fetch the root and read the config. **Then check `schema` before anything else**: not 8 → *Pipeline update* decides what this session does first — in a conversation that is the update itself, whatever the user asked.
 
-**In a conversation, a config without a `chat_project` line gets one** after the user's request is answered, whatever it was: `references/chat.md` → *Chat project*.
+**In a conversation, a config without a `chat_project` line gets one in the same session** — whatever the user asked, a question as much as a write, after answering it: the project this conversation is in, or `none` (*Chat project*). It is one config edit and one closing line; skipping it leaves the dashboard opening chats in no project until some later conversation does it.
 
 A job can be named by short id (`#584350`, the last six digits of `Job ID`), by title, by link, or by its number in a list this conversation already holds ("the second one", "details 3" after a digest or a run report). A number means nothing outside the conversation that showed the list — with no such list here, ask which job. To find the card: query `jobs_inbox` (New cards) and match; not there → `jobs_all` (Applied and Skipped cards too). "No card" is said only after `jobs_all`. A conversation about a job starts from fresh data (`references/chat.md` → *Fresh data first*); scheduled runs and digests read the cards only.
 
@@ -115,16 +115,27 @@ A job can be named by short id (`#584350`, the last six digits of `Job ID`), by 
 - **A rule the user confirms** — in chat or in the weekly review — goes straight into the Search rules or the Proposal guide as one line refining the existing item (`update_content`), and the question, if there was one, gets `Status` Resolved with the answer in `Decision`. Rows are never deleted.
 - **A quirk** (a field that lags the site, a call the classifier blocks) is one line appended to Field notes; it is not a question.
 
+## Chat project
+
+On the phone and the web the dashboard starts a job's new Claude chat in the project named by the config's `chat_project`; the desktop app's link has no way to name a project, so there new chats open outside projects. The dashboard reads the line on every load and only shows it (Settings), so changing it never needs a republish.
+
+- **Set once, by the first conversation that finds no `chat_project` line** — the setup itself, or the first conversation after the plugin update that brought it, whatever it was about, after answering it: the project this conversation belongs to, as `<project id> <name>`; `none` when the conversation is in no project. The user chose this default: the project the skill was set up or updated from. After that it changes only when the user asks. Automatic runs never write it.
+- **The project's id** is its claude.ai UUID, the one in a link to it (`claude.ai/project/<id>`). The session sees it only indirectly — in a project-scoped path in its tools' instructions, such as a memory scope `/projects/<id>/` — and never guesses it; the name is the one the session's context gives the project. In a project whose id is nowhere in sight, write nothing: a later conversation tries again.
+- **Write it** with `update_content` on the config toggle — the line replaced, or added as the toggle's last line (tab-indented) — then one short line in `language` at the end of the reply: new chats from the dashboard open in <name> (or outside projects), and saying so in a chat inside another project moves them there.
+- **The user changes it in chat**: "open dashboard chats in this project" → this conversation's project, as above; "no project" → `none`. Another project by name cannot be resolved from here (its id is not visible): say to ask from a chat inside that project.
+
 ## Modes — read the file for the mode you are in
+
+The user's own message decides the mode, not a paraphrase of it (the arguments the skill was loaded with may reword "write a proposal" as "draft"): "write a proposal", "apply to this" is the package in chat; only "draft #…" itself is drafts mode.
 
 | When | Read |
 |---|---|
 | A scheduled run says "hourly search", or the user asks to scan / search for new jobs | `references/hourly.md` |
-| A prompt says "assessment mode" (the hourly run hands its survivors to a subagent), or the hourly run has no Agent tool and assesses them itself | `references/assess.md` |
-| A prompt says "drafts mode" (the hourly run's catch-up, the dashboard's drafts task), or the user's short command to write a job's proposal for the dashboard ("draft #584350", "redo the draft for #584350") | `references/drafts.md` |
 | A scheduled run says "digest" with a window, or the user asks what was found since a time | `references/digest.md` (it starts with `references/sync.md`) |
 | A scheduled run says "weekly review", or the user asks about open questions | `references/weekly.md` |
-| Any other conversation about the pipeline: a posting, an estimate, a skip, an applied mark, a lock, connects, "details N", writing a proposal ("write a proposal for #584350", "apply to this") or syncing proposals; a chat the dashboard started ("Job: <title> — Upwork Pulse, job #… (Job ID …). … Load it with the upwork-pulse skill.", or "Client: <client> — Upwork Pulse, Upwork room …") | `references/chat.md` (and `references/sync.md` for a sync or a sent proposal) |
+| The user asks about a posting, an estimate, a skip, an applied mark, a lock, connects, "details N", or asks to write a proposal ("write a proposal for #584350", "apply to this", "respond to the invitation") — the package in chat — or to sync proposals; a chat the dashboard started ("Job: <title> — Upwork Pulse, job #… (Job ID …). … Load it with the upwork-pulse skill.", or "Client: <client> — Upwork Pulse, Upwork room …") | `references/chat.md` (and `references/sync.md` for a sync or a sent proposal) |
+| A prompt says "assessment mode" (the hourly run hands its survivors to a subagent), or the hourly run has no Agent tool and assesses them itself | `references/assess.md` |
+| A prompt says "drafts mode" (the hourly run's catch-up, the dashboard's drafts task), or the user's own short command to fill a job's proposal for the dashboard — "draft #584350", "redo the draft for #584350", nothing longer | `references/drafts.md` |
 | Set up the pipeline, adopt existing pages, create the scheduled tasks | `references/setup.md` |
 | Publish or update the dashboard | `references/dashboard.md` |
 | Bring an older pipeline up to date (*Pipeline update*, or "update the pipeline") | `references/update.md` |
@@ -135,8 +146,8 @@ The config's `schema` is the structure the pipeline was built with; this skill w
 
 What each session does on a config below 8:
 
-- **The hourly run**: no `update_error` and no `updating` from the last 2 hours → the update instead of the search; its push and report are the update's (`references/update.md` → *When it ends*). The watermark has not moved, so the next run catches up. A fresh `updating` → another session is at it: an empty reply. `update_error` → paused until a conversation finishes the update: write nothing at all, empty reply (the user was told when it stopped, and the dashboard shows it from the config).
-- **A conversation**, whatever the user asked — a question as much as a write: the update right away (it also finishes a stopped one, `update_error` or not), its report, then the user's request. A fresh `updating` → answer what needs no writes; a request that writes cards or proposals gets one line: an update is running, ask again in a few minutes. "Update the pipeline" runs it the same way.
+- **The hourly run**: no `update_error` and no live `updating` line (`references/update.md` → *One session at a time*) → the update instead of the search; its push and report are the update's (`references/update.md` → *When it ends*). The watermark has not moved, so the next run catches up. A live `updating` → another session is at it: an empty reply. `update_error` → paused until a conversation finishes the update: write nothing at all, empty reply (the user was told when it stopped, and the dashboard shows it from the config).
+- **A conversation**, whatever the user asked — a question as much as a write: the update right away (it also finishes a stopped one, `update_error` or not), its report, then the user's request. A live `updating` → answer what needs no writes; a request that writes cards or proposals gets one line: an update is running, ask again in a few minutes. "Update the pipeline" runs it the same way.
 - **Every other automatic run** — digests, the weekly review, drafts mode, assessment mode — never starts it: it writes nothing and reads nothing beyond the config. The weekly review ends with an empty reply; drafts mode as `references/drafts.md` §1 says; the assessment returns `pipeline updating`; a digest's whole report is one line, pushed like a digest — with `update_error`: "Upwork Pulse update stopped: <update_error>. Open a chat and say \"update the pipeline\""; otherwise: "Upwork Pulse is updating to the new version; digests resume after it". The watermarks stay where they are, so the search catches up after the update.
 
 **A config above 8** was written by a newer copy of this plugin: this copy is out of date. Write nothing; in a conversation say in one line that the plugin needs updating; an automatic run ends with an empty reply.

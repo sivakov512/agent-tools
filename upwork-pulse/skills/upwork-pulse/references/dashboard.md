@@ -1,6 +1,6 @@
 # Dashboard — publish and update
 
-`assets/dashboard.html` is the user's live view of the pipeline: leads, Your move (replies, invitations, offers, overdue milestones), contracts, proposals, connects and balance. It reads Notion and Upwork with the viewer's own connectors, asks Claude (`sample`) for chat summaries and keeps them, with the chats the user parks, in the artifact's own store (`db`); it has no server side. It writes to Notion only on a click: Mark applied / Skip / Restore (`Status`, `Decided on` and the skip fields of a card), Lock / Unlock (`Locked`), the Settings switches (`auto_drafts`, `auto_skip` in the config), and Write a proposal / Rewrite (the job's Proposals row set to `State` Writing, created when there is none, then the drafts task started with `fire_trigger` — `references/drafts.md` §1). It never writes to Upwork. Its Claude chat links start the chats `references/chat.md` → *A job's chat* describes.
+`assets/dashboard.html` is the user's live view of the pipeline: leads, Your move (replies, invitations, offers, overdue milestones), contracts, proposals, connects and balance. It reads Notion and Upwork with the viewer's own connectors, asks Claude (`sample`) for chat summaries and keeps them, with the chats the user parks, in the artifact's own store (`db`); it has no server side. It writes to Notion only on a click: Applied / Skip / Restore (`Status`, `Decided on` and the skip fields of a card), Lock / Unlock (`Locked`), the Settings switches (`auto_drafts`, `auto_skip` in the config), and Write / Rewrite (the job's proposal row set to `State` Writing, created when there is none, the card's `Locked` ticked, then the drafts task started with `fire_trigger` — `references/drafts.md` §1). It never writes to Upwork. Its Claude chat links start the chats `references/chat.md` → *A job's chat* describes.
 
 ## When
 
@@ -12,7 +12,19 @@ The asset's first line is `<!-- dashboard-version: N -->`, N being the plugin's 
 
 ## Publish
 
-1. Copy `assets/dashboard.html` to a working file and replace every placeholder: `__ROOT_PAGE__` (the root page id — the page reads the config there on every load), `__UPWORK_ORG__`, `__VIEW_INBOX__`, `__VIEW_APPLIED__`, `__VIEW_SKIPPED__`, `__VIEW_PROPOSALS_OPEN__`, `__VIEW_PROPOSALS_SENT__`, `__VIEW_RUNS__`, `__VIEW_QUESTIONS__` (the view URLs from the config), `__QUESTIONS_URL__` (the Questions database page URL), `__TIMEZONE__`. Nothing else changes; keep the first line. Where a shell with Node is available, check that the page's script still parses (`node --check` on the contents of the last `<script>` block): a page whose script fails shows "Connecting…" forever and no error.
+1. Copy `assets/dashboard.html` to a working file and replace every placeholder, nothing else (keep the first line):
+
+   | Placeholder | Value |
+   |---|---|
+   | `__ROOT_PAGE__` | the root page id (the page reads the config there on every load) |
+   | `__UPWORK_ORG__` | config `upwork_org` |
+   | `__TIMEZONE__` | config `timezone` |
+   | `__VIEW_INBOX__`, `__VIEW_APPLIED__`, `__VIEW_SKIPPED__` | config `jobs_inbox`, `jobs_applied`, `jobs_skipped` |
+   | `__VIEW_PROPOSALS_OPEN__`, `__VIEW_PROPOSALS_SENT__` | config `proposals_open`, `proposals_sent` |
+   | `__VIEW_RUNS__`, `__VIEW_QUESTIONS__` | config `runs_latest`, `questions_open` |
+   | `__QUESTIONS_URL__` | config `questions_open` without its `?v=…` part (the Questions database) |
+
+   Where a shell with Node is available, check that the page's script still parses (`node --check` on the contents of the last `<script>` block): a page whose script fails shows "Connecting…" forever and no error.
 2. Publish it with the Artifact tool (load the artifact-capabilities skill first where the surface has it), title `Upwork Pulse`, icon `pulse`, with exactly these capabilities:
 
    ```json
