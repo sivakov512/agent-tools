@@ -94,6 +94,11 @@ Each page in `assets/` has its spec in `docs/dashboard-design.md`, updated in th
 6. **A missing capability** (no `sample`, no `db`) is said on the page — what does not work there — never a quiet failure.
 7. **The first line is `<!-- <name>-version: x.y.z --> <!-- x-release-please-version -->`** (`dashboard-version`, `client-dashboard-version`): the release stamps the version there, as the page is a `generic` extra file in `.release-please/config.json`; never edited by hand. A published page older than the plugin is brought up to date by the skill, as its design doc says.
 
+**Other code** a plugin runs — hooks, `libexec/`, its `tests/` — follows 4 too (one function, one job; no dead code; no logic written twice), and:
+
+8. **Every rule the code enforces has a test** in `tests/`, run offline with fakes for the outside world, and a refusal's text says what to do instead, since the agent acts on it.
+9. **It runs where the plugin says it runs** — the oldest shell or runtime named in its README — and depends on nothing beyond what that README lists.
+
 ## 7. Checking a change
 
 1. **Static checks**: `python3 scripts/check.py <plugin>` passes. It checks the skill's frontmatter and size, links, the plugin's registration, graders, and the pages' scripts, then runs the plugin's own `tests/`. CI runs it for every plugin on each push and pull request.
