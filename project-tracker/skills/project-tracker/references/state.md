@@ -1,10 +1,10 @@
 # Pause, resume and project state
 
-SKILL.md (**Pause**) has the core: `Status` Paused, a dated line with the reason and the previous status, and nothing paused is late.
+A milestone or project stopped for a reason outside the work gets `Status` Paused and a dated line with the reason and the previous status (`- **Mar 10** — Paused (was In progress): waiting on Kestrel for parts.`). A paused item, and everything under it, is never late (SKILL.md → **How lateness works**).
 
 ## Milestone paused — "the enclosure test is on hold until Kestrel sends the parts"
 
-A milestone stops for a reason outside the work: pause it as SKILL.md (**Pause**) says. If someone else has to act, so that it shows up in "who to chase": a Waiting task for exactly that already exists → name it in the pause line; otherwise open a Blocker waiting on whoever must act (`Waiting on` Kestrel), linked to the milestone. A pause without a reason is allowed: propose it with `no reason given` and ask for the reason in the same reply. The pause is a fact the user reported: it goes into the proposal (or is written at once on an instruction or a go-ahead, SKILL.md → **Propose, then write**), and the same reply asks whether later milestones wait on this one — those that do are paused the same way, the rest carry on (several milestones can be In progress).
+A milestone stops for a reason outside the work: pause it as above. If someone else has to act, so that it shows up in "who to chase": a Waiting task for exactly that already exists → name it in the pause line; otherwise open a Blocker waiting on whoever must act (`Waiting on` Kestrel), linked to the milestone. A pause without a reason is allowed: propose it with `no reason given` and ask for the reason in the same reply. The pause is a fact the user reported: it goes into the proposal (or is written at once on an instruction or a go-ahead, SKILL.md → **Propose, then write**), and the same reply asks whether later milestones wait on this one — those that do are paused the same way, the rest carry on (several milestones can be In progress).
 
 Tasks are not paused on their own: a task that cannot move because someone else has to act is Waiting; one the user set aside stays Planned with a history line saying why.
 
