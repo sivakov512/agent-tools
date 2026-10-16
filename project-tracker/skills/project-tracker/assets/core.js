@@ -44,12 +44,16 @@
   function showPart(box, open, isOpen) { // shows or hides a part, smoothly; isOpen() says, at the end, whether it should still be shown
     if (open) { box.hidden = false; slide(box, true); } else slide(box, false, function () { if (!isOpen()) box.hidden = true; });
   }
+  function foldDetails(d, body) { // a <details> opens or folds smoothly; its chevron turns at once (.shut while it folds)
+    if (!d.open || d.classList.contains("shut")) { d.classList.remove("shut"); d.open = true; slide(body, true); }
+    else { d.classList.add("shut"); slide(body, false, function () { if (d.classList.contains("shut")) { d.open = false; d.classList.remove("shut"); } }); }
+  }
   function growTo(box, from) { // a box redrawn at a new height grows or shrinks to it from the old one
     if (!MOTION || !box.animate || from == null) return; var to = box.offsetHeight; if (Math.abs(to - from) < 2) return;
     box.style.overflow = "clip"; var an = box.animate([{ height: from + "px" }, { height: to + "px" }], { duration: 200, easing: "cubic-bezier(.2, 0, 0, 1)" });
     function end() { if (end.ran) return; end.ran = 1; an.cancel(); box.style.overflow = ""; } an.onfinish = end; setTimeout(end, 260);
   }
-  function smooth() { return matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"; }
+  function smooth() { return MOTION ? "smooth" : "auto"; }
   function sel(v) { return window.CSS && CSS.escape ? CSS.escape(v) : String(v).replace(/["\\]/g, "\\$&"); } // values from data inside a selector
   function keep(host, fn) { var y = host.scrollTop; fn(); host.scrollTop = y; } // updates never jump a list back to the top
 
@@ -667,14 +671,12 @@
   }
 
   window.PT = {
-    DAY: DAY, OPEN_MS: OPEN_MS, OPEN_TASK: OPEN_TASK, SPANS: SPANS, CHEV: CHEV, MON: MON,
+    DAY: DAY, OPEN_MS: OPEN_MS, SPANS: SPANS, CHEV: CHEV,
     whoOf: whoOf,
-    refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled, copyText: copyText,
-    el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, clean: clean, rel: rel, key: key, num: num, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, fold: showPart, grow: growTo,
+    refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled,
+    el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, fold: showPart, foldDetails: foldDetails,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
-    msOf: msOf, taskOf: taskOf, problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate,
-    currentTask: currentTask, focusOf: focusOf, whenOf: whenOf, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState, planPhrase: planPhrase, itemDot: itemDot, tipOf: tipOf,
-    timeline: timeline,
-    facts: facts, actions: actions, typeTag: typeTag, phraseEl: phraseEl, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
+    problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState,
+    timeline: timeline, actions: actions, typeTag: typeTag, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };
 })();
