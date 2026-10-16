@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.19.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.18.0...upwork-pulse-v0.19.0) (2026-10-16)
+
+
+### Features
+
+* **upwork-pulse:** chat summaries and parks shared across devices ([5fd977c](https://github.com/sivakov512/agent-tools/commit/5fd977c04214474493d58e95248da2e63fb3d58c))
+
+
+### Bug Fixes
+
+* **upwork-pulse:** a dashboard chat claims its job before an update ([00758a9](https://github.com/sivakov512/agent-tools/commit/00758a90f8132ded0df1d9828499c2846bea6f45))
+* **upwork-pulse:** answer first; plain chat, code blocks only to paste ([cbe0e44](https://github.com/sivakov512/agent-tools/commit/cbe0e44bc5dbb5faf8d1d4e52c265f0025bd5aea))
+* **upwork-pulse:** chat summaries date messages in the user's timezone ([accdd40](https://github.com/sivakov512/agent-tools/commit/accdd40d3e0e3d37ebb7b603ec3d92cd3ddb931e))
+* **upwork-pulse:** dashboard dark controls and steady text size on iOS ([07fcab6](https://github.com/sivakov512/agent-tools/commit/07fcab6354c9336560147a9e3f91058475396d1e))
+* **upwork-pulse:** group chats wait on you only when the thread asks ([47f69ab](https://github.com/sivakov512/agent-tools/commit/47f69abf3cb7f9af7411ecc566bf1f6d9527baa6))
+* **upwork-pulse:** keep open questions out of a card's Risks ([047688f](https://github.com/sivakov512/agent-tools/commit/047688fad6648de397359c51aa44f3b1c74cc88d))
+* **upwork-pulse:** lead days say Today again, in the user's timezone ([16174cb](https://github.com/sivakov512/agent-tools/commit/16174cb62151416e497f7d08394d584987de7441))
+* **upwork-pulse:** leads sort by posting time, newest first ([52e7f5f](https://github.com/sivakov512/agent-tools/commit/52e7f5ff3e072a6d738761bf24f043d17c221779))
+* **upwork-pulse:** mark Takes and Maybes in the assessment's return ([650eeb3](https://github.com/sivakov512/agent-tools/commit/650eeb3d20b352e37f8f7df69ece6ea826ac6ffb))
+* **upwork-pulse:** never hand over a task prompt that says &lt;root&gt; ([8d9bdcb](https://github.com/sivakov512/agent-tools/commit/8d9bdcb0a350198e63357939eaab534172df9730))
+* **upwork-pulse:** Skip offers the advice as reason; mode limits ([474a932](https://github.com/sivakov512/agent-tools/commit/474a932ce79fbfd9925a0c4a52ebe909b580a3c9))
+* **upwork-pulse:** write nothing while a subagent runs in the background ([da28b74](https://github.com/sivakov512/agent-tools/commit/da28b74a4ed50a77a71d9b5ec9fe6851975ba315))
+
 ## [0.18.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.17.3...upwork-pulse-v0.18.0) (2026-10-15)
 
 
