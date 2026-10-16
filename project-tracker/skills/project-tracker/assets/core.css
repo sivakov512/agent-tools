@@ -7,6 +7,7 @@
   --accent: #0f7f79; --accent-soft: #e2f2f0; --on-accent: #ffffff;
   --critical: #b83a2e; --critical-soft: #fbe9e6; --warn: #8a6c2c; --warn-soft: #f5eedf; --good: #2a8a55; --good-soft: #e3f3e9;
   --bar: #dde1df; --bar-ink: #2b3231; --paused: #c2c8c5; --scrim: rgba(18, 22, 22, .28); --weekend: rgba(18, 22, 22, .035);
+  --shadow-drawer: -20px 0 48px rgba(0, 0, 0, .14); --shadow-pop: 0 12px 32px rgba(0, 0, 0, .16); --shadow-float: 0 6px 18px rgba(0, 0, 0, .14); --shadow-lift: 0 6px 18px rgba(0, 0, 0, .28); /* shadows: black in both themes */
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
@@ -91,7 +92,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .info { position: relative; margin-left: 0; }
 .info .icon-btn { width: 24px; height: 24px; }
 .info .ico { width: 15px; height: 15px; }
-.info .pop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 20; width: 290px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.16); padding: 14px 16px; font-size: 13px; color: var(--text-2); }
+.info .pop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 20; width: 290px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-pop); padding: 14px 16px; font-size: 13px; color: var(--text-2); }
 .info .pop .lg { display: grid; grid-template-columns: 26px 1fr; gap: 7px 10px; align-items: center; margin-bottom: 10px; }
 .info .pop .sw { position: relative; height: 14px; }
 .info .pop .sw > * { position: absolute; inset: 0; width: auto; height: auto; padding: 0; pointer-events: none; } /* real timeline pieces, shrunk to a swatch */
@@ -270,7 +271,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .tl-b.box.nodate { --st: var(--text-2); --st-soft: color-mix(in srgb, var(--text) 9%, var(--surface)); }
 .tl-b.box.nodate .tl-bh { font-weight: 500; }
 .tl-b.box:hover { filter: brightness(1.08); box-shadow: none; }
-.tl-b.box.hov { box-shadow: 0 6px 18px rgba(0, 0, 0, .28); } /* the lift wins over the plain hover */
+.tl-b.box.hov { box-shadow: var(--shadow-lift); } /* the lift wins over the plain hover */
 .tl-strip { position: absolute; left: 8px; right: 8px; bottom: 4px; height: 4px; }
 .tl-seg { position: absolute; height: 4px; border-radius: 2px; cursor: pointer; background: var(--border-2); }
 .tl-seg.prog { background: var(--accent); } .tl-seg.late { background: var(--critical); } .tl-seg.wait { background: var(--warn); } .tl-seg.done, .tl-seg.doneLate { background: var(--good); } .tl-seg.paused { background: var(--paused); }
@@ -282,7 +283,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .tl-chip.paused { color: var(--text-2); }
 .tl-chip:hover { filter: brightness(1.12); }
 .tl-b, .tl-chip { transition: width .12s ease-out, left .12s ease-out; }
-.tl-b.hov, .tl-chip.hov { z-index: 2; box-shadow: 0 6px 18px rgba(0, 0, 0, .28); } /* above other bars, below the sticky names and months */
+.tl-b.hov, .tl-chip.hov { z-index: 2; box-shadow: var(--shadow-lift); } /* above other bars, below the sticky names and months */
 .tl-chip.hov { z-index: 3; }
 .tl-corner { height: 100%; border-bottom: 0; }
 /* small pieces that used to be inline styles */
@@ -335,7 +336,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .origin > button:hover { border-color: var(--border-2); }
 .origin > button .n { color: var(--text-mute); }
 .origin > button svg { width: 10px; height: 10px; stroke: var(--text-mute); fill: none; stroke-width: 1.8; }
-.dd-m { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; min-width: 200px; max-height: 60vh; overflow: auto; padding: 6px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 12px 32px rgba(0, 0, 0, .16); }
+.dd-m { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; min-width: 200px; max-height: 60vh; overflow: auto; padding: 6px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-pop); }
 .dd-m button { display: flex; width: 100%; align-items: center; gap: 10px; border: 0; background: none; padding: 8px 10px; border-radius: 8px; font-size: 14px; color: var(--text); text-align: left; cursor: pointer; white-space: nowrap; }
 .dd-m button:hover { background: var(--surface-2); }
 .dd-m button .n { margin-left: auto; color: var(--text-mute); }
@@ -404,7 +405,7 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 /* ---------- the project page, sliding in from the right ---------- */
 .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .2s; }
 .scrim.on { opacity: 1; pointer-events: auto; }
-.drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(680px, 100vw); background: var(--surface); box-shadow: -20px 0 48px rgba(0, 0, 0, .14); display: flex; flex-direction: column; transform: translateX(104%); transition: transform .24s cubic-bezier(.2, .7, .2, 1); visibility: hidden; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(680px, 100vw); background: var(--surface); box-shadow: var(--shadow-drawer); display: flex; flex-direction: column; transform: translateX(104%); transition: transform .24s cubic-bezier(.2, .7, .2, 1); visibility: hidden; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 .drawer.on { transform: none; visibility: visible; }
 .drawer.wide { width: min(1440px, 100vw); } /* widened: as wide as the page, never wider than the window */
 .drawer { transition: transform .24s cubic-bezier(.2, .7, .2, 1), width .2s ease-out; }
@@ -418,7 +419,7 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 .dr-note .nh { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; font-size: 12.5px; font-weight: 600; color: var(--accent); }
 .dr-note .nh .ico { width: 15px; height: 15px; }
 .dr-note .nh + div ~ div { margin-top: 4px; }
-.to-top { position: absolute; right: 22px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 2; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); box-shadow: 0 6px 18px rgba(0, 0, 0, .14); display: grid; place-items: center; cursor: pointer; opacity: 0; pointer-events: none; transform: translateY(6px); transition: opacity .18s, transform .18s; }
+.to-top { position: absolute; right: 22px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 2; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); box-shadow: var(--shadow-float); display: grid; place-items: center; cursor: pointer; opacity: 0; pointer-events: none; transform: translateY(6px); transition: opacity .18s, transform .18s; }
 .to-top.on { opacity: 1; pointer-events: auto; transform: none; }
 .to-top:hover { color: var(--text); border-color: var(--border-2); }
 @media (prefers-reduced-motion: reduce) { .to-top { transition: none; } }
@@ -431,7 +432,7 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 .chat.split > a { border-radius: 6px 0 0 6px; padding-right: 8px; }
 .chat > .more { border: 0; border-left: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); background: none; color: var(--accent); padding: 0 7px; border-radius: 0 6px 6px 0; cursor: pointer; display: grid; place-items: center; }
 .chat > .more svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-.chat-m { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; width: min(280px, calc(100vw - 32px)); padding: 6px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 12px 32px rgba(0, 0, 0, .16); }
+.chat-m { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; width: min(280px, calc(100vw - 32px)); padding: 6px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-pop); }
 .chat-m a { display: block; padding: 9px 10px; border-radius: 8px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 500; white-space: normal; }
 .chat-m a .d { display: block; font-size: 12.5px; line-height: 1.45; font-weight: 400; color: var(--text-mute); margin-top: 2px; }
 .chat-m a:hover { background: var(--surface-2); }
