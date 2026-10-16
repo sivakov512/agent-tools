@@ -20,7 +20,7 @@ In the Projects field `Client dashboard` (URL) of every project it covers — on
 
 One dashboard per project: asked for one on a project that already has a link, give that link (and offer to change what it covers) instead of making a second. A milestone gets no dashboard of its own — its project's dashboard shows it.
 
-## Make one — "сделай клиентский дэш для Valokuu", "a dashboard for ArcLive with both projects"
+## Make one — "make a client dashboard for Valokuu", "a dashboard for ArcLive with both projects"
 
 1. **What it covers.** The project, or the projects named. Several projects must share a `Client` (so must a project added later); if the user names a client, offer its active projects and ask which. Nothing is published before the scope is clear.
 2. **What becomes visible.** Fetch every page it covers (each project page, and the pages of its live and Done milestones, tasks and problems) and check the public parts against **Who sees what**: entries written before that rule, or typed into Notion by hand, may hold prices, contacts or opinions; a `Client sees` private note on the project page says what this client may see. List each doubtful one in a line — the page, the entry's first words, why — and propose moving it to `## Private notes`; when nothing is doubtful, say so in one line. Move what the user agrees to (SKILL.md → **Bodies**, **Moving an entry**) before going on. This check runs once, here; afterwards the rule itself keeps the public parts clean.
@@ -77,7 +77,7 @@ A conversation that only reads refreshes nothing. "Update the client dashboard" 
 ## Change what it covers, or remove it
 
 - **Add or drop a project** ("add Hub support to the ArcLive dashboard"): set or clear its `Client dashboard`, then refresh. Dropping the last one is removing it.
-- **Remove** ("удали клиентский дэш Valokuu", "take the client dashboard down"): the link stops working for everyone who has it, so first say so and ask (one line with the link). On yes: delete the artifact (Artifact `action: "delete"` with the link), then clear `Client dashboard` on every project that holds it. No artifact tool → clear the field and tell the user to delete the page from claude.ai.
+- **Remove** ("remove the Valokuu client dashboard", "take the client dashboard down"): the link stops working for everyone who has it, so first say so and ask (one line with the link). On yes: delete the artifact (Artifact `action: "delete"` with the link), then clear `Client dashboard` on every project that holds it. No artifact tool → clear the field and tell the user to delete the page from claude.ai.
 
 ## Output
 
