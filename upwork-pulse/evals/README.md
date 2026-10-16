@@ -31,19 +31,13 @@ evals/
 └── <case>/mocks/…         case-specific fakes (Maybe-only feed; job pages refused; job pages paused in Run state; a filled job with an OnHold proposal and its chat; a feasibility-study posting; a rules page that fails to load; an empty workspace; a pipeline without a config; a schema-1 pipeline; a schema-3 one with the old Proposals columns, and the same with an `update_error`; a card whose `Chat` already holds another session; a config with no `chat_project` line; drafts and auto skip on with a fifth card whose posting is gone)
 ```
 
-## Keeping the suite honest
-
-A grader file with no frontmatter is skipped without a word, so a case can pass while checking nothing. Before trusting a green run: `find evals -name '*.md' -size 0` must print nothing. Regex graders match the tool input as JSON text, where quotes are escaped — match `Job ID`, not `"Job ID"`.
-
 ## Reports and pushes without news
 
 Every scheduled run ends with a report whose last block is `## Log` (SKILL.md → automatic mode), news or not; only the push waits for news. So a run with nothing to show is checked for its report and Log (`digest-empty`: `# Digest` with a `Sync` line, no cards), and that the push tool was not loaded. `hourly-rules-fail` still ends with its report: zero counts and a `Problems` line saying the rules could not be read, the watermark left as it was; `hourly-update-stopped` stops before the work and checks that no run report leaked into the reply.
 
 ## Reading failures
 
-The agent, the mocks and the judge are all models; one run can fail for reasons unrelated to the skill. Read the trace first, re-run the case (`--case <name> --runs 3`), and change the skill only for failures that repeat or that would damage data — with a general rule and its reason, not a patch for the one example. The LLM judge itself misfires: `setup-adopt` and `chat-proposal` have failed on replies that meet every claim when re-judged by hand; check the reply against the rubric before touching the skill.
-
-Known unstable on Sonnet, one run in two or three: `question-repeat` (the case is decided without recording a question, or a second row instead of bumping `Seen`); `setup-adopt` (a `<root>` placeholder left in the hand-made task table); `setup-empty` (the watermark takes the machine date instead of the case's date; or, without a task tool, the reply says the tasks are missing but leaves out the table of prompts). The LLM judge on `setup-adopt` and `chat-proposal` fails replies that pass every claim when re-judged by hand.
+`docs/skill-development.md` §7 (at the repository root). Known unstable on Sonnet, one run in two or three: `question-repeat` (the case is decided without recording a question, or a second row instead of bumping `Seen`); `setup-adopt` (a `<root>` placeholder left in the hand-made task table); `setup-empty` (the watermark takes the machine date instead of the case's date; or, without a task tool, the reply says the tasks are missing but leaves out the table of prompts). The LLM judge on `setup-adopt` and `chat-proposal` fails replies that pass every claim when re-judged by hand.
 
 ## Pushes
 
