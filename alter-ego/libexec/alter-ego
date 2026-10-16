@@ -229,16 +229,17 @@ ask_text() { echo "no identity is chosen for $1 yet. Ask the user once: $(questi
 
 # allowed | refused in an Anthropic-hosted cloud session (Claude Code sets
 # CLAUDE_CODE_REMOTE=true there), nothing elsewhere. No mode can hold there: its
-# GitHub proxy pushes with the user's own token. ALTER_EGO_CLOUD=allow, set in a
-# repository's cloud environment, lets git and gh through untouched; outside a
-# cloud session the variable means nothing.
+# GitHub proxy pushes with the user's own token. Allowed lets git and gh through
+# untouched: for this session by `alter-ego use cloud` (the container's config,
+# gone with the container), or for every session of a cloud environment by
+# ALTER_EGO_CLOUD=allow in its variables. Outside a cloud session neither counts.
 cloud() {
   [ "${CLAUDE_CODE_REMOTE:-}" = true ] || return 0
-  if [ "${ALTER_EGO_CLOUD:-}" = allow ]; then echo allowed; else echo refused; fi
+  if [ "${ALTER_EGO_CLOUD:-}" = allow ] || [ "$(cfg '.cloud // empty')" = allow ]; then echo allowed; else echo refused; fi
 }
 
 cloud_text() {
-  echo "this is an Anthropic-hosted cloud session, where neither a bot nor clean mode can hold: its GitHub traffic goes through Anthropic's proxy with the user's own token. Pushes and gh writes are refused here unless the user allows them for this repository with ALTER_EGO_CLOUD=allow in its cloud environment; then commits go out as Claude, and pushes and pull requests through the user's own GitHub account."
+  echo "this is an Anthropic-hosted cloud session, where neither a bot nor clean mode can hold: its GitHub traffic goes through Anthropic's proxy with the user's own token, so pushes and gh writes are refused until the user allows this session. Ask them once, as its own question the user cannot miss (with the AskUserQuestion tool when you have it, otherwise as the last paragraph of your reply under a bold heading): allow this cloud session? Commits go out as Claude, pushes and pull requests through their own GitHub account. Add one line: to allow every session of this cloud environment, they add ALTER_EGO_CLOUD=allow to its environment variables (claude.ai/code, the environment selector, Edit environment). On yes, run \`alter-ego use cloud\`; on no, nothing is pushed or posted from here."
 }
 
 # ------------------------------------------------------------ git wrapper
@@ -375,7 +376,7 @@ cmd_git() {
   esac
   case "$(cloud)" in
     allowed) exec "$GIT" "$@" ;;
-    refused) [ "$sub" = push ] && refuse "$(cloud_text) Tell the user."; exec "$GIT" "$@" ;;
+    refused) [ "$sub" = push ] && refuse "$(cloud_text)"; exec "$GIT" "$@" ;;
   esac
   # In a bot repository every git process (and what it runs: hooks, rebase --exec,
   # helper scripts) carries the bot's identity; elsewhere only push is checked.
@@ -462,7 +463,7 @@ cmd_gh() {
   case "$sub1" in ""|auth|config|alias|extension|completion|help|version|gpg-key|ssh-key|codespace|search|status|browse|gist|org) exec "$gh" "$@" ;; esac
   case "$(cloud)" in
     allowed) exec "$gh" "$@" ;;
-    refused) [ -z "$write" ] || refuse "$(cloud_text) Tell the user."; exec "$gh" "$@" ;;
+    refused) [ -z "$write" ] || refuse "$(cloud_text)"; exec "$gh" "$@" ;;
   esac
   local key mode
   [ -n "$repo" ] || repo="${GH_REPO:-}"
@@ -539,8 +540,8 @@ cmd_session_start() {
   fi
   have jq || { echo "alter-ego is installed but jq is missing, so it cannot tell repositories apart and refuses every push and gh write: tell the user to install jq."; return 0; }
   case "$(cloud)" in
-    allowed) session_context "alter-ego: an Anthropic-hosted cloud session whose environment allows git and gh through (ALTER_EGO_CLOUD=allow), so they run untouched: commits here go out as Claude, and pushes and pull requests through the user's own GitHub account. Bot and clean modes do not apply in cloud sessions."; return 0 ;;
-    refused) session_context "alter-ego: $(cloud_text) Say so before the first push, pull request, issue, review or comment here."; return 0 ;;
+    allowed) session_context "alter-ego: an Anthropic-hosted cloud session the user has allowed, so git and gh run untouched: commits here go out as Claude, and pushes and pull requests through the user's own GitHub account. Bot and clean modes do not apply in cloud sessions."; return 0 ;;
+    refused) session_context "alter-ego: $(cloud_text) Ask it before the first push, pull request, issue, review or comment here, not in a session that only reads."; return 0 ;;
   esac
   cwd="$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null)"; cwd="${cwd:-$PWD}"
   upgrade_config
@@ -575,8 +576,8 @@ wrappers_active() { [ -n "$SHIMS" ] && [ "$(command -v git)" = "$SHIMS/git" ]; }
 cmd_status() {
   local key mode
   case "$(cloud)" in
-    allowed) echo "cloud session: git and gh pass through untouched (ALTER_EGO_CLOUD=allow); modes do not apply" ;;
-    refused) echo "cloud session: pushes and gh writes are refused; modes do not apply (ALTER_EGO_CLOUD=allow in the repository's cloud environment lets them through)" ;;
+    allowed) echo "cloud session: allowed, so git and gh pass through untouched; modes do not apply" ;;
+    refused) echo "cloud session: not allowed, so pushes and gh writes are refused; modes do not apply (alter-ego use cloud on the user's yes, or ALTER_EGO_CLOUD=allow in the cloud environment)" ;;
   esac
   if key="$(repo_key)"; then
     mode="$(mode_for_key "$key")"
@@ -615,9 +616,15 @@ cmd_bots() {
 }
 
 cmd_use() {
-  local m="${1:?usage: alter-ego use <clean|bot>}" key
+  local m="${1:?usage: alter-ego use <clean|bot|cloud>}" key
   [ "$m" = off ] && m=clean
-  [ -z "$(cloud)" ] || die "modes do not apply here: $(cloud_text)"
+  if [ "$m" = cloud ]; then
+    [ -n "$(cloud)" ] || die "use cloud allows an Anthropic-hosted cloud session, where no mode can hold, and this is not one: here a repository is clean or a bot"
+    cfg_write '.cloud = "allow"'
+    echo "this cloud session is allowed: git and gh run untouched, commits go out as Claude, pushes and pull requests through the user's GitHub account"
+    return 0
+  fi
+  [ -z "$(cloud)" ] || die "modes do not apply in a cloud session: $(cloud_text)"
   key="$(repo_key)" || die "not inside a git repository"
   if [ "$m" != clean ]; then
     load_bot "$m" || die "no bot named $m (alter-ego bots lists them)"
@@ -629,7 +636,7 @@ cmd_use() {
 }
 
 cmd_forget() {
-  [ -z "$(cloud)" ] || die "modes do not apply here: $(cloud_text)"
+  [ -z "$(cloud)" ] || die "modes do not apply in a cloud session: $(cloud_text)"
   local key; key="$(repo_key)" || die "not inside a git repository"
   cfg_write 'del(.repos[$k])' --arg k "$key"
   echo "$key: choice removed, it will be asked again"
@@ -651,7 +658,7 @@ cmd_add_bot() {
     shift 2
   done
   printf '%s' "$name" | grep -qE '^[A-Za-z0-9][A-Za-z0-9_.-]*$' || die "bot name: letters, digits, . _ - only"
-  case " clean off unset none " in *" $name "*) die "'$name' is reserved, pick another bot name" ;; esac
+  case " clean off unset none cloud " in *" $name "*) die "'$name' is reserved, pick another bot name" ;; esac
   # Re-adding a bot keeps what it had (id, format, secret) unless given anew.
   local filter='.bots[$n] = ((.bots[$n] // {}) + {login: $l})' i=0
   local -a args=(--arg n "$name" --arg l "$login")
@@ -805,6 +812,7 @@ alter-ego — per-repository git and GitHub identity for Claude sessions
 
   status                       this repository's mode, the bots, the secret store
   use <clean|bot>              choose the mode for this repository (off = clean)
+  use cloud                    allow this Anthropic-hosted cloud session (git and gh untouched)
   forget                       drop this repository's choice (it is asked again)
   bots                         list bots, their readiness and repositories
   add-bot <name> <login> [--secret NAME] [--secret-command CMD] [--name-format FMT]
