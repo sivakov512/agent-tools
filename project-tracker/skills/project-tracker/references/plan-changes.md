@@ -10,7 +10,7 @@ The scope or structure changes, and one sentence of the user's rewrites many row
 
 1. Work it out on the project's `Schedule` and `Tasks` views.
    - **Add a milestone**: dates the user stated, or that follow from the rules in `references/new-project.md` (start = end of the previous milestone); otherwise ask. A milestone inserted into the chain pushes everything starting on or after its start by its length.
-   - **Add tasks** — more than the one task the user named ("the demo has these steps: …"): under the milestone they serve, with the dates the user gave, or none. The one task the user asked for is not a plan change — SKILL.md, **Tasks**.
+   - **Add tasks** — more than the one task the user named ("the demo has these steps: …"): under the milestone they serve, with the dates the user gave or that follow from what they said (SKILL.md → **Never guess a date or a duration**), or none. The one task the user asked for is not a plan change — SKILL.md, **Tasks**.
    - **Break a milestone into tasks**: the steps become tasks of that milestone; the milestone keeps its own `Dates`. Steps the user gives dates for get them; one that runs past the milestone's end is offered as SKILL.md → **Dates are the user's** says.
    - **Turn a stage into a milestone with tasks** (a phase that grew steps, or a milestone that was really a step of a bigger one): create the new milestone, set the existing rows' `Milestone` to it, keep their histories; nothing is deleted.
    - **Drop** a milestone or several tasks: they become `Dropped`; a dropped milestone's open tasks are dropped with it (say so). The rest does not move unless the user says so. The one task the user names is a removal, without a preview (**Removing**).
