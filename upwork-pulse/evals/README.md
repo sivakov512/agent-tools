@@ -9,7 +9,7 @@ claude plugin eval . --tag routine   --model sonnet --judge-model sonnet --runs 
 claude plugin eval . --tag proposal  --model opus   --judge-model sonnet --runs 1 --ablation none --trust-plugin -j 2 --no-publish
 ```
 
-- Two groups because two models do the work: `routine` (everything but proposals, drafts and the chat updates) runs on Sonnet, what the scheduled tasks use; `proposal` (chat proposals, the drafts mode, and the updates a chat starts: `chat-auto-update`, `update-to-6`) runs on Opus, what proposals, drafts and chats are written with. On Sonnet a chat answers and asks before updating instead of updating unasked; the hourly run on Sonnet updates. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
+- Two groups because two models do the work: `routine` (everything but proposals, drafts, setup and the chat updates) runs on Sonnet, what the scheduled tasks use; `proposal` (chat proposals, the drafts mode, setup — `setup-adopt`, `setup-empty`, `setup-propose-name`, which runs in a conversation, on the user's model — and the updates a chat starts: `chat-auto-update`, `update-to-6`) runs on Opus, what proposals, drafts and chats are written with. On Sonnet a chat answers and asks before updating instead of updating unasked; the hourly run on Sonnet updates. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
 - One case: `--case hourly-take` (one `--case` per run; `--case` and `--tag` together match nothing). By mode: `--tag hourly` (hourly, digest, weekly, chat, setup, drafts, negative).
 - 35 cases, roughly 15 minutes at `-j 3`.
 
