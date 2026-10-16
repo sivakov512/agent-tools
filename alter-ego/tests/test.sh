@@ -354,6 +354,30 @@ check_empty "a pattern that only mentions them is allowed" "$(guard "grep -nE 'e
 check_empty "env -i without git or gh is allowed" "$(guard "env -i ls && git push")"
 check_empty "command -v is allowed" "$(guard "command -v git && git commit -m x")"
 
+# --- Anthropic-hosted cloud sessions
+cd "$T/work"
+git commit -q --allow-empty -m $'Cloud work\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
+ALTER_EGO_CLOUD=allow refused "the variable means nothing outside a cloud session" git push
+check "clean mode holds there" "$OUT" "clean mode"
+export CLAUDE_CODE_REMOTE=true
+refused "a cloud push without the variable" git push
+check "it says why and how to allow it" "$OUT" "cloud session, where neither a bot nor clean mode can hold.*ALTER_EGO_CLOUD=allow"
+refused "a cloud gh write without the variable" gh pr create --title t --body b
+succeeds "a cloud gh read without the variable" gh pr list
+check "the cloud context says it is refused" "$(echo "{\"cwd\": \"$PWD\"}" | "$AE" session-start)" "Pushes and gh writes are refused here"
+check "use does not apply in the cloud" "$("$AE" use clean 2>&1)" "modes do not apply here"
+export ALTER_EGO_CLOUD=allow
+succeeds "a cloud push with the variable passes through, marks and all" git push -q
+succeeds "a cloud gh write with the variable" gh pr create --title t --body '🤖'
+check "it runs untouched" "$(last_gh)" "^token=none pr create"
+check "the cloud context says whose name" "$(echo "{\"cwd\": \"$PWD\"}" | "$AE" session-start)" "commits here go out as Claude, and pushes and pull requests through the user's own GitHub account"
+unset CLAUDE_CODE_REMOTE ALTER_EGO_CLOUD
+"$AE" use forge >/dev/null
+CLAUDE_CODE_REMOTE=true ALTER_EGO_CLOUD=allow git commit -q --allow-empty -m "Cloud commit"
+check "a cloud commit in a bot repository is not rewritten" "$(author .)" "^Me <me@example.com>"
+git reset -q --hard HEAD~1
+"$AE" use clean >/dev/null
+
 # --- outside a repository
 cd "$T"
 check "status outside a repo" "$("$AE" status)" "not inside a git repository"
