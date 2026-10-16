@@ -45,6 +45,7 @@ These hold in every repository and every mode. Each is checked by an eval case (
 Choices the user made or confirmed. A request that goes against one is raised with the user before anything changes.
 
 - **Two modes per repository: clean or a named bot.** Some repositories must show no AI (client work, open source, issue threads); in others the user wants to see at a glance what a machine wrote, review it as a colleague's PR and filter it on GitHub.
+- **alter-ego decides whose name, never whether.** A push, PR, issue or comment happens when the user has asked for it, a standing go-ahead included (§4.4); the skill and the bot-mode session context add no approval step of their own, and "yourself" in them means through Claude's Bash, not the app's buttons.
 - **No mode means ask, not a default.** A question costs one turn; work out under the wrong name cannot be taken back.
 - **Modes are keyed by the remote** (`github.com/owner/repo`, from `origin` or else the first remote, SSH host aliases resolved), so every clone and worktree shares one choice. A repository without a remote is keyed by its main worktree's path, and the choice moves to the remote key once it has one.
 - **Choices live on the machine, in `~/.config/alter-ego/config.json`** (`$XDG_CONFIG_HOME` honoured), never in the repository: whose name the user's work goes under is theirs, not the project's. The file is rewritten in place so a symlinked dotfile survives.
