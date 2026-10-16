@@ -1053,11 +1053,7 @@
     everything.forEach(function (r) { scoreLead(r); });
     renderSoon();
     if (S.verdict === "Skipped") { renderSkipped(host, skippedRows, now, titles); afterList("leadList"); return; }
-    list.sort(function (a, b) {
-      var da = leadTime(a) || 0, db = leadTime(b) || 0;
-      if (dayKey(da) !== dayKey(db)) return db - da;
-      return (b._score - a._score) || (db - da);
-    });
+    list.sort(function (a, b) { return (leadTime(b) || 0) - (leadTime(a) || 0); }); // newest first, by posting time only
 
     var scrollTop = host.scrollTop, openIds = {};
     host.querySelectorAll("details[open]").forEach(function (d) { openIds[d.dataset.id] = true; });
