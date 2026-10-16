@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-flags: 'i'
+flags: 'im'
 match: 'contains'
 ---
-\*\*Proposal text:\*\*[\s\S]*\*\*Rate:\*\*[\s\S]*\*\*Screening, drafts:\*\*[\s\S]*\*\*Boost:\*\*[\s\S]*\*\*Files:\*\*
+^(\*\*)?Proposal text:(\*\*)?[\s\S]*^(\*\*)?Rate:(\*\*)?[\s\S]*^(\*\*)?Screening, drafts:(\*\*)?[\s\S]*^(\*\*)?Boost:(\*\*)?[\s\S]*^(\*\*)?Files:(\*\*)?
