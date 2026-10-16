@@ -59,7 +59,7 @@ Read the **Proposal guide** first and follow it for the text, the portfolio sele
 
 1. **Fresh data** (*Fresh data first*). Check whether the client has already hired the number sought, whether there are screening questions, and the current connects price. No card yet (an invitation, a job found outside the pipeline) → an assessed card first. The card gets `Locked` (the user asked about this job: SKILL.md → *Locked*) in the same call as the facts that changed. If the job already has a proposal in `proposals_open` (`State` Ready), start from it — the user may have read it on the dashboard — and change what the fresh data or the user's remarks require.
 2. **Preview, not submission**: gathering the form data (`manage_proposals` create → preview: screening questions, bid statistics, boost) is not a submission and costs nothing; do it as part of this request without asking. First `list_freelancer_proposals` `invitations`: an invitation to this job uses `accept_invitation` instead of `create`. If the preview is blocked, build the package from `find_jobs` `get` and mark screening and boost as unavailable.
-3. **One package, one message.** The message starts with the `Fresh data:` line — no greeting, no preamble, no "here's the proposal" — and follows this order with these labels, plain text (no bold on the numbers), because the user reads it on a phone, opens the link to check the posting and says "ok" or "send it"; anything before the package pushes the text they need to read below the fold:
+3. **One package, one message.** The message starts with the `Fresh data:` line — no greeting, no preamble, no "here's the proposal" — and follows this order with these labels, plain text (no bold on the numbers) except the code blocks the user pastes as they are, because the user reads it on a phone, opens the link to check the posting and says "ok" or "send it"; anything before the package pushes the text they need to read below the fold:
 
 ```
 Fresh data: proposals <N> (<M> at find time), hired <N>, <N> connects to apply.
@@ -69,7 +69,12 @@ Fresh data: proposals <N> (<M> at find time), hired <N>, <N> connects to apply.
 
 <code block with the full text>
 
-**Rate:** <$N/hr in the form field | fixed $N, and how it is split, if the guide says>
+**Rate:** <$N/hr in the form field | fixed $N>
+
+**Milestones:**   ← fixed price only, split as the guide says
+1. <amount> · <due>
+<code block with the milestone's description>
+2. …
 
 **Screening, drafts:**   ← only if there are questions
 1. *<question as posted>* → <draft answer>
