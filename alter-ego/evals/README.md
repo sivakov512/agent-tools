@@ -11,7 +11,7 @@ scripts/eval.sh alter-ego --model opus --judge-model sonnet --runs 1 --ablation 
 - `--model opus`: alter-ego does its work inside the user's own coding sessions, which run Opus. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
 - One case: `--case bot-commit` (one `--case` per run).
 - `--scaffold` is required: it builds each case's repository.
-- 6 cases, about 3 minutes at `-j 4` and roughly $5 of API usage (an estimate until a measured run replaces it; `--runs 3` triples it).
+- 6 cases, about a minute at `-j 4` and about $1.25 of API usage: $1.01 for the agent runs and $0.21 for the judge, measured on Opus in October 2026 (`--runs 3` triples it).
 
 What is checked:
 
