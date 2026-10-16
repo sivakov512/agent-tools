@@ -135,7 +135,7 @@ By default the reply puts to the user what you would write, and you write it onc
 
 Write at once, then report, when the user has already said what to do:
 
-- **An instruction that settles the change** — what to change and where are both clear from the user's words, or from the row the chat is about (in a chat opened from a row, "record that …" about that row names its place): "mark TK-3 done", "add a task to Valokuu: …", "in TK-7 record that …", "make that note private", "swap these two milestones", a correction ("no, that was yesterday"), an undo. Their words are the yes. A general go-ahead — "update the tracker", "do what's needed" — is a yes to what you would have proposed; the rules above still decide what that is.
+- **An instruction that settles the change** — what to change and where are both clear from the user's words, or from the row the chat is about (in a chat opened from a row, "record that …" about that row names its place): "mark TK-3 done", "add a task to Brightbrush: …", "in TK-7 record that …", "make that note private", "swap these two milestones", a correction ("no, that was yesterday"), an undo. Their words are the yes. A general go-ahead — "update the tracker", "do what's needed" — is a yes to what you would have proposed; the rules above still decide what that is.
 
 "Record that …" with no place is different: the user wants it kept (**The user's word decides**) but leaves where and how to you, and that is exactly the call they want to see. Choose the place and the form by the usual rules and propose them like any news.
 - **A Tracker update** runs first, without asking (**Finding things**), and so does clearing an old shape when you write to a project (`references/upgrade.md` → **Old shapes**).
@@ -288,6 +288,6 @@ In a conversation with the user (never a scheduled or unattended run), once per 
 | What is on the user this week; across projects: what is late or burning, whom to chase, what got done; a status question with no project named and several active | `references/report.md` → **Reading the tracker** |
 | Weekly report or client update | `references/report.md` |
 | Publish or republish the dashboard | `references/dashboard.md` |
-| Make, refresh, change or remove a client dashboard; the user opens more to a client ("ArcLive can see the supplier prices") or says who is on the client's side | `references/client-dashboards.md` |
+| Make, refresh, change or remove a client dashboard; the user opens more to a client ("Northwind can see the supplier prices") or says who is on the client's side | `references/client-dashboards.md` |
 
 If something does not fit the model (say, a second client on one project), ask once rather than inventing a field.
