@@ -120,12 +120,18 @@
   },
   {
    "name": "list_freelancer_proposals",
-   "description": "action 'list' (params: status — one of Pending, Accepted, Activated, Offered, Archived…; sort; limit; cursor) returns the freelancer's proposals with their job ids, newest first.",
+   "description": "action 'list' (params: status — one of Pending, Accepted, Activated, Offered, Archived…; sort; limit; cursor) returns the freelancer's proposals with their job ids, newest first; action 'invitations' (params: status) returns the invitations the freelancer received, with their job ids; action 'get' returns one proposal. Actions: list, invitations, get, get_room.",
    "inputSchema": {
     "type": "object",
     "properties": {
      "action": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+       "list",
+       "invitations",
+       "get",
+       "get_room"
+      ]
      },
      "org_uid": {
       "type": "string"
