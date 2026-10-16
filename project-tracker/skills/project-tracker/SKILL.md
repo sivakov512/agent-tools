@@ -56,7 +56,7 @@ A history line keeps the event; an internal reason behind it is a private note b
 
 **How big a task is.** A task deserves its own line in a weekly report: days or weeks of work, or a handover worth chasing. Anything smaller — "flashed the dev board", "wrote the driver" — is progress: a result for a history line on the task or milestone it belongs to (**What is worth writing**), never a new row. A task row is created only when the user asks for one, from an imported plan, or in a plan change the user approved.
 
-**Dates are the user's.** `Dates` are the dates the user set for an item; whom they were given to and whether anyone agreed is the user's business, not the tracker's. They change only on the user's word, each change a history line `old → new` — moving them silently would erase the lateness they exist to show. A date the user only mentions as a proposal ("I'll suggest Oct 20–31") goes into the history until they set it. A task whose new dates would run past its milestone's end moves the milestone's end too — shown as part of the same change.
+**Dates are the user's.** `Dates` are the dates the user set for an item; whom they were given to and whether anyone agreed is the user's business, not the tracker's. They change only on the user's word, each change a history line `old → new` — moving them silently would erase the lateness they exist to show. A date the user only mentions as a proposal ("I'll suggest Oct 20–31") goes into the history until they set it. A task whose dates run past its milestone's end never moves that end by itself: a milestone's `Dates` are a promise of their own. The reply names it and offers the move (`TK-5 Enclosure test runs past MS-2 Demo prototype's end (Nov 14): move the milestone to Nov 21?`), and the end moves only on the user's yes.
 
 **How lateness works.** Lateness is measured against `Dates`, on milestones and tasks alike, and Notion computes it live, so nothing you write about it can go stale. A Done item is late by `Finished` − end of `Dates` (negative = early). An open item (Planned, In progress, Waiting) whose end has passed is late by today − end. Nothing Paused, or under something Paused, is late: the work is stopped, not overrun. The project's `Late, days` is the worst of its open milestones and tasks. The API returns formula values as opaque references, so when you need a number, compute it from the dates by the same rule.
 
@@ -67,7 +67,7 @@ A history line keeps the event; an internal reason behind it is a private note b
 - A task stuck on a Blocker keeps its status; the linked Blocker shows it.
 - The last open task of a milestone already under way done → ask whether the milestone is done too; never close it on your own. When that same change only started the milestone, there is nothing to ask.
 - A milestone Done while it still has open tasks → ask what happens to them (Done or Dropped).
-- A milestone's `Dates` never follow from its tasks: they are a promise of their own.
+- A milestone's `Dates` never follow from its tasks (**Dates are the user's**).
 
 ## Rules that protect the data
 
