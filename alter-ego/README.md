@@ -45,6 +45,7 @@ Choices live in `~/.config/alter-ego/config.json` (`$XDG_CONFIG_HOME` is honoure
 | `bots.<name>.secret` | the token's item name in the secret store, `alter-ego/<login>` by default |
 | `bots.<name>.secret_command` | a command that prints the token, instead of the secret store; it runs on every push and every `gh` call in a bot repository |
 | `secret_backend` | `keychain`, `secret-service` or `pass`, to override the detected store |
+| `cloud` | `allow` once you have allowed a cloud session (`alter-ego use cloud`); it lives in that session's container and counts nowhere else |
 | `repos` | the mode per repository, keyed by its remote; a repository without a remote is keyed by its folder until it gets one |
 
 ## Install
@@ -58,7 +59,7 @@ Needs bash 3.2 or later (macOS's own will do), `git`, `gh` and `jq`, and a secre
 
 Start a new session: the wrappers are put on PATH at session start.
 
-In Anthropic-hosted cloud sessions (claude.ai/code) the wrappers run, but no mode can hold: GitHub traffic there goes through Anthropic's GitHub proxy, which pushes with your own token, and `gh pr` and `gh issue` are blocked. So by default Claude's pushes and `gh` writes are refused there, and a client repository opened in the cloud stays protected. To work from the cloud in a repository, set `ALTER_EGO_CLOUD=allow` in its cloud environment: git and gh then run untouched — commits go out as Claude, pushes and PRs through your own GitHub account, with no AI-mark filter. The variable means nothing outside a cloud session. In Cowork, chat or Codex there are no plugin hooks, so nothing is enforced; the skill alone can only explain the modes.
+In Anthropic-hosted cloud sessions (claude.ai/code) the wrappers run, but no mode can hold: GitHub traffic there goes through Anthropic's GitHub proxy, which pushes with your own token, and `gh pr` and `gh issue` are blocked. So by default Claude's pushes and `gh` writes are refused there, and a client repository opened in the cloud stays protected. Before the first push Claude asks once whether to allow the session; on your yes git and gh run untouched for that session — commits go out as Claude, pushes and PRs through your own GitHub account, with no AI-mark filter. To allow every session of a cloud environment without being asked, add `ALTER_EGO_CLOUD=allow` to its environment variables (claude.ai/code, the environment selector, Edit environment). Outside a cloud session neither counts. In Cowork, chat or Codex there are no plugin hooks, so nothing is enforced; the skill alone can only explain the modes.
 
 ## First run
 
