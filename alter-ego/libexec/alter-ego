@@ -225,6 +225,22 @@ question_text() {
 
 ask_text() { echo "no identity is chosen for $1 yet. Ask the user once: $(question_text), and retry."; }
 
+# ---------------------------------------------------------- cloud sessions
+
+# allowed | refused in an Anthropic-hosted cloud session (Claude Code sets
+# CLAUDE_CODE_REMOTE=true there), nothing elsewhere. No mode can hold there: its
+# GitHub proxy pushes with the user's own token. ALTER_EGO_CLOUD=allow, set in a
+# repository's cloud environment, lets git and gh through untouched; outside a
+# cloud session the variable means nothing.
+cloud() {
+  [ "${CLAUDE_CODE_REMOTE:-}" = true ] || return 0
+  if [ "${ALTER_EGO_CLOUD:-}" = allow ]; then echo allowed; else echo refused; fi
+}
+
+cloud_text() {
+  echo "this is an Anthropic-hosted cloud session, where neither a bot nor clean mode can hold: its GitHub traffic goes through Anthropic's proxy with the user's own token. Pushes and gh writes are refused here unless the user allows them for this repository with ALTER_EGO_CLOUD=allow in its cloud environment; then commits go out as Claude, and pushes and pull requests through the user's own GitHub account."
+}
+
 # ------------------------------------------------------------ git wrapper
 
 # Exports the loaded bot's identity for this git process; $1 is the repo key,
@@ -357,6 +373,10 @@ cmd_git() {
       alias="$("$GIT" ${g[@]+"${g[@]}"} config --get "alias.$sub" 2>/dev/null)"
       case "$alias" in push*) sub=push ;; esac ;;
   esac
+  case "$(cloud)" in
+    allowed) exec "$GIT" "$@" ;;
+    refused) [ "$sub" = push ] && refuse "$(cloud_text) Tell the user."; exec "$GIT" "$@" ;;
+  esac
   # In a bot repository every git process (and what it runs: hooks, rebase --exec,
   # helper scripts) carries the bot's identity; elsewhere only push is checked.
   local key mode
@@ -440,6 +460,10 @@ cmd_gh() {
   local gh; gh="$(real_bin gh)" || refuse "gh is not installed here; tell the user (alter-ego doctor lists what is missing)"
   # Account-level and cross-repository commands are the user's own.
   case "$sub1" in ""|auth|config|alias|extension|completion|help|version|gpg-key|ssh-key|codespace|search|status|browse|gist|org) exec "$gh" "$@" ;; esac
+  case "$(cloud)" in
+    allowed) exec "$gh" "$@" ;;
+    refused) [ -z "$write" ] || refuse "$(cloud_text) Tell the user."; exec "$gh" "$@" ;;
+  esac
   local key mode
   [ -n "$repo" ] || repo="${GH_REPO:-}"
   if [ -n "$repo" ]; then key="$(normalize_url "$repo")"; else key="$(repo_key)" || exec "$gh" "$@"; fi
@@ -514,13 +538,19 @@ cmd_session_start() {
     grep -qxF "$line" "$CLAUDE_ENV_FILE" 2>/dev/null || printf '%s\n' "$line" >>"$CLAUDE_ENV_FILE"
   fi
   have jq || { echo "alter-ego is installed but jq is missing, so it cannot tell repositories apart and refuses every push and gh write: tell the user to install jq."; return 0; }
+  case "$(cloud)" in
+    allowed) session_context "alter-ego: an Anthropic-hosted cloud session whose environment allows git and gh through (ALTER_EGO_CLOUD=allow), so they run untouched: commits here go out as Claude, and pushes and pull requests through the user's own GitHub account. Bot and clean modes do not apply in cloud sessions."; return 0 ;;
+    refused) session_context "alter-ego: $(cloud_text) Say so before the first push, pull request, issue, review or comment here."; return 0 ;;
+  esac
   cwd="$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null)"; cwd="${cwd:-$PWD}"
   upgrade_config
   migrate_key -C "$cwd"
   key="$(repo_key -C "$cwd")" || return 0
   mode="$(mode_for_key "$key")"
-  jq -n --arg c "$(context_for "$key" "$mode")" '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $c}}'
+  session_context "$(context_for "$key" "$mode")"
 }
+
+session_context() { jq -n --arg c "$1" '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $c}}'; }
 
 # git and gh called by full path, after PATH is replaced, under env -i or
 # command -p skip the wrappers. The command is cut into simple commands; one is
@@ -544,6 +574,10 @@ wrappers_active() { [ -n "$SHIMS" ] && [ "$(command -v git)" = "$SHIMS/git" ]; }
 
 cmd_status() {
   local key mode
+  case "$(cloud)" in
+    allowed) echo "cloud session: git and gh pass through untouched (ALTER_EGO_CLOUD=allow); modes do not apply" ;;
+    refused) echo "cloud session: pushes and gh writes are refused; modes do not apply (ALTER_EGO_CLOUD=allow in the repository's cloud environment lets them through)" ;;
+  esac
   if key="$(repo_key)"; then
     mode="$(mode_for_key "$key")"
     echo "repository: $key"
@@ -583,6 +617,7 @@ cmd_bots() {
 cmd_use() {
   local m="${1:?usage: alter-ego use <clean|bot>}" key
   [ "$m" = off ] && m=clean
+  [ -z "$(cloud)" ] || die "modes do not apply here: $(cloud_text)"
   key="$(repo_key)" || die "not inside a git repository"
   if [ "$m" != clean ]; then
     load_bot "$m" || die "no bot named $m (alter-ego bots lists them)"
@@ -594,6 +629,7 @@ cmd_use() {
 }
 
 cmd_forget() {
+  [ -z "$(cloud)" ] || die "modes do not apply here: $(cloud_text)"
   local key; key="$(repo_key)" || die "not inside a git repository"
   cfg_write 'del(.repos[$k])' --arg k "$key"
   echo "$key: choice removed, it will be asked again"
