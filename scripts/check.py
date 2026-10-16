@@ -7,7 +7,10 @@
   SKILL.md under 500 lines; nothing in the skill points outside its folder;
 - links: `references/x.md`, `references/x.md` §N, `references/x.md` → *Name* / **Name**,
   `SKILL.md` → *Name*, and a bare §N inside a reference (its own section) resolve — §N to a
-  heading `## N.`, a name to a heading or a bold label in the target file;
+  heading `## N.`, a name to a heading or a bold label in the target file; a (**Name**) or
+  → **Name** with no file before it names a heading or a defining bold label (one that opens a
+  line or item, or is followed by a dash or colon) in the same file, or, from a reference, in
+  SKILL.md; a reference is named by its full path (`references/x.md`), never a bare `x.md`;
 - graders: no empty grader and none without frontmatter (the harness skips those silently);
 - pages: every script in assets/ parses (`node --check`), no function is declared twice in the
   scripts one page loads (the later one silently wins), and a page the release stamps starts with
@@ -77,6 +80,15 @@ def anchors(path):
     return sections, names
 
 
+def labels(path):
+    """Names a file defines: headings, and bold labels that open a line or item or are followed by a dash or colon."""
+    text = path.read_text()
+    found = re.findall(r"^#{1,4} (?:\d+\.\s*)?(.+)$", text, re.M)
+    found += re.findall(r"^\s*(?:[-*]|\d+\.)?\s*\*\*([^*\n]+?)\*\*", text, re.M)
+    found += re.findall(r"\*\*([^*\n]+?)\*\*\s*[—:]", text)
+    return [re.sub(r"[`*]", "", x).strip().rstrip(".:").lower() for x in found]
+
+
 def has_name(names, name):
     name = re.sub(r"[`*]", "", name).strip().lower()
     return any(name == n or n.startswith(name) or name.startswith(n) or name in n for n in names)
@@ -107,12 +119,17 @@ def check_skill(skill, bad):
 
     files = [md, *sorted((skill / "references").glob("*.md"))]
     stems = "|".join(re.escape(f.stem) for f in files[1:]) or "(?!)"
-    cache = {}
+    cache, defined = {}, {}
 
     def get(path):
         if path not in cache:
             cache[path] = anchors(path)
         return cache[path]
+
+    def own(path):
+        if path not in defined:
+            defined[path] = labels(path)
+        return defined[path]
 
     for f in files:
         rel = f.relative_to(skill)
@@ -120,7 +137,11 @@ def check_skill(skill, bad):
         for no, line in enumerate(f.read_text().splitlines(), 1):
             if OUTSIDE.search(line):
                 bad.append(f"{rel}:{no}: points outside the skill folder (it ships alone)")
+            for m in re.finditer(rf"(?<![\w/.-])({stems})\.md\b", line):
+                bad.append(f"{rel}:{no}: name it references/{m.group(1)}.md, so the link is checked")
+            spans = []
             for m in LINK.finditer(line):
+                spans.append(m.span())
                 whole, ref, star, arrow_num, plain, sect = m.groups()
                 path = skill / (ref and f"references/{ref}" or whole)
                 if not path.exists():
@@ -133,6 +154,13 @@ def check_skill(skill, bad):
                 for nm in (star, plain):
                     if nm and not has_name(names, nm):
                         bad.append(f"{rel}:{no}: {whole} has no '{nm}'")
+            # (**Name**) or → **Name** with no file before it: this file's own rule, else SKILL.md's
+            for m in re.finditer(r"(?:\(|→\s*)\*\*([^*\n]+)\*\*", line):
+                if any(a <= m.start() < b for a, b in spans):
+                    continue
+                nm = m.group(1)
+                if not has_name(own(f), nm) and (f is md or not has_name(own(md), nm)):
+                    bad.append(f"{rel}:{no}: no '{nm}' here{'' if f is md else ' or in SKILL.md'}")
             if f is md:
                 continue
             for m in re.finditer(r"(?<![\w`])(?<!md )(?<!md` )§(\d+)", line):
