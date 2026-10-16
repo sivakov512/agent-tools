@@ -167,7 +167,7 @@ Works with **Claude Opus** and **Claude Sonnet**; both pass the eval suite. Opus
 `evals/` holds a `claude plugin eval` suite covering every scenario with a mocked Notion workspace — see [evals/README.md](evals/README.md). From `project-tracker/`:
 
 ```
-claude plugin eval . --model sonnet --judge-model sonnet --runs 1 --ablation none --scaffold --trust-plugin --allow-tools Write -j 2 --no-publish
+CLAUDE_CODE_DISABLE_AUTO_MEMORY=1 claude plugin eval . --model sonnet --judge-model sonnet --runs 1 --ablation none --scaffold --trust-plugin --allow-tools Write -j 2 --no-publish
 ```
 
 ## Where things are
