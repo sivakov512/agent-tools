@@ -155,7 +155,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 </details>
 ```
 
-`dashboard`, `dashboard_version` and `drafts_task` wait until there is something to put in them; every other line is written now. `chat_project` as SKILL.md → *Chat project* says. Lines inside the toggle are indented with a tab (unindented lines fall outside it); block tags are sent as the raw characters `<details color="gray_bg">`, `<summary>` — never HTML-escaped as `&lt;details&gt;`, which Notion stores as visible text. After the write, fetch the page and check the toggle is first, holds every key, and rendered as a toggle (not as `&lt;details` text).
+`dashboard`, `dashboard_version` and `drafts_task` wait until there is something to put in them; every other line is written now. `chat_project` as SKILL.md → *Chat project* says. Lines inside the toggle are indented with a tab (unindented lines fall outside it); `<details color="gray_bg">` and `<summary>` go as raw characters (SKILL.md → *Notion calls*). After the write, fetch the page and check the toggle is first, holds every key, and rendered as a toggle (not as `&lt;details` text).
 
 ## 7. Dashboard
 
