@@ -291,8 +291,17 @@ check "attribution keeps other settings" "$(jq -c . "$ALTER_EGO_CLAUDE_SETTINGS"
 check "a full path to git is denied" "$(guard "/usr/bin/git push")" '"deny"'
 check "a full path to gh is denied" "$(guard "cd x && /opt/homebrew/bin/gh pr create")" '"deny"'
 check "a replaced PATH is denied" "$(guard "PATH=/usr/bin:/bin git commit -m x")" '"deny"'
+check "a PATH set before the call is denied" "$(guard "export PATH=/usr/bin:/bin; git push")" '"deny"'
+check "env -i is denied" "$(guard "env -i git push")" '"deny"'
+check "env -i around a shell is denied" "$(guard "env -i bash -c 'gh pr create'")" '"deny"'
+check "command -p is denied" "$(guard "command -p git commit -m x")" '"deny"'
+check "a full path inside bash -c is denied" "$(guard "bash -c '/usr/bin/git push'")" '"deny"'
+check "a full path in a substitution is denied" "$(guard 'id=$(/opt/homebrew/bin/gh api -X POST repos/o/r/issues)')" '"deny"'
 check_empty "plain git is allowed" "$(guard "git push")"
 check_empty "reading with a full path is allowed" "$(guard "/usr/bin/git status")"
+check_empty "a pattern that only mentions them is allowed" "$(guard "grep -nE 'env -i|command -p|commit.gpgsign' libexec/alter-ego")"
+check_empty "env -i without git or gh is allowed" "$(guard "env -i ls && git push")"
+check_empty "command -v is allowed" "$(guard "command -v git && git commit -m x")"
 
 # --- outside a repository
 cd "$T"
