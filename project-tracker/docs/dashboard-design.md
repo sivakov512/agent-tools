@@ -59,7 +59,7 @@ Rules the page keeps:
 
 ## The client's page
 
-`assets/client.html` is the user's dashboard run on a snapshot of the projects it covers: it runs the same code (`assets/app.js`, with `assets/core.js` and `assets/core.css`) on the `data.js` the skill writes and republishes after every change (`skills/project-tracker/references/client-dashboards.md`), so the client needs no Notion access and no connector. Lateness is computed in the browser against the viewer's today, so it stays right between updates. One change from the user's page: a single list of open items by whose side they are on — the client's, ours, third parties' — in place of Your move and Waiting on others; blockers and questions nobody else has to act on show as "On our side", risks apart.
+`assets/client.html` is the user's dashboard run on a snapshot of the projects it covers: it runs the same code (`assets/app.js`, with `assets/core.js` and `assets/core.css`) on the `data.js` the skill writes and republishes after every change (`skills/project-tracker/references/client-dashboards.md`), so the client needs no Notion access and no connector; published without its `data.js`, the page says it has no data yet instead of staying blank. Lateness is computed in the browser against the viewer's today, so it stays right between updates. One change from the user's page: a single list of open items by whose side they are on — the client's, ours, third parties' — in place of Your move and Waiting on others; blockers and questions nobody else has to act on show as "On our side", risks apart.
 
 ## Versions
 
