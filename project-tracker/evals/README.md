@@ -5,12 +5,12 @@
 Run from `project-tracker/`:
 
 ```
-claude plugin eval . --runs 1 --ablation none --scaffold --trust-plugin --judge-model sonnet -j 2 --no-publish
+claude plugin eval . --model sonnet --judge-model sonnet --runs 1 --ablation none --scaffold --trust-plugin -j 2 --no-publish
 ```
 
 - One case: `--case progress`. By tag: `--tag create` (create, update, dates, tasks, problems, notes, state, plan, corrections, read, contracts, commands, setup, upgrade, chat, routine, negative, ids).
-- `--model sonnet` pins the model under test. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
-- One full run is 57 agent runs, about half an hour at `-j 2` and roughly $25 of API usage (`--runs 3` for a stability check triples that). Raise `-j` only on a machine with spare cores and memory — too many parallel runs get killed and show up as harness errors, not as failures.
+- `--model sonnet`: the model the suite is kept passing on. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
+- One full run is 58 agent runs, about half an hour at `-j 2` and roughly $25 of API usage (`--runs 3` for a stability check triples that). Raise `-j` only on a machine with spare cores and memory — too many parallel runs get killed and show up as harness errors, not as failures.
 - `--scaffold` is needed for `new-from-file` (its `scaffold.sh` writes the estimate file into the sandbox) and `client-dashboard-refresh` (its `scaffold.sh` writes the published page and `data.js` where the Artifact mock's `read` says it saved them, the page's first line copied from `assets/client.html`, so the case stays a `data.js`-only refresh after every release).
 
 What is checked:
@@ -59,9 +59,4 @@ The config carries `dashboard` and `dashboard_version: 99.0.0` so the once-per-c
 
 ## Reading failures
 
-The agent, the mock Notion and the judge are all models, so one run can fail for reasons that have nothing to do with the skill — a mock answering with an error real Notion would not give, a judge reading a claim too strictly. Before changing the skill because of a failure:
-
-1. Read the trace (`tracePath` in the result, or the report) — what did the agent actually do, and what did the mock answer?
-2. Re-run that case a few times (`--case <name> --runs 3`). A failure that does not repeat is noise.
-3. Change the skill only for failures that repeat or that would damage data, and fix them with a general rule and its reason, not a patch for the one example.
-
+`docs/skill-development.md` §7. What is particular to this suite: the mock Notion is a model too, and may answer a call with an error real Notion would not give — read its answer in the trace before blaming the skill. Known unstable cases: none recorded.
