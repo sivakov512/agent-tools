@@ -10,7 +10,7 @@ The user works in two kinds of repositories. In some — client projects, their 
 - **clean** — commits, pushes, PRs, issues, reviews and comments are the user's own, with no AI marks.
 - **a bot** — a GitHub account of the user's (say `beelzebot-robot`): your commits are signed `Claude(beelzebot)`, and pushes and `gh` writes act as that account.
 
-Talk to the user in their language; keep these explanations short — they know what the modes are.
+**Talking to the user.** In their language, and in plain text: no code blocks for what they read, since those are hard to read in a chat, above all on a phone. A code block only for what they copy whole — a command to run in their own terminal, such as a store command — which its copy button makes one tap. Answer what their message is about — a question, a doubt, a choice — before or along with what you did: a report of the work alone does not tell them whether it was the right call. Keep explanations of the modes short; they know them.
 
 ## How it works
 
@@ -19,8 +19,8 @@ The plugin enforces; your part is the conversation.
 - In your Bash commands, `git` and `gh` are alter-ego's wrappers, put first on PATH by a SessionStart hook. Each call is decided when it runs, from its own arguments and folder: `git -C`, a `cd`, a subshell or an alias land in the repository they act on, under that repository's mode. Only these programs are touched, and only for you; the user's own terminal is unaffected.
 - **No mode yet:** everything runs as the user, but `git push` and `gh` writes are refused with a message that tells you to ask. Local commits are fine.
 - **Clean:** a push is refused while the commits or tags it sends carry AI marks or a bot's authorship, and a `gh` write is refused while its text (arguments, body files, stdin) carries AI marks.
-- **Bot:** every git and gh call on the repository is the bot. Commits are signed as the bot; pushes go over https with the bot's token, whatever the remote URL looks like; gh runs with the bot's token. Account commands (`gh auth`, `gh config`, `gh gist`, `gh search`) stay the user's. Anything that would put work out as the user instead (no token, a push URL the token can't serve) is refused.
-- A PreToolUse hook refuses `git` or `gh` called by full path or with PATH replaced, because that would skip the wrappers.
+- **Bot:** every git and gh call on the repository is the bot. Commits are signed as the bot; pushes go over https with the bot's token, whatever the remote URL looks like; gh runs with the bot's token. Account commands (`gh auth`, `gh config`, `gh gist`, `gh search`) stay the user's. Anything that would put work out as the user instead (no token, a push URL the token can't serve) is refused; only gh reads, which leave nothing under a name, run as the user while the token is missing.
+- A PreToolUse hook refuses a `git` or `gh` write called by full path, after PATH is replaced, under `env -i` or `command -p`, because those skip the wrappers.
 - Choices live in `~/.config/alter-ego/config.json`, keyed by the remote (`github.com/owner/repo`), so every clone and worktree shares one choice. Tokens never go there: they stay in the OS secret store and are read only when a push or a gh call needs one.
 
 The `alter-ego` command is on PATH too. In a session that started before the plugin was installed it isn't, and nothing is enforced yet: use `bash "${CLAUDE_PLUGIN_ROOT}/libexec/alter-ego"` and tell the user a new session is needed.
@@ -54,7 +54,7 @@ The question has to be one the user cannot miss: a mode chosen by accident puts 
 
 Recommend nothing: the user knows which kind of repository this is. Then run `alter-ego use <choice>` in the repository and carry on with what was refused.
 
-The choice is the user's alone. Don't pick a mode yourself, even when it looks obvious, and don't route around a refusal: no git or gh by full path, no replaced PATH, no editing the config by hand. Each of those would put work out under the wrong name, which is what the user installed this to prevent.
+The choice is the user's alone. Don't pick a mode yourself, even when it looks obvious, nor get to one by routing around a refusal (**When something is refused**).
 
 When the user asks to switch ("работай тут от бота", "сделай этот репо чистым", `/alter-ego off`), run `alter-ego use …` and confirm in one line. Commits already made keep their author. If unpushed commits were made under the old mode, say so and offer to re-author them: `git commit --amend --reset-author` for the last one, `git rebase --exec 'git commit --amend --no-edit --reset-author' <base>` for several. Re-authoring in bot mode gives the bot's authorship. Never rewrite commits that are already pushed unless the user asks.
 
@@ -87,8 +87,9 @@ The message says why. Act on it:
 - no mode → ask the user;
 - AI marks in clean mode → reword the commits, tag or text, then retry;
 - bot commits in a clean repository → ask whether to re-author them or switch the repository;
-- missing token or id → give the user the store command, or run `alter-ego check`;
+- missing token or id → give the user the store command, or run `alter-ego check`, as the message says;
 - a push URL the bot can't use → push to the repository's GitHub remote by name;
+- the config can't be read (a newer alter-ego wrote it, or it is not valid JSON) → tell the user the plugin needs updating, or the file fixing; nothing is pushed or posted until then;
 - git or gh by full path → call them by name.
 
-Never route around a refusal.
+Never route around a refusal: no git or gh by full path, no replaced PATH, no `env -i`, no editing the config by hand, no switching the mode to get past one. Each would put work out under the wrong name, which is what the user installed this to prevent.

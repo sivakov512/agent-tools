@@ -1,5 +1,9 @@
 # Bots
 
+Adding a bot account, and later checking, inviting, rotating or removing it. Started by the user ("add a bot", "the beelzebot token expired", "remove helper") or by their pick of **Add a bot** when asked for a repository's mode.
+
+**Inputs:** the bot's GitHub login and a short name for it (ask for whichever the user did not give); `alter-ego bots` for the bots there are.
+
 ## Adding a bot
 
 Walk the user through it one step at a time and do every step you can yourself.
@@ -20,4 +24,14 @@ Walk the user through it one step at a time and do every step you can yourself.
 
 `--secret NAME` stores the token under another item name than `alter-ego/<login>`. On Linux, `alter-ego doctor` shows which store was found; `secret-tool` needs a desktop session's D-Bus, so on a server over SSH use `pass` or `--secret-command`. `"secret_backend": "keychain" | "secret-service" | "pass"` in the config forces a store. A secret command runs on every push and every gh call in a bot repository, so it should not prompt each time.
 
+## Rotating and removing
+
 **Rotating a token:** the user stores the new one with the same command (on macOS `-U` replaces the old entry), then `alter-ego check <bot>`. **Removing a bot:** `alter-ego remove-bot <bot>`. It refuses while repositories use the bot and lists them, so switch those first or confirm `--force`. Its token stays in the secret store until the user deletes it.
+
+## Output
+
+A bot that `alter-ego bots` lists as ready, with write access where it should work; or, after a removal, no bot and no repository left choosing it.
+
+## Off limits
+
+A token in chat or in a command you run (step 4): alter-ego never writes a token anywhere. `invite` and `remove-bot --force` without the user's yes.
