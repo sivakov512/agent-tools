@@ -34,6 +34,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **One Claude chat per job**, opened from the dashboard and kept on the card's `Chat`. On the phone and the web it opens in `chat_project`, by default the project the skill was set up or updated from, written by the first conversation that finds the line missing.
 - **A code block only for what the user pastes into Upwork as it is**: the proposal text and each milestone's description. Everything else in chat is plain text, which reads on a phone; a code block's copy button makes pasting one tap.
 - **`replace_content` only on a Proposals row's body**, which is rewritten whole; every other page is edited a line at a time.
+- **A dashboard chat claims its job before a due pipeline update**, as project-tracker's chats do, so a second click on the job opens the same chat while the update runs.
 - **Chat summaries and parks are shared across devices** (the artifact's `db`), so a phone and a laptop show the same chat as parked or waiting.
 - **In a group chat or a direct message, the user's turn is what the thread asks of them**: a message from another freelancer or a file shared for information is not their move.
 - **The user's language for everything written to them; proposals in the posting's language**; the structure stays English, since the modes and the dashboard find things by those names.
