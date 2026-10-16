@@ -891,7 +891,8 @@
   function setWide(on) { var d = $("drawer"), b = $("drWide"); d.classList.toggle("wide", on); b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", on ? "Narrow" : "Widen"); b.title = on ? "Back to the narrow panel" : "Widen to the page width"; try { localStorage.setItem("pt.wide", on ? "1" : ""); } catch (e) {} }
   $("drWide").addEventListener("click", function () { setWide(!$("drawer").classList.contains("wide")); });
   try { if (localStorage.getItem("pt.wide")) setWide(true); } catch (e) {}
-  function closeDrawer() {
+  function closeDrawer() { // S.dr goes with it, so later paints leave the closed page alone and read none of its pages again
+    S.dr = null;
     $("drawer").classList.remove("on"); $("drawer").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("on");
     if (lastFocus && lastFocus.focus) try { lastFocus.focus({ preventScroll: true }); } catch (e) {}
   }
