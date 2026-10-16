@@ -4,7 +4,8 @@
 - registration: plugin.json names the folder; the plugin is in marketplace.json and both
   release-please files; no top-level bin/; every release-please extra file exists;
 - the skill: frontmatter `name` is the folder's, `description` at most 1024 characters,
-  SKILL.md under 500 lines; nothing in the skill points outside its folder;
+  SKILL.md under 500 lines; nothing in the skill points outside its folder; no Cyrillic in its .md files
+  (English only; code that parses the user's language is not checked);
 - links: `references/x.md`, `references/x.md` §N, `references/x.md` → *Name* / **Name**,
   `SKILL.md` → *Name*, and a bare §N inside a reference (its own section) resolve — §N to a
   heading `## N.`, a name to a heading or a bold label in the target file; a (**Name**) or
@@ -97,6 +98,7 @@ def has_name(names, name):
 LINK = re.compile(r"`?(SKILL\.md|references/([\w-]+\.md))`?"
                   r"(?:\s*(?:→\s*(?:\*{1,2}([^*\n]+?)\*{1,2}|(\d+)\.?\s*[\w ]*|([A-Z][\w' ]+?)(?=[),.;:]))|§(\d+)))?")
 OUTSIDE = re.compile(r"(?<![\w/.])(?:\.\./|docs/[\w-]+\.md)")
+CYRILLIC = re.compile("[\u0400-\u04ff]")
 
 
 def check_skill(skill, bad):
@@ -135,6 +137,8 @@ def check_skill(skill, bad):
         rel = f.relative_to(skill)
         own_sections, _ = get(f)
         for no, line in enumerate(f.read_text().splitlines(), 1):
+            if CYRILLIC.search(line):
+                bad.append(f"{rel}:{no}: Cyrillic in the skill; English only (docs/skill-development.md §3.11)")
             if OUTSIDE.search(line):
                 bad.append(f"{rel}:{no}: points outside the skill folder (it ships alone)")
             for m in re.finditer(rf"(?<![\w/.-])({stems})\.md\b", line):
