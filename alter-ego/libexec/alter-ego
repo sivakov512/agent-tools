@@ -501,7 +501,7 @@ context_for() {
       elif [ -n "$(bot_problem)" ]; then
         echo "alter-ego: $key works as bot '$mode', but $(bot_problem). Pushes and gh writes are refused until that is fixed; tell the user."
       else
-        echo "alter-ego: $key works as bot '$mode' (GitHub $BOT_LOGIN). Your git commits here are signed \"$BOT_NAME\", and pushes and gh writes act as the bot, so the user can tell your work from theirs. Commit, push and open pull requests yourself with git and gh in Bash, called by name; do not offer the app's own commit or create-PR actions here — they don't go through your Bash and would act as the user."
+        echo "alter-ego: $key works as bot '$mode' (GitHub $BOT_LOGIN). Your git commits here are signed \"$BOT_NAME\", and pushes and gh writes act as the bot, so the user can tell your work from theirs. Commit, push and open pull requests with git and gh in Bash, called by name, when you do; do not offer the app's own commit or create-PR actions here — they don't go through your Bash and would act as the user."
       fi ;;
   esac
 }
