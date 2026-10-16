@@ -5,7 +5,7 @@ Decides whose name Claude's git and GitHub work goes out under, per repository:
 - **clean** — commits, pushes, pull requests, issues, reviews and comments are yours, with no AI marks: no `Co-Authored-By: Claude`, no "Generated with Claude Code", no 🤖. For client projects, your open source, issue threads.
 - **a bot** — a GitHub account of yours, say `beelzebot-robot`. Claude's commits are signed `Claude(beelzebot)` and linked to that account; pushes, PRs, issues and comments are made by it. For your own tools: you see at a glance what a machine wrote, review and approve its PRs like a colleague's, and filter with `author:beelzebot-robot`. Your own commits in the same repository stay yours.
 
-Each repository is asked about once, the first time Claude is about to push, open a PR or comment there. The answer is remembered for every clone and worktree. Change it any time with `/alter-ego` or in plain words ("работай тут от бота", "make this repo clean").
+Each repository is asked about once, the first time Claude is about to push, open a PR or comment there. The answer is remembered for every clone and worktree. Change it any time with `/alter-ego` or in plain words ("work as the bot here", "make this repo clean").
 
 The plugin and the skill inside it are both called `alter-ego`.
 
@@ -71,7 +71,7 @@ In Anthropic-hosted cloud sessions (claude.ai/code) the wrappers run, but bot mo
 | You say | What happens |
 |---|---|
 | (Claude is about to push in a repository with no mode) | it asks: clean, one of your bots, or add a bot; remembers the answer |
-| "работай тут от бота beelzebot" / `/alter-ego beelzebot` | this repository switches to the bot from the next command |
+| "work as beelzebot in this repo" / `/alter-ego beelzebot` | this repository switches to the bot from the next command |
 | "make this repo clean" / `/alter-ego off` | it switches to clean |
 | `/alter-ego` / "how does this repo work?" | the mode, where bot pushes go, whether the token is there |
 | "add a bot: account acme-helper-bot, call it helper" | walks you through the token and stores nothing itself (below) |

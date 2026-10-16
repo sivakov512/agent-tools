@@ -1,6 +1,6 @@
 ---
 name: alter-ego
-description: Decides whose name your git and GitHub work goes out under, per repository — clean mode (as the user, with no AI marks anywhere) or a GitHub bot account (commits authored as e.g. "Claude(beelzebot)", pushes, PRs, issues and comments made by the bot), with bot tokens kept in the macOS Keychain or a Linux secret store. Use it whenever an alter-ego message appears (session context or a refused push / gh command), when the user runs /alter-ego, and whenever they ask whose name commits or PRs go under, to work as a bot or "clean" / "без ИИ-следов" / "от моего имени" in a repo, to switch or show the mode, to add, check, invite, rotate or remove a bot account or its token, to change how the bot signs its name, or to set this up on a new machine (macOS or Linux) — even without the words alter-ego, bot or identity.
+description: Decides whose name your git and GitHub work goes out under, per repository — clean mode (as the user, with no AI marks anywhere) or a GitHub bot account (commits authored as e.g. "Claude(beelzebot)", pushes, PRs, issues and comments made by the bot), with bot tokens kept in the macOS Keychain or a Linux secret store. Use it whenever an alter-ego message appears (session context or a refused push / gh command), when the user runs /alter-ego, and whenever they ask whose name commits or PRs go under, to work as a bot, "clean", "with no AI traces" or "as me" in a repo, to switch or show the mode, to add, check, invite, rotate or remove a bot account or its token, to change how the bot signs its name, or to set this up on a new machine (macOS or Linux) — even without the words alter-ego, bot or identity.
 ---
 
 # alter-ego
@@ -56,7 +56,7 @@ Recommend nothing: the user knows which kind of repository this is. Then run `al
 
 The choice is the user's alone. Don't pick a mode yourself, even when it looks obvious, nor get to one by routing around a refusal (**When something is refused**).
 
-When the user asks to switch ("работай тут от бота", "сделай этот репо чистым", `/alter-ego off`), run `alter-ego use …` and confirm in one line. Commits already made keep their author. If unpushed commits were made under the old mode, say so and offer to re-author them: `git commit --amend --reset-author` for the last one, `git rebase --exec 'git commit --amend --no-edit --reset-author' <base>` for several. Re-authoring in bot mode gives the bot's authorship. Never rewrite commits that are already pushed unless the user asks.
+When the user asks to switch ("work as the bot here", "make this repo clean", `/alter-ego off`), run `alter-ego use …` and confirm in one line. Commits already made keep their author. If unpushed commits were made under the old mode, say so and offer to re-author them: `git commit --amend --reset-author` for the last one, `git rebase --exec 'git commit --amend --no-edit --reset-author' <base>` for several. Re-authoring in bot mode gives the bot's authorship. Never rewrite commits that are already pushed unless the user asks.
 
 `/alter-ego` with no arguments: run `alter-ego status` and relay it in two or three lines.
 
