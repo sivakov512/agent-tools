@@ -57,12 +57,8 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 
 Where this plugin departs from `docs/skill-development.md`, and why.
 
-- **§3.9, compatibility in one place**: besides `references/update.md`, the skill keeps one-line notes on old shapes a mode still meets in a live pipeline — cards made before schema 7 with a fifth body section, a config in a callout instead of a toggle — since those rows and pages are never converted and the mode must read them.
+- **§3.9, compatibility in one place**: besides `references/update.md`, the skill keeps one-line notes on old shapes a mode still meets in a live pipeline — cards made before schema 7 with a fifth body section, a config in a callout instead of a toggle, a sent Proposals row whose `Proposal ID` is `unknown` (`references/sync.md` §2), a whole-number `dashboard_version` (`references/dashboard.md` → *When*) — since those rows and lines are never converted and the mode must read them.
 - **§4.4, propose then write**: the pipeline update and the dashboard republish go ahead without asking (*Decisions*); `chat_project` is written by the first conversation that lacks it, with one closing line saying so.
-
-Not yet in line, each brought in line by the next change that touches it (§9):
-
-- **Not every reference has the mode shape** (§3.8): `references/chat.md`, `references/dashboard.md`, `references/sync.md`, `references/digest.md` and `references/weekly.md` do not each say who starts the mode, its inputs, its output and what is off limits.
 
 ## Checking a change
 
