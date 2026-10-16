@@ -21,15 +21,16 @@ These hold in every repository and every mode. Each is checked by an eval case (
 11. **Writes to the user's own accounts are confirmed first.** `alter-ego attribution off` changes the user's global Claude settings and `alter-ego invite` acts on their GitHub account: each is offered and run on a yes.
 12. **Adding a bot is walked through, step by step.** Account, classic token with `repo`, `alter-ego add-bot`, the store command for this OS, `alter-ego check`, access — Claude does every step it can and leaves the user only what needs them.
 13. **Only Claude's own `git` and `gh` are touched.** No repository config is written, no variables leak into the shell, others' `GIT_CONFIG_*` entries survive, and the user's terminal is unaffected.
+14. **A config the plugin cannot read stops what goes out.** An older config is brought up to the current `schema` in place, safely re-runnable; a newer one, or one that is not valid JSON, is never written, and pushes and `gh` writes are refused with the reason until the user updates the plugin or fixes the file.
 
 | # | Eval case (grader) | `tests/test.sh` | Gap |
 |---|---|---|---|
 | 1 | `ask-mode` (`no-self-choice`, `asks`); `switch-to-bot` (`uses-forge`) | — | |
 | 2 | `ask-mode` (`asks`) | refusal and session context name AskUserQuestion | the AskUserQuestion path: eval runs offer no such tool |
 | 3 | `ask-mode` | *no choice yet* | |
-| 4 | — | *clean mode* (`-C`, subshell, `bash -c`, alias), *bots* (`-C`, `-R`, `api repos/…`, placeholders) | |
+| 4 | — | *clean mode* (`-C`, subshell, `bash -c`, alias), *bots* (`-C`, `-R`, `GH_REPO`, `api repos/…`, placeholders) | |
 | 5 | `clean-commit-push` (`no-marks`), `clean-push-reword` | *clean mode*, bot-made commits in a clean repository | clean-mode PR, issue and comment text written by Claude |
-| 6 | `bot-commit` (`author`) | *bots*, *without a token* | |
+| 6 | `bot-commit` (`author`) | *bots*, *without a token*, a bot with no id, a removed bot, a repository outside github.com | |
 | 7 | `ask-mode` (`no-bypass`), `clean-push-reword` (`no-bypass`, `outcome`), `clean-commit-push` (`no-marks`) | *the guard* | |
 | 8 | `add-bot` (`walkthrough`) | the shell has no bot variables | a token pasted into chat |
 | 9 | `bot-commit` (`no-app-buttons`) | — | MCP connectors |
@@ -37,6 +38,7 @@ These hold in every repository and every mode. Each is checked by an eval case (
 | 11 | — | — | no case yet |
 | 12 | `add-bot` (`registers`, `walkthrough`) | *bots* (`add-bot`, `check`, store commands) | |
 | 13 | — | existing `GIT_CONFIG` entries kept; no bot variables in the shell | |
+| 14 | — | *the config's schema* | |
 
 ## Decisions
 
@@ -46,8 +48,9 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **No mode means ask, not a default.** A question costs one turn; work out under the wrong name cannot be taken back.
 - **Modes are keyed by the remote** (`github.com/owner/repo`, from `origin` or else the first remote, SSH host aliases resolved), so every clone and worktree shares one choice. A repository without a remote is keyed by its main worktree's path, and the choice moves to the remote key once it has one.
 - **Choices live on the machine, in `~/.config/alter-ego/config.json`** (`$XDG_CONFIG_HOME` honoured), never in the repository: whose name the user's work goes under is theirs, not the project's. The file is rewritten in place so a symlinked dotfile survives.
+- **The config carries a `schema` number** (§4.7), 1 now. Any write and every session start bring an older file up in place (0 → 1 adds the number and turns a hand-written `"off"` into `"clean"`); a newer file is never written, and pushes and `gh` writes are refused until the plugin is updated, since this version could misread whose name a repository uses.
 - **Enforcement is wrappers on PATH, decided per call.** A SessionStart hook puts `shims/git` and `shims/gh` first on PATH for Claude's Bash; each call reads its own arguments and folder. Per-session variables or repository config would follow a `cd` or `-C` into another repository under the wrong name, and would touch the user's own terminal.
-- **A PreToolUse hook guards the wrappers.** It denies git or gh by full path, a replaced PATH, `env -i` and `command -p` when the command also writes (push, commit, `pr`, `api`, …); reading with a full path passes, so ordinary inspection is not blocked.
+- **A PreToolUse hook guards the wrappers, by calls, not words.** It cuts the command into simple commands and denies one that calls git or gh to write (push, commit, `pr`, `api`, …) by full path, after PATH is replaced, under `env -i` or `command -p`; reading with a full path passes, and so does a command that only mentions those words (a `grep` for them), so ordinary work is not blocked. Quoted text counts as commands, since `bash -c '…'` runs it.
 - **The CLI lives in `libexec/`, not `bin/`.** claude.ai rejects a plugin with a top-level `bin/`; the hook puts `libexec/` on PATH itself.
 - **One bash script holds all the logic**, needing only `git`, `gh` and `jq`, and runs under macOS's bash 3.2: nothing to build or install beyond tools the user already has.
 - **Clean mode filters only obvious marks** (Co-Authored-By Claude, "Generated with Claude", Claude Code links, 🤖) and leaves voice to the skill: a filter cannot judge style, and a broad one would block honest work.
@@ -65,11 +68,13 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 
 | File | Owns |
 |---|---|
-| `skills/alter-ego/SKILL.md` | trigger; the modes; how enforcement works, as Claude needs to know it; the command table; asking and switching; clean-mode writing; bot-mode conduct; adding, rotating and removing a bot; first run; acting on refusals |
+| `skills/alter-ego/SKILL.md` | trigger; the modes; talking to the user; how enforcement works, as Claude needs to know it; the command table; asking and switching; clean-mode writing; bot-mode conduct; the procedures table; acting on refusals |
+| `skills/alter-ego/references/bots.md` | adding, checking, inviting, rotating and removing a bot; the store commands |
+| `skills/alter-ego/references/setup.md` | first run on a machine |
 | `hooks/hooks.json` | SessionStart (`libexec/alter-ego session-start`: wrappers on PATH, the repository's mode as session context) and PreToolUse on Bash (`libexec/alter-ego guard`) |
 | `shims/git`, `shims/gh` | the programs PATH finds; each hands over to `libexec/alter-ego __git` / `__gh` |
 | `shims/.alter-ego-shims` | marker that tells `real_bin` to skip this folder when looking for the real git and gh |
-| `libexec/alter-ego` | everything else: config, repository keys, the git and gh wrappers, the clean-mode filter (`TELLS`), bot identity and pushes, the credential helper, both hooks' logic and the user commands (`status`, `use`, `add-bot`, …) |
+| `libexec/alter-ego` | everything else: config and its schema, repository keys, the git and gh wrappers, the clean-mode filter (`TELLS`), bot identity and pushes, the credential helper, both hooks' logic and the user commands (`status`, `use`, `add-bot`, …) |
 | `tests/test.sh` | offline tests of the CLI, wrappers and hooks with fake secret stores and a fake `gh` |
 | `evals/` | the `claude plugin eval` suite; `lib.sh` is the shared scaffold |
 
@@ -77,17 +82,10 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 
 Where this plugin departs from `docs/skill-development.md`, and why.
 
-- **No Notion, no pages.** The state is a local config file and the OS secret store, so §5's Notion rules and §6 do not apply, and there is no `docs/dashboard-design.md`.
+- **No Notion, no pages.** The state is a local config file and the OS secret store, so §5's Notion rules and §6's page criteria do not apply, and there is no `docs/dashboard-design.md`. Its code follows §6's criteria for other code.
 - **Executables and hooks beyond §2's table.** `hooks/`, `shims/` and `libexec/` carry the enforcement, which is the plugin's purpose; `shims/` holds only the two names PATH must find.
 - **The skill points outside its folder** (`${CLAUDE_PLUGIN_ROOT}/libexec/alter-ego`, the CLI it drives). Without the plugin's hooks nothing is enforced, so the skill alone — in chat, Cowork or cloud sessions — can only explain the modes; the README says so.
 - **Evals need Bash** and so run through `scripts/eval.sh` with `--allow-tools Bash --scaffold --trust-plugin`; without Bash the agent cannot run git and the "must not" graders pass trivially.
-
-Not yet in line, each for a change of its own (§9):
-
-- **The config has no `schema` number** (§4.7). It is a local JSON file read field by field with defaults; `schema` is to be added, with the upgrade of existing files, in a change of its own.
-- **`SKILL.md` does not state §4.1** (answer the message first) **or §4.3** (plain text in chat).
-- **`evals/README.md` names neither the model nor the cost of a full run** (§7.2).
-- **The guard matches words, not calls.** `cmd_guard` greps the whole command text, so a read that only mentions them — `grep -nE 'env -i|command -p|commit.gpgsign' libexec/alter-ego` — is denied though it runs neither git nor gh. A fix comes with a *the guard* case in `tests/test.sh` for that command.
 
 ## Checking a change
 

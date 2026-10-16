@@ -23,6 +23,7 @@ setup_config() {
   mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/alter-ego"
   cat >"${XDG_CONFIG_HOME:-$HOME/.config}/alter-ego/config.json" <<'JSON'
 {
+  "schema": 1,
   "name_format": "Claude({bot})",
   "bots": {
     "forge": { "login": "forge-robot", "id": 111, "secret_command": "echo tok-forge" }

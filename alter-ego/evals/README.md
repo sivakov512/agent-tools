@@ -5,12 +5,13 @@
 The cases need Bash, which an eval grants only through `--allow-tools Bash`; without it the agent cannot run git and the "must not" graders pass trivially. A Bash-granting eval also refuses to start next to Docker Desktop's links in `~/.docker`, so run it through `scripts/eval.sh` from the repo root: it runs the eval with an empty `HOME` and signs in with a `claude setup-token` token stored as `claude-eval-token` (Keychain on macOS, Secret Service on Linux) or given as `CLAUDE_CODE_OAUTH_TOKEN`. On macOS it also hands the sandbox a git it can run.
 
 ```
-scripts/eval.sh alter-ego --runs 1 --ablation none --scaffold --allow-tools Bash --trust-plugin -j 4 --no-publish
+scripts/eval.sh alter-ego --model opus --judge-model sonnet --runs 1 --ablation none --scaffold --allow-tools Bash --trust-plugin -j 4 --no-publish
 ```
 
+- `--model opus`: alter-ego does its work inside the user's own coding sessions, which run Opus. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
 - One case: `--case bot-commit` (one `--case` per run).
 - `--scaffold` is required: it builds each case's repository.
-- 6 cases, about 3 minutes at `-j 4`.
+- 6 cases, about 3 minutes at `-j 4` and roughly $5 of API usage (an estimate until a measured run replaces it; `--runs 3` triples it).
 
 What is checked:
 
@@ -34,3 +35,7 @@ evals/
 ```
 
 Fetches in the scaffolded repositories go to the local bare repo. A push in bot mode is rewritten to the real `https://github.com/…` URL, so no case pushes in bot mode.
+
+## Reading failures
+
+`docs/skill-development.md` §7. Known unstable cases: none recorded.

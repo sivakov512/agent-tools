@@ -25,6 +25,7 @@ Choices live in `~/.config/alter-ego/config.json` (`$XDG_CONFIG_HOME` is honoure
 
 ```json
 {
+  "schema": 1,
   "name_format": "Claude({bot})",
   "bots": {
     "beelzebot": { "login": "beelzebot-robot", "id": 237511708 }
@@ -38,6 +39,7 @@ Choices live in `~/.config/alter-ego/config.json` (`$XDG_CONFIG_HOME` is honoure
 
 | Field | Meaning |
 |---|---|
+| `schema` | the file's structure version; alter-ego brings an older file up to date in place, and refuses to push or write while the file is newer than the plugin |
 | `name_format` | how bot commits are signed; `{bot}` and `{login}` are replaced. Also per bot |
 | `bots.<name>.login`, `.id` | the GitHub account; `id` is filled by `alter-ego check` and links commits to the account |
 | `bots.<name>.secret` | the token's item name in the secret store, `alter-ego/<login>` by default |
@@ -47,7 +49,7 @@ Choices live in `~/.config/alter-ego/config.json` (`$XDG_CONFIG_HOME` is honoure
 
 ## Install
 
-Needs `git`, `gh` and `jq`, and a secret store: the macOS Keychain, or on Linux the Secret Service (`secret-tool`) or `pass`. Works in Claude Code — the CLI, the desktop app and the IDE extensions — where plugin hooks run.
+Needs bash 3.2 or later (macOS's own will do), `git`, `gh` and `jq`, and a secret store: the macOS Keychain, or on Linux the Secret Service (`secret-tool`) or `pass`. Works in Claude Code — the CLI, the desktop app and the IDE extensions — where plugin hooks run.
 
 ```
 /plugin marketplace add sivakov512/agent-tools
@@ -102,11 +104,7 @@ The commit signature is `Claude({bot})` by default. Change it with `alter-ego na
 
 `tests/test.sh` checks the CLI, the wrappers and the hooks offline, with fake secret stores (Keychain, Secret Service, pass) and a fake `gh`. `TEST_BASH=/bin/bash tests/test.sh` runs the plugin under macOS's bash 3.2.
 
-`evals/` holds a `claude plugin eval` suite — see [evals/README.md](evals/README.md). It needs Bash, so run it through `scripts/eval.sh` from the repo root:
-
-```
-scripts/eval.sh alter-ego --runs 1 --ablation none --scaffold --allow-tools Bash --trust-plugin -j 4 --no-publish
-```
+`evals/` holds a `claude plugin eval` suite. It needs Bash, so it runs through `scripts/eval.sh` from the repo root; [evals/README.md](evals/README.md) has the command, the model and what a run costs.
 
 ## Where things are
 
@@ -114,15 +112,17 @@ scripts/eval.sh alter-ego --runs 1 --ablation none --scaffold --allow-tools Bash
 alter-ego/
 ├── README.md                     this file
 ├── .claude-plugin/plugin.json    Claude plugin packaging (name, version)
+├── docs/skill-design.md          what the plugin must do, its decisions, how a change is checked
 ├── hooks/hooks.json              SessionStart (wrappers on PATH, the mode as context) and PreToolUse (git/gh by name only)
 ├── libexec/alter-ego             the CLI and all the logic, wrappers included (not bin/: claude.ai refuses plugins with one)
 ├── shims/git, shims/gh           the wrappers PATH finds; they hand over to libexec/alter-ego
-├── skills/alter-ego/SKILL.md     the conversation: asking, switching, adding bots, clean-mode writing
+├── skills/alter-ego/SKILL.md     the conversation: asking, switching, clean-mode writing, acting on refusals
+├── skills/alter-ego/references/  procedures read when they run: bots.md (adding, rotating, removing), setup.md
 ├── tests/test.sh                 offline tests
 └── evals/                        claude plugin eval suite
 ```
 
-To change behaviour, edit `libexec/alter-ego` and `SKILL.md`, run the tests, push; release-please bumps `version` in `plugin.json`.
+To change it, read `docs/skill-design.md` and the repository's `docs/skill-development.md` first; a change goes through a pull request, and release-please bumps `version` in `plugin.json`.
 
 ## Limits
 
