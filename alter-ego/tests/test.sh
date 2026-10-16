@@ -11,7 +11,7 @@ FAKE="$T/fake"; mkdir -p "$FAKE"
 export ALTER_EGO_CONFIG="$T/config/config.json" ALTER_EGO_CLAUDE_SETTINGS="$T/claude/settings.json"
 export GIT_CONFIG_GLOBAL="$T/gitconfig" GIT_CONFIG_NOSYSTEM=1 HOME="$T/home" GH_LOG="$T/gh.log"
 mkdir -p "$HOME"; : >"$GIT_CONFIG_GLOBAL"; : >"$GH_LOG"
-unset GH_TOKEN GITHUB_TOKEN GH_REPO GIT_CONFIG_COUNT GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
+unset CLAUDE_CODE_REMOTE ALTER_EGO_CLOUD GH_TOKEN GITHUB_TOKEN GH_REPO GIT_CONFIG_COUNT GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
 git config --global user.name Me; git config --global user.email me@example.com; git config --global init.defaultBranch main
 
 # Fake secret stores read FAKE_SECRETS_DIR/<name with / as _>; fake uname and gh.
