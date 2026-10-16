@@ -117,6 +117,7 @@ Each page in `assets/` has its spec in `docs/dashboard-design.md`, updated in th
 3. **The subject is the whole message**: `type(plugin): imperative subject`, one line, at most 72 characters — release-please copies it into the changelog and the release notes. No body, no trailers, no co-author lines. Shared files take no scope (`docs: …`, `ci: …`).
 4. **Types**: `feat` bumps minor, `fix` bumps patch (below 1.0 a breaking `!` bumps minor); `refactor` and `perf` show in the changelog; `docs`, `test`, `ci`, `chore` stay out of it.
 5. **Versions and changelogs are never edited by hand.** Each push to `master` updates a standing release PR per changed plugin; merging it bumps the version in `plugin.json` and the pages, writes `CHANGELOG.md` and tags `<plugin>-vX.Y.Z`. The user merges a release PR when they want that release.
+6. **Nothing private goes out.** PR titles and descriptions, commit messages and files carry no links to Claude sessions or chats, no AI signatures ("Generated with Claude Code", an AI co-author, a 🤖 line, `Claude-Session:`) and no real client names or personal details — examples use fictional clients. CI refuses a pull request that carries them: `scripts/check_privacy.py`, with the private terms in the `PRIVATE_TERMS` repository secret.
 
 ## 9. Existing plugins
 
