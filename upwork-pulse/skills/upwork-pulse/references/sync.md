@@ -1,6 +1,6 @@
 # Proposals sync — what the user sent, into Proposals
 
-Brings every proposal the user submitted on Upwork into the Proposals database, as Upwork stored it, and marks its job Applied. It runs at the start of every digest (`references/digest.md`), after a proposal is sent from chat, and on command ("sync proposals", "sync proposals for the last 3 months" — `references/chat.md`). It reads Upwork and writes Notion only; nothing goes to Upwork.
+Brings every proposal the user submitted on Upwork into the Proposals database, as Upwork stored it, and marks its job Applied. It runs at the start of every digest (`references/digest.md`) and on command ("sync proposals", "sync proposals for the last 3 months" — `references/chat.md`). A proposal sent from chat is written by the chat itself, as §2 says, without moving the watermark (`references/chat.md` → *Proposals*, step 5). The sync reads Upwork and writes Notion only; nothing goes to Upwork.
 
 ## 1. Which proposals
 

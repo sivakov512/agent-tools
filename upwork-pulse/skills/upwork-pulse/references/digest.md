@@ -12,7 +12,7 @@ Query `jobs_inbox` (`Status` New, newest `Found` first); take the next page only
 
 Nothing left → no push; the report is the header, the counts line (`Cards 0`) and the Log (§3).
 
-## 3. The message
+## 3. The report
 
 Only these blocks, in `language` (labels translated, structure kept):
 
@@ -21,7 +21,7 @@ Only these blocks, in `language` (labels translated, structure kept):
 Cards N · take M · maybe K · connects L
 
 ## Take
-**1. #<short id> <Title>** — <My $> · <My hours> h · <Complexity> · <Proposals> proposals · <Found HH:MM> · [Upwork →](<Link>) · [Notion →](<card url>)
+**1. #<short id> <Title>** — <My $: `$45/hr` for hourly, `$1,500 fixed` for fixed> · <My hours> h · <Complexity> · <Proposals> proposals · <Found HH:MM> · [Upwork →](<Link>) · [Notion →](<card url>)
 <one or two short sentences: the gist and the main thing that decides it — 20 words at most>
 
 ## Maybe
@@ -36,12 +36,10 @@ Cards N · take M · maybe K · connects L
 - Problems: <one line per problem: where, what failed, what is left undone>
 ```
 
-`Sync` is always there (SKILL.md → automatic mode: one line per process, only for what happened); `Problems` only when a call failed or was blocked — a sync that failed and left its watermark is one.
+`Sync` is always there (SKILL.md → *Automatic mode*: one line per process, only for what happened); `Problems` only when a call failed or was blocked — a sync that failed and left its watermark is one.
 
 **Push line**, in `language`, plain text: `Upwork digest: <M> take, <K> maybe` (a zero part left out). Last steps: with cards, load `PushNotification` and push the line; then the final reply — the report alone, its first characters `# Digest`. No cards → no push, the report all the same.
 
 ## 4. After the digest — live chat
 
-As soon as the user writes in this session, automatic mode ends: answer normally, the format is no longer required, and `references/chat.md` applies. Two things follow directly from the digest:
-
-- **"details N"** or **"details #584350"** → the full card of that item in the hourly message format (`references/hourly.md` §7, one card, no number), from the card's properties and body.
+As soon as the user writes in this session, automatic mode ends and `references/chat.md` applies — "details N" for a card of this digest included.
