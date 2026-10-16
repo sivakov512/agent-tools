@@ -172,7 +172,7 @@ A note, a file, a history line, a problem's links — each goes where it will be
 - none → the tracker is not set up (**Other scenarios**);
 - a config with `open_items` and no `tasks`, or a current tracker next to an unretired 0.x one → `references/upgrade.md` before anything else; never write to a 0.x tracker with these rules;
 - a config whose `schema` is above 5 → the tracker was built by a newer version of the plugin, and these rules would misread it: write nothing, and say in one line that the plugin needs updating to work with this tracker;
-- a current config whose `schema` is below 5 → `references/upgrade.md` → **Tracker update** first, without asking, then the request, whatever it is — a status question too. It is never put to the user as a proposal or saved for a later change: it keeps the structure working and records nothing about their affairs, installing the newer plugin was their go for it, and nothing in this skill works right on the old structure. The first time the config is read in a conversation its `schema` is checked before anything else: every rule here assumes the current structure.
+- a current config whose `schema` is below 5, or that has no `schema` line → `references/upgrade.md` → **Tracker update** first, without asking, then the request, whatever it is — a status question too. It is never put to the user as a proposal or saved for a later change: it keeps the structure working and records nothing about their affairs, installing the newer plugin was their go for it, and nothing in this skill works right on the old structure. The first time the config is read in a conversation its `schema` is checked before anything else: every rule here assumes the current structure.
 
 **An ID** the user writes — `TK-34`, `tk34`, `PB 5` — names exactly one row, never a guess: the prefix says the database (`ref_prefixes`) and the number is its `Ref`. Views give `Ref` as the bare number, so match it in that database's rows: the root views first, then the views of each project in `Active` and `Closed`. A number found nowhere, or one without a prefix, is asked about. Several IDs in one message name exactly those rows.
 
@@ -276,7 +276,7 @@ In a conversation with the user (never a scheduled or unattended run), once per 
 |---|---|
 | A first message naming a row "(Project Tracker, <url>)", or a request to change where a project's chats open | `references/chats.md`, before anything else |
 | Set up the tracker, the root page is missing, or an existing tracker lacks something (views, tabs, columns) | `references/setup.md` |
-| A config `schema` below 5 | `references/upgrade.md` → **Tracker update** |
+| A config `schema` below 5, or no `schema` line | `references/upgrade.md` → **Tracker update** |
 | A milestone or project paused ("the enclosure test is on hold until the parts arrive", "the project is on hold") or resumed; a project finished, reopened, or its fields set (client, origin, repository, source) | `references/state.md` |
 | Long text (call notes, a spec, an email thread) or a file to save | `references/notes.md` |
 | Undo, in this conversation or of an earlier change | `references/plan-changes.md` → **Undo** |
