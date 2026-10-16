@@ -72,7 +72,11 @@ If `alter-ego attribution` says `on`, Claude Code itself adds the attribution li
 - Don't offer the app's own commit or create-PR buttons in such a repository: they don't run through your Bash and would act as the user. Offer plain reply buttons ("Commit and open PR") and do the work yourself.
 - Don't write to GitHub through an MCP connector there: connectors use the user's own account.
 - A pull request opened by the bot is one the user can review and approve like a colleague's. Write its description for that reviewer: what changed, why, how it was checked.
-- Bot mode works with github.com repositories only, and not in Anthropic-hosted cloud sessions (claude.ai/code): there GitHub traffic goes through Anthropic's GitHub proxy, which pushes with the user's own token, and `gh pr` and `gh issue` are blocked, so bot work would go out as the user or not at all. If the user wants a bot there, tell them so.
+- Bot mode works with github.com repositories only, and not in cloud sessions (**Cloud sessions**).
+
+## Cloud sessions
+
+In an Anthropic-hosted cloud session (claude.ai/code) no mode can hold: GitHub traffic goes through Anthropic's GitHub proxy with the user's own token, and `gh pr` and `gh issue` are blocked. So pushes and gh writes are refused there, unless the repository's cloud environment sets `ALTER_EGO_CLOUD=allow`; then git and gh run untouched — commits go out as Claude, pushes and PRs through the user's own GitHub account, and nothing filters AI marks. The session context says which applies; `alter-ego use` does nothing there. Whether to allow it is the user's call: a client repository opened in the cloud stays protected only while it is refused.
 
 ## Procedures — read the file for what you are doing
 
@@ -90,6 +94,7 @@ The message says why. Act on it:
 - missing token or id → give the user the store command, or run `alter-ego check`, as the message says;
 - a push URL the bot can't use → push to the repository's GitHub remote by name;
 - the config can't be read (a newer alter-ego wrote it, or it is not valid JSON) → tell the user the plugin needs updating, or the file fixing; nothing is pushed or posted until then;
+- a cloud session → tell the user why, and that `ALTER_EGO_CLOUD=allow` in the repository's cloud environment lets it through (**Cloud sessions**);
 - git or gh by full path → call them by name.
 
 Never route around a refusal: no git or gh by full path, no replaced PATH, no `env -i`, no editing the config by hand, no switching the mode to get past one. Each would put work out under the wrong name, which is what the user installed this to prevent.
