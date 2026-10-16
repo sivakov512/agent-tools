@@ -58,7 +58,7 @@ Needs bash 3.2 or later (macOS's own will do), `git`, `gh` and `jq`, and a secre
 
 Start a new session: the wrappers are put on PATH at session start.
 
-In claude.ai cloud sessions, Cowork, chat or Codex there are no plugin hooks, so nothing is enforced; the skill alone can only explain the modes.
+In Anthropic-hosted cloud sessions (claude.ai/code) the wrappers run, but bot mode is not supported: GitHub traffic there goes through Anthropic's GitHub proxy, which pushes with your own token, and `gh pr` and `gh issue` are blocked, so a bot's work would go out as you or not at all. In Cowork, chat or Codex there are no plugin hooks, so nothing is enforced; the skill alone can only explain the modes.
 
 ## First run
 
@@ -127,6 +127,6 @@ To change it, read `docs/skill-design.md` and the repository's `docs/skill-devel
 ## Limits
 
 - It covers Claude's Bash commands that call `git` and `gh` by name — which is how Claude works. Programs that change a repository without the `git` command (libgit2 tools), GitHub MCP connectors and the desktop app's own commit / create-PR buttons are outside it; Claude is told not to use them in bot repositories.
-- Bot mode works with github.com repositories only.
+- Bot mode works with github.com repositories only, and not in Anthropic-hosted cloud sessions (see Install).
 - Clean mode catches the obvious markers. Writing in your voice is the skill's job, not a filter's.
 - Fetches over SSH keep using your own key; only pushes and `gh` go as the bot.
