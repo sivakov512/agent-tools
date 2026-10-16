@@ -476,16 +476,20 @@ cmd_session_start() {
   jq -n --arg c "$(context_for "$key" "$mode")" '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $c}}'
 }
 
-# git and gh called by full path, or with PATH replaced, skip the wrappers.
+# git and gh called by full path, after PATH is replaced, under env -i or
+# command -p skip the wrappers. The command is cut into simple commands; one is
+# denied when it calls git or gh to write and is one of those forms. Quoted text
+# counts as commands too, since bash -c '…' runs it.
 cmd_guard() {
-  local input cmd
-  input="$(cat)"
   have jq || exit 0
-  cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"
-  printf '%s' "$cmd" | grep -qE '(^|[;&|({`[:space:]]|\$\()/[^[:space:];&|()]*/(git|gh)([[:space:]]|$)|(^|[;&|[:space:]])PATH=|env[[:space:]]+-i|command[[:space:]]+-p' || exit 0
-  printf '%s' "$cmd" | grep -qE 'push|commit|merge|rebase|cherry-pick|revert|tag|pull|[[:space:]](pr|issue|release|api|repo|label|workflow|secret|variable|gist|run)[[:space:]]' || exit 0
-  jq -n --arg r "alter-ego: call git and gh by name, without a full path or a replaced PATH: alter-ego's wrappers decide whose name they act under, and bypassing them could put work out under the wrong one." \
-    '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $r}}'
+  jq -c --arg r "alter-ego: call git and gh by name, without a full path, a replaced PATH, env -i or command -p: alter-ego's wrappers decide whose name they act under, and bypassing them could put work out under the wrong one." '
+    def at: "(^|[[:space:]\"\u0027])";
+    def writes: test(at + "(\\S*/)?(git|gh)[[:space:]].*\\b(push|commit|merge|rebase|cherry-pick|revert|tag|pull|pr|issue|release|api|repo|label|workflow|secret|variable|gist|run)\\b");
+    def bypass: test(at + "/\\S*/(git|gh)[[:space:]]") or test(at + "env([[:space:]]+\\S+)*[[:space:]]+(-i|--ignore-environment)([[:space:]]|$)") or test(at + "command[[:space:]]+-p[[:space:]]");
+    [(.tool_input.command // "") | splits("[;&|()`\n]")] as $s
+    | ($s | map(test(at + "(export[[:space:]]+)?PATH=")) | index(true)) as $p
+    | select(any(range(0; $s | length); . as $i | $s[$i] | writes and (bypass or ($p != null and $i >= $p))))
+    | {hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $r}}'
 }
 
 # ---------------------------------------------------------- user commands
