@@ -74,6 +74,18 @@ Where this plugin departs from `docs/skill-development.md`, and why.
 - **The dashboard is offered, not updated by itself** (§6.7): publishing it needs the user's grant of the Notion connector on the page, and the user may have said no to this version. Client dashboards, which read nothing live, are brought to the current page on their next refresh.
 - **The dashboard offer reads the plugin's `CHANGELOG.md`**, outside the skill folder (§2, a skill ships alone), to say in a few words what is new. Where the skill was uploaded alone the file is missing and the offer only says that an update is out; nothing else depends on it.
 
+Not yet in line, each for a change of its own (§9):
+
+- **Compatibility is spread out** (§3.9): the Tracker update lives in `references/setup.md`, and rules for older structures (the old status callout, the old `Client sees` form, a `data.js` without `page`, `Removed (was X)`, old columns) sit in `SKILL.md`, `references/client-dashboards.md`, `references/plan-changes.md` and `references/setup.md` instead of `references/upgrade.md`.
+- **About 15 rules have two or three homes** (§3.1) — the Tracker-update trigger is written four times, and what a client dashboard shows is listed differently in `SKILL.md` and `references/client-dashboards.md`.
+- **Maintainer material sits in the references** (§3.2) — the dashboard tour and release stamping in `references/dashboard.md`, the side-list and snapshot design in `references/client-dashboards.md`, the chat button in `references/chats.md` — and belongs in `docs/dashboard-design.md`.
+- **Several names for one thing** (§3.4): plan change and replan; part and section; entry, line and record; "update" for the Tracker update, the dashboard update and a client-dashboard refresh; report windows of 7 and 8 days.
+- **A contradiction on milestone ends** (§3.4): a task's dates past its milestone's end move that end (`SKILL.md` → **Dates are the user's**), but a milestone's `Dates` never follow its tasks (`SKILL.md` → **How the levels move together**, `references/plan-changes.md`). Settling it changes behaviour: it waits for the user's word.
+- **No rule for a tracker newer than the plugin** (§4.7): a `schema` above the skill's should write nothing and say the plugin is out of date.
+- **Reference files lack the mode shape** (§3.8): `references/state.md`, `references/notes.md`, `references/contracts.md` (resync), `references/plan-changes.md` and `references/report.md` do not say their inputs, output and what is off limits.
+- **`SKILL.md` carries more than every session needs** (§3.2): about 10,000 words, over 40% of the skill; the moves above, the pause stub, the tidy-sweep procedure and the dashboard-offer details going to their references bring it down.
+- **The dashboard code** (§6.4–§6.5), from the October audit: the four bugs first — the timeline zoom not restored, a closed project page still re-reading Notion, a client page without `data.js` left blank, a call that never settles leaving the page on Loading — then dead code, logic written twice, unpaced calls and shadows outside the theme tokens.
+
 ## Checking a change
 
 Beyond `docs/skill-development.md` §7:
