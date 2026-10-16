@@ -12,16 +12,16 @@
   var ORIGINS = ["Upwork", "Direct", "Personal"];
 
   var S = { cfg: null, projects: null, projErr: null, plan: {}, pageInfo: {}, problems: null, problemsErr: null, resolved: null, resolvedErr: null, lastUpdate: 0, range: "3", origins: [], tlView: null, tlOpen: {}, shown: false };
-  try { var r0 = localStorage.getItem("pt.range"); if (PT.SPANS[r0] || r0 === "all") S.range = r0; } catch (e) {} // PT.SPANS: the alias below is not set yet
+  try { var r0 = localStorage.getItem("pt.range"); if (PT.SPANS[r0] || r0 === "all") S.range = r0; } catch (e) {}
   try { var o0 = JSON.parse(localStorage.getItem("pt.origins") || "null"); if (Array.isArray(o0)) S.origins = o0.filter(function (k) { return typeof k === "string"; }); else { o0 = localStorage.getItem("pt.origin"); if (o0 && o0 !== "All") S.origins = [o0]; } } catch (e) {} // pt.origin: the one origin an older version kept
   try { var t0 = JSON.parse(localStorage.getItem("pt.tlOpen") || "{}"); if (t0 && typeof t0 === "object") S.tlOpen = t0; } catch (e) {}
 
   var $ = function (id) { return document.getElementById(id); };
   var ON_US = SNAP ? "on our side" : "on you"; // a problem nobody else has to act on, as the user's page and a client's page say it
-  var el = PT.el, clear = PT.clear, link = PT.link, btn = PT.btn, span = PT.span, nodash = PT.nodash, cleanUrl = PT.cleanUrl, unesc = PT.unesc, clean = PT.clean, rel = PT.rel, key = PT.key, plural = PT.plural, smooth = PT.smooth, sel = PT.sel, keep = PT.keep;
+  var el = PT.el, clear = PT.clear, link = PT.link, btn = PT.btn, span = PT.span, nodash = PT.nodash, cleanUrl = PT.cleanUrl, unesc = PT.unesc, clean = PT.clean, key = PT.key, plural = PT.plural, smooth = PT.smooth, sel = PT.sel, keep = PT.keep;
   var dnum = PT.dnum, todayNum = PT.todayNum, fmt = PT.fmt, soon = PT.soon, range = PT.range, days = PT.days, hhmm = PT.hhmm;
-  var OPEN_MS = PT.OPEN_MS, SPANS = PT.SPANS, CHEV = PT.CHEV, problemOf = PT.problemOf, isOpen = PT.isOpen, ageOf = PT.ageOf, ageCls = PT.ageCls, sortItems = PT.sortItems, currentTask = PT.currentTask, whenOf = PT.whenOf, planPhrase = PT.planPhrase, itemDot = PT.itemDot;
-  var facts = PT.facts, actions = PT.actions, typeTag = PT.typeTag, phraseEl = PT.phraseEl, problemLines = PT.problemLines;
+  var OPEN_MS = PT.OPEN_MS, CHEV = PT.CHEV, problemOf = PT.problemOf, isOpen = PT.isOpen, ageOf = PT.ageOf, ageCls = PT.ageCls, sortItems = PT.sortItems, whenOf = PT.whenOf;
+  var actions = PT.actions, typeTag = PT.typeTag, problemLines = PT.problemLines, foldDetails = PT.foldDetails;
   function saveOpen() { try { localStorage.setItem("pt.tlOpen", JSON.stringify(S.tlOpen)); } catch (e) {} }
 
   // where a project comes from: an Origin property if the tracker has one, else from Source and Client
@@ -118,9 +118,8 @@
   }
 
   function parseProjectPage(txt, p) { // the page's own parts, below its tabs (SKILL.md → Pages); a paused project's note says why and since when
-    var info = { notes: [], parts: partsOf("") };
     var body = contentOf(txt), t = body.lastIndexOf("</tabs>");
-    info.parts = partsOf(t < 0 ? "" : body.slice(t + 7));
+    var info = { notes: [], parts: partsOf(t < 0 ? "" : body.slice(t + 7)) };
     if (p && p.status === "Paused") info.notes.push("Paused " + PT.pauseText(PT.pauseOf(info.parts.hist), true));
     return info;
   }
@@ -747,9 +746,8 @@
   document.addEventListener("click", function (e) { if (!e.target.closest(".dd-m, .chat-m, .info")) closeMenus(); });
   document.addEventListener("click", function (e) { // a Notion toggle in a page's text opens and folds smoothly, as the rest of the page does
     var sm = e.target.closest(".md details.tgl > summary"); if (!sm || e.target.closest("a, button")) return;
-    var d = sm.parentNode, body = sm.nextElementSibling; if (!body) return; e.preventDefault();
-    if (!d.open || d.classList.contains("shut")) { d.classList.remove("shut"); d.open = true; slide(body, true); }
-    else { d.classList.add("shut"); slide(body, false, function () { if (d.classList.contains("shut")) { d.open = false; d.classList.remove("shut"); } }); }
+    var body = sm.nextElementSibling; if (!body) return; e.preventDefault();
+    foldDetails(sm.parentNode, body);
   });
   function fixChat(err) { return err && err.chat ? chatLink(newChatUrl(err.chat), "Fix it in a chat with Claude") : null; }
   function trackerErr() { return S.projErr && !S.projects ? S.projErr : null; }
@@ -799,14 +797,14 @@
   // the project page, block by block; ctx carries what several blocks share
   function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p), c.info.parts.desc ? renderMd(c.info.parts.desc, {}) : null); }
   function drStatus(body, c) {
-    var ms0 = c.ms0, tk0 = c.tk0, info = c.info, st = c.st, f = c.f, openProbs = c.openProbs, waitTasks = c.waitTasks;
+    var info = c.info;
     if (info.notes.length) { var q = el("div", "dr-note"), nh = el("div", "nh"); nh.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></svg>'; nh.appendChild(span("Status")); q.appendChild(nh); info.notes.forEach(function (x) { q.appendChild(el("div", "", x)); }); body.appendChild(q); }
   }
   function drFocus(body, p, c) { // where it stands: the milestone under way with its current task, what is late, what is paused, the next milestone, blockers
     var fc = c.ms0 ? PG.focusBlock(c.f, blockersOf(p), p.summary) : PG.focusBlock({ overdue: [], now: [], next: null }, [], p.summary); if (fc) body.appendChild(fc);
   }
   function drNumbers(body, p, c) { // three tiles, each opening its section
-    var ms0 = c.ms0, tk0 = c.tk0, info = c.info, st = c.st, f = c.f, openProbs = c.openProbs, waitTasks = c.waitTasks;
+    var ms0 = c.ms0, tk0 = c.tk0, info = c.info, openProbs = c.openProbs, waitTasks = c.waitTasks;
     var strip = ms0 && ms0.length ? ms0 : tk0 || [], stats = el("div", "stats"), done = strip.filter(function (m) { return m.status === "Done"; }).length;
     function stat(k, v, sub, sec) { // a tile with a section behind it is a button that opens and scrolls to it
       var c = sec ? btn("stat go", null, function () { var s = $("drBody").querySelector('.dsec[data-sec="' + sec + '"]'); if (!s) return; if (s.classList.contains("folded")) setFold(s, false); s.scrollIntoView({ block: "start", behavior: smooth() }); }) : el("div", "stat");
@@ -818,10 +816,9 @@
     stat("Open items", S.problemsErr && !S.problems ? "?" : String(nOpen), null, nOpen || (S.problemsErr && !S.problems) ? "items" : null); // a tile with nothing behind it is not a button
     stat("Notes", String(nNotes) + (nPriv ? " · " + nPriv + " private" : ""), null, nNotes || nPriv ? (nNotes ? "notes" : "private") : null); // private ones counted apart: the Notes section shows only the others
     body.appendChild(stats);
-
   }
   function drItems(body, p, c) { // open items: problems by what they ask of the user, plus the tasks waiting on someone
-    var ms0 = c.ms0, tk0 = c.tk0, info = c.info, st = c.st, f = c.f, openProbs = c.openProbs, waitTasks = c.waitTasks;
+    var openProbs = c.openProbs, waitTasks = c.waitTasks;
     if (openProbs.length || waitTasks.length || (S.problemsErr && !S.problems)) {
       var b1 = dsec(body, "items", "Open items", openProbs.length + waitTasks.length);
       if (S.problemsErr && !S.problems) b1.appendChild(errBox("Problems didn't load. ", S.problemsErr));
@@ -844,7 +841,6 @@
         });
       });
     }
-
   }
   function drResolved(body, p) { // problems resolved lately: where Recently completed opens them
     var resolvedP = (S.resolved || []).map(problemOf).filter(function (i) { return i.pk === p.key && i.status === "Resolved"; });
@@ -852,7 +848,6 @@
       var b4 = dsec(body, "resolved", "Resolved lately", resolvedP.length);
       resolvedP.forEach(function (i) { var sub = el("span", "s"); sub.appendChild(typeTag(i.type)); sub.appendChild(document.createTextNode(" " + [context(i), i.resolvedOn != null ? "resolved " + fmt(i.resolvedOn) : "resolved"].filter(Boolean).join(" · "))); b4.appendChild(acc({ k: "r:" + key(i.url), item: i, dot: "good", title: i.name, line: sub, right: "", expand: function (x) { problemBody(x, i); } })); });
     }
-
   }
   function drPlan(body, p, c) {
     var dErr = S.plan[p.key] && S.plan[p.key].err;
@@ -967,9 +962,7 @@
       d.addEventListener("toggle", function () { fold[id] = d.open; try { localStorage.setItem("pt.fold", JSON.stringify(fold)); } catch (e) {} });
       d.querySelector("summary").addEventListener("click", function (e) { // opens and folds smoothly; the chevron and the head's button turn at once (.shut)
         if (e.target.closest(".gall")) return; e.preventDefault();
-        var body = d.querySelector("summary").nextElementSibling;
-        if (!d.open || d.classList.contains("shut")) { d.classList.remove("shut"); d.open = true; slide(body, true); }
-        else { d.classList.add("shut"); slide(body, false, function () { if (d.classList.contains("shut")) { d.open = false; d.classList.remove("shut"); } }); }
+        foldDetails(d, d.querySelector("summary").nextElementSibling);
       });
     });
   })();
