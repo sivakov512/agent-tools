@@ -2,8 +2,6 @@
 type: 'llm'
 focus: 'last_message'
 ---
-- The final message consists only of the run report blocks: a `# Run` header line, a counts line, a `## Take` section with numbered cards (optionally `## Maybe`), and a `## Log` section of short bullet lines about what the run did (the model it ran on, search, and only the other processes that happened). Outside the Log it does not describe what the agent did, does not mention Notion writes or watermarks, and it includes no draft proposal text.
-- The ESP32 environmental sensor node card shows an estimate as a list of parts of the work with hours (not a single sentence), under a line with the total hours and the rate.
-- The ESP32 environmental sensor node posting is listed under Take, the WordPress posting is not listed anywhere.
+- Outside its `## Log` section, the message is only the report: the `# Run` header, the counts line, and job cards — each with a title, a terms line with Upwork and Notion links, client and competition lines, a paragraph about the job, complexity, risks, questions to clarify and an estimate. It does not tell what the agent did in this session: no sentence about writing to Notion, the watermark, a subagent, waiting, or a notification, and no proposal text addressed to the client.
 
-Judge only these claims. Different wording, ordering, extra harmless detail and extra read calls are fine. Answer FAIL only if one of the claims above is clearly false.
+The `## Log` bullets (models, search counts, a skill version, problems) are the run's log and are fine whatever they say; so are the card links. Judge only this claim. Different wording, ordering and extra detail inside the cards are fine. Answer FAIL only if the claim is clearly false.
