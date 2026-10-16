@@ -1,5 +1,9 @@
 # Reading the tracker and the weekly report
 
+Started by the user asking what is on them, how things stand across projects, or for a weekly report or client update.
+
+**Inputs:** the root views and the active projects' views each part lists; for the weekly report, the five sources of **Collect**.
+
 ## Reading the tracker
 
 ### My week — "what's on me this week?", "what do I have to do?"
@@ -45,3 +49,11 @@ If the config has a `dashboard` line, end with its link: the same picture, live.
 **Write**: what was done, what is next (with dates), what is waiting on the client or a vendor (by name), what is late or on hold and why, and — if dates were moved — which dates and why. Dates only proposed are for the user: mention them next to the draft, never in a client email. Plain prose from an engineer, not a dashboard export.
 
 Every fact comes from those five sources (the rule on writing only what was said applies in full). An email pulls towards phrases that read naturally but put words in the user's mouth — "as discussed, we'll…", "before we can move forward with…", "happy to jump on a call". Leave out every intention, promise, reason or offer the tracker does not record; the user adds their own before sending. If something the reader would expect is missing (an item due today with no progress logged), say so to the user next to the draft instead of filling it in. If all five sources are empty for the window, say so and ask what happened. Nothing is written to Notion.
+
+## Output
+
+An answer in the chat, or a draft email for the user to send.
+
+## Off limits
+
+Any write to Notion; a fact, intention or promise the tracker does not record.

@@ -2,6 +2,10 @@
 
 A milestone or project stopped for a reason outside the work gets `Status` Paused and a dated line with the reason and the previous status (`- **Mar 10** — Paused (was In progress): waiting on Kestrel for parts.`). A paused item, and everything under it, is never late (SKILL.md → **How lateness works**).
 
+Started by the user pausing or resuming a milestone or project, finishing or reopening a project, or setting its fields.
+
+**Inputs:** the item, its current status, and the reason if given.
+
 ## Milestone paused — "the enclosure test is on hold until Kestrel sends the parts"
 
 A milestone stops for a reason outside the work: pause it as above. If someone else has to act, so that it shows up in "who to chase": a Waiting task for exactly that already exists → name it in the pause line; otherwise open a Blocker waiting on whoever must act (`Waiting on` Kestrel), linked to the milestone. A pause without a reason is allowed: propose it with `no reason given` and ask for the reason in the same reply. The pause is a fact the user reported: it goes into the proposal (or is written at once on an instruction or a go-ahead, SKILL.md → **Propose, then write**), and the same reply asks whether later milestones wait on this one — those that do are paused the same way, the rest carry on (several milestones can be In progress).
@@ -15,3 +19,11 @@ The status recorded in the pause line comes back, for this milestone and those p
 ## Project state and fields — "put the project on hold", "that one is finished", "the repo is …"
 
 Paused / Done / Active → project `Status`, a history line on the project page with the reason if given and the previous status (`- **Mar 3** — Paused (was Active): client budget review.`). Resuming it: ask whether its dates move; yes → move them as for a delay; no → they stay, and items past their dates count as late again. Done with milestones or tasks still open: ask whether to close them — they stay in the views until closed. Other fields (client, origin, repository, source): set them; a new `Origin` value becomes a new option of the select. Removing a project: `references/plan-changes.md`.
+
+## Output
+
+The status changed with its history line (the reason and the previous status), and the reply of SKILL.md → **Every change**.
+
+## Off limits
+
+Pausing a task; moving dates without the user's word.

@@ -2,6 +2,10 @@
 
 From a plan, estimate or email the user pastes or points to ("my last report in Sent", "the estimate in this PDF", "the Google Doc"), or from a platform contract — then `references/contracts.md` replaces steps 2–3 below; everything else is as here.
 
+Started by a request for a new project from a source.
+
+**Inputs:** the source and its date; for a contract, `references/contracts.md`.
+
 ## 1. Get the source
 
 Pasted → use it. Pointed to → fetch it with whatever tools the session has (mail, files, drive, web); if several candidates match, list them briefly (date, subject) and ask which. The **source date** is the date the source was written: an email's sent date, a document's date, or a date written in the text. Pasted text that carries no date was just written: its source date is today.
@@ -104,3 +108,11 @@ Tabs — fetch the page, then `update_content` with `old_str` = the four `<datab
 Verify by fetch: the page's ancestor path goes through the Projects database; the body is one `<tabs>` block with the four tabs — Plan, Tasks, Schedule, Problems — no `icon=`, and after it only the parts of SKILL.md **Pages** (none yet on a new page, or the description and the source's sub-page). If a block came out in the wrong order, one `update_content` over both blocks puts them back. If the page already had some of this, keep it and add only what is missing — never a second view or tabs block.
 
 Filters on formula columns are dropped by the API, so `Schedule` lists every live milestone; `Late, days` is the column to scan. A project without milestones keeps the same tabs: its `Plan` is simply empty.
+
+## Output
+
+The project's row, page, views and tabs, milestones, tasks and problems as confirmed, and a reply with what was created and the zoom reminder (§5).
+
+## Off limits
+
+Rows, risks or dates the source does not give; anything created before the user's OK to the list; a second project of the same name.

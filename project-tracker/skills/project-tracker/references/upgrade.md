@@ -2,11 +2,15 @@
 
 Everything that exists only for trackers made by older versions lives here: the **Tracker update**, which brings a current tracker's structure up to this skill's `schema` in place; the **Old shapes** a mode still meets on pages; and **A tracker made by 0.x**, copied to a new one.
 
+Started by SKILL.md → **Finding things** (a `schema` below the skill's, a 0.x tracker), by a mode that meets an old shape, or by the user asking to upgrade or migrate the tracker.
+
+**Inputs:** the config, the databases and the pages the step at hand names.
+
 ## Tracker update
 
 SKILL.md (**Finding things**) starts it, or `references/setup.md` §3 on a tracker that has rows.
 
-The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **5**. A tracker below it is brought up by the skill itself, in the first conversation that finds it, before the request — installing the newer plugin is the user's go for it; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose §3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again. Steps run in order (a schema-1 tracker gets 1 → 2, 2 → 3, 3 → 4, then 4 → 5, in one go). If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
+The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **5**. A tracker below it is brought up before the request, as SKILL.md → **Finding things** says; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose `references/setup.md` §3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again. Steps run in order (a schema-1 tracker gets 1 → 2, 2 → 3, 3 → 4, then 4 → 5, in one go). If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
 
 **Columns older trackers lack.** Fetch each data source and add the plain columns that are missing — `Origin`, `Chat` and `Claude project`, which only pre-release 1.0 trackers lack, `Order`, which schema 1 lacks, `Client dashboard`, which schema 2 lacks, and `Ref`, which schema 4 lacks (one call per data source, statements joined by `;`):
 
@@ -118,7 +122,7 @@ Dropped milestones and issues, and Removed projects, do not move.
 
 ### 3. Preview
 
-Show, per project: the milestones with their tasks (dates, status), the problems, what is not moved (Dropped, Removed, Done projects) and anything the rules could not place. Ask. This is a replan of every row, so it waits for the user's yes. Decisions the user adds ("everything after the demo has no dates yet", "add the demo milestone") are applied after the copy, as ordinary plan changes, so the copy itself stays mechanical.
+Show, per project: the milestones with their tasks (dates, status), the problems, what is not moved (Dropped, Removed, Done projects) and anything the rules could not place. Ask. This is a plan change of every row, so it waits for the user's yes. Decisions the user adds ("everything after the demo has no dates yet", "add the demo milestone") are applied after the copy, as ordinary plan changes, so the copy itself stays mechanical.
 
 ### 4. Copy
 
@@ -132,6 +136,14 @@ Only after the counts match:
 
 - The old config toggle's summary becomes `⚙️ **Retired 0.x tracker** — not read by any skill; the live tracker is <mention-page url="<new root>"/>`, so search no longer finds it; its lines stay as they were.
 - The old page title gets ` (0.x)` appended.
-- The dashboard: if the old config had a `dashboard` line, copy it into the new config and update that artifact as `references/dashboard.md` → **Updating** says, with the new root page — the link the user already has keeps working. Otherwise publish a new one.
+- The dashboard: if the old config had a `dashboard` line, copy it into the new config and republish that artifact as `references/dashboard.md` → **Republishing** says, with the new root page — the link the user already has keeps working. Otherwise publish a new one.
 
 Tell the user what moved (counts per project), what stayed behind, the new page, that the old page is kept as a backup they can delete by hand once they are satisfied, and the click-through list from `references/setup.md` §8.
+
+## Output
+
+A tracker at schema 5, said in one line before the request is answered; for a 0.x tracker, the new tracker and the message of **5. Retire the old tracker**.
+
+## Off limits
+
+Writing to a 0.x tracker; dropping a value before it is checked in its new place; writing `schema` before the last step of an update.
