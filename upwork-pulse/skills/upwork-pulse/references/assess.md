@@ -92,7 +92,10 @@ To the hourly run, nothing else:
 ```
 model <the model you run on>
 pages: <job pages opened, drafts' included>
-<each card's block for the report, exactly as references/hourly.md §7 shows it (` · invited` on an invitation's card), numbered from 1, Take first then Maybe, with the Advice line when drafts ran>
+## Take
+<each Take card's block for the report, exactly as references/hourly.md §7 shows it (` · invited` on an invitation's card), numbered from 1, with the Advice line when drafts ran>
+## Maybe
+<each Maybe card's block, the same way, numbered on>   ← an empty section is left out, its heading too
 rejected: <n>[ (<g> of them gone)]
 deferred: <n> waiting — #<short id>, …[; job pages paused until HH:MM][; <m> dropped after 48 h]   ← only when the line is not empty
 not processed: <n> postings, window HH:MM–HH:MM   ← only at the budget
@@ -100,6 +103,6 @@ drafts: <n> advised — apply #<short id>, …; skip #<short id>, …[; not new 
 problems: <where: stage 2 | cards | run row | drafts> — <what failed, what is left undone>   ← one line per problem, only when a call failed
 ```
 
-A run that could not start — the schema check or the rules of §1 — returns that one line alone: `pipeline updating` or `rules unreadable`.
+The two headings tell the hourly run which cards are Takes, which its push depends on (`references/hourly.md` §7). A run that could not start — the schema check or the rules of §1 — returns that one line alone: `pipeline updating` or `rules unreadable`.
 
 Off limits here: the watermark (`PROCESSED_UNTIL`), the report and the push — the hourly run's; `confirm_preview` and every other write to Upwork.
