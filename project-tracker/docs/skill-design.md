@@ -59,14 +59,14 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 | `references/chats.md` | a chat opened from the dashboard: claiming the row, naming the chat, the first reply; `Claude project` |
 | `references/client-dashboards.md` | client dashboards: what a client may see, making one, `data.js`, keeping it current, changing and removing it |
 | `references/contracts.md` | a project from a platform contract (Upwork), and resync |
-| `references/dashboard.md` | publishing and updating the user's dashboard |
+| `references/dashboard.md` | publishing and republishing the user's dashboard |
 | `references/new-project.md` | a new project from a source: extract, dates, confirm, create, the project page's views and tabs |
 | `references/notes.md` | long text as sub-pages, and files |
 | `references/plan-changes.md` | plan changes, removing and restoring, undo |
 | `references/report.md` | my week, the overview, the weekly report |
-| `references/setup.md` | setting the tracker up or finishing it; the Tracker update (schema steps) |
-| `references/state.md` | pause and resume; a project's state and fields |
-| `references/upgrade.md` | a tracker made by 0.x, copied to a new one |
+| `references/setup.md` | setting the tracker up or finishing it |
+| `references/state.md` | pausing (the rule and its line) and resuming; a project's state and fields |
+| `references/upgrade.md` | everything only older trackers need: the Tracker update (the schema steps, the columns older trackers lack), the old shapes still met on pages, a tracker made by 0.x copied to a new one |
 | `assets/` | `dashboard.html`, `client.html` and their shared `app.js`, `core.js`, `core.css` — specified in `docs/dashboard-design.md` |
 
 ## Exceptions
@@ -76,16 +76,14 @@ Where this plugin departs from `docs/skill-development.md`, and why.
 - **The dashboard is offered, not updated by itself** (§6.7): publishing it needs the user's grant of the Notion connector on the page, and the user may have said no to this version. Client dashboards, which read nothing live, are brought to the current page on their next refresh.
 - **The dashboard offer reads the plugin's `CHANGELOG.md`**, outside the skill folder (§2, a skill ships alone), to say in a few words what is new. Where the skill was uploaded alone the file is missing and the offer only says that an update is out; nothing else depends on it.
 
-Not yet in line, each for a change of its own (§9):
+- **§3.9, compatibility in one place**: besides `references/upgrade.md`, the modes that meet an old shape on a live page — `SKILL.md` (a status callout), `references/client-dashboards.md` (a `data.js` without pages), `references/plan-changes.md` (old removal lines), `references/setup.md` (databases of an older version) — carry a one-line pointer to `references/upgrade.md` → **Old shapes**, since those pages are never converted and the mode must recognise them.
+- **§4.4, propose then write**: the Tracker update, clearing an old shape, a client dashboard's refresh and a dashboard chat's claim of its row (`Chat`) go ahead without asking (*Decisions*): they keep the structure and the published pages working and record nothing about the user's affairs.
 
-- **Compatibility is spread out** (§3.9): the Tracker update lives in `references/setup.md`, and rules for older structures (the old status callout, the old `Client sees` form, a `data.js` without `page`, `Removed (was X)`, old columns) sit in `SKILL.md`, `references/client-dashboards.md`, `references/plan-changes.md` and `references/setup.md` instead of `references/upgrade.md`.
-- **About 15 rules have two or three homes** (§3.1) — the Tracker-update trigger is written four times, and what a client dashboard shows is listed differently in `SKILL.md` and `references/client-dashboards.md`.
-- **Maintainer material sits in the references** (§3.2) — the dashboard tour and release stamping in `references/dashboard.md`, the side-list and snapshot design in `references/client-dashboards.md`, the chat button in `references/chats.md` — and belongs in `docs/dashboard-design.md`.
-- **Several names for one thing** (§3.4): plan change and replan; part and section; entry, line and record; "update" for the Tracker update, the dashboard update and a client-dashboard refresh; report windows of 7 and 8 days.
-- **Reference files lack the mode shape** (§3.8): `references/state.md`, `references/notes.md`, `references/contracts.md` (resync), `references/plan-changes.md` and `references/report.md` do not say their inputs, output and what is off limits.
-- **`SKILL.md` carries more than every session needs** (§3.2): about 10,000 words, over 40% of the skill; the moves above, the pause stub, the tidy-sweep procedure and the dashboard-offer details going to their references bring it down.
-- **Russian in the skill** (§3.11): phrases in the description, the example reply in `SKILL.md` → **Every change: read, write, check, report** and two requests in `references/client-dashboards.md`. Once gone, `scripts/check.py` should refuse Cyrillic in any skill's instructions.
-- **The dashboard code** (§6.4–§6.5), from the October audit: the four bugs first — the timeline zoom not restored, a closed project page still re-reading Notion, a client page without `data.js` left blank, a call that never settles leaving the page on Loading — then dead code, logic written twice, unpaced calls and shadows outside the theme tokens.
+Not yet in line, each waiting for the user's word since it changes behaviour (§9):
+
+- **Text read from a view is not said to be markdown-escaped** (§5): the rule upwork-pulse carries — write plain text, never copy the backslashes back — is missing here.
+- **Two report windows** (§3.4): the weekly report runs from the same weekday a week ago through today (8 days), the overview's "closed this week" the last 7 days.
+- **A paused milestone's page is read again on every load** of the dashboard (§6.5), though its pause line is already known.
 
 ## Checking a change
 
