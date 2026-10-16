@@ -35,11 +35,13 @@ agent-tools/
     ├── .claude-plugin/plugin.json    Claude packaging (name, version)
     ├── skills/<skill>/
     │   ├── SKILL.md                  the skill — portable
-    │   └── references/               loaded only when a scenario needs them
+    │   ├── references/               loaded only when a scenario needs them
+    │   └── assets/                   pages the skill publishes
+    ├── docs/skill-design.md          what the skill must do, its decisions, where things live
     └── evals/                        claude plugin eval suite
 ```
 
-A plugin can also ship `hooks/` and its own `tests/` (alter-ego does), but no top-level `bin/`: claude.ai skips a plugin that has one, since Claude Code would put it on PATH unseen by an admin. Keep executables elsewhere (alter-ego uses `libexec/`) and run them from hooks, commands or MCP servers. `scripts/eval.sh` runs a plugin's evals with an empty `HOME`, for suites that grant Bash; see [alter-ego/evals/README.md](alter-ego/evals/README.md).
+A plugin can also ship `hooks/`, `libexec/` and its own `tests/` — never a top-level `bin/` ([docs/skill-development.md](docs/skill-development.md) §2).
 
 ## Configuration
 
@@ -47,12 +49,8 @@ Skills do not hardcode workspace IDs. Each skill finds its Notion root page by a
 
 ## Updating
 
-Edit the skill and push with a conventional commit; the version is not bumped by hand. Claude Code and Cowork pick a release up on `/plugin update`; chat needs a re-upload; a Codex symlink picks it up on `git pull`.
+Claude Code and Cowork pick a release up on `/plugin update`; chat needs a re-upload; a Codex symlink picks it up on `git pull`. A published dashboard older than the plugin is brought up to date by the skill: upwork-pulse republishes it by itself, project-tracker offers it in the next conversation.
 
-Releases are cut by [release-please](https://github.com/googleapis/release-please), one independent version per plugin. Every push to `master` updates a standing release PR for each plugin that changed, with the next version and changelog; merging it bumps `version` in that plugin's `plugin.json`, writes its `CHANGELOG.md` and tags `<plugin>-vX.Y.Z`. A commit counts for the plugin whose files it touches, whatever its scope. The subject is `type: short imperative subject` (`feat: offer the dashboard when there is none`): `feat` bumps minor, `fix` bumps patch (while the version is below 1.0, a breaking `!` bumps minor too), and `docs`, `test`, `ci`, `chore` stay out of the version math. Config lives in `.release-please/`.
+## Development
 
-Dashboards: each `assets/dashboard.html` starts with `<!-- dashboard-version: N -->`. When a change to the page is worth republishing, bump N and add a line to the skill's Versions list; the skill then offers the update to everyone whose published dashboard is older, in their next conversation with it. The two dashboards share one look — change the shared parts in both.
-
-## Adding a plugin
-
-New folder `<plugin>/` with `README.md`, `.claude-plugin/plugin.json` and `skills/<skill>/SKILL.md` (optionally `commands/`, `hooks/`, `.mcp.json`, `agents/`, `evals/`; never a top-level `bin/`); add it to `marketplace.json` and to the table above, and to `packages` in `.release-please/config.json` and `.release-please/manifest.json` (same shape as the existing entries, starting at `0.0.0`, with `"initial-version": "0.1.0"` in its config entry — without it release-please makes the first release 1.0.0).
+How plugins here are built, checked and released — and how to add one — is [docs/skill-development.md](docs/skill-development.md); each plugin's own decisions are in its `docs/skill-design.md`.
