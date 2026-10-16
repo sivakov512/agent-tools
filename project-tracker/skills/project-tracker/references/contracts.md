@@ -44,7 +44,7 @@ Ignore entirely: amounts, funding and payment states (they go stale and are not 
 
 ## Resync — "sync the Upwork project"
 
-For a project whose `Source` is a contract: read the contract again and compare with the tracker. Stage states that moved are applied as in the mapping above (active → In progress; submitted or completed → Done, `Finished` = the submission date, `Dates` stay; a due date changed on the platform is the new date, so `Dates` follow it with a history line `old → new`). A resync creates no tasks. New or removed stages are a plan change — show them and ask (`references/plan-changes.md`). Report the changes as was → now; if nothing changed, say so.
+For a project whose `Source` is a contract: read the contract again and compare with the tracker. Stage states that moved are applied as in the mapping above (active → In progress; submitted or completed → Done, `Finished` = the submission date, `Dates` stay; a due date changed on the platform is the new date, so `Dates` follow it with a history line `old → new`). On a contract project a stage active on the platform is In progress even when its only open task is a handover still Waiting (the task stays Waiting) — the one exception to SKILL.md → **How the levels move together**: the resync mirrors the contract, and the client sees the stage active there. A resync creates no tasks. New or removed stages are a plan change — show them and ask (`references/plan-changes.md`). Report the changes as was → now; if nothing changed, say so.
 
 ## Upwork specifics
 
