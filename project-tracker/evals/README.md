@@ -5,12 +5,13 @@
 Run from `project-tracker/`:
 
 ```
-claude plugin eval . --model sonnet --judge-model sonnet --runs 1 --ablation none --scaffold --trust-plugin -j 2 --no-publish
+claude plugin eval . --model sonnet --judge-model sonnet --runs 1 --ablation none --scaffold --trust-plugin --allow-tools Write -j 2 --no-publish
 ```
 
 - One case: `--case progress`. By tag: `--tag create` (create, update, dates, tasks, problems, notes, state, plan, corrections, read, contracts, commands, setup, upgrade, chat, routine, negative, ids).
 - `--model sonnet`: the model the suite is kept passing on. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
 - One full run is 61 agent runs, about half an hour at `-j 2` and roughly $25 of API usage (`--runs 3` for a stability check triples that). Raise `-j` only on a machine with spare cores and memory — too many parallel runs get killed and show up as harness errors, not as failures.
+- `--allow-tools Write`: the harness grants Write only on the operator's word, and the cases that write a dashboard folder or a draft (`client-dashboard-*`, `dashboard-update-migrates`, `report-email`) list it in `allowed_tools`; without it their Write graders cannot pass.
 - `--scaffold` is needed for `new-from-file` (its `scaffold.sh` writes the estimate file into the sandbox) and `client-dashboard-refresh` (its `scaffold.sh` writes the published page and `data.js` where the Artifact mock's `read` says it saved them, the page's first line copied from `assets/client.html`, so the case stays a `data.js`-only refresh after every release).
 
 What is checked:
