@@ -63,7 +63,7 @@ A history line keeps the event; an internal reason behind it is a private note b
 **How the levels move together.**
 
 - Work starting on a task — it becomes In progress, or a work task becomes Done — starts its milestone in the same change if Planned, with a history line.
-- A handover (a quote, a sign-off, files) waiting or done does not start the work by itself: its milestone becomes In progress when the user says work on it started.
+- A handover (a quote, a sign-off, files) waiting or done does not start the work by itself: its milestone becomes In progress when the user says work on it started (on a contract project, also when the platform shows the stage active: `references/contracts.md` → **Resync**).
 - A task stuck on a Blocker keeps its status; the linked Blocker shows it.
 - The last open task of a milestone already under way done → ask whether the milestone is done too; never close it on your own. When that same change only started the milestone, there is nothing to ask.
 - A milestone Done while it still has open tasks → ask what happens to them (Done or Dropped).
