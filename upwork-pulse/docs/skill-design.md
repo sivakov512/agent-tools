@@ -1,38 +1,47 @@
 # Skill design
 
-How the `upwork-pulse` skill is put together and the criteria every change is checked against — for whoever edits `skills/upwork-pulse/`. The skill does not read this file at run time. The dashboard's own spec is `docs/dashboard-design.md`.
+How the `upwork-pulse` skill is put together and the criteria every change is checked against — for whoever edits `skills/upwork-pulse/`. Read `docs/skill-development.md` at the repository root first: this file adds only what is particular to this plugin. The skill does not read it at run time. The dashboard's own spec is `docs/dashboard-design.md`.
 
 ## What the skill must do
 
-These hold in every mode, whatever the rules pages say. The eval suite (`evals/README.md`) checks them; a change that breaks one is a bug, not a trade-off.
+These hold in every mode, whatever the rules pages say. The eval suite (`evals/README.md`) checks each; a change that breaks one is a bug, not a trade-off.
 
-1. **Nothing goes to Upwork without the user's go.** Reading is free; a submission, message, boost, save or offer answer waits for an explicit "send it" about that action, in that conversation. Scheduled runs never write to Upwork (a proposal preview is a read).
-2. **Notion is read through views and page fetches only**, never SQL or rows mode (a workspace quota runs out mid-day), and pages are edited a line at a time: `replace_content` only on a Proposals row's body.
-3. **No posting is lost or read twice.** A watermark moves only after everything it covers is written; a run that stops early leaves it, and the next run catches up.
-4. **Rules are not guessed.** A case the rules do not settle becomes at least a Maybe card and a question, never a silent reject; a rule enters the rules pages only when the user confirms it.
-5. **One fact, one place, the latest value.** The card holds the job's facts, the decision, the time and the money; the Proposals row holds the text and whether it was sent. Hours, price and their breakdown change together.
-6. **Every judgement names the model that made it** (`Reviewed by`, `Drafted by`, `Found by`), as the model's own context states it.
-7. **Scheduled runs are silent and honest.** No text between tool calls; one report ending with `## Log`; a push only when there is something to act on; failures in the Log, never hidden.
-8. **The structure follows the plugin by itself.** An older `schema` is updated in place, safely re-runnable, nothing dropped before its values are checked in their new place; an older dashboard is republished to the same link.
-9. **A write that errors stops the work**: re-fetch, report, no retries with other escaping.
+1. **Nothing goes to Upwork without the user's go.** Reading is free; a submission, message, boost, save or offer answer waits for an explicit "send it" about that action, in that conversation. Scheduled runs never write to Upwork (a proposal preview is a read). Cases: the guard on every case, `chat-proposal`.
+2. **Notion is read through views and page fetches only**, and pages are edited a line at a time (*Decisions* → `replace_content`). Cases: the guards on every case.
+3. **No posting is lost or read twice.** A watermark moves only after everything it covers is written; a run that stops early leaves it, and the next run catches up. Cases: `hourly-take`, `hourly-rules-fail`, `hourly-jobs-refused`, `hourly-auto-update`.
+4. **Rules are not guessed.** A case the rules do not settle becomes at least a Maybe card and a question, never a silent reject; a rule enters the rules pages only when the user confirms it. Cases: `question-repeat`, `chat-rule`, `weekly-questions`.
+5. **One fact, one place, the latest value.** The card holds the job's facts, the decision, the time and the money; the Proposals row holds the text and whether it was sent. Hours, price and their breakdown change together. Cases: `drafts-run`, `chat-sync`, `update-to-4`.
+6. **Every judgement names the model that made it** (`Reviewed by`, `Drafted by`, `Found by`), as the model's own context states it. Cases: `hourly-take`, `drafts-run`.
+7. **Scheduled runs are silent and honest.** No text between tool calls; one report ending with `## Log`; a push only when there is something to act on; failures in the Log, never hidden. Cases: `digest-empty`, `hourly-maybe-only`, `hourly-rules-fail`.
+8. **The structure follows the plugin by itself.** An older `schema` is updated in place, safely re-runnable, nothing dropped before its values are checked in their new place; an older dashboard is republished to the same link. Cases: `update-pipeline`, `update-to-4`, `update-to-6`, `hourly-auto-update`, `chat-auto-update`, `hourly-update-stopped`.
+9. **A write that errors stops the work**: re-fetch, report, no retries with other escaping. No case yet.
 
-## Instruction criteria
+## Decisions
 
-What makes the instructions good, as opposed to what they make the agent do.
+Choices the user made or confirmed. A request that goes against one is raised with the user before anything changes.
 
-1. **One rule, one home.** Each rule is written in full in exactly one file; every other mention names that home (`references/assess.md` §2, `SKILL.md` → *Locked*) and says at most a clause. Two full copies drift apart.
-2. **A session loads what it needs.** `SKILL.md` holds what every session needs: the trigger, the data model, the cross-mode rules and the routing table. A mode's procedure lives in its reference, loaded only by that mode. Maintainer material — UI specs, history, design notes — lives in `docs/`, never in the skill. A rule a session must act on without being asked — in every conversation, or in every run of a mode — stays in the file that session surely reads; behind a link it gets skipped (the `chat-project-default` eval failed when *Chat project* moved to `chat.md`, which a question about the Take list never opens).
-3. **Every link resolves.** A named file and section exists and says what the link claims. Headings are stable: renaming one means fixing its links.
-4. **No contradictions, one name per thing.** A card is a row in Jobs; a lead is a New card on the dashboard; a chunk is up to 2 hours of the hourly queue; a run is one scheduled session. Numbers (budgets, windows, limits) are stated once. Routing reads the user's own words: the arguments a skill is loaded with may paraphrase them ("write a proposal" passed on as "draft").
-5. **Actionable and checkable.** Each step says what to call, with what, and when to stop; formats are given as templates; limits are numbers. A rule that looks odd carries its reason in one sentence, so a later edit does not undo it.
-6. **Mode files share a shape:** what the mode is for and who starts it, its inputs, its steps, its output, what is off limits.
-7. **Compatibility in one place.** What exists only for older pipelines is in `references/update.md` (and the one-line notes on old card shapes the modes need to read them); nothing else talks about history.
+- **Notion is the source of truth, the rules are pages in it.** The user changes Search rules and the Proposal guide from any device, and the agent writes a rule back only once the user confirms it.
+- **Two models.** The scheduled search, title filter, digests and weekly review run on Sonnet; everything that decides or writes about a job — assessment, estimate, advice, proposals — on Opus (the hourly run's subagent with `model: "opus"`, the drafts task set to Opus). On the same 22 postings Sonnet dropped a borderline lead without asking, missed the user's flags and put about 40% more hours on the cards; its proposals drift from the guide.
+- **Which model did it is recorded**, from the model's own context, never from what was asked for: the user checks that the work they pay Opus for is done by Opus.
+- **A push only for news**: a Take or an invitation from the hourly run, cards for a digest, open questions for the weekly review; the drafts task never pushes. A push saying "nothing new" 24 times a day trains the user to ignore the pipeline. The report is still written every run, in the task's chat.
+- **Questions wait for the weekly review**: they never appear in run reports or digests.
+- **Apply is for a fair job with a decent client**, not only a perfect match: the user wants work and income.
+- **Auto skip**, with `auto_drafts` and `auto_skip` on, skips every New card advised Skip that is not `Locked`. `Locked` covers the jobs the user asked Claude to write for and every invitation, since there the user decides; only the user clears it. A manual skip needs no reason.
+- **Every pending invitation gets a card**, flagged `invited` and locked, and is pushed with the hourly run that finds it.
+- **Price and time live only on the card**; the Proposals row is the text and the fact of sending, one row per job in its last version, which after sending is what Upwork stored. The price sent becomes the card's `My $`.
+- **A plugin update brings the pipeline up by itself**: installing the newer plugin is the user's go, so an update never needs a second step; the next hourly run does it instead of its search, or a conversation that gets there first.
+- **An older dashboard is republished without asking** (project-tracker offers it instead): the newer page is part of the update the user installed, and an old page can misread what the new skill writes. A pipeline with no dashboard gets one offer per conversation until the user declines.
+- **One Claude chat per job**, opened from the dashboard and kept on the card's `Chat`. On the phone and the web it opens in `chat_project`, by default the project the skill was set up or updated from, written by the first conversation that finds the line missing.
+- **`replace_content` only on a Proposals row's body**, which is rewritten whole; every other page is edited a line at a time.
+- **Chat summaries and parks are shared across devices** (the artifact's `db`), so a phone and a laptop show the same chat as parked or waiting.
+- **In a group chat or a direct message, the user's turn is what the thread asks of them**: a message from another freelancer or a file shared for information is not their move.
+- **The user's language for everything written to them; proposals in the posting's language**; the structure stays English, since the modes and the dashboard find things by those names.
 
 ## Where things live
 
 | File | Owns |
 |---|---|
-| `SKILL.md` | trigger; the config keys; pages and databases with their columns; card status, `Locked`, *Which model*; the rules that protect the user; finding the root and a job; questions and quirks; *Pipeline update* (who starts it); *Chat project* (every conversation may have to set it); automatic mode (silence, report, Log, push); Notion call shapes; the modes table |
+| `SKILL.md` | trigger; words; the config keys; pages and databases with their columns; card status, `Locked`, *Which model*; the rules that protect the user; finding the root and a job; questions and quirks; *Chat project* (every conversation may have to set it, so it stays where every session reads it); the modes table; *Pipeline update* (who starts it); automatic mode (silence, report, Log, push); Notion call shapes |
 | `references/hourly.md` | the hourly run: queue and watermark, search, stage 1, chunks and the hand-off, catch-up, auto skip, version check, the report and its push |
 | `references/assess.md` | stage 2, job pages and their pacing (`JOB_PAGES_PAUSE`, `DEFERRED`), the card's columns and body, the run row, the return to the hourly run |
 | `references/drafts.md` | advice, the proposal row's columns and body, the drafts task's report |
@@ -40,21 +49,21 @@ What makes the instructions good, as opposed to what they make the agent do.
 | `references/sync.md` | sent proposals into Proposals, the sync watermark |
 | `references/digest.md`, `references/weekly.md` | their reports and pushes |
 | `references/setup.md` | a new or adopted pipeline: profile, pages, databases and views, config, scheduled tasks, the final check |
-| `references/dashboard.md` | when the dashboard is published or updated, how, with which capabilities |
+| `references/dashboard.md` | when the dashboard is published or updated, how, with which capabilities and placeholders |
 | `references/update.md` | the in-place update from each older schema |
 | `assets/dashboard.html` | the dashboard page (`docs/dashboard-design.md`) |
 
-## Dashboard code criteria
+## Exceptions
 
-1. It does what `docs/dashboard-design.md` says, and that file is updated in the same change as the page.
-2. Notion and Upwork are the source of truth. What the page derives and wants to keep — chat summaries, chats parked by hand — lives in the artifact's shared storage (`db`), so every device and every viewer sees the same; browser storage only for per-device conveniences (the drawer's width, a folded section) and for caches it can rebuild.
-3. Its script parses (`node --check`), and it runs without console errors on the mock harness and on real data.
-4. One function, one job; no dead code; no logic written twice; every `localStorage` access guarded; colours only from the theme tokens.
-5. Calls are bounded: lists are watched, per-item reads go through the paced queue, nothing is read again that the page already knows for good.
-6. When a capability is missing (no `sample`, no `db`), the page says what does not work instead of failing quietly.
+Where this plugin departs from `docs/skill-development.md`, and why.
+
+- **§3.9, compatibility in one place**: besides `references/update.md`, the skill keeps one-line notes on old shapes a mode still meets in a live pipeline — cards made before schema 7 with a fifth body section, a config in a callout instead of a toggle — since those rows and pages are never converted and the mode must read them.
+- **§4.4, propose then write**: the pipeline update and the dashboard republish go ahead without asking (*Decisions*); `chat_project` is written by the first conversation that lacks it, with one closing line saying so.
+- **§4.3, plain text in chat**: the proposal package in chat puts the proposal text in a code block (`references/chat.md` → *Proposals*), so the user copies it into the Upwork form in one tap. To confirm with the user.
 
 ## Checking a change
 
-- **Instructions**: the eval suite, both groups (`evals/README.md`), compared with a run of the previous commit — a case that fails on both is not the change's; one that fails only after it is. Read the trace before touching the skill.
-- **Links**: every `references/*.md` and `§` mention in the skill points to a section that exists.
-- **Dashboard**: `node --check` on the script; the page on mock data (a copy of the page with a stub `window.claude`); then a preview artifact on the user's real data, before release — never a release the user has not seen.
+Beyond `docs/skill-development.md` §7:
+
+- **Evals**: two groups on two models, `routine` on Sonnet and `proposal` on Opus (`evals/README.md`); a change to `SKILL.md` runs both.
+- **Dashboard**: `tests/check_dashboard.py` checks that the page carries every placeholder `references/dashboard.md` → *Publish* fills, and no other — a missing one leaves the page reading nothing, an unknown one is published as is.

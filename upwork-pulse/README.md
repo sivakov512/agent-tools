@@ -141,9 +141,9 @@ upwork-pulse/
 ├── .claude-plugin/plugin.json    Claude plugin packaging (name, version)
 ├── evals/                        claude plugin eval suite (mocked Notion + Upwork)
 ├── docs/                         for whoever changes the plugin (not read at run time)
-│   ├── skill-design.md           what the skill must do, the criteria for its instructions and code, where each rule lives
+│   ├── skill-design.md           what the skill must do, the decisions behind it, where each rule lives
 │   └── dashboard-design.md       the dashboard's spec
-├── tests/                        static checks: check_links.py (cross-references), check_dashboard.py (the page)
+├── tests/                        this plugin's own static checks (the dashboard's placeholders)
 └── skills/upwork-pulse/
     ├── SKILL.md                  loaded on every use: data model, guards, finding things, questions, chat project, modes, automatic mode
     ├── references/               loaded only for the mode in use
@@ -160,7 +160,7 @@ upwork-pulse/
     └── assets/dashboard.html     the dashboard page
 ```
 
-To change behaviour, edit `SKILL.md` or the reference for that mode against `docs/skill-design.md`, run `tests/` and the evals, push; release-please bumps `version` in `plugin.json`.
+To change behaviour, follow `docs/skill-development.md` at the repository root and `docs/skill-design.md` here.
 
 ## Limits
 
