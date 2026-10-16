@@ -29,6 +29,7 @@ The `alter-ego` command is on PATH too. In a session that started before the plu
 |---|---|
 | `alter-ego status` | this repository's mode, where bot pushes go, the bots, the secret store, whether the wrappers are active |
 | `alter-ego use <clean\|bot>` | sets this repository's mode (`off` means clean) |
+| `alter-ego use cloud` | allows this cloud session, on the user's yes (**Cloud sessions**) |
 | `alter-ego forget` | drops the choice, so it is asked again |
 | `alter-ego bots` | bots, whether each is ready, where each is chosen |
 | `alter-ego add-bot <name> <login> [--secret NAME] [--secret-command CMD] [--name-format FMT]` | adds a bot, or updates one, keeping what it had; checks its token if it is stored already |
@@ -76,7 +77,9 @@ If `alter-ego attribution` says `on`, Claude Code itself adds the attribution li
 
 ## Cloud sessions
 
-In an Anthropic-hosted cloud session (claude.ai/code) no mode can hold: GitHub traffic goes through Anthropic's GitHub proxy with the user's own token, and `gh pr` and `gh issue` are blocked. So pushes and gh writes are refused there, unless the repository's cloud environment sets `ALTER_EGO_CLOUD=allow`; then git and gh run untouched — commits go out as Claude, pushes and PRs through the user's own GitHub account, and nothing filters AI marks. The session context says which applies; `alter-ego use` does nothing there. Whether to allow it is the user's call: a client repository opened in the cloud stays protected only while it is refused.
+In an Anthropic-hosted cloud session (claude.ai/code) no mode can hold: GitHub traffic goes through Anthropic's GitHub proxy with the user's own token, and `gh pr` and `gh issue` are blocked. So pushes and gh writes are refused there until the session is allowed; then git and gh run untouched — commits go out as Claude, pushes and PRs through the user's own GitHub account, and nothing filters AI marks. The session context says which applies, and clean and bot modes don't apply there.
+
+Allowing is the user's call: a client repository opened in the cloud stays protected only while it is refused. So in a session not yet allowed, ask once, before the first push, PR, issue or comment, as its own question the way **Choosing the mode for a repository** says: "Allow this cloud session? Commits go out as Claude, pushes and PRs through your GitHub account." Add one line: to allow every session of this cloud environment, they add `ALTER_EGO_CLOUD=allow` to its environment variables (claude.ai/code, the environment selector, Edit environment). On yes, run `alter-ego use cloud`, which allows this session only; on no, nothing is pushed or posted from here.
 
 ## Procedures — read the file for what you are doing
 
@@ -94,7 +97,7 @@ The message says why. Act on it:
 - missing token or id → give the user the store command, or run `alter-ego check`, as the message says;
 - a push URL the bot can't use → push to the repository's GitHub remote by name;
 - the config can't be read (a newer alter-ego wrote it, or it is not valid JSON) → tell the user the plugin needs updating, or the file fixing; nothing is pushed or posted until then;
-- a cloud session → tell the user why, and that `ALTER_EGO_CLOUD=allow` in the repository's cloud environment lets it through (**Cloud sessions**);
+- a cloud session not yet allowed → ask whether to allow it (**Cloud sessions**);
 - git or gh by full path → call them by name.
 
 Never route around a refusal: no git or gh by full path, no replaced PATH, no `env -i`, no editing the config by hand, no switching the mode to get past one. Each would put work out under the wrong name, which is what the user installed this to prevent.
