@@ -2012,12 +2012,11 @@
     try { localStorage.setItem(parkKey(room), JSON.stringify({ storyId: room.latestStory.id, park: on })); } catch (e) {}
     renderMove(); renderPills(); renderApplied(); refreshDrawer();
   }
-  function dayLabel(t) { var d = new Date(t); return MON[d.getMonth()] + " " + d.getDate(); }
   function withPark(box, room, pk) { // the summary plaque's last line: why the chat is parked and the way back, or the way to park it
     if (!canPark(room) || !(pk || myTurn(room))) return box;
     if (pk) box.classList.add("parked");
     var n = el("div", "park");
-    if (pk) n.appendChild(el("span", "", "Parked" + (pk.hand ? " by you" : "") + (pk.why ? " — " + pk.why : "") + (pk.back ? " · back " + dayLabel(pk.back) : "") + ". It returns to Your move when they write. "));
+    if (pk) n.appendChild(el("span", "", "Parked" + (pk.hand ? " by you" : "") + (pk.why ? " — " + pk.why : "") + (pk.back ? " · back " + dayLabel(wallOf(pk.back)) : "") + ". It returns to Your move when they write. "));
     var b = el("button", "", pk ? "Keep in Your move" : "Park until they write"); b.type = "button";
     b.title = pk ? "Show it in Your move again until the next message" : "Fold it under Parked in Your move; the next message brings it back";
     b.addEventListener("click", function () { setPark(room, !pk); });
@@ -2146,7 +2145,7 @@
     if (who && who !== title) meta.push(who);
     if (r.numUnread) meta.push(r.numUnread + " unread");
     if (p && p.rate) meta.push(p.rate.replace(/\.0$/, ""));
-    if (pk && pk.back) meta.push("back " + dayLabel(pk.back));
+    if (pk && pk.back) meta.push("back " + dayLabel(wallOf(pk.back)));
     var key = "room-" + r.id;
     var open = function () { openDrawer(key, "moveList", c ? "Contract" : p ? "Proposal" : "Chat", c ? contractDrawer(c, r) : chatDrawer(r, p)); };
     if (pk) return moveRow(key, "", titleWithId(p && p.jobId, title, roomUrl(r.id), "Open the thread on Upwork"), roomAct(r) ? "last message " + ago(now - roomAct(r)) + " ago" : "", meta, open, null, parkedInline(r, pk));
