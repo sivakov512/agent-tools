@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.15.2](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.1...project-tracker-v1.15.2) (2026-10-16)
+
+
+### Bug Fixes
+
+* **project-tracker:** a client page without its data says so, not blank ([bf8ab28](https://github.com/sivakov512/agent-tools/commit/bf8ab28e7ed40f98b938510c3eddbdcc25ac1a96))
+* **project-tracker:** a closed project page no longer re-reads Notion ([74e516c](https://github.com/sivakov512/agent-tools/commit/74e516ca2ddcd648c5b6512121b5eb4a7180b647))
+* **project-tracker:** a config without a schema line gets the update ([f132836](https://github.com/sivakov512/agent-tools/commit/f132836387f5175ce62ee5a394523c30e75a88ac))
+* **project-tracker:** a milestone's end moves only on the user's yes ([e14d32c](https://github.com/sivakov512/agent-tools/commit/e14d32cb5dd5b8b9b002c49181f24e5d69e6b4a3))
+* **project-tracker:** a Notion call that never answers fails in time ([4e6ff21](https://github.com/sivakov512/agent-tools/commit/4e6ff213a10769956e434be3de21fe3a281ca3b8))
+* **project-tracker:** a place and a duration the user gives fix the dates ([9292781](https://github.com/sivakov512/agent-tools/commit/92927813a540ad3bc95c1064d913c7172ff31787))
+* **project-tracker:** a report covers the period the user names ([9f40f29](https://github.com/sivakov512/agent-tools/commit/9f40f29e5f6aeb2839d04fb7a8e5621856d740de))
+* **project-tracker:** a report is one summary, only privacy follows the reader ([e650cad](https://github.com/sivakov512/agent-tools/commit/e650cade4941cf8f568dabf09cea785371eeabbb))
+* **project-tracker:** a resync starts a stage the platform shows active ([31a8131](https://github.com/sivakov512/agent-tools/commit/31a8131537a326051cd14a4f64d04535f42efce1))
+* **project-tracker:** a tracker newer than the plugin is never written ([77bf1c3](https://github.com/sivakov512/agent-tools/commit/77bf1c37b138c36dc842ee344d1c8f20800b5af5))
+* **project-tracker:** dashboard shadows come from theme tokens ([f83ee6f](https://github.com/sivakov512/agent-tools/commit/f83ee6f5f6fe91ec0fdb8798b7b1e579d1709391))
+* **project-tracker:** description shows how progress, notes and fixes read ([30526bd](https://github.com/sivakov512/agent-tools/commit/30526bd76104a089f70e0a4dc23ed64cf9ffcb5b))
+* **project-tracker:** English only in the skill, no Russian examples ([cd5429c](https://github.com/sivakov512/agent-tools/commit/cd5429c5cdd7a57421f76745bffa629165abfb75))
+* **project-tracker:** text read from a view is written back plain ([d8bc8d6](https://github.com/sivakov512/agent-tools/commit/d8bc8d658b67b542f539445f827a5252743e98e8))
+* **project-tracker:** the dashboard restores its timeline zoom ([aaed50c](https://github.com/sivakov512/agent-tools/commit/aaed50ccb9431787a6925235e6697c9184bceb4e))
+* **project-tracker:** the Tracker update runs whole before any answer ([79d2ad0](https://github.com/sivakov512/agent-tools/commit/79d2ad0b36ffaeb60bc489af1b6aaf389ec32e99))
+
 ## [1.15.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.0...project-tracker-v1.15.1) (2026-10-16)
 
 
