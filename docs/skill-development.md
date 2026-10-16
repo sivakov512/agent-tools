@@ -55,7 +55,8 @@ No top-level `bin/`: claude.ai skips a plugin that has one, since Claude Code wo
 7. **General rules, not patches.** A failure is fixed with the general rule behind it and its reason, never with a line about the one case that failed.
 8. **Mode files share a shape**: what the mode is for and who starts it, its inputs, its steps, its output, what is off limits.
 9. **Compatibility in one place.** What exists only for older structures lives in the update reference (`references/update.md` or `upgrade.md`); nothing else talks about history.
-10. **The description** (frontmatter) says what the skill does and when to use it, in the phrasings users actually write, and "even without the word …" where users would not name it. At most 1024 characters, so they go on situations, not translations: the model matches messages across languages, and a phrase in another language is added only where the skill has been seen to miss one.
+10. **The description** (frontmatter) says what the skill does and when to use it, in the phrasings users actually write, and "even without the word …" where users would not name it. At most 1024 characters, spent on situations.
+11. **English only.** The skills are public: descriptions, instructions and examples carry no other language, and no translations. The model matches a message in any language and answers in the user's own (§4.2). The one exception is code that reads what the skill or the user wrote in their language — a page parsing `10 ч` as hours keeps the forms it has to recognise.
 
 ## 4. What every skill does
 
