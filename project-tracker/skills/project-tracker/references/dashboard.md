@@ -1,6 +1,10 @@
-# Dashboard — publish and update
+# Dashboard — publish and republish
 
 `assets/dashboard.html` is the user's live, read-only overview of the tracker, for the user alone. It reads Notion with the viewer's own connector; the chat stays the only way to change anything. A client gets a client dashboard instead (`references/client-dashboards.md`).
+
+Started by a yes to the dashboard offer (SKILL.md → **The dashboard offer**), by setup (`references/setup.md` §7) and the 0.x upgrade, or by "publish the dashboard".
+
+**Inputs:** the root page ID, the Notion connector's display name, the assets, and the config's `dashboard` line if there is one.
 
 ## Publish
 
@@ -8,7 +12,7 @@
 2. Publish it as an artifact with the Notion connector: `file_path` the folder's `index.html`, `files: {"app.js": …, "core.js": …, "core.css": …}`, each the folder's copy (the page loads them by these names; without them it stays blank), `capabilities: {mcp: {servers: [{server: "<the same connector name>", tools: ["notion-fetch", "notion-query-data-sources"]}]}}`, title `Project Tracker`, icon `chart`, description "Live overview of the project tracker in Notion". It reads data only when opened, so say the user should open it once and allow the Notion connector. The server name in `capabilities` and in the page must be the same, or the page cannot reach Notion.
 3. Add two lines to the config toggle (`update_content` inside the toggle, after the last ID line): `dashboard: \`<artifact url>\`` and `dashboard_version: N` — N from the asset's first line.
 
-**Updating** an existing dashboard: the tracker's `schema` comes first — below the skill's (`references/setup.md` → **Tracker update**), run the update before publishing, since the new page reads what the update adds. Then read the artifact first (`action: "read"` with the `dashboard` URL — the surface refuses a publish over an artifact this conversation has not read), then:
+**Republishing** an existing dashboard: a due Tracker update comes first (SKILL.md → **Finding things**), since the new page reads what it adds. Then read the artifact first (`action: "read"` with the `dashboard` URL — the surface refuses a publish over an artifact this conversation has not read), then:
 
 1. rebuild the working folder from the assets as in step 1;
 2. publish it to that URL with all three shared files (they change with the page) and the `capabilities` of step 2 passed again in full — a publish without them keeps the set the page had, so a tool a newer page needs would stay off;
@@ -18,9 +22,16 @@ The link stays the same. No artifact tool on this surface → the folder is the 
 
 ## Versions
 
-The asset's first line, `<!-- dashboard-version: N -->`, carries the plugin's version (`x.y.z`); a release that did not change the page still offers it, and updating then republishes the same page. The config's `dashboard_version` is the version the user's dashboard was last published from; SKILL.md says how a missing or old-style value compares.
+The asset's first line, `<!-- dashboard-version: N -->`, carries the plugin's version (`x.y.z`); a release that did not change the page still offers it, and a yes republishes the same page. The config's `dashboard_version` is the version the user's dashboard was last published from; SKILL.md says how a missing or old-style value compares.
 
-The offer itself — when it is due and what it says — is in SKILL.md (**Dashboard updates**); a yes comes here: **Publish**, or **Updating** for an existing dashboard (it keeps the link and sets `dashboard_version` to N).
+The offer itself — when it is due and what it says — is in SKILL.md (**The dashboard offer**); a yes comes here: **Publish**, or **Republishing** for an existing dashboard (it keeps the link and sets `dashboard_version` to N).
 
 A change to the page itself — a new section, a different look — is a change to the plugin, not to the tracker: say so, and that it ships with a plugin release; the page shows only what the tracker holds.
 
+## Output
+
+The page published, or republished to the same link, and `dashboard` and `dashboard_version` in the config; with no artifact tool, the folder and where it is.
+
+## Off limits
+
+Any change to the assets but the two placeholders; a publish without the `capabilities` of **Publish** step 2.

@@ -1,8 +1,12 @@
 # Plan changes and removal
 
+Started by the user: a plan change, a removal or a restore, or an undo.
+
+**Inputs:** the project's `Schedule` and `Tasks` views; for an undo, the values before the change — from this conversation, or from the history.
+
 ## Plan changes — "the client added a stage", "drop the load test", "split that milestone", "break the demo into tasks", "finished early, pull everything in"
 
-The scope or structure changes, and one sentence of the user's rewrites many rows on your reading of it: so every change here is shown with every row it moves and made on their yes (SKILL.md → **Recording a fact vs replanning**).
+The scope or structure changes, and one sentence of the user's rewrites many rows on your reading of it: so every change here is shown with every row it moves and made on their yes (SKILL.md → **Recording a fact vs a plan change**).
 
 1. Work it out on the project's `Schedule` and `Tasks` views.
    - **Add a milestone**: dates the user stated, or that follow from the rules in `references/new-project.md` (start = end of the previous milestone); otherwise ask. A milestone inserted into the chain pushes everything starting on or after its start by its length.
@@ -41,3 +45,11 @@ Undo takes a change back; it is not a new fact.
 **Made earlier** ("undo the delay I reported last week") is a reconstruction: first make sure which change is meant (ask unless the user named it). Rebuild the old values from what Notion shows — history lines record date moves as `Mar 6 → Mar 13`, pause and removal lines record the previous status — then show what you would restore and ask. A value recorded nowhere is asked for, not guessed. On yes, restore as for an undo in this conversation.
 
 Notion's version history (••• → Version history) is the user's last resort; the API cannot restore versions.
+
+## Output
+
+The rows changed, each touched one with its history line, `Target end` and `Summary` in line, and the reply of SKILL.md → **Every change**.
+
+## Off limits
+
+A plan change or a reconstructed undo before the user's yes; deleting a page without it; a value recorded nowhere, guessed.

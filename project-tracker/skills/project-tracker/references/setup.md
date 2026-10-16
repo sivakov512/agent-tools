@@ -2,6 +2,10 @@
 
 One procedure for two cases: no tracker yet, and a setup that was interrupted halfway. Each step checks first and only adds what is missing, so running it again is always safe — and a second root page or a duplicate database is never created.
 
+Started by "set up the tracker", by a missing root page, or by a tracker that lacks views, tabs or columns.
+
+**Inputs:** the page's name and place, as the user gives them; what already exists on the root page.
+
 ## 1. Root page
 
 Find it as in SKILL.md (**Finding things**) — by the config toggle, whatever the page is called.
@@ -184,3 +188,11 @@ What was created or added (or that everything was already in place), the dashboa
 - After the first project exists — **hide properties**, once for the whole database (the API cannot set property visibility): on any project page, click `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*, and `Chat`, `Claude project`, `Client dashboard` → *Hide when empty*; on any milestone page, `Project status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on any task page, `Project status`, `Milestone status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on any problem page, `Chat` → *Hide when empty*. The helpers exist only to compute lateness, and `Order` shows in the sorting; `Chat` and `Claude project` are set later, from the dashboard and on request. (`references/new-project.md` repeats this, and the timeline zoom, when it creates the first project.)
 
 Next step: a new project.
+
+## Output
+
+The tracker as §6 verifies it, with the dashboard (§7), and the message of §8.
+
+## Off limits
+
+A second root page, toggle or database; converting a tracker made by an older version (`references/upgrade.md`).
