@@ -1,6 +1,6 @@
 # Dashboard — publish and update
 
-`assets/dashboard.html` is the user's live view of the pipeline: leads, Your move (replies, invitations, offers, overdue milestones), contracts, proposals, connects and balance. It reads Notion and Upwork with the viewer's own connectors and asks Claude (`sample`) for chat summaries; it has no server side. It writes to Notion only on a click: Mark applied / Skip / Restore (`Status`, `Decided on` and the skip fields of a card), Lock / Unlock (`Locked`), the Settings switches (`auto_drafts`, `auto_skip` in the config), and Write a proposal / Rewrite (the job's Proposals row set to `State` Writing, created when there is none, then the drafts task started with `fire_trigger` — `references/drafts.md` §1). It never writes to Upwork. Its Claude chat links start the chats `references/chat.md` → *A job's chat* describes.
+`assets/dashboard.html` is the user's live view of the pipeline: leads, Your move (replies, invitations, offers, overdue milestones), contracts, proposals, connects and balance. It reads Notion and Upwork with the viewer's own connectors, asks Claude (`sample`) for chat summaries and keeps them, with the chats the user parks, in the artifact's own store (`db`); it has no server side. It writes to Notion only on a click: Mark applied / Skip / Restore (`Status`, `Decided on` and the skip fields of a card), Lock / Unlock (`Locked`), the Settings switches (`auto_drafts`, `auto_skip` in the config), and Write a proposal / Rewrite (the job's Proposals row set to `State` Writing, created when there is none, then the drafts task started with `fire_trigger` — `references/drafts.md` §1). It never writes to Upwork. Its Claude chat links start the chats `references/chat.md` → *A job's chat* describes.
 
 ## When
 
@@ -20,10 +20,10 @@ The asset's first line is `<!-- dashboard-version: N -->`, N being the plugin's 
      {"server": "Notion", "tools": ["notion-query-data-sources", "notion-fetch", "notion-update-page", "notion-create-pages"]},
      {"server": "Upwork", "tools": ["upwork__get_freelancer_dashboard", "upwork__get_freelancer_financials", "upwork__get_messages", "upwork__list_freelancer_proposals", "upwork__list_milestones", "upwork__list_contracts", "upwork__find_jobs"]},
      {"server": "Claude Code Remote", "tools": ["fire_trigger"]}]},
-    "sample": {}}
+    "sample": {}, "db": {}}
    ```
 
-   `find_jobs` tells how an on-hold proposal's job ended, `list_contracts` gives a contract's job, `fire_trigger` starts the drafts task, `sample` writes the chat summaries. Say that the user opens it once and allows the connectors and Claude.
+   `find_jobs` tells how an on-hold proposal's job ended, `list_contracts` gives a contract's job, `fire_trigger` starts the drafts task, `sample` writes the chat summaries, and `db` keeps each chat's summary and park in the artifact, the same on every device (it makes the page private to the user's organization; it is the user's own page anyway). Say that the user opens it once and allows the connectors and Claude.
 3. Write the URL into the config as `dashboard` and the asset's N as `dashboard_version` (add the lines if missing).
 
 ## Update
