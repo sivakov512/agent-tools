@@ -2,7 +2,7 @@
 
 ## Plan changes — "the client added a stage", "drop the load test", "split that milestone", "break the demo into tasks", "finished early, pull everything in"
 
-The scope or structure changes. `Dates` are the commitment, so every change here is a change of what the client is told.
+The scope or structure changes, and one sentence of the user's rewrites many rows on your reading of it: so every change here is shown with every row it moves and made on their yes (SKILL.md → **Recording a fact vs replanning**).
 
 1. Work it out on the project's `Schedule` and `Tasks` views.
    - **Add a milestone**: dates the user stated, or that follow from the rules in `references/new-project.md` (start = end of the previous milestone); otherwise ask. A milestone inserted into the chain pushes everything starting on or after its start by its length.
@@ -14,7 +14,7 @@ The scope or structure changes. `Dates` are the commitment, so every change here
    - **Order**: an added milestone or task takes the `Order` after the last one, or the place the user names (the rows after it shift by one); split and merged items take the place of what they replace. A reorder alone is not a plan change (SKILL.md → **Order**).
    - **Split, merge**: the new items cover the old dates unless the user says otherwise; the replaced ones become `Dropped`.
    - **Pull in** (finished early): the following items keep their dates unless the user says to move them — finishing early is recorded by `Finished`, it does not change the plan by itself. When they do move: everything starting on or after the old end, by the same amount, unless the user says only some move.
-   - **Clear dates** ("everything after the demo has no dates yet, I'll re-plan"): `Dates` → empty on the items named, each with a history line keeping the old dates (`- **Oct 6** — Dates cleared for re-planning: Nov 13 – Dec 4 → none.`). Milestones without dates show under **Needs dates** on the dashboard until new ones are set. If the last milestone loses its dates, `Target end` is emptied too, with a history line on the project page keeping the old one (`- **Oct 6** — Target end Jul 31, 2027 → none: re-planning after the demo.`).
+   - **Clear dates** ("everything after the demo has no dates yet, I'll re-plan"): `Dates` → empty on the items named, each with a history line keeping the old dates (`- **Oct 6** — Dates cleared for re-planning: Nov 13 – Dec 4 → none.`). Milestones without dates show under Your move → Milestones without dates on the dashboard until new ones are set. If the last milestone loses its dates, `Target end` is emptied too, with a history line on the project page keeping the old one (`- **Oct 6** — Target end Jul 31, 2027 → none: re-planning after the demo.`).
 2. Existing dates move on the user's word, as for a delay; if the user has not said, ask.
 3. Show the change as a short list (`+ Field trial: Apr 6 – Apr 17`, `+ Demo firmware (task of Demo prototype): Oct 20 – Oct 30`, `− Load test`, `TK-9 Handover: Apr 30 → Apr 24`) and ask.
 4. On yes: create and update rows. Every touched item gets a history line with the reason and, for a move, `old → new` (`- **Mar 18** — Added: client asked for a field trial.`, `- **Mar 18** — Dropped (was Planned): client no longer needs the load test.`, `- **Mar 18** — Moved with Fjord Labs, pushed by the field trial: Apr 20 → Apr 30.`). Then `Target end`, `Summary`, and the usual was → now reply.
