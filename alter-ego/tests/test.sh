@@ -212,6 +212,8 @@ check "plumbing commits are the bot's too" "$(git log -1 --format='%an / %cn' pl
 git branch -q -D plumb
 succeeds "gh -R to a clean repo from a bot folder" gh pr comment 1 -R me/other --body ok
 check "it runs as the user" "$(last_gh)" "^token=none pr comment"
+GH_REPO=me/other succeeds "GH_REPO names the repository" gh pr comment 1 --body ok
+check "it runs as the user" "$(last_gh)" "^token=none pr comment"
 refused "gh -R to a clean repo, with a marker" gh issue comment 1 --repo me/other --body '🤖'
 succeeds "gh api to a bot repo by path" gh api -X POST repos/me/work/issues -f title=x
 check "it carries the bot's token" "$(last_gh)" "^token=tok-forge api"
@@ -250,6 +252,26 @@ check "existing GIT_CONFIG entries are kept" "$(cat "$T/work/seen")" "^kept$"
 rm "$T/work/.git/hooks/pre-commit" "$T/work/seen"
 
 check "remove-bot refuses while chosen" "$("$AE" remove-bot forge 2>&1)" "chosen for"
+
+# A bot that cannot act refuses what would go out, rather than acting as the user.
+setcfg() { local out; out="$(jq "$@" "$ALTER_EGO_CONFIG")" && printf '%s\n' "$out" >"$ALTER_EGO_CONFIG"; }
+setcfg '.bots.noid = {login: "noid-robot"} | .repos["github.com/me/work"] = "noid"'
+refused "a commit as a bot with no account id" git commit -q --allow-empty -m x
+check "it says how to fix it" "$OUT" "alter-ego check noid"
+setcfg '.repos["github.com/me/work"] = "gone"'
+refused "a gh write as a bot that was removed" gh pr create --title t --body b
+check "it says to choose again" "$OUT" "choose again"
+git remote add gitea https://gitea.example.com/me/work.git; git remote rename origin github; git remote rename gitea origin
+setcfg '.repos["gitea.example.com/me/work"] = "forge"'
+refused "a bot commit outside github.com" git commit -q --allow-empty -m x
+check "it says what to use instead" "$OUT" "alter-ego use clean"
+refused "a bot gh call outside github.com" gh pr list
+setcfg 'del(.bots.noid) | del(.repos["gitea.example.com/me/work"]) | .repos["github.com/me/work"] = "forge"'
+git remote remove origin; git remote rename github origin
+setcfg '.bots.spare = {login: "spare-robot"} | .repos["github.com/me/spare"] = "spare"'
+"$AE" remove-bot spare --force >/dev/null
+check_not "remove-bot --force drops its repositories" "$(jq -c .repos "$ALTER_EGO_CONFIG")" "spare"
+
 check "use off means clean" "$("$AE" use off)" "-> clean"
 
 # --- secret stores on Linux
