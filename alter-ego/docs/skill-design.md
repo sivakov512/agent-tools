@@ -59,6 +59,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **Classic personal access tokens with `repo`** (plus `workflow` for workflow files): it is what alter-ego is tested with, and a fine-grained token may not reach repositories the bot only collaborates on.
 - **Tokens stay in the OS secret store** — macOS Keychain, Secret Service or `pass` on Linux, or a `secret_command` — read per call, never written by alter-ego: the user stores them with a prompting command, so they reach neither chat nor shell history.
 - **Bot mode is github.com only**: the token, the noreply email and the invite flow are GitHub's.
+- **No bot mode in Anthropic-hosted cloud sessions, and no environment-based config.** There GitHub traffic goes through Anthropic's GitHub proxy, which swaps the git client's credential for the user's own token, and `gh` subcommands that use GraphQL (`gh pr`, `gh issue`) are blocked whatever the token (code.claude.com/docs/en/claude-code-on-the-web, …/cloud-environments): a bot's work would go out as the user or not at all, whatever alter-ego reads. So a config declared through environment variables, for machines that start without `~/.config/alter-ego`, is not built: it could not make bot mode hold there, and no machine in use needs it otherwise. The skill and the README say bot mode is not supported there.
 - **Claude Code's own attribution is turned off at the source, on request.** `alter-ego attribution off` sets `"attribution": {"commit": "", "pr": ""}` in `~/.claude/settings.json`; it is offered once and asked first, as it applies to every repository.
 - **`invite` asks with the user's `gh` login and accepts as the bot**, so giving a bot access is one confirmed step instead of a trip through two GitHub accounts.
 - **A bot is removed only when no repository uses it** (or with `--force`), and its token is left in the secret store for the user to delete.
@@ -84,7 +85,7 @@ Where this plugin departs from `docs/skill-development.md`, and why.
 
 - **No Notion, no pages.** The state is a local config file and the OS secret store, so §5's Notion rules and §6's page criteria do not apply, and there is no `docs/dashboard-design.md`. Its code follows §6's criteria for other code.
 - **Executables and hooks beyond §2's table.** `hooks/`, `shims/` and `libexec/` carry the enforcement, which is the plugin's purpose; `shims/` holds only the two names PATH must find.
-- **The skill points outside its folder** (`${CLAUDE_PLUGIN_ROOT}/libexec/alter-ego`, the CLI it drives). Without the plugin's hooks nothing is enforced, so the skill alone — in chat, Cowork or cloud sessions — can only explain the modes; the README says so.
+- **The skill points outside its folder** (`${CLAUDE_PLUGIN_ROOT}/libexec/alter-ego`, the CLI it drives). Without the plugin's hooks nothing is enforced, so the skill alone — in chat or Cowork — can only explain the modes; the README says so.
 - **Evals need Bash** and so run through `scripts/eval.sh` with `--allow-tools Bash --scaffold --trust-plugin`; without Bash the agent cannot run git and the "must not" graders pass trivially.
 
 ## Checking a change
