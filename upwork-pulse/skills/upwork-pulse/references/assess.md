@@ -83,7 +83,7 @@ Once the cards are written, one `update_properties` on the chunk's Runs row: `De
 
 ## 6. Drafts
 
-With `auto_drafts: on`, and only in a subagent (the hourly run doing the assessment itself skips this step: `references/hourly.md` §5): `references/drafts.md` for this chunk's cards (the ones you just wrote: work from them, no second `get` — §2 of drafts says so for cards written in the last 2 hours), then its catch-up of older cards without advice, up to the limit it sets. Drafts mode's own rules hold, `Locked` left as it is. `auto_drafts: off` → no advice, no proposal.
+With `auto_drafts: on`, and only in a subagent (the hourly run doing the assessment itself skips this step: `references/hourly.md` §5): `references/drafts.md` for this chunk's cards (the ones you just wrote: work from them, no second `get`, as `references/drafts.md` §2 says for fresh cards), then its catch-up of older cards without advice, up to the limit it sets. Drafts mode's own rules hold, `Locked` left as it is. `auto_drafts: off` → no advice, no proposal.
 
 ## 7. Return
 

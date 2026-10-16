@@ -2,6 +2,8 @@
 
 One run: read the rules, take the queue of postings published since the watermark, search it and drop the obvious foreign work by title, hand what is left to the assessment on Opus (`references/assess.md`: stage 2, cards, estimates and — with `auto_drafts: on` — advice and proposals), move the watermark, catch up drafts, auto-skip, and end with a short report of what it did — pushed to the phone only when there is something to apply to fast. This run is the cheap half: most hours find nothing to open past the title, and then Opus is never started. It runs in automatic mode (SKILL.md → *Automatic mode*); a config whose `schema` is not 8 is handled before anything here (SKILL.md → *Pipeline update*).
 
+Started by the hourly search task, or by the user asking to scan for new jobs. Inputs: the root page the prompt names; the run reads the config, Search rules and Run state (§1–§2). Output: the cards, the Runs rows and the report (§7).
+
 **Turns.** The first turn reads the config; the second, Search rules and Run state together; then all searches and the invitations in one turn. A write the next one depends on waits for its result: the run row before the hand-off, the cards and the row before the watermark.
 
 ## 1. Read first
@@ -115,6 +117,6 @@ Advice **<apply|skip>** — <Advice why> · proposal ready   ← only when draft
 
 Forbidden in the report: narration outside the Log ("Now I'll…", "All writes are done"), notes on a value (the client's price is exactly as built above — `rate not stated`, nothing in brackets), extra sections, draft proposal text, questions.
 
-**Push line**, in `language`, plain text: `Upwork: [<M> take][, <K> maybe][, <I> invited] · #<short id> <title> · <client's price>` (a part that would be zero is left out) for the first news card (the client's price as above), with ` +<n>` after the title when there are more news cards; cut the title so the line stays under 200 characters.
+**Push line**, in `language`, plain text: `Upwork: [<M> take][, <K> maybe][, <I> invited] · #<short id> <title> · <client's price>` (a part that would be zero is left out) for the first news card (the client's price as above), with ` +<n>` after the title when there are more news cards; cut the title so the line stays within the push's length (SKILL.md → *Automatic mode*).
 
 Off limits here: `confirm_preview` and every other write to Upwork; `PROPOSALS_SYNCED_UNTIL` and the proposals sync (`references/sync.md`); a card's `Status`, except auto skip; the rules pages.

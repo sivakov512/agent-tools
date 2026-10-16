@@ -2,6 +2,8 @@
 
 Brings every proposal the user submitted on Upwork into the Proposals database, as Upwork stored it, and marks its job Applied. It runs at the start of every digest (`references/digest.md`) and on command ("sync proposals", "sync proposals for the last 3 months" — `references/chat.md`). A proposal sent from chat is written by the chat itself, as §2 says, without moving the watermark (`references/chat.md` → *Proposals*, step 5). The sync reads Upwork and writes Notion only; nothing goes to Upwork.
 
+Inputs: the config, Run state's `PROPOSALS_SYNCED_UNTIL` line, and the period when the user names one (§1). Output: what it returns to its caller (§3).
+
 ## 1. Which proposals
 
 Its own watermark, like the hourly search's: the line `PROPOSALS_SYNCED_UNTIL: <ISO time>` in **Run state** — everything sent before it is already in Proposals. No line → the last 24 hours.
