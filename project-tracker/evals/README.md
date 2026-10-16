@@ -10,7 +10,7 @@ claude plugin eval . --model sonnet --judge-model sonnet --runs 1 --ablation non
 
 - One case: `--case progress`. By tag: `--tag create` (create, update, dates, tasks, problems, notes, state, plan, corrections, read, contracts, commands, setup, upgrade, chat, routine, negative, ids).
 - `--model sonnet`: the model the suite is kept passing on. `--judge-model sonnet`: the default Haiku judge is too noisy on these rubrics.
-- One full run is 60 agent runs, about half an hour at `-j 2` and roughly $25 of API usage (`--runs 3` for a stability check triples that). Raise `-j` only on a machine with spare cores and memory — too many parallel runs get killed and show up as harness errors, not as failures.
+- One full run is 61 agent runs, about half an hour at `-j 2` and roughly $25 of API usage (`--runs 3` for a stability check triples that). Raise `-j` only on a machine with spare cores and memory — too many parallel runs get killed and show up as harness errors, not as failures.
 - `--scaffold` is needed for `new-from-file` (its `scaffold.sh` writes the estimate file into the sandbox) and `client-dashboard-refresh` (its `scaffold.sh` writes the published page and `data.js` where the Artifact mock's `read` says it saved them, the page's first line copied from `assets/client.html`, so the case stays a `data.js`-only refresh after every release).
 
 What is checked:
@@ -30,6 +30,7 @@ What is checked:
 - `client-dashboard-*` — the client's `data.js` carries each page's public text (`page`: description, `## Notes`, `## History`) and `Summary`, never `## Private notes` (the shared workspace has one on the Energy meter page to check this) or internal fields.
 - `ref-lookup`, `ref-link`, `ref-unknown` — rows named by ID: "TK-4 is done" closes *Power measured, module fixed* (not the In-progress task, not the milestone MS-4); "Link PB-1 to TK-6" sets the risk's `Task` to *First prototype working on the custom board*, not the *Board designed* task its text suggests (its own mock: the risk has no task yet); no other row changes, and the reply leads the changed item with its ID. "TK-40 is done" names no row: the agent asks and writes nothing.
 - `milestone-end-offered` — the user sets TK-4's end to Nov 20, past its milestone MS-1's end (Nov 13): TK-4's dates are written at once (an instruction), MS-1's stay, and the reply offers to move the milestone's end (SKILL.md → **Dates are the user's**).
+- `view-escaped` — view rows come markdown-escaped, as from real Notion (`Acme\_Labs`): TK-10 is set to wait on whom TK-9 waits on, written plain (`Acme_Labs`), with no backslash copied back (SKILL.md → **Text read from a view is markdown-escaped**).
 - `reorder` — "Hardware comes before Firmware — swap them": `Order` is renumbered without a preview, the dates stay, and the reply offers to move them because they now contradict the order.
 
 Layout (tabs, views) is checked structurally here but a mock cannot render Notion; after changing the page markup, also run the skill once against a scratch page in a real workspace and look at it.
