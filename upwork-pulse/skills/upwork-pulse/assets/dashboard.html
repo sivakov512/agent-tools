@@ -1983,8 +1983,7 @@
         var edges = storyEdges(res).slice().reverse();
         var lines = edges.map(function (e) {
           var n = e.node || {}; var who = n.from_self ? "Me" : (clean(n.from) || "Someone") + (n.from_side === "client" ? " (client)" : n.from_side === "freelancer" ? " (another freelancer)" : "");
-          var d = n.createdDateTime ? new Date(n.createdDateTime) : null;
-          var when = d ? monDay(d) : "";
+          var at = Date.parse(n.createdDateTime), when = at ? monDay(new Date(wallOf(at))) : ""; // the user's date, as "today" below
           return "[" + when + "] " + who + ": " + clean(n.message).slice(0, 1200) + ((n.attachments || []).length ? " (attachment)" : "");
         });
         if (!lines.length) throw { code: "empty" };
