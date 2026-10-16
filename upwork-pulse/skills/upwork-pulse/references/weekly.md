@@ -6,7 +6,7 @@ Once a week the open questions — the cases the rules did not settle — are pu
 
 Query `questions_open`. No open rows → change nothing, no push; the report is the header (`# Questions this week · 0`) and the Log.
 
-Otherwise fetch **Search rules** and **Proposal guide** (the recommendations must point at the item they would refine) and send exactly one message:
+Otherwise fetch **Search rules** and **Proposal guide** (the recommendations must point at the item they would refine) and write the report:
 
 ```
 # Questions this week · N
@@ -24,7 +24,7 @@ Reply by number — "1 yes, 2 no, 3 as recommended" — and I will apply it and 
 - Problems: <one line per problem: where, what failed, what is left undone>
 ```
 
-`Questions` is always there; `Problems` only when a call failed or was blocked (SKILL.md → automatic mode).
+`Questions` is always there; `Problems` only when a call failed or was blocked (SKILL.md → *Automatic mode*).
 
 No description of your work outside the Log, nothing outside the format, no Notion changes before the user answers.
 

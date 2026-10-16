@@ -1,10 +1,10 @@
 # Assessment — the hourly run's survivors: stage 2, cards, drafts
 
-The careful half of the hourly run. The search (`references/hourly.md`) finds the postings and drops the obvious foreign work by title; this mode opens each one that is left, decides it by the Search rules, writes its card and estimate, and — with `auto_drafts: on` — goes straight on to the advice and the proposal (`references/drafts.md`). It runs on Opus as the hourly run's subagent, one chunk per call, because what is decided here — a lead kept or dropped, the hours and the price, the proposal — is what the user acts on; the search stays on the cheaper model and an empty hour never starts this mode. It writes to Notion and sends nothing: no message, no push. A session without the Agent tool runs this mode itself, inside the hourly run (`references/hourly.md` §5).
+The careful half of the hourly run. The search (`references/hourly.md`) finds the postings and drops the obvious foreign work by title; this mode opens each one that is left, decides it by the Search rules, writes its card and estimate, and — with `auto_drafts: on` — goes straight on to the advice and the proposal (`references/drafts.md`). It runs on Opus as the hourly run's subagent, one chunk per call, because what is decided here — a lead kept or dropped, the hours and the price, the proposal — is what the user acts on; the search stays on the cheaper model, and an hour with nothing to open never starts this mode. It writes to Notion and sends nothing: no message, no push. A session without the Agent tool runs this mode itself, inside the hourly run (`references/hourly.md` §5).
 
 ## 1. Inputs
 
-From the prompt: the root page, the chunk's Runs row (created by the hourly run with the counts it knows), the chunk's window, the survivors of stage 1 (job ids with their publish time, already-seen cards removed), and the pending invitations that need a card (job ids). Read the config, **Search rules**, **Field notes** and **Run state** in the first turn; `jobs_all` when there are deferred postings to check (§2), `questions_open` when a case is unsettled (§3), the **Proposal guide** only when drafting (§6). A config below the schema this skill works with (SKILL.md → Pipeline update) → write nothing, return `pipeline updating`; Search rules that cannot be read or hold no rules → write nothing, return `rules unreadable` (§7). Either one leaves the chunk unfinished.
+From the prompt: the root page, the chunk's Runs row (created by the hourly run with the counts it knows), the chunk's window, the survivors of stage 1 (job ids with their publish time, already-seen cards removed), and the pending invitations that need a card (job ids). Read the config, **Search rules**, **Field notes** and **Run state** in the first turn; `jobs_all` when there are deferred postings to check (§2), `questions_open` when a case is unsettled (§3), the **Proposal guide** only when drafting (§6). A config below the schema this skill works with (SKILL.md → *Pipeline update*) → write nothing, return `pipeline updating`; Search rules that cannot be read or hold no rules → write nothing, return `rules unreadable` (§7). Either one leaves the chunk unfinished.
 
 ## 2. Job pages
 
@@ -32,7 +32,7 @@ The default flags mean the same for everyone (the rules decide how much each wei
 
 An invitation always gets a card: the user decides on an invitation, not the filter. A posting the rules would reject becomes Maybe, with the reject reason as the first line under Risks; its flags include `invited`, and `Locked` is checked (SKILL.md → *Locked*).
 
-**A case the rules do not settle** is never rejected: it is at least a Maybe (a Take when the rules otherwise make it one). The test is mechanical: the posting's main deliverable is not on the rules' in-scope list and not on their reject lists (a study or report, consulting, a review with an optional build, a mixed role), or a flag would fit but is not listed, or two rules pull in different directions (an in-scope item and a reject item both describe it). "Probably out of scope" is not a rule — if you had to reason it out, it is a question. It gets a card, so the user sees it and drafts advise on it, and it gets recorded: query `questions_open`; the same question already there → append this job id to `Job IDs`, `Seen` + 1; not there → a new row (SKILL.md → Questions and quirks). A rejected posting the user never sees is the one mistake nobody can catch later.
+**A case the rules do not settle** is never rejected: it is at least a Maybe (a Take when the rules otherwise make it one). The test is mechanical: the posting's main deliverable is not on the rules' in-scope list and not on their reject lists (a study or report, consulting, a review with an optional build, a mixed role), or a flag would fit but is not listed, or two rules pull in different directions (an in-scope item and a reject item both describe it). "Probably out of scope" is not a rule — if you had to reason it out, it is a question. It gets a card, so the user sees it and drafts advise on it, and it is recorded as a question (SKILL.md → *Questions and quirks*). A rejected posting the user never sees is the one mistake nobody can catch later.
 
 ## 4. Cards
 
@@ -73,7 +73,7 @@ One sentence why this level (the level itself is the Complexity property).
 - only questions whose answer changes the estimate
 ```
 
-The estimate is the `Estimate` column, not a body section: hours, price and their breakdown change together, in one `update_properties`, so they never disagree. (Cards made before schema 7 have a fifth section, `## Estimate`, and an empty column; leave them as they are.)
+The estimate is the `Estimate` column, not a body section (SKILL.md → *One fact, one place*).
 
 Any new fact about the API or tools met here goes as one line to Field notes.
 
@@ -96,7 +96,7 @@ pages: <job pages opened, drafts' included>
 rejected: <n>[ (<g> of them gone)]
 deferred: <n> waiting — #<short id>, …[; job pages paused until HH:MM][; <m> dropped after 48 h]   ← only when the line is not empty
 not processed: <n> postings, window HH:MM–HH:MM   ← only at the budget
-drafts: <n> advised — apply #<short id>, …; skip #<short id>, …[; not new #<short id>, …]   ← only when drafts ran, its catch-up included
+drafts: <n> advised — apply #<short id>, …; skip #<short id>, …[; not new #<short id>, …][; not advised #<short id> (<why>), …]   ← only when drafts ran, its catch-up included: drafts' per-card lines (`references/drafts.md` §5) summed into this one
 problems: <where: stage 2 | cards | run row | drafts> — <what failed, what is left undone>   ← one line per problem, only when a call failed
 ```
 
