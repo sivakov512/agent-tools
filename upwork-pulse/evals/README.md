@@ -37,7 +37,7 @@ Every scheduled run ends with a report whose last block is `## Log` (SKILL.md �
 
 ## Reading failures
 
-`docs/skill-development.md` §7 (at the repository root). Known unstable on Sonnet: `setup-adopt` and `setup-empty`, without a task tool, often hold back the five task prompts (the reply offers them once the user gives the times) — about three runs in four on `setup-adopt`, one in three on `setup-empty`; `setup-empty` also, now and then, takes the watermark from the machine date instead of the case's; `question-repeat` (the case is decided without recording a question, or a second row instead of bumping `Seen`); `hourly-take`, about one run in eight, reads the invitations with `action: "list"`, which `no-proposals-sync` counts as a sync; `hourly-maybe-only` has once loaded `PushNotification` with nothing to push. The platform sometimes moves the hourly run's assessment subagent to the background even with `run_in_background: false`; the run then gets its report out in a second turn, and the judge sees only that. The LLM judge on `setup-empty` has failed one reply that passes every claim when re-judged by hand.
+`docs/skill-development.md` §7.4–7.5 (at the repository root): a failing case is run three times and only 3 of 3 passes; a case still failing after one diagnosis and fix is written into `docs/skill-design.md` as a known gap. No case is a known gap now. The platform sometimes moves the hourly run's assessment subagent to the background even with `run_in_background: false`; the run then writes nothing until its completion notice and gets the report out in a second turn (`references/hourly.md` §5), and the judge sees only that report.
 
 ## Pushes
 
