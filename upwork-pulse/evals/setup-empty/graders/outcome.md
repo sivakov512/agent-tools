@@ -2,8 +2,9 @@
 type: 'llm'
 focus: 'last_message'
 ---
-- The final message says what was created (pages, databases, config), mentions the five scheduled tasks (hourly, two digests, weekly, drafts) (with their prompts or a table to create them) and the dashboard (published, the filled file and what can host it, or — when the session can neither publish nor write files — that it is not done and why), and suggests running the hourly search as a first check.
-- It did not ask the user profile questions.
-- It is written in Russian (the user asked for messages in Russian).
+- The reply says what was created: the root page with its config, the rules pages and the four databases (a short list is enough).
+- It says where the dashboard stands: its link, or the filled file and what can host it, or that it could not be done in this session and why.
+- It suggests a first check: running the hourly search, now or once the tasks exist.
+- It asks the user none of the profile questions (field, rate, rejects, queries, portfolio, language) — the user already answered them. A closing offer to change something is not a question.
 
-Judge only these claims. Different wording, ordering, extra harmless detail and extra read calls are fine. Answer FAIL only if one of the claims above is clearly false.
+The reply is in Russian, which is expected. The scheduled tasks are checked separately; whatever the reply says about them does not affect these claims. Judge only these claims. Different wording, ordering and extra harmless detail (inferred values, what is left to fill in) are fine. Answer FAIL only if one of the claims above is clearly false.
