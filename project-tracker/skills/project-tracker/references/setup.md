@@ -8,7 +8,7 @@ Find it as in SKILL.md (**Finding things**) — by the config toggle, whatever t
 
 - Found, made by this version (config lines `tasks` and `problems`) → fetch it and each `<database>` on it; reuse what exists.
 - Found, made by version 0.x (config line `open_items`, no `tasks`) → this setup does not convert it: `references/upgrade.md` does — it creates its own new root page and runs §2–6 of this file on it. If the user only asked for setup, say that the old tracker exists and offer the upgrade.
-- Found, but its databases match neither (for example an old tracker with `Current dates` / `Promised dates`) → do not try to convert it: tell the user it was made by an older version and should be deleted or renamed, then set up anew.
+- Found, but its databases match neither → `references/upgrade.md` → **Old shapes**.
 - Not found → the page needs a name and a place. Take what the user already said; propose the rest in one short question — "I'll create **Project tracker** at the top level of the workspace — OK, or another name or place?" — and wait. Then `notion-create-pages` with that title (top level of the workspace = no `parent`, which makes a private top-level page; under a page = `parent: {page_id}`; a teamspace's top level cannot be reached through the API — create it under a page there), no icon, and as its only content the config toggle — collapsed, because the IDs are for the skill, not for reading:
 
   ```
@@ -68,7 +68,7 @@ CREATE TABLE ("Name" TITLE, "Project" RELATION('<projects>'),
   "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude')
 ```
 
-`Ref`'s prefix must be free in the whole Notion workspace, not only in this database: when a create is refused with `Unique ID prefix is already in use` (another tracker or database has it, or a deleted `Ref` still holds it), create that database without its `Ref` line and give it `Ref` as **Tracker update** → 4 → 5, step 1 says — another prefix, recorded in the config.
+`Ref`'s prefix must be free in the whole Notion workspace, not only in this database: when a create is refused with `Unique ID prefix is already in use` (another tracker or database has it, or a deleted `Ref` still holds it), create that database without its `Ref` line and give it `Ref` as `references/upgrade.md` → **Tracker update** (4 → 5, step 1) says — another prefix, recorded in the config.
 
 Then the computed columns, with `notion-update-data-source` `statements`, one `ADD COLUMN` per call (without the trailing `;`), in this order (formulas that reach into another database are rejected by the API, so statuses from other databases come in through rollups):
 
@@ -92,28 +92,7 @@ ADD COLUMN "Late, days" FORMULA('if(empty(prop("Milestones late")) and empty(pro
 
 Projects ↔ Milestones, Projects ↔ Tasks and Milestones ↔ Tasks are two-way because the project's `Late, days` and the milestone page's task list need the reverse side; Problems point at projects, milestones and tasks one way only, so pages do not grow another backlink list.
 
-Existing databases (an interrupted setup, or a pre-release 1.0 tracker): fetch each data source and add what is missing — the computed columns as above, and these plain columns: `Origin`, `Chat` and `Claude project`, which only pre-release 1.0 trackers lack, `Order`, which schema 1 lacks, `Client dashboard`, which schema 2 lacks, and `Ref`, which schema 4 lacks (one call per data source, statements joined by `;`):
-
-```sql
--- on <projects>
-ADD COLUMN "Origin" SELECT('Upwork':green, 'Direct':blue, 'Personal':gray) COMMENT 'Where the work comes from; add options freely';
-ADD COLUMN "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude';
-ADD COLUMN "Claude project" RICH_TEXT COMMENT 'The claude.ai project its dashboard chats open in: <name> — <project id>; empty = none'
-
--- on <milestones>, <tasks>, <problems>, each
-ADD COLUMN "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude'
-
--- on <milestones>, <tasks>, each
-ADD COLUMN "Order" NUMBER COMMENT 'Position in the plan (1, 2, …), so the order holds without dates; set by Claude'
-
--- on <projects>
-ADD COLUMN "Client dashboard" URL COMMENT 'The client dashboard that shows it; set by Claude'
-
--- on each, with its own prefix: PR <projects>, MS <milestones>, TK <tasks>, PB <problems>
-ADD COLUMN "Ref" UNIQUE_ID PREFIX 'TK' COMMENT 'Its ID, to name it in a chat (TK-34); numbered by Notion'
-```
-
-A tracker that already has rows and lacks `Order`, `Client dashboard` or `Ref` is brought up by **Tracker update** (after §8), which also numbers the rows.
+Existing databases (an interrupted setup, or a tracker from an older version): fetch each data source and add the computed columns that are missing, as above, and the plain ones as `references/upgrade.md` → **Columns older trackers lack** says.
 
 Make every database inline so it renders on the page: `notion-update-data-source`, `is_inline: true`.
 
@@ -129,7 +108,7 @@ Project, milestone and task pages then open at full width, and a milestone page 
 
 ## 3. Config
 
-The config toggle gets the four data source IDs, the `Ref` prefixes in use (projects, milestones, tasks, problems, in that order) and the structure's version, `schema` (**Tracker update** says what it means), as its lines:
+The config toggle gets the four data source IDs, the `Ref` prefixes in use (projects, milestones, tasks, problems, in that order) and the structure's version, `schema` (`references/upgrade.md` → **Tracker update** says what it means), as its lines:
 
 ```
 <details color="gray_bg">
@@ -143,7 +122,7 @@ The config toggle gets the four data source IDs, the `Ref` prefixes in use (proj
 </details>
 ```
 
-Add the missing lines with `update_content` — `old_str` from the fetch (for an empty toggle, `</summary>\n</details>`), lines indented one tab. Never a second toggle. `schema: 5` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
+Add the missing lines with `update_content` — `old_str` from the fetch (for an empty toggle, `</summary>\n</details>`), lines indented one tab. Never a second toggle. `schema: 5` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run `references/upgrade.md` → **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
 
 ## 4. Views on the databases
 
@@ -205,45 +184,3 @@ What was created or added (or that everything was already in place), the dashboa
 - After the first project exists — **hide properties**, once for the whole database (the API cannot set property visibility): on any project page, click `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*, and `Chat`, `Claude project`, `Client dashboard` → *Hide when empty*; on any milestone page, `Project status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on any task page, `Project status`, `Milestone status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on any problem page, `Chat` → *Hide when empty*. The helpers exist only to compute lateness, and `Order` shows in the sorting; `Chat` and `Claude project` are set later, from the dashboard and on request. (`references/new-project.md` repeats this, and the timeline zoom, when it creates the first project.)
 
 Next step: a new project.
-
-## Tracker update (not part of setup)
-
-Not a numbered step, so a setup run from the top never reaches it: SKILL.md (**Finding things**) starts it, or §3 on a tracker that has rows.
-
-The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **5**. A tracker below it is brought up by the skill itself, in the first conversation that finds it, before the request — installing the newer plugin is the user's go for it; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose §3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again. Steps run in order (a schema-1 tracker gets 1 → 2, 2 → 3, 3 → 4, then 4 → 5, in one go). If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
-
-**1 → 2: `Order`.**
-1. Milestones and Tasks get `Order` (`ADD COLUMN` as in §2, skipped where it exists).
-2. Number the rows of every project in `Active`, `Closed` too: milestones 1, 2, … per project; tasks within each milestone, and a project's tasks without a milestone among themselves. A body's `Contract milestone N` sets N. Otherwise by `Dates`; undated rows after the dated ones, in the order history states, else as the views list them (named in the closing line, so the user can reorder — the update never waits on a question). Rows that already have `Order` keep it.
-3. Views sort by it (`notion-update-view`; the filters stay): root `Next up` and every project's `Schedule` and `Tasks` (the table) → `CLEAR SORT; SORT BY "Order" ASC, "Dates" ASC`; root Tasks `All` → `CLEAR SORT; SORT BY "Dates" ASC, "Order" ASC` (§4 says why).
-4. Write `schema: 2` in the config toggle (the line replaced, or added as its last line, tab-indented) — last, so an interrupted update is found again.
-
-**2 → 3: `Client dashboard`.**
-1. Projects get `Client dashboard` (`ADD COLUMN` as in §2, skipped where it exists). Nothing to fill: it is set when a client dashboard is made (`references/client-dashboards.md`).
-2. Write `schema: 3` in the config toggle, as above — last.
-
-The closing line names what is new for the user: client dashboards, and that `Client dashboard` is best set to *Hide when empty* on a project page (the API cannot).
-
-**3 → 4: pages in parts.** SKILL.md (**Pages**) lays every page out as a description, `## Notes`, `## Private notes` and `## History`; before, a row's notes and history were told apart only by how a line looked, a project's notes lived in a `Notes` tab, and a problem kept its changes in `Note`. The update moves what is there into the parts by its form and decides nothing about privacy: a client dashboard published before it is checked before its next refresh (`references/client-dashboards.md` → **Keeping it current**), and one made later is checked when it is made.
-1. Problems: `RENAME COLUMN "Note" TO "Summary"` (skipped where `Summary` exists; views follow the rename). Values stay as they are — older ones may hold several parts joined by ` · `; they are not split into history lines, which would need dates nobody wrote down.
-2. Lay out every milestone, task and problem page with a body: the milestones and tasks of every project in `Active` and `Closed` (its `Schedule` and `Tasks` views), and the problems in root `Open` and `Recently resolved`. Fetch the page; a page that already has one of the three headings, or no body, is skipped. Its blocks, read top to bottom:
-   - a dated list line (`- **Oct 6** — …`) is history;
-   - a dated paragraph (`**Oct 2** — …`), a sub-page (`<page …>`) or a file is a note;
-   - any other block belongs with the dated entry above it (a note's own continuation), and before the first dated entry it is the description.
-
-   Already in that order (the usual case — notes were written above the history): one `update_content` with two `content_updates` — the first note → `## Notes`, a newline, that note; the first history line → `## History`, a newline, that line. Out of order (a note below a history line): the same call also moves each such note — its block → empty, and the first history line's replacement gets the notes in front of `## History`. Nothing is rewritten or dropped, only headed and moved; fetch the page after the call and check.
-3. Every project page in `Active` and `Closed` whose tabs still hold `Notes`: its entries (below the gray placeholder line) move under the tabs, and the tab goes — one `update_content` with `old_str` from the `Notes` tab's `<tab>` line through `</tabs>`, as fetched, and `new_str` `</tabs>` followed by the parts, without the tabs' indentation: the lines that record the project's own state (`Paused`, `Done`, `Active`, `Removed`, `Target end` lines) as history lines (`- ` added) under `## History`, `Client side:` lines under `## Private notes`, everything else, sub-pages included, under `## Notes`, each in its old order. A tab with no entries just goes.
-4. A Dropped row, or a row of a Removed project, is in no view: its page is laid out the same way the first time anything is written to it.
-5. Write `schema: 4` in the config toggle, as above — last.
-
-The closing line names what is new for the user: every page — project, milestone, task, problem — can have a description and a checklist (they ask: "add a checklist to the layout task: …"), then Notes, Private notes and History; a client dashboard shows all of it but Private notes; the user's own dashboard needs its update to show the parts (the offer follows).
-
-**4 → 5: `Ref`, an ID per row.**
-1. Each database gets `Ref` (`ADD COLUMN` as in §2): `"Ref" UNIQUE_ID PREFIX 'PR'` on Projects, `'MS'` on Milestones, `'TK'` on Tasks, `'PB'` on Problems. A prefix is unique across the whole Notion workspace, so `Unique ID prefix is already in use` is no failure: take the next of `PRJ` / `MST` / `TSK` / `PRB`, then `PR2` / `MS2` / `TK2` / `PB2`, and so on, until one is accepted. Where `Ref` already exists (a column the user added or restored), it stays as it is, and its prefix is read from one row's page fetch (`"Ref":"TK-3"`). Notion numbers the rows that exist itself, in no set order; nothing is written to them.
-2. Write `ref_prefixes: <projects>, <milestones>, <tasks>, <problems>` in the config toggle (the line replaced, or added before `schema`): the prefixes in use. Views give `Ref` as the bare number, so this line is what puts `TK-` in front of it on the dashboard and what an ID the user writes is matched against.
-3. The root views show it right after `Name` (`notion-update-view`, the `SHOW` lines of §4); the project pages' views stay as they are — their rows carry `Ref` all the same.
-4. Write `schema: 5` in the config toggle, as above — last.
-
-The closing line names what is new for the user: every project, milestone, task and problem has an ID — next to its name on the dashboard and in Notion — to name it in a chat ("link PB-5 to TK-34", "TK-34 is done"); and, when a prefix other than `PR` / `MS` / `TK` / `PB` was taken, which and why (a deleted `Ref` that holds the usual one can be restored from the database's Properties → deleted properties, with its old numbers).
-
-A future step goes here as **5 → 6**, and the number above moves with it.

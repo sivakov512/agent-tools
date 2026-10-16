@@ -1,6 +1,6 @@
 # Dashboard — publish and update
 
-`assets/dashboard.html` is the user's live, read-only overview of the tracker — pills, timeline, a card per project, Your move, Waiting on others, Risks, Recently completed, and a page per project sliding in from the right. It reads Notion with the viewer's own connector; the chat stays the only way to change anything, because the rules (dates move only by agreement, history lines, was → now) live in SKILL.md. It is for the user alone; a client gets a client dashboard (`references/client-dashboards.md`), which runs the same code (`assets/app.js`, `assets/core.js`, `assets/core.css`) on a snapshot.
+`assets/dashboard.html` is the user's live, read-only overview of the tracker, for the user alone. It reads Notion with the viewer's own connector; the chat stays the only way to change anything. A client gets a client dashboard instead (`references/client-dashboards.md`).
 
 ## Publish
 
@@ -18,7 +18,7 @@ The link stays the same. No artifact tool on this surface → the folder is the 
 
 ## Versions
 
-The asset's first line, `<!-- dashboard-version: N -->`, carries the plugin's version (`x.y.z`), stamped by the release on every release (the line is marked `x-release-please-version`). No hand edits: a release that did not change the page still offers it, and updating then republishes the same page. The config's `dashboard_version` is the version the user's dashboard was last published from; SKILL.md says how a missing or old-style value compares.
+The asset's first line, `<!-- dashboard-version: N -->`, carries the plugin's version (`x.y.z`); a release that did not change the page still offers it, and updating then republishes the same page. The config's `dashboard_version` is the version the user's dashboard was last published from; SKILL.md says how a missing or old-style value compares.
 
 The offer itself — when it is due and what it says — is in SKILL.md (**Dashboard updates**); a yes comes here: **Publish**, or **Updating** for an existing dashboard (it keeps the link and sets `dashboard_version` to N).
 
