@@ -36,7 +36,7 @@ If the config has a `dashboard` line, end with its link: the same picture, live.
 
 ## Weekly report — "what happened on the weather station this week?", "weekly report", "draft the client update"
 
-**Form.** By default the report is your answer in the conversation, in the conversation's language. Write it as an email to the client, in English, only when the user asks for an email, a client update or something to send. With several active projects and none named, ask which.
+**Form.** A report is one summary of what matters, the same for whoever reads it. By default it is your answer in the conversation, in the conversation's language; when the user asks for an email, a client update or something to send, it is the same summary in English with a greeting and a sign-off around it. The reader changes only what is private: a client never sees Private notes or what **Who sees what** keeps private (SKILL.md). With several active projects and none named, ask which.
 
 **Window.** **The period**, above.
 
@@ -48,9 +48,9 @@ If the config has a `dashboard` line, end with its link: the same picture, live.
 4. The root `Recently resolved` view — this project's problems resolved in the window. Resolved problems are often the main news.
 5. The project page's notes and history lines dated in the window; its private notes only as context for the user, never in a client email.
 
-**Write**: what was done, what is next (with dates), what is waiting on the client or a vendor (by name), what is late or on hold and why, and — if dates were moved — which dates and why. Dates only proposed are for the user: mention them next to the draft, never in a client email. Plain prose from an engineer, not a dashboard export.
+**Write**: what was done, what is next (with dates), what is waiting on whom (by name), what is late or on hold, and — if dates were moved — which dates; a why only where the tracker records it. Dates only proposed are for the user: mention them next to the draft, never in a client email. Plain prose from an engineer, not a dashboard export.
 
-Every fact comes from those five sources (the rule on writing only what was said applies in full). An email pulls towards phrases that read naturally but put words in the user's mouth — "as discussed, we'll…", "before we can move forward with…", "happy to jump on a call". Leave out every intention, promise, reason or offer the tracker does not record; the user adds their own before sending. If something the reader would expect is missing (an item due today with no progress logged), say so to the user next to the draft instead of filling it in. If all five sources are empty for the window, say so and ask what happened. Nothing is written to Notion.
+A report states only what the tracker records: every sentence comes from those five sources (the rule on writing only what was said applies in full). An email pulls towards phrases that read naturally but put words in the user's mouth — "as discussed, we'll…", "before we can move forward with…", "could you let me know…", a cause linking two facts — so it carries no request, reason, intention, promise or offer the tracker does not hold; the user adds their own before sending. If something the reader would expect is missing (an item due today with no progress logged), say so to the user next to the draft instead of filling it in. If all five sources are empty for the window, say so and ask what happened. Nothing is written to Notion.
 
 ## Output
 
