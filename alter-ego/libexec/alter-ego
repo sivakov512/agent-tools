@@ -15,6 +15,8 @@ LIBEXEC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SELF="$LIBEXEC/alter-ego"
 SHIMS="$(cd "$LIBEXEC/../shims" 2>/dev/null && pwd)"
 DEFAULT_FORMAT='Claude({bot})'
+# The config's structure version: upgrade_config brings an older file up to it.
+SCHEMA=1
 US=$'\x1f'
 # What gives away an AI author in commit messages and GitHub text.
 TELLS='Co-Authored-By:.*(Claude|Anthropic)|noreply@anthropic\.com|Generated (with|by) \[?Claude|claude\.(ai|com)/(code|claude-code)|🤖'
@@ -41,15 +43,37 @@ GIT="$(real_bin git || echo /usr/bin/git)"
 
 cfg() { [ -f "$CONFIG" ] && jq -r "$@" "$CONFIG" 2>/dev/null; }
 
+# Why this version cannot use the config, or nothing.
+config_problem() {
+  [ -f "$CONFIG" ] || return 0
+  have jq || { echo "jq is missing, so alter-ego cannot read its config: the user installs jq"; return; }
+  local s; s="$(jq -r '.schema // 0' "$CONFIG" 2>/dev/null)" || { echo "$CONFIG is not valid JSON; the user fixes it"; return; }
+  [ "$s" -le "$SCHEMA" ] 2>/dev/null || echo "$CONFIG was written by a newer alter-ego (schema $s, this one knows $SCHEMA), so this plugin is out of date: the user updates it, and nothing is pushed, posted or written until then"
+}
+
 # Rewrites the config in place, so a symlinked dotfile and its mode survive.
-cfg_write() {
+cfg_put() {
   local filter="$1" out; shift
-  if [ ! -f "$CONFIG" ]; then
-    [ -d "$(dirname "$CONFIG")" ] || { mkdir -p "$(dirname "$CONFIG")" && chmod 700 "$(dirname "$CONFIG")"; } || die "cannot create $(dirname "$CONFIG")"
-    (umask 077; printf '{"name_format": "%s", "bots": {}, "repos": {}}\n' "$DEFAULT_FORMAT" >"$CONFIG") || die "cannot create $CONFIG"
-  fi
   out="$(jq "$@" "$filter" "$CONFIG")" || die "cannot update $CONFIG"
   printf '%s\n' "$out" >"$CONFIG" || die "cannot write $CONFIG"
+}
+
+# Brings an older config up to SCHEMA in place; running it again changes nothing.
+upgrade_config() {
+  [ -f "$CONFIG" ] && [ -z "$(config_problem)" ] && [ "$(jq -r '.schema // 0' "$CONFIG")" -lt "$SCHEMA" ] || return 0
+  # 0 -> 1: a hand-written "off" is clean, as `use off` means; the number goes with it.
+  cfg_put '.repos = ((.repos // {}) | map_values(if . == "off" then "clean" else . end)) | .schema = 1'
+}
+
+# A change to the config: never to one this version cannot read, an older one upgraded first.
+cfg_write() {
+  local p; p="$(config_problem)"; [ -z "$p" ] || die "$p"
+  if [ ! -f "$CONFIG" ]; then
+    [ -d "$(dirname "$CONFIG")" ] || { mkdir -p "$(dirname "$CONFIG")" && chmod 700 "$(dirname "$CONFIG")"; } || die "cannot create $(dirname "$CONFIG")"
+    (umask 077; printf '{"schema": %s, "name_format": "%s", "bots": {}, "repos": {}}\n' "$SCHEMA" "$DEFAULT_FORMAT" >"$CONFIG") || die "cannot create $CONFIG"
+  fi
+  upgrade_config
+  cfg_put "$@"
 }
 
 bot_names() { cfg '.bots // {} | keys | join(", ")'; }
@@ -174,16 +198,17 @@ main_worktree() {
   (cd "$gitdir" && cd "$("$GIT" rev-parse --git-common-dir)" && cd .. && pwd -P)
 }
 
-# clean | <bot> | unset (no choice yet)
+# clean | <bot> | unset (no choice yet) | broken (config_problem says why)
 mode_for_key() {
+  [ -z "$(config_problem)" ] || { echo broken; return; }
   local m; m="$(cfg --arg k "$1" '.repos[$k] // empty')"
-  [ "$m" = off ] && m=clean
   echo "${m:-unset}"
 }
 
 # A path-keyed choice moves to the remote key once the repository gets a remote.
 migrate_key() {
   local key path m
+  [ -z "$(config_problem)" ] || return 0
   key="$(repo_key "$@")" || return 0
   case "$key" in path:*) return 0 ;; esac
   path="path:$(main_worktree "$@")"
@@ -341,6 +366,7 @@ cmd_git() {
   local -a rest=(); [ $((i + 1)) -lt $n ] && rest=("${argv[@]:$((i + 1))}")
   case "$mode" in
     unset) [ "$sub" = push ] && refuse "$(ask_text "$key")" ;;
+    broken) [ "$sub" = push ] && refuse "$(config_problem)" ;;
     clean) [ "$sub" = push ] && clean_push_check ${g[@]+"${g[@]}"} -- ${rest[@]+"${rest[@]}"} ;;
     *)
       if ! load_bot "$mode" || [ -z "$BOT_ID" ]; then
@@ -422,6 +448,7 @@ cmd_gh() {
   # and only writes are checked.
   case "$mode" in
     unset) [ -n "$write" ] || exec "$gh" "$@"; refuse "$(ask_text "$key")" ;;
+    broken) [ -n "$write" ] || exec "$gh" "$@"; refuse "$(config_problem)" ;;
     clean)
       [ -n "$write" ] || exec "$gh" "$@"
       local text f
@@ -464,6 +491,8 @@ context_for() {
   case "$mode" in
     unset)
       echo "alter-ego: no identity is chosen for this repository ($key). Before the first push, pull request, issue, review or comment here, ask the user once which to use: $(question_text). Until then pushes and gh writes are refused. Load the alter-ego skill for the details." ;;
+    broken)
+      echo "alter-ego: $(config_problem). Pushes and gh writes are refused until then; tell the user." ;;
     clean)
       echo "alter-ego: clean mode in $key. Commits, pull requests, issues, reviews and comments go out as the user and must carry no AI marks: no Co-Authored-By or \"Generated with\" lines, no 🤖, no mention of Claude or AI. A push or gh write that carries them is refused." ;;
     *)
@@ -486,6 +515,7 @@ cmd_session_start() {
   fi
   have jq || { echo "alter-ego is installed but jq is missing, so it cannot tell repositories apart and refuses every push and gh write: tell the user to install jq."; return 0; }
   cwd="$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null)"; cwd="${cwd:-$PWD}"
+  upgrade_config
   migrate_key -C "$cwd"
   key="$(repo_key -C "$cwd")" || return 0
   mode="$(mode_for_key "$key")"
@@ -519,6 +549,7 @@ cmd_status() {
     echo "repository: $key"
     case "$mode" in
       unset) echo "mode: not chosen yet" ;;
+      broken) echo "mode: unknown — $(config_problem)" ;;
       clean) echo "mode: clean (as you, no AI marks)" ;;
       *)
         if load_bot "$mode"; then
@@ -706,7 +737,7 @@ cmd_doctor() {
     pass) echo "secret store: pass" ;;
     *) echo "secret store: NONE — install libsecret-tools (secret-tool) or pass, or give each bot a --secret-command" ;;
   esac
-  echo "config: $CONFIG$([ -f "$CONFIG" ] || echo ' (not created yet)')"
+  echo "config: $CONFIG$([ -f "$CONFIG" ] || echo ' (not created yet)')$(p="$(config_problem)"; [ -z "$p" ] || echo " — $p")"
   echo "git and gh wrappers active in this shell: $(wrappers_active && echo yes || echo 'no — start a new session after installing')"
   echo "Claude attribution lines: $(attribution_state)"
   [ -z "$(bot_names)" ] || cmd_bots
