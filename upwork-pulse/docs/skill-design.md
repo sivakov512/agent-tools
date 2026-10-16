@@ -32,6 +32,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **A plugin update brings the pipeline up by itself**: installing the newer plugin is the user's go, so an update never needs a second step; the next hourly run does it instead of its search, or a conversation that gets there first.
 - **An older dashboard is republished without asking** (project-tracker offers it instead): the newer page is part of the update the user installed, and an old page can misread what the new skill writes. A pipeline with no dashboard gets one offer per conversation until the user declines.
 - **One Claude chat per job**, opened from the dashboard and kept on the card's `Chat`. On the phone and the web it opens in `chat_project`, by default the project the skill was set up or updated from, written by the first conversation that finds the line missing.
+- **A code block only for what the user pastes into Upwork as it is**: the proposal text and each milestone's description. Everything else in chat is plain text, which reads on a phone; a code block's copy button makes pasting one tap.
 - **`replace_content` only on a Proposals row's body**, which is rewritten whole; every other page is edited a line at a time.
 - **Chat summaries and parks are shared across devices** (the artifact's `db`), so a phone and a laptop show the same chat as parked or waiting.
 - **In a group chat or a direct message, the user's turn is what the thread asks of them**: a message from another freelancer or a file shared for information is not their move.
