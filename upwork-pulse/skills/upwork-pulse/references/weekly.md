@@ -2,6 +2,8 @@
 
 Once a week the open questions — the cases the rules did not settle — are put to the user with a recommendation each, and the answers become rules. This is the only place questions surface: hourly messages and digests never carry them.
 
+Started by the weekly task, or by the user asking about open questions. Inputs: the root page; the mode reads `questions_open` and, when there are open questions, the rules pages (§1). Its output is the report (§1), then the rules the user confirms (§2).
+
 ## 1. Automatic part
 
 Query `questions_open`. No open rows → change nothing, no push; the report is the header (`# Questions this week · 0`) and the Log.
