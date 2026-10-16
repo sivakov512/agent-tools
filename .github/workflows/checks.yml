@@ -4,6 +4,7 @@ on:
   push:
     branches: [master]
   pull_request:
+    types: [opened, synchronize, reopened, edited]
 permissions:
   contents: read
 
@@ -13,3 +14,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 scripts/check.py
+
+  privacy:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: python3 scripts/check_privacy.py --self-test
+      - name: PR title, body, commit messages and added lines
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          PRIVATE_TERMS: ${{ secrets.PRIVATE_TERMS }}
+        run: |
+          printf '%s\n' "$TITLE" > "$RUNNER_TEMP/title"
+          printf '%s\n' "$BODY" > "$RUNNER_TEMP/body"
+          python3 scripts/check_privacy.py --range "$BASE..$HEAD" \
+            --text "PR title" "$RUNNER_TEMP/title" --text "PR body" "$RUNNER_TEMP/body"
