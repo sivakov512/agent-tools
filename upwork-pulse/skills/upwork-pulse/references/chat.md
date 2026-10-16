@@ -101,15 +101,6 @@ Never guess a fact for a screening answer or the text: profile, portfolio, cards
 
 "From now on skip anything with X", "always ask about Y", "the rate is Z" — a confirmed rule goes into Search rules or Proposal guide as SKILL.md → *Questions and quirks* says, right away. An unclear case the user did not decide becomes a question row, not a rule.
 
-## Chat project
-
-On the phone and the web the dashboard starts a job's new Claude chat in the project named by the config's `chat_project`; the desktop app's link has no way to name a project, so there new chats open outside projects. The dashboard reads the line on every load and only shows it (Settings), so changing it never needs a republish.
-
-- **Set once, by the first conversation that finds no `chat_project` line** — the setup itself, or the first conversation after the plugin update that brought it, whatever it was about, after answering it: the project this conversation belongs to, as `<project id> <name>`; `none` when the conversation is in no project. The user chose this default: the project the skill was set up or updated from. After that it changes only when the user asks. Automatic runs never write it.
-- **The project's id** is its claude.ai UUID, the one in a link to it (`claude.ai/project/<id>`). The session sees it only indirectly — in a project-scoped path in its tools' instructions, such as a memory scope `/projects/<id>/` — and never guesses it; the name is the one the session's context gives the project. In a project whose id is nowhere in sight, write nothing: a later conversation tries again.
-- **Write it** with `update_content` on the config toggle — the line replaced, or added as the toggle's last line (tab-indented) — then one short line in `language` at the end of the reply: new chats from the dashboard open in <name> (or outside projects), and saying so in a chat inside another project moves them there.
-- **The user changes it in chat**: "open dashboard chats in this project" → this conversation's project, as above; "no project" → `none`. Another project by name cannot be resolved from here (its id is not visible): say to ask from a chat inside that project.
-
 ## What stays off limits here
 
 Sending, boosting, messaging or saving anything on Upwork without the explicit go for that action; moving `PROCESSED_UNTIL`; editing Runs.

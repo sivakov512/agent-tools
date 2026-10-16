@@ -9,6 +9,7 @@
     --scrim: rgba(18, 22, 22, .28); --good-soft: #e3f3e9;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --shadow-drawer: -20px 0 48px rgba(0, 0, 0, .14); --shadow-pop: 0 12px 32px rgba(0, 0, 0, .16); --shadow-tip: 0 8px 24px rgba(0, 0, 0, .12); --shadow-float: 0 6px 18px rgba(0, 0, 0, .14); --shadow-knob: 0 1px 2px rgba(0, 0, 0, .25); /* shadows: black in both themes */
     font-variant-numeric: tabular-nums;
   }
   @media (prefers-color-scheme: dark) {
@@ -137,7 +138,7 @@
   /* ---------- drawer: details for any row, sliding in from the right ---------- */
   .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .2s; }
   .scrim.on { opacity: 1; pointer-events: auto; }
-  .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(680px, 100vw); background: var(--surface); box-shadow: -20px 0 48px rgba(0, 0, 0, .14); display: flex; flex-direction: column; transform: translateX(104%); transition: transform .24s cubic-bezier(.2, .7, .2, 1); visibility: hidden; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(680px, 100vw); background: var(--surface); box-shadow: var(--shadow-drawer); display: flex; flex-direction: column; transform: translateX(104%); transition: transform .24s cubic-bezier(.2, .7, .2, 1); visibility: hidden; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
   .drawer.on { transform: none; visibility: visible; }
   .drawer.wide { width: min(1180px, 100vw); } /* widened: as wide as the page, never wider than the window */
   .drawer { transition: transform .24s cubic-bezier(.2, .7, .2, 1), width .2s ease-out; }
@@ -199,7 +200,7 @@
   .dr-chat.split a.claude { border-radius: 6px 0 0 6px; padding-right: 8px; }
   .dr-chat .more { border: 0; border-left: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); background: var(--accent-soft); color: var(--accent); padding: 0 7px; border-radius: 0 6px 6px 0; cursor: pointer; display: grid; place-items: center; }
   .dr-chat .more svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-  .chat-m { position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; width: min(280px, calc(100vw - 32px)); padding: 6px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 12px 32px rgba(0, 0, 0, .16); }
+  .chat-m { position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; width: min(280px, calc(100vw - 32px)); padding: 6px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-pop); }
   .chat-m a { display: block; padding: 9px 10px; border-radius: 8px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 500; white-space: normal; }
   .chat-m a .d { display: block; font-size: 12.5px; line-height: 1.45; font-weight: 400; color: var(--text-mute); margin-top: 2px; }
   .chat-m a:hover { background: var(--surface-2); }
@@ -291,7 +292,7 @@
   .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; font-size: 13.5px; border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
   .facts .k { color: var(--text-mute); }
   .dr-empty { font-size: 14px; color: var(--text-mute); }
-  .to-top { position: absolute; right: 22px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 2; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); box-shadow: 0 6px 18px rgba(0, 0, 0, .14); display: grid; place-items: center; cursor: pointer; opacity: 0; pointer-events: none; transform: translateY(6px); transition: opacity .18s, transform .18s; }
+  .to-top { position: absolute; right: 22px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 2; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); box-shadow: var(--shadow-float); display: grid; place-items: center; cursor: pointer; opacity: 0; pointer-events: none; transform: translateY(6px); transition: opacity .18s, transform .18s; }
   .to-top.on { opacity: 1; pointer-events: auto; transform: none; }
   .to-top svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   @media (max-width: 560px) {
@@ -322,7 +323,7 @@
   .info { border: 0; background: transparent; padding: 2px; margin-left: 4px; cursor: pointer; color: var(--text-mute); line-height: 0; vertical-align: -2px; border-radius: 50%; }
   .info:hover, .info[aria-expanded="true"] { color: var(--accent); }
   .info:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .info-pop { position: absolute; left: 0; top: calc(100% + 2px); z-index: 5; width: min(380px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, .12); padding: 10px 12px; font-size: 13px; line-height: 1.5; color: var(--text-2); }
+  .info-pop { position: absolute; left: 0; top: calc(100% + 2px); z-index: 5; width: min(380px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-tip); padding: 10px 12px; font-size: 13px; line-height: 1.5; color: var(--text-2); }
   .info-pop p { margin: 0 0 6px; }
   .info-pop p:last-child { margin-bottom: 0; }
   .info-pop b { color: var(--text); font-weight: 600; }
@@ -473,7 +474,7 @@
   .cpi svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   .cpi .ok { display: none; } .cpi.done { color: var(--good); } .cpi.done .ok { display: block; } .cpi.done .cp { display: none; }
   .setwrap { position: relative; }
-  .set-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: min(340px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 32px rgba(0, 0, 0, .16); padding: 6px; }
+  .set-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: min(340px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-pop); padding: 6px; }
   .set-pop h3 { margin: 6px 10px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-mute); font-weight: 600; }
   .sopt { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 14px; align-items: center; padding: 9px 10px; border-radius: 8px; cursor: pointer; }
   .sopt:hover { background: var(--surface-2); }
@@ -484,7 +485,7 @@
   .sopt.vers span { grid-column: 1 / 3; font-variant-numeric: tabular-nums; }
   .sopt.ro { cursor: default; } .sopt.ro:hover { background: none; } /* shown, not set here: the chat sets it */
   .sw { appearance: none; -webkit-appearance: none; margin: 0; width: 34px; height: 20px; border-radius: 99px; background: var(--border); position: relative; cursor: pointer; transition: background .15s; flex: none; }
-  .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .15s; }
+  .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); box-shadow: var(--shadow-knob); transition: transform .15s; }
   .sw:checked { background: var(--accent); }
   .sw:checked::after { transform: translateX(14px); }
   .sw:disabled { cursor: default; }
@@ -624,7 +625,7 @@
   var VIEW_PROPOSALS_OPEN = "__VIEW_PROPOSALS_OPEN__", VIEW_PROPOSALS_SENT = "__VIEW_PROPOSALS_SENT__";
   var SCHEMA = 8; // the Notion structure this page reads (config `schema`)
   var DASH_VERSION = "0.18.0"; // x-release-please-version
-  var STALL_MIN = 20; // a proposal still "Writing" after this many minutes: the task stopped without writing it
+  var STALL_MIN = 30; // a proposal still "Writing" after this many minutes: the task stopped without writing it (the drafts task takes a request for 30 minutes, references/drafts.md §1)
   var REMOTE = "Claude Code Remote"; // fire_trigger: the Rewrite button starts the drafts task
   var SKIP_DAYS = 2; // the Skipped tab shows this many days, then "Show 2 more days"
   var VIEW_RUNS = "__VIEW_RUNS__";
@@ -984,11 +985,11 @@
     rows.forEach(function (r) { if (r[1] == null || r[1] === "") return; f.appendChild(el("div", "k", r[0])); var v = el("div", "v"); if (typeof r[1] === "string") v.textContent = r[1]; else v.appendChild(r[1]); f.appendChild(v); });
     return f;
   }
-  function turnChip(room) {
+  function turnOf(room) { return parkedOf(room) ? "parked" : myTurn(room) ? "yours" : "theirs"; }
+  var TURN_TEXT = { parked: "Parked", yours: "Your turn", theirs: "Waiting on client" };
+  function turnChip(room) { // in a drawer's head
     if (!room || !room.latestStory) return null;
-    if (parkedOf(room)) return el("span", "chip", "Parked");
-    var yours = myTurn(room);
-    return el("span", yours ? "chip bad" : "chip good", yours ? "Your turn" : "Waiting on client");
+    var t = turnOf(room); return el("span", t === "yours" ? "chip bad" : t === "theirs" ? "chip good" : "chip", TURN_TEXT[t]);
   }
 
   function roomMessages(id, prio) { // a chat's last 12 messages, newest first; the summary, the drawer and the org lookup share this call (and its cache)
@@ -1067,7 +1068,7 @@
         hd.appendChild(el("span", "n", perDay[dk] + (perDay[dk] === 1 ? " lead" : " leads")));
         host.appendChild(hd); lastDay = dk;
       }
-      host.appendChild(leadItem(r, w, now, titles, openIds));
+      host.appendChild(leadItem(r, w, now, titles));
     });
     var oldList = older.filter(function (r) { return r.Verdict === S.verdict && df(r); });
     oldList.sort(function (a, b) { return (leadTime(b) || 0) - (leadTime(a) || 0); });
@@ -1078,7 +1079,7 @@
       oldList.forEach(function (r) {
         var w = leadTime(r); var dk = w ? dayKey(w) : "none";
         if (dk !== ld) { var h = el("div", "day"); h.appendChild(el("span", "", w ? dayLabel(w) : "Unknown date")); od.appendChild(h); ld = dk; }
-        od.appendChild(leadItem(r, w, now, titles, openIds));
+        od.appendChild(leadItem(r, w, now, titles));
       });
       host.appendChild(od);
     }
@@ -1100,7 +1101,7 @@
     rows.forEach(function (r) {
       var w = skipTime(r), dk = w ? dayKey(w) : "none";
       if (dk !== last) { var h = el("div", "day" + (w && dk === dayKey(now) ? " today" : "")); h.appendChild(el("span", "", w ? dayLabel(w) : "Unknown date")); host.appendChild(h); last = dk; }
-      host.appendChild(leadItem(r, w, now, titles, {}));
+      host.appendChild(leadItem(r, w, now, titles));
     });
     var older = (S.skipped || []).filter(function (r) { var w = skipTime(r); return w && now - w >= S.skipDays * DAY; }).length;
     if (older || S.skippedMore) {
@@ -1119,7 +1120,7 @@
     if (wt) host.style.setProperty("--wt", (Math.ceil(wt) + 2) + "px");
   }
 
-  function leadItem(r, w, now, titles, openIds) {
+  function leadItem(r, w, now, titles) {
     var id = r["Job ID"] || "";
     var pub = wallFromNotion(r["date:Published:start"]);
     var cls = "lead " + (pub && now - pub > OLD_LEAD_DAYS * DAY ? "old " : "") + (r._tier || "");
@@ -1237,7 +1238,7 @@
     if (p) return p.State === "Writing" && stale(Date.parse(p["date:Written:start"] || "")) ? "Stalled" : p.State || null;
     return S.sentByJob[id] ? "Sent" : null;
   }
-  function notesInto(host, r) { // the card's page body: the job write-up, five fixed sections
+  function notesInto(host, r) { // the card's page body: the job write-up, four fixed sections (five on cards made before schema 7)
     var box = el("div", "prose");
     host.appendChild(box);
     if (!r.url) { box.appendChild(el("p", "dr-empty", "No Notion card for this job.")); return; }
@@ -1251,7 +1252,7 @@
     content.split("\n").forEach(function (raw) {
       var line = raw.trim();
       if (!line || /^<page\b/.test(line)) { ul = null; return; }
-      var h = /^#{1,6}\s+(.*)$/.exec(line); // the card's five ## sections
+      var h = /^#{1,6}\s+(.*)$/.exec(line); // the card's ## sections
       if (h) { box.appendChild(el("h4", "", inlineText(h[1]))); ul = null; return; }
       var li = /^[-*•]\s+(.*)$/.exec(line);
       if (li) { if (!ul) { ul = el("ul"); box.appendChild(ul); } ul.appendChild(el("li", "", unesc(li[1].replace(/\*\*/g, "")))); return; }
@@ -1812,6 +1813,11 @@
     afterList("contractList");
     if (total > list.length) host.appendChild(el("div", "note", (total - list.length) + " more on Upwork — open any contract above and switch from there."));
   }
+  function contractKind(w) { return w.reply && w.late.length ? "Reply · milestone overdue" : w.reply ? "Reply · contract" : "Milestone overdue"; } // what a contract needs from me
+  function contractTitle(c, w) { // the title opens the thread when a reply is owed, the workroom otherwise
+    return w && w.reply && w.room ? titleLink(roomUrl(w.room.id), clean(c.title), "Open the thread on Upwork to reply") : titleLink(workroom(c.id), clean(c.title), "Open the workroom on Upwork");
+  }
+  function msClass(m) { return m.state === "Paid" ? "paid" : m.state === "Active" ? "active" : m.state === "Submitted" ? "sub" : ""; }
   function workroom(id) { return "https://www.upwork.com/nx/wm/workroom/" + encodeURIComponent(id) + "/overview"; }
   function msSorted(c) { var d = S.milestones[c.id]; return d && d.list ? d.list.slice().sort(function (a, b) { return (a.sequenceId || 0) - (b.sequenceId || 0); }) : null; }
   function msName(m) { return "M" + m.sequenceId + " " + clean(m.description).split(":")[0].slice(0, 60); }
@@ -1825,12 +1831,12 @@
     box.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); box._open(); } });
     if (DR && DR.key === "c-" + c.id) box.classList.add("sel");
     var head = el("div", "c-head");
-    var ct = el("span", "c-title"); ct.appendChild(why && why.reply && room ? titleLink(roomUrl(room.id), clean(c.title), "Open the thread on Upwork to reply") : titleLink(workroom(c.id), clean(c.title), "Open the workroom on Upwork")); head.appendChild(ct);
+    var ct = el("span", "c-title"); ct.appendChild(contractTitle(c, why)); head.appendChild(ct);
     if (why && why.reply && roomAct(room)) head.appendChild(el("span", "t-right", "waiting " + ago(Date.now() - roomAct(room))));
     box.appendChild(head);
     var since = c.start_date ? new Date(c.start_date) : null;
     var sub = el("div", why ? "c-why" : "c-client");
-    if (why) sub.appendChild(el("span", "kind", why.reply && why.late.length ? "Reply · milestone overdue" : why.reply ? "Reply · contract" : "Milestone overdue"));
+    if (why) sub.appendChild(el("span", "kind", contractKind(why)));
     sub.appendChild(document.createTextNode(clean(c.client) + (since ? " · since " + MON[since.getUTCMonth()] + " " + since.getUTCDate() : "") + ""));
     box.appendChild(sub);
     var smr = summaryInline(room); if (smr) box.appendChild(smr);
@@ -1840,7 +1846,7 @@
       var track = el("div", "ms-track"); if (smr) track.style.marginTop = "14px";
       var paid = 0, all = 0, cur = null;
       ms.forEach(function (m) {
-        var cls = m.state === "Paid" ? "paid" : m.state === "Active" ? "active" : m.state === "Submitted" ? "sub" : "";
+        var cls = msClass(m);
         var seg = el("div", "ms-seg " + cls); seg.title = "M" + m.sequenceId + " · " + (m.state_label || m.state) + " · $" + (m.depositAmount ? m.depositAmount.displayValue : "?");
         track.appendChild(seg);
         paid += num(m.paid && m.paid.rawValue) || 0; all += num(m.depositAmount && m.depositAmount.rawValue) || 0;
@@ -1895,7 +1901,7 @@
           row.appendChild(el("span", "d", clean(m.description) || "—"));
           row.appendChild(el("span", "a", m.depositAmount ? "$" + m.depositAmount.displayValue.replace(/\.00$/, "") : ""));
           var s = el("div", "s");
-          var cls = m.state === "Paid" ? "paid" : m.state === "Active" ? "active" : m.state === "Submitted" ? "sub" : "";
+          var cls = msClass(m);
           s.appendChild(el("span", cls, m.state_label || String(m.state || "").replace(/([a-z])([A-Z])/g, function (_, x, y) { return x + " " + y.toLowerCase(); })));
           var due = m.dueDateTime ? Date.parse(m.dueDateTime) : null;
           if (due && m.state === "Active") s.appendChild(el("span", due < Date.now() ? "late" : "", " · " + (due < Date.now() ? "overdue by " + ago(Date.now() - due) : "due " + fmtWall(wallOf(due), true))));
@@ -2133,8 +2139,11 @@
     items.forEach(function (x) {
       host.appendChild(x.type === "contract" ? moveContract(x, now) : x.type === "chat" ? moveChat(x, now) : moveInvite(x, now));
     });
-    if (SAMPLE === false && all.some(function (x) { return x.type === "chat" || x.type === "contract"; })) // no summaries in this view: say what that costs, not just show less
+    var chats = all.some(function (x) { return x.type === "chat" || x.type === "contract"; });
+    if (SAMPLE === false && chats) // no summaries in this view: say what that costs, not just show less
       host.appendChild(el("div", "note", "Claude summaries are off in this view, so chats show their last message and are not parked by themselves. Allow Claude for this page in its prompt and reload; Park until they write still works."));
+    else if (threadsReady && !DB && chats)
+      host.appendChild(el("div", "note", "This view can't store data, so summaries and parks are kept in this browser only and other devices don't see them. Allow the page to store data in its prompt and reload."));
     if (parked.length) { // talks the client closed or put off: folded, out of the counts, back up with the next message
       var d = el("details", "older"); d.dataset.id = "__parked__";
       try { d.open = !!localStorage.getItem("fp.parkedOpen"); } catch (e) {}
@@ -2206,13 +2215,12 @@
   }
   function moveContract(x, now) { // what the contract needs from you and the thread's summary; its milestones and money stay on its card under Contracts
     var c = x.contract, w = x.why, room = w.room;
-    var meta = [el("span", "kind", w.reply && w.late.length ? "Reply · milestone overdue" : w.reply ? "Reply · contract" : "Milestone overdue")];
+    var meta = [el("span", "kind", contractKind(w))];
     if (clean(c.client)) meta.push(clean(c.client));
     w.late.forEach(function (m) { meta.push(el("span", "late", msName(m) + " overdue by " + ago(now - Date.parse(m.dueDateTime)))); });
     var key = "c-" + c.id;
     var open = function () { openDrawer(key, "moveList", "Contract", contractDrawer(c)); };
-    var title = w.reply && room ? titleLink(roomUrl(room.id), clean(c.title), "Open the thread on Upwork to reply") : titleLink(workroom(c.id), clean(c.title), "Open the workroom on Upwork");
-    return moveRow(key, "turn", title, w.reply && roomAct(room) ? "waiting " + ago(now - roomAct(room)) : "", meta, open, summaryInline(room));
+    return moveRow(key, "turn", contractTitle(c, w), w.reply && roomAct(room) ? "waiting " + ago(now - roomAct(room)) : "", meta, open, summaryInline(room));
   }
   function moveInvite(x, now) { // an invitation's job gets a card in the hourly run; with it, the row carries its advice and opens the lead's drawer
     var v = x.inv, card = v.kind === "Invitation" ? cardFor(v.jobId) : null;
@@ -2399,11 +2407,7 @@
     host.appendChild(d);
   }
   function clientOf(room) { return room && room.roomName ? clean(room.roomName).split(",")[0].trim() : ""; }
-  function turnSpan(room) {
-    if (parkedOf(room)) return el("span", "p-state replied", "Parked");
-    var yours = myTurn(room);
-    return el("span", "p-state " + (yours ? "turn" : "replied"), yours ? "Your turn" : "Waiting on client");
-  }
+  function turnSpan(room) { var t = turnOf(room); return el("span", "p-state " + (t === "yours" ? "turn" : "replied"), TURN_TEXT[t]); } // on a list row
   function metaSep(m) { if (m.childNodes.length) m.appendChild(el("span", "sep", "·")); }
   // Row: #id title ........ when   /   client · state · terms
   function proposalItem(p, now) {
@@ -2534,7 +2538,7 @@
     var age = now - last.w;
     var what = last.r.Status === "ok" ? "found " + (last.r.Take || 0) + " take, " + (last.r.Maybe || 0) + " maybe" : last.r.Status === "partial" ? "hit its budget, continues next run" : "nothing new";
     S.scanner = { age: age, w: last.w, idle: age > 3 * 3600000, what: what, rulesFailed: /rules read failed/i.test(last.r.Window || "") }; renderStatus();
-    if (age > 3 * 3600000) host.appendChild(el("span", "chip bad", "Job scanner idle for " + ago(age) + " — check the hourly search task"));
+    if (S.scanner.idle) host.appendChild(el("span", "chip bad", "Job scanner idle for " + ago(age) + " — check the hourly search task"));
     else host.appendChild(el("span", "", "Job scanner ran " + ago(age) + " ago · " + (runModels(last.r) ? what.replace(/^found /, "") + " · " + runModels(last.r) : what)));
   }
 
@@ -2826,6 +2830,8 @@
       var old = Date.now() - 90 * DAY;
       Object.keys(MEM.finals).forEach(function (id) { if (!(MEM.finals[id].at > old)) { delete MEM.finals[id]; delete MEM.rooms[id]; } });
       Object.keys(MEM.jobs).forEach(function (id) { if (!(MEM.jobs[id].at > old)) delete MEM.jobs[id]; });
+      if (S.rooms && S.rooms.length) { var live = {}; S.rooms.forEach(function (r) { live[r.id] = true; }); Object.keys(MEM.orgs).forEach(function (id) { if (!live[id]) delete MEM.orgs[id]; }); } // a chat that left the list is looked up again if it comes back
+      if (S.proposals && S.proposals.length) { var known = {}; S.proposals.forEach(function (q) { known[q.id] = true; }); Object.keys(MEM.rooms).forEach(function (id) { if (!known[id] && !MEM.finals[id]) delete MEM.rooms[id]; }); }
       localStorage.setItem(MEM_KEY, JSON.stringify(MEM));
     } catch (e) {}
   }
@@ -3024,7 +3030,7 @@
     return [
       ["", "Every contract Upwork lists as active on your freelancer dashboard; a red bar means it needs you, and it is in Your move too."],
       ["Bar", "the milestones: green paid, teal in progress, amber submitted and waiting for the client's approval."],
-      ["Drawer", "click a contract for its milestones, the conversation and Claude's summary of the last 12 messages (made when you open it, redone after a new message; ↻ re-summarize redoes it now)."]
+      ["Drawer", "click a contract for its milestones, the conversation and Claude's summary of the last 12 messages (made when the contract shows here, redone after a new message; ↻ re-summarize redoes it now)."]
     ];
   });
 

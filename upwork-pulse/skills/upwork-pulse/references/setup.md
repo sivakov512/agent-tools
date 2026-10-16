@@ -153,7 +153,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 </details>
 ```
 
-`dashboard`, `dashboard_version` and `drafts_task` wait until there is something to put in them; every other line is written now. `chat_project` stays `none` unless this conversation is in a claude.ai project: then `<project id> <name>` of that project (`references/chat.md` → *Chat project*; in a project whose id is not visible, the line is left out). Lines inside the toggle are indented with a tab (unindented lines fall outside it); block tags are sent as the raw characters `<details color="gray_bg">`, `<summary>` — never HTML-escaped as `&lt;details&gt;`, which Notion stores as visible text. After the write, fetch the page and check the toggle is first, holds every key, and rendered as a toggle (not as `&lt;details` text).
+`dashboard`, `dashboard_version` and `drafts_task` wait until there is something to put in them; every other line is written now. `chat_project` as SKILL.md → *Chat project* says. Lines inside the toggle are indented with a tab (unindented lines fall outside it); block tags are sent as the raw characters `<details color="gray_bg">`, `<summary>` — never HTML-escaped as `&lt;details&gt;`, which Notion stores as visible text. After the write, fetch the page and check the toggle is first, holds every key, and rendered as a toggle (not as `&lt;details` text).
 
 ## 7. Dashboard
 
@@ -175,7 +175,7 @@ The drafts task has no schedule of its own: the hourly run assesses its finds an
 
 Each digest's window starts at the other digest's time, so the two cover the day without gaps; put the user's times into both prompts. Schedule the digests and the weekly review at exactly the minute the user gave — no shifting of the minute to spread load, even where the scheduling tool suggests it: a digest that runs at 10:48 while the next one's window starts at 11:00 loses whatever was found in between. Only the hourly search may run at any minute.
 
-Where the surface has a task-creation tool (Cowork: `create_trigger`), create the five tasks yourself — this is the user's request, so `initiation` is `human_request`; cron in UTC per the tool's rules. The tool takes no model and no approval mode, so two things follow it:
+Where the surface has a task-creation tool (Cowork: `create_trigger`), create the five tasks yourself — this is the user's request, so `initiation` is `human_request`; cron in UTC per the tool's rules. The tool takes no model and no approval mode, so three things follow it:
 - **Model**: the runs are written for Sonnet, the drafts task for Opus; the hourly run starts Opus itself for what it finds (`model: "opus"`, the alias, so a newer Opus is picked up without a change here). Ask once, in the setup questions (default: Sonnet for the four, Opus for drafts), and set each with `update_trigger` `model` — that is the user's explicit choice, which the tool requires.
 - **Notifications**: the push comes from the run itself (the `PushNotification` tool, SKILL.md → *Automatic mode*), not from the task's notification setting; the task's final reply is not pushed. Leave that setting as it is.
 - **Approval**: the runs write to Notion unattended. If a created task reports that its runs will ask for approval, tell the user to switch it to "Automatically approve" in its settings.

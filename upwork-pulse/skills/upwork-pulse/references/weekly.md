@@ -34,8 +34,7 @@ No description of your work outside the Log, nothing outside the format, no Noti
 
 For each question the user decided:
 
-1. Write the rule as one line into the right section of Search rules or Proposal guide — refining the existing item (`update_content` on that item), not a new paragraph. "As recommended" means your recommendation. Keep the pages' language.
-2. Set the question's `Status` Resolved and put the decision in `Decision`, one phrase. Rows are never deleted.
+1. Write the rule and close the question as SKILL.md → *Questions and quirks* says (a confirmed rule). "As recommended" means your recommendation; keep the pages' language.
 
 A question the user did not answer stays Open. Stale or duplicate items are edited only when the user says so.
 

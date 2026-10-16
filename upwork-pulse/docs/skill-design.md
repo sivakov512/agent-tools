@@ -21,9 +21,9 @@ These hold in every mode, whatever the rules pages say. The eval suite (`evals/R
 What makes the instructions good, as opposed to what they make the agent do.
 
 1. **One rule, one home.** Each rule is written in full in exactly one file; every other mention names that home (`references/assess.md` §2, `SKILL.md` → *Locked*) and says at most a clause. Two full copies drift apart.
-2. **A session loads what it needs.** `SKILL.md` holds what every session needs: the trigger, the data model, the cross-mode rules and the routing table. A mode's procedure lives in its reference, loaded only by that mode. Maintainer material — UI specs, history, design notes — lives in `docs/`, never in the skill.
+2. **A session loads what it needs.** `SKILL.md` holds what every session needs: the trigger, the data model, the cross-mode rules and the routing table. A mode's procedure lives in its reference, loaded only by that mode. Maintainer material — UI specs, history, design notes — lives in `docs/`, never in the skill. A rule a session must act on without being asked — in every conversation, or in every run of a mode — stays in the file that session surely reads; behind a link it gets skipped (the `chat-project-default` eval failed when *Chat project* moved to `chat.md`, which a question about the Take list never opens).
 3. **Every link resolves.** A named file and section exists and says what the link claims. Headings are stable: renaming one means fixing its links.
-4. **No contradictions, one name per thing.** A card is a row in Jobs; a lead is a New card on the dashboard; a chunk is up to 2 hours of the hourly queue; a run is one scheduled session. Numbers (budgets, windows, limits) are stated once.
+4. **No contradictions, one name per thing.** A card is a row in Jobs; a lead is a New card on the dashboard; a chunk is up to 2 hours of the hourly queue; a run is one scheduled session. Numbers (budgets, windows, limits) are stated once. Routing reads the user's own words: the arguments a skill is loaded with may paraphrase them ("write a proposal" passed on as "draft").
 5. **Actionable and checkable.** Each step says what to call, with what, and when to stop; formats are given as templates; limits are numbers. A rule that looks odd carries its reason in one sentence, so a later edit does not undo it.
 6. **Mode files share a shape:** what the mode is for and who starts it, its inputs, its steps, its output, what is off limits.
 7. **Compatibility in one place.** What exists only for older pipelines is in `references/update.md` (and the one-line notes on old card shapes the modes need to read them); nothing else talks about history.
@@ -32,11 +32,11 @@ What makes the instructions good, as opposed to what they make the agent do.
 
 | File | Owns |
 |---|---|
-| `SKILL.md` | trigger; the config keys; pages and databases with their columns; card status, `Locked`, *Which model*; the rules that protect the user; finding the root and a job; questions and quirks; *Pipeline update* (who starts it); *Chat project*; automatic mode (silence, report, Log, push); Notion call shapes; the modes table |
+| `SKILL.md` | trigger; the config keys; pages and databases with their columns; card status, `Locked`, *Which model*; the rules that protect the user; finding the root and a job; questions and quirks; *Pipeline update* (who starts it); *Chat project* (every conversation may have to set it); automatic mode (silence, report, Log, push); Notion call shapes; the modes table |
 | `references/hourly.md` | the hourly run: queue and watermark, search, stage 1, chunks and the hand-off, catch-up, auto skip, version check, the report and its push |
 | `references/assess.md` | stage 2, job pages and their pacing (`JOB_PAGES_PAUSE`, `DEFERRED`), the card's columns and body, the run row, the return to the hourly run |
 | `references/drafts.md` | advice, the proposal row's columns and body, the drafts task's report |
-| `references/chat.md` | everything in a conversation: a look at a posting, a job's chat from the dashboard, statuses, the proposal package and sending, connects, rules said in chat |
+| `references/chat.md` | everything in a conversation: fresh data first, the two kinds of card made in chat, a look at a posting, "details N", a job's chat from the dashboard, statuses, the proposal package and sending, connects, rules said in chat |
 | `references/sync.md` | sent proposals into Proposals, the sync watermark |
 | `references/digest.md`, `references/weekly.md` | their reports and pushes |
 | `references/setup.md` | a new or adopted pipeline: profile, pages, databases and views, config, scheduled tasks, the final check |

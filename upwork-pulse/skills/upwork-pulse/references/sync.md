@@ -23,3 +23,9 @@ Only when at least one proposal is left, read `proposals_sent`, `proposals_open`
 - **The row**: the one in `proposals_open` with this `Job ID` (a draft that was sent) or a new one with `Job` = the card (the relation is two-way: the card's `Proposal` fills itself). Columns: `Proposal ID`, `Boost` = the stored connects bid (empty when not boosted), `Written` = the proposal's created time, `State` cleared (`null`), and on a new row `Title`, `Job ID` — no `Drafted by`: the pipeline did not write it (a draft that was sent keeps the one it has). Body (`replace_content` on a draft, `content` on a new row): what Upwork stored, in the sections of `references/drafts.md` §4 — `Milestones` kept from the draft (Upwork does not return them), `Cover letter` exactly as returned, `Screening questions` with the answers as sent, `Attach` with the attachment names. No `Confirm before sending`, `Portfolio highlights`, `Boost` or `How it was written`: it is no longer a draft.
 
 A named period can mean dozens of proposals, each a `get` and a few writes. Above 20, say the number once and go on unless the user stops you — nothing is written to Upwork, so there is no go to wait for.
+
+## 3. What it returns
+
+To its caller, for the caller's report: the proposals written (by short id), how many of them got a new card, how many were already in place — or the failure, with the watermark left where it was. The digest puts it in its Log (`Sync`), chat in one line (`references/chat.md` → *Proposals sync*).
+
+Off limits here: writing to Upwork; `PROCESSED_UNTIL`; Runs; a card's verdict, score, body, advice, `My hours` and `Estimate` (of the card's judgement only `My $` changes, to the price sent).
