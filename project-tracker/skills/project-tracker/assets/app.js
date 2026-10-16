@@ -41,6 +41,7 @@
       case "not_in_manifest": case "consent_required": return "Notion isn't allowed for this page. Allow it from the page's connector prompt and reload.";
       case "blocked_by_policy": case "approval_required": return "Your organization's policy blocks this Notion call.";
       case "server_unavailable": case "rate_limited": return "Notion didn't answer. Refresh in a minute.";
+      case "timeout": return "Notion didn't answer in time. Refresh in a minute.";
       case "tool_error": return "Notion reported an error: " + (err.message || "unknown");
       case "not_granted": case "capability_disabled": case "capability_removed": return "Live data isn't available in this view — open the page in claude.ai.";
       case "config": return err.message;
@@ -50,7 +51,13 @@
   function isDenial(err) { return err && /^(needs_reauth|server_not_connected|selection_required|blocked_by_policy|approval_required|not_in_manifest|consent_required|not_granted|capability_disabled|capability_removed)$/.test(err.code); }
 
   // ---------- Notion access ----------
-  var MCP = null;
+  var MCP = null, CALL_TIMEOUT = 45000;
+  function call(tool, args, cache) { // every Notion call: one that never settles fails after CALL_TIMEOUT, so the page never stays on Loading
+    return new Promise(function (ok, fail) {
+      var t = setTimeout(function () { fail({ code: "timeout" }); }, CALL_TIMEOUT);
+      MCP.callTool(NOTION, tool, args, { cache: cache }).then(function (r) { clearTimeout(t); ok(r); }, function (e) { clearTimeout(t); fail(e); });
+    });
+  }
   function touch(res) {
     var t = res && res.cache && res.cache.storedAt ? res.cache.storedAt : Date.now();
     if (t > S.lastUpdate) S.lastUpdate = t;
@@ -62,7 +69,7 @@
   var fresh = null;
   function cacheFor(key, cache) { if (!fresh || fresh[key]) return cache; fresh[key] = true; var c = {}; for (var k in cache) c[k] = cache[k]; c.refresh = true; return c; }
   function fetchText(id, cache) {
-    return MCP.callTool(NOTION, "notion-fetch", { id: id }, { cache: cacheFor("f:" + id, cache) }).then(function (res) {
+    return call("notion-fetch", { id: id }, cacheFor("f:" + id, cache)).then(function (res) {
       touch(res); var p = payload(res), t = p && typeof p === "object" ? String(p.text || "") : String(p || "");
       var re = /notion-file-block:\/\/[^\s)"'<>]+/g, m; while ((m = re.exec(t))) fileRefPage[m[0].replace(/&amp;/g, "&")] = id; // where each file lives, for its link (fileLink)
       return t;
@@ -73,7 +80,7 @@
     function page(cursor, n) {
       var data = { mode: "view", view_url: viewUrl, page_size: 100 };
       if (cursor) data.start_cursor = cursor;
-      return MCP.callTool(NOTION, "notion-query-data-sources", { data: data }, { cache: cacheFor("q:" + viewUrl + "|" + (cursor || ""), DATA) }).then(function (res) {
+      return call("notion-query-data-sources", { data: data }, cacheFor("q:" + viewUrl + "|" + (cursor || ""), DATA)).then(function (res) {
         touch(res); var p = payload(res) || {};
         rows = rows.concat(p.results || []);
         return p.has_more && p.next_cursor && n < (max || 5) ? page(p.next_cursor, n + 1) : rows;
@@ -186,7 +193,7 @@
       return Promise.all([pP, qP, rP]);
     }, function (err) {
       S.projErr = S.problemsErr = err; render();
-    }).then(function () { loading = false; render(); }, function () { loading = false; render(); });
+    }).then(function () { loading = false; paintLive(); render(); }, function () { loading = false; paintLive(); render(); }); // the live line never stays on Loading or Refreshing
   }
 
   // ---------- derived data, filtered by origin ----------
@@ -581,7 +588,7 @@
     if (c && Date.now() - c.at < FILE_FRESH) return Promise.resolve(c.url);
     var id = fileRefPage[src];
     if (!id) return Promise.reject({ code: "no_page" });
-    if (!pageLinks[id]) pageLinks[id] = MCP.callTool(NOTION, "notion-fetch", { id: id, include_file_urls: true }, { cache: false }).then(function (res) {
+    if (!pageLinks[id]) pageLinks[id] = call("notion-fetch", { id: id, include_file_urls: true }, false).then(function (res) {
       var refs = (payload(res) || {}).references || {}, now = Date.now();
       Object.keys(refs).forEach(function (k) { fileLinks[k.replace(/&amp;/g, "&")] = { url: refs[k], at: now }; });
       delete pageLinks[id];
@@ -947,6 +954,7 @@
   function paintLive() {
     if (SNAP) { if (S.lastUpdate > 0) { var d = new Date(S.lastUpdate); $("liveText").textContent = "Updated " + fmt(Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / PT.DAY)) + ", " + hhmm(S.lastUpdate); } return; }
     if (S.lastUpdate > 0) { $("liveDot").className = "ldot on"; $("liveText").textContent = "Live · updated " + hhmm(S.lastUpdate); $("liveWrap").title = "Live from Notion. Read-only: change things by telling Claude in chat."; }
+    else if (!loading) $("liveText").textContent = "Not loaded"; // nothing was read: the cards say why
     if (S.rootUrl) { $("notionLink").href = S.rootUrl; $("notionLink").hidden = false; }
   }
 
