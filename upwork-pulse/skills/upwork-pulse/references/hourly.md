@@ -24,9 +24,14 @@ Longer: work in 2-hour chunks, oldest first (search results arrive newest first 
 
 ## 3. Search
 
-Run each query from Search rules as its own `find_jobs` search (`action: search`), sorted by recency, paginating until published dates leave the queue window. Merge results by job id. No budget, level, duration or payment-verified filters unless the rules say so.
+Run each query from Search rules as its own search, all in one turn, with exactly these parameter names — Upwork drops a name it does not know without an error and answers with postings the query never filtered:
 
-**Invitations**, every run, whatever the queue: `list_freelancer_proposals` `invitations` with `status: pending`, in the same turn as the searches. A client who invites the user is waiting for an answer, so every pending invitation's job gets a card and advice, like a found posting — the dashboard shows it under Your move with that advice and the proposal. Per invitation, by its job id:
+- **Search**: `find_jobs` `{action: "search", org_uid: "<upwork_org>", params: {query: "<the rule's query, as written>", sort: "recency", limit: 10}}` — the text goes in `query`, never `q`, `keywords` or `title`; `sort: "recency"` every time, since a query alone comes back sorted by relevance.
+- **Next page**: the same call with `cursor` added to `params`, set to the previous response's `pageInfo.endCursor`, only while `pageInfo.hasNextPage` is true and the last posting's published date is still inside the queue window.
+
+Merge results by job id. No budget, level, duration or payment-verified filters unless the rules say so.
+
+**Invitations**, every run, whatever the queue, in the same turn as the searches: `list_freelancer_proposals` `{action: "invitations", org_uid: "<upwork_org>", params: {status: "pending"}}` — `action` is required: without it the call fails. A client who invites the user is waiting for an answer, so every pending invitation's job gets a card and advice, like a found posting — the dashboard shows it under Your move with that advice and the proposal. Per invitation, by its job id:
 - A card in `jobs_all` → if it lacks the flag `invited`, add it and tick `Locked` (one `update_properties`: the card's flags plus `invited`; SKILL.md → *Locked*). Nothing else.
 - No card → it goes to the assessment with the survivors (§5): it gets a card there, flagged `invited` and locked (`references/assess.md` §2–§3), and it is news (§7).
 
