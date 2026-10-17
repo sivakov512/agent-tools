@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.19.0...upwork-pulse-v0.19.1) (2026-10-17)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** hand every hourly survivor to the Opus assessment ([0115411](https://github.com/sivakov512/agent-tools/commit/01154111abcbec25e301fe180d45fc77b17e523e))
+* **upwork-pulse:** spell out the hourly run's Upwork search calls ([d621496](https://github.com/sivakov512/agent-tools/commit/d621496f3ab651897d24320ffaa0be65123cd931))
+
 ## [0.19.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.18.0...upwork-pulse-v0.19.0) (2026-10-16)
 
 
