@@ -12,6 +12,7 @@ The next agent sees the repository, never the conversation that shaped it. So:
 4. **The user decides behaviour** — what the skill does and what they see. The architecture — files, structure, checks — follows this file; explain it to the user in plain words, not in file names.
 5. **This file wins.** A plugin departs from it only in its design doc's *Exceptions*, each with its reason. A contradiction found between the two is fixed in the same change, or reported.
 6. **Files say how things are now and why**, not how they got there: git keeps the history.
+7. **Agreed work not done yet is a GitHub issue**, one per change: what the user decided and why, what done looks like, the eval cases and their rough cost. The design doc says how the skill works now, so a decision enters it only with the change that makes it true; that change's pull request moves the decisions into the design doc and closes the issue.
 
 ## 2. A plugin's files
 
