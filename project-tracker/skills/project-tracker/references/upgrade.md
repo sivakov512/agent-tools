@@ -10,7 +10,7 @@ Started by SKILL.md → **Finding things** (a `schema` below the skill's, a 0.x 
 
 SKILL.md (**Finding things**) starts it, or `references/setup.md` §3 on a tracker that has rows.
 
-The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **5**. A tracker below it is brought up before the request, as SKILL.md → **Finding things** says; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose `references/setup.md` §3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again. Steps run in order, all of them before the request is answered (a schema-1 tracker gets 1 → 2, 2 → 3, 3 → 4, then 4 → 5, in one go); only a step that fails stops it. If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
+The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **5**. A tracker below it is brought up before the request, as SKILL.md → **Finding things** says; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose `references/setup.md` §3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again. Each step ends by writing its own number in the config toggle (`schema: 2` after 1 → 2, `schema: 3` after 2 → 3, …) as its last write: the number then says exactly which steps are done, so an update stopped half-way resumes at the step it stopped in, and a step is never taken as done before it is. Steps run in order, all of them before the request is answered (a schema-1 tracker gets 1 → 2, 2 → 3, 3 → 4, then 4 → 5, in one go); only a step that fails stops it. If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
 
 **Columns older trackers lack.** Fetch each data source and add the plain columns that are missing — `Origin`, `Chat` and `Claude project`, which only pre-release 1.0 trackers lack, `Order`, which schema 1 lacks, `Client dashboard`, which schema 2 lacks, and `Ref`, which schema 4 lacks (one call per data source, statements joined by `;`):
 
@@ -39,7 +39,7 @@ A tracker that already has rows and lacks `Order`, `Client dashboard` or `Ref` i
 1. Milestones and Tasks get `Order` (`ADD COLUMN` as in **Columns older trackers lack**, skipped where it exists).
 2. Number the rows of every project in `Active`, `Closed` too: milestones 1, 2, … per project; tasks within each milestone, and a project's tasks without a milestone among themselves. A body's `Contract milestone N` sets N. Otherwise by `Dates`; undated rows after the dated ones, in the order history states, else as the views list them (named in the closing line, so the user can reorder — the update never waits on a question). Rows that already have `Order` keep it.
 3. Views sort by it (`notion-update-view`; the filters stay): root `Next up` and every project's `Schedule` and `Tasks` (the table) → `CLEAR SORT; SORT BY "Order" ASC, "Dates" ASC`; root Tasks `All` → `CLEAR SORT; SORT BY "Dates" ASC, "Order" ASC` (`references/setup.md` §4 says why).
-4. Write `schema: 2` in the config toggle (the line replaced, or added as its last line, tab-indented) — last, so an interrupted update is found again.
+4. Write `schema: 2` in the config toggle (the line replaced, or added as its last line, tab-indented) — the step's last write.
 
 **2 → 3: `Client dashboard`.**
 1. Projects get `Client dashboard` (`ADD COLUMN` as in **Columns older trackers lack**, skipped where it exists). Nothing to fill: it is set when a client dashboard is made (`references/client-dashboards.md`).
@@ -142,8 +142,8 @@ Tell the user what moved (counts per project), what stayed behind, the new page,
 
 ## Output
 
-A tracker at schema 5, said in one line before the request is answered; for a 0.x tracker, the new tracker and the message of **5. Retire the old tracker**.
+A tracker at schema 5, each step's number written as that step's last write, said in one line before the request is answered; for a 0.x tracker, the new tracker and the message of **5. Retire the old tracker**.
 
 ## Off limits
 
-Writing to a 0.x tracker; dropping a value before it is checked in its new place; writing `schema` before the last step of an update.
+Writing to a 0.x tracker; dropping a value before it is checked in its new place; writing a step's `schema` number before the rest of that step is done, or one number for several steps.
