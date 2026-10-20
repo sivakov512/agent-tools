@@ -4,7 +4,7 @@ The careful half of the hourly run. The search (`references/hourly.md`) finds th
 
 ## 1. Inputs
 
-From the prompt: the root page, the chunk's Runs row (created by the hourly run with the counts it knows), the chunk's window, the survivors of stage 1 (job ids with their publish time, already-seen cards removed), and the pending invitations that need a card (job ids). Read the config, **Search rules**, **Field notes** and **Run state** in the first turn; `jobs_all` when there are deferred postings to check (§2), `questions_open` when a case is unsettled (§3), the **Proposal guide** only when drafting (§6). A config below the schema this skill works with (SKILL.md → *Pipeline update*) → write nothing, return `pipeline updating`; Search rules that cannot be read or hold no rules → write nothing, return `rules unreadable` (§7). Either one leaves the chunk unfinished.
+From the prompt: the root page, the chunk's Runs row (created by the hourly run with the counts it knows), the chunk's window, the survivors of stage 1 (job ids with their publish time, already-seen cards removed), the pending invitations that need a card (job ids), and the catch-up cards the hourly run chose for drafts (card URLs, `references/hourly.md` §6). Read the config, **Search rules**, **Field notes** and **Run state** in the first turn; `jobs_recent` when there are deferred postings to check (§2), `questions_open` when a case is unsettled (§3), the **Proposal guide** only when drafting (§6). A config below the schema this skill works with (SKILL.md → *Pipeline update*) → write nothing, return `pipeline updating`; Search rules that cannot be read or hold no rules → write nothing, return `rules unreadable` (§7). Either one leaves the chunk unfinished.
 
 ## 2. Job pages
 
@@ -83,7 +83,7 @@ Once the cards are written, one `update_properties` on the chunk's Runs row: `De
 
 ## 6. Drafts
 
-With `auto_drafts: on`, and only in a subagent (the hourly run doing the assessment itself skips this step: `references/hourly.md` §5): `references/drafts.md` for this chunk's cards (the ones you just wrote: work from them, no second `get`, as `references/drafts.md` §2 says for fresh cards), then its catch-up of older cards without advice, up to the limit it sets. Drafts mode's own rules hold, `Locked` left as it is. `auto_drafts: off` → no advice, no proposal.
+With `auto_drafts: on`, and only in a subagent (the hourly run doing the assessment itself skips this step: `references/hourly.md` §5): `references/drafts.md` for this chunk's cards (the ones you just wrote: work from them, no second `get`, as `references/drafts.md` §2 says for fresh cards), then for the catch-up cards the prompt names. No card written and none named → no drafts, and `references/drafts.md` is not read: the hourly run has already looked for older cards to catch up (`references/hourly.md` §6), so there is nothing for it to do. Drafts mode's own rules hold, `Locked` left as it is. `auto_drafts: off` → no advice, no proposal.
 
 ## 7. Return
 
