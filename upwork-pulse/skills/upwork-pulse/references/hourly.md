@@ -68,7 +68,7 @@ In this order, after the cards, the rows and the watermark (§2) are written, so
 
 **Auto skip**, with `auto_skip: on` and `auto_drafts: on`: read `jobs_inbox` (fresh — the assessment may have just written advice). Every New card with `Advice` Skip and `Locked` unchecked gets one `update_properties`: `Status` Skipped, `Skipped by` auto, `Skip reason` = its `Advice why` (one line), `Decided on` = now. Whenever that advice was written — by this run, an earlier one, before auto skip was switched on — it counts: the switch means "skip what Claude advises to skip". A `Locked` card stays New whatever its advice (SKILL.md → *Locked*). Cards skipped here are not news (§7).
 
-**Version check**, every run, last before the report: when the config's `skill_version` is not N (the first line of `assets/dashboard.html`), write `skill_version: N` (add the line if missing) — the dashboard shows which skill the runs use, and an older page reads it to ask the user to send Claude the message that republishes it (`references/dashboard.md` → *When*); remember the old value for the report's `Update` line. The run itself never republishes the dashboard.
+**Version check**, every run, last before the report: when the config's `skill_version` is not N (the first line of `assets/dashboard.html`), write `skill_version: N` (add the line if missing) — the dashboard shows which skill the runs use, and an older page reads it to give the user the command that republishes it (`references/dashboard.md` → *When*); remember the old value for the report's `Update` line. The run itself never republishes the dashboard.
 
 ## 7. The report
 
