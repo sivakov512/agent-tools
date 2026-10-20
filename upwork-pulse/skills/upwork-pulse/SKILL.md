@@ -28,7 +28,7 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 | `upwork_org` | the Upwork org_uid to pass to every Upwork call |
 | `dashboard` | URL of the published dashboard page, if any |
 | `dashboard_version` | the dashboard version that page was published from (`references/dashboard.md` → *When*) |
-| `skill_version` | the plugin version the last hourly run used (N from the asset's first line); the dashboard shows it under Settings → Versions, and while its own version is older, the message to send Claude to update it. Written by the hourly run when it differs, and by setup |
+| `skill_version` | the plugin version the last hourly run used (N from the asset's first line); the dashboard shows it under Settings → Versions, and while its own version is older, the command that updates it (*Dashboard updates*). Written by the hourly run when it differs, and by setup |
 | `dashboard_skip` | present (any value) when the user declined a dashboard (`references/dashboard.md` → *When*) |
 | `chat_project` | the claude.ai project new Claude chats from the dashboard open in: `<project id> <name>`, or `none` (*Chat project*) |
 | `auto_drafts` | `on` / `off` — "Auto proposals" on the dashboard: the hourly run's assessment on Opus goes on from each new card to advice and a proposal draft (`references/drafts.md`) |
@@ -139,7 +139,8 @@ The user's own message decides the mode, not a paraphrase of it (the arguments t
 | A prompt says "assessment mode" (the hourly run hands its survivors to a subagent), or the hourly run has no Agent tool and assesses them itself | `references/assess.md` |
 | A prompt says "drafts mode" (the hourly run's catch-up, the dashboard's drafts task), or the user's own short command to fill a job's proposal for the dashboard — "draft #584350", "redo the draft for #584350", nothing longer | `references/drafts.md` |
 | Set up the pipeline, adopt existing pages, create the scheduled tasks | `references/setup.md` |
-| Publish or update the dashboard — "Update the Upwork Pulse dashboard", the message an outdated dashboard asks the user to send | `references/dashboard.md` |
+| Publish or update the dashboard | `references/dashboard.md` |
+| The skill invoked with `update` — `/upwork-pulse:upwork-pulse update`, the command an outdated dashboard gives the user — to bring everything up to date | `references/update.md` when `schema` is below 8, then `references/dashboard.md` → *Update* when `dashboard_version` is below the asset's version; nothing behind → one line saying the pipeline and the dashboard are current |
 | Bring an older pipeline up to date (*Pipeline update*, or "update the pipeline") | `references/update.md` |
 
 ## Pipeline update
@@ -170,7 +171,7 @@ The moment the user writes in that same session, automatic mode ends: no more pu
 
 ## Dashboard updates
 
-The dashboard follows the plugin: when the config's `dashboard_version` is below the version on the first line of `assets/dashboard.html`, the first conversation that sees it republishes it without asking, after answering. Scheduled runs cannot — they have no Artifact tool — so until then the page itself asks the user to send Claude "Update the Upwork Pulse dashboard", which is this update (`references/dashboard.md` → *Update*): a chat about something else may never come, and opening a chat alone does not load this skill. A conversation on a pipeline with no dashboard offers one. When and how: `references/dashboard.md`.
+The dashboard follows the plugin: when the config's `dashboard_version` is below the version on the first line of `assets/dashboard.html`, the first conversation that sees it republishes it without asking, after answering. Scheduled runs cannot — they have no Artifact tool — so until then the page shows, beside its status, the command to send Claude: `/upwork-pulse:upwork-pulse update` (modes table). The slash form loads this skill for certain, which a plain message in a new chat may not, and a chat about something else may never come. A conversation on a pipeline with no dashboard offers one. When and how: `references/dashboard.md`.
 
 ## Notion calls
 
