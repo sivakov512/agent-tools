@@ -34,7 +34,7 @@ Cards N · take M · maybe K · connects L   ← L: the sum of the listed cards'
 
 ```
 ## Log
-- Sync: <n> proposal(s) written — #<short id>, …[; <k> new card(s)][; <m> already in place]   ← nothing new: `Sync: nothing new`
+- Sync: <the sync's line, references/sync.md §3>
 - Problems: <one line per problem: where, what failed, what is left undone>
 ```
 

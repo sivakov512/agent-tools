@@ -50,7 +50,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 | `references/assess.md` | stage 2, job pages and their pacing (`JOB_PAGES_PAUSE`, `DEFERRED`), the card's columns and body, the run row, the return to the hourly run |
 | `references/drafts.md` | advice, the proposal preview call (`create`, `accept_invitation`; a chat uses it too), the proposal row's columns and body, the drafts task's report |
 | `references/chat.md` | everything in a conversation: fresh data first, the two kinds of card made in chat, a look at a posting, "details N", a job's chat from the dashboard, statuses, the proposal package and sending, connects, rules said in chat |
-| `references/sync.md` | sent proposals into Proposals, the sync watermark |
+| `references/sync.md` | sent proposals into Proposals, the sync watermark, its line in a run's Log |
 | `references/digest.md`, `references/weekly.md` | their reports and pushes |
 | `references/setup.md` | a new or adopted pipeline: profile, pages, databases and views, config, scheduled tasks, the final check |
 | `references/dashboard.md` | when the dashboard is published or updated, how, with which capabilities and placeholders |
