@@ -3,4 +3,4 @@ type: 'regex'
 flags: 'i'
 match: 'contains'
 ---
-Write "details N"
+Write "details (N|\d+)"
