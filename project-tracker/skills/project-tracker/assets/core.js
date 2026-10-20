@@ -583,9 +583,9 @@
   function msFacts(x, m) { // the group's header already says the status, the dates, the timing and how many tasks are done
     meta(x, [m.project.status === "Paused" && m.status !== "Done" ? "the project is paused" : ""]);
   }
-  function taskFacts(x, k, go, inPlan) { // the row's header already says its status, dates and timing; on whom, as a problem's page says it; outside the plan, which milestone it is in; go(item, text): a link to another item
+  function taskFacts(x, k, go, inPlan) { // the row's header already says its status, on whom, dates and timing; outside the plan, which milestone it is in; go(item, text): a link to another item
     var inMs = null; if (k.ms && !inPlan) { inMs = span("in "); inMs.appendChild(go ? go(k.ms, k.ms.name) : document.createTextNode(k.ms.name)); }
-    meta(x, [onWhom(k), inMs]);
+    meta(x, [inMs]);
   }
   // the project at a glance, under its summary: when it ends and when it started, then what extra(pair) adds
   function projectSummary(p, plan, extra) {
