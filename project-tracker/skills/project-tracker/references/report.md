@@ -24,7 +24,7 @@ Then one short line of whom to chase (Waiting items, oldest first). Undated Plan
 
 A question about what is burning or whom to chase is this Overview even when it says "this week"; My week answers only what the user has to do.
 
-From the root views `Next up`, `Open` (problems), `Recently resolved`, and the Tasks views `All` and `Waiting on`; Done milestones and tasks are in no root view, so what closed in the period comes from the active projects' `Schedule` and `Tasks` views. Only projects in `Active` count — skip rows of other projects. The criteria are the dashboard's:
+From the root views `Next up`, `Open` (problems), `Recently resolved`, and the Tasks views `All` and `Waiting on`, each read as SKILL.md → **Reading a view** says (paged; `Recently resolved` back to the period's start); Done milestones and tasks are in no root view, so what closed in the period comes from the active projects' `Schedule` and `Tasks` views. Only projects in `Active` count — skip rows of other projects. The criteria are the dashboard's:
 
 - Late and due soon: open milestones and tasks past their end (with days late), then those ending in the next 7 days, by project — nothing paused is late.
 - On hold: paused milestones, with reason and how long.
@@ -45,7 +45,7 @@ If the config has a `dashboard` line, end with its link: the same picture, live.
 1. The project's `Schedule` view; fetch the In-progress and Paused milestones, milestones finished in the window, open milestones past their end, and milestones whose `Dates` overlap the window — their history lines dated in the window.
 2. The project's `Tasks` view; fetch the tasks finished in the window, the In-progress and Waiting ones, open tasks past their end, and tasks whose `Dates` overlap the window — their history lines dated in the window. Tasks are the report's main lines: what was done, what is under way, what waits on whom.
 3. The project's `Problems` view — problems opened in the window and everything still waiting on someone.
-4. The root `Recently resolved` view — this project's problems resolved in the window. Resolved problems are often the main news.
+4. The root `Recently resolved` view, read back to the window's start (SKILL.md → **Reading a view**) — this project's problems resolved in the window. Resolved problems are often the main news.
 5. The project page's notes and history lines dated in the window; its private notes only as context for the user, never in a client email.
 
 **Write**: what was done, what is next (with dates), what is waiting on whom (by name), what is late or on hold, and — if dates were moved — which dates; a why only where the tracker records it. Dates only proposed are for the user: mention them next to the draft, never in a client email. Plain prose from an engineer, not a dashboard export.
