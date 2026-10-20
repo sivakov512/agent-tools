@@ -143,15 +143,16 @@
     if (!any && opts.empty) box.appendChild(el("div", "muted", opts.empty));
     return any;
   }
+  var viewIds = {}; // a project tab's view block → its view's id: found once for the session, so polls read only the rows; a Refresh finds them again
   function tabView(txt, tab, want, run) { // a project page tab → its linked view block → the view's rows
     var m = new RegExp("<tab>\\s*" + tab + "\\s*<database url=\"([^\"]+)\"").exec(txt);
     if (!m) return Promise.reject({ code: "config", message: "No " + tab + " tab on this project page. Ask Claude in chat to fix the page." });
     var block = cleanUrl(m[1]);
-    return fetchText(block, STRUCT).then(function (bt) {
+    return (viewIds[block] ? Promise.resolve(viewIds[block]) : fetchText(block, STRUCT).then(function (bt) {
       var v = viewsOf(bt), id = v[want] || v[Object.keys(v)[0]];
       if (!id) throw { code: "config", message: "The project's " + tab + " view was not found." };
-      return queryView(viewUrl(block, id), 3, run);
-    });
+      return (viewIds[block] = id);
+    })).then(function (id) { return queryView(viewUrl(block, id), 3, run); });
   }
   function loadProject(p, run) { // project page → callout, its own parts, Schedule (milestones) and Tasks (tasks) views, Done included
     return fetchText(p.url, DATA, run).then(function (txt) {
@@ -182,7 +183,7 @@
   }
   function startLoad(past) {
     var run = { at: Infinity };
-    if (past) { fresh = {}; S.cfg = null; }
+    if (past) { fresh = {}; S.cfg = null; viewIds = {}; }
     loading = loadRun(run).then(function () {
       if (past) fresh = null;
       if (run.at < Infinity) S.lastUpdate = run.at; // the oldest data this load read, so the time never claims more than was read
