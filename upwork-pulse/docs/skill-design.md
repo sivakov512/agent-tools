@@ -45,10 +45,10 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 
 | File | Owns |
 |---|---|
-| `SKILL.md` | trigger; words; the config keys; pages and databases with their columns; card status, `Locked`, *Which model*; the rules that protect the user; finding the root and a job; questions and quirks; *Chat project* (every conversation may have to set it, so it stays where every session reads it); the modes table; *Pipeline update* (who starts it); automatic mode (silence, report, Log, push); Notion call shapes |
+| `SKILL.md` | trigger; words; the config keys; pages and databases with their columns; card status, `Locked`, *Which model*; the rules that protect the user; finding the root and a job; questions and quirks; *Chat project* (every conversation may have to set it, so it stays where every session reads it); the modes table; *Pipeline update* (who starts it); automatic mode (silence, now, report, Log, push); Notion call shapes, view page size; the Upwork calls several modes make (the job page) |
 | `references/hourly.md` | the hourly run: queue and watermark, search, stage 1, chunks and the hand-off, catch-up, auto skip, version check, the report and its push |
 | `references/assess.md` | stage 2, job pages and their pacing (`JOB_PAGES_PAUSE`, `DEFERRED`), the card's columns and body, the run row, the return to the hourly run |
-| `references/drafts.md` | advice, the proposal row's columns and body, the drafts task's report |
+| `references/drafts.md` | advice, the proposal preview call (`create`, `accept_invitation`; a chat uses it too), the proposal row's columns and body, the drafts task's report |
 | `references/chat.md` | everything in a conversation: fresh data first, the two kinds of card made in chat, a look at a posting, "details N", a job's chat from the dashboard, statuses, the proposal package and sending, connects, rules said in chat |
 | `references/sync.md` | sent proposals into Proposals, the sync watermark |
 | `references/digest.md`, `references/weekly.md` | their reports and pushes |
