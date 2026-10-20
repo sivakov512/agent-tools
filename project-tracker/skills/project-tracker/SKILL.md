@@ -184,7 +184,12 @@ A project: query the `Active` view and match by meaning ("the rain gauge" → "W
 
 Tool names are the Notion MCP tools (`notion-fetch`, `notion-query-data-sources`, `notion-update-page`, `notion-create-pages`, …); the prefix differs by surface.
 
-**Reading a view.** Database views: fetch the database (its `<database url=…>` on the root page) → it lists `<view url="view://<id>">` → query `data: {mode: "view", view_url: "https://app.notion.com/p/<database id>?v=<view id without dashes>"}`. Project page views: fetch the project page → each tab holds `<database url="https://…/p/<block id>" data-source-url="collection://…">` → fetch that block → its view id → the same query with the block id. Rows come with `url` (page id) and dates as `date:<Prop>:start` / `:end`.
+**Reading a view.** Database views: fetch the database (its `<database url=…>` on the root page) → it lists `<view url="view://<id>">` → query `data: {mode: "view", view_url: "https://app.notion.com/p/<database id>?v=<view id without dashes>", page_size: 40}`. Project page views: fetch the project page → each tab holds `<database url="https://…/p/<block id>" data-source-url="collection://…">` → fetch that block → its view id → the same query with the block id. Rows come with `url` (page id) and dates as `date:<Prop>:start` / `:end`.
+
+- **40 rows a read.** A view returns every property of every row, whatever columns it shows — a tracker row is about 1k characters — and a tool result above about 50k characters is cut off, so 40 rows is what one read carries.
+- **Paging.** While a result has `has_more`, query again with `start_cursor` set to its `next_cursor`, until the request has the rows it needs or the view ends: a view read only to its first page silently drops the rest.
+- **`Recently resolved`** is sorted newest first and may hold every problem ever resolved (its "past month" filter is a click the user may not have made): read it only until the first row resolved before the period the request needs.
+- **View URLs are found once per conversation.** A view's id never changes, and finding it costs a fetch of about 10k characters, so the view URLs of a database or a project page, once read in a conversation, are reused for the rest of it, as the config's IDs are. The rows are still queried fresh (**Read a row again before asking about it, stating it or changing it**).
 
 **New row** (milestone, task, problem): `notion-create-pages` with `parent: {data_source_id: <id from the config>}`, the properties below (`Order` included, for a milestone or task), and optionally `content` for the page body (a description; a first history line with its `## History` heading).
 
