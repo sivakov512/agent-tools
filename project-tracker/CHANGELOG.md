@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.15.3](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.2...project-tracker-v1.15.3) (2026-10-20)
+
+
+### Bug Fixes
+
+* **project-tracker:** queue Refresh during a load and mark unread parts ([7796996](https://github.com/sivakov512/agent-tools/commit/7796996e094a8db3fa89fae3946ee38c3735abac))
+* **project-tracker:** say on whom every open task and problem is ([5e95741](https://github.com/sivakov512/agent-tools/commit/5e957418c22bbe5c067a6591d3e4797a4d7d3249))
+
+
+### Performance Improvements
+
+* **project-tracker:** keep project view ids for the session ([db2254c](https://github.com/sivakov512/agent-tools/commit/db2254c54382c109a65cf9d4969e01bd79eb041c))
+
 ## [1.15.2](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.1...project-tracker-v1.15.2) (2026-10-16)
 
 
