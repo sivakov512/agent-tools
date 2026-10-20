@@ -8,7 +8,7 @@ From the prompt: the root page, the chunk's Runs row (created by the hourly run 
 
 ## 2. Job pages
 
-Stage 2 decides on the full text: `find_jobs` `get`, one call per posting, at most three in one turn — a burst of job pages is what Upwork refuses. The survivors first, then the invitations' jobs, then the deferred ones below.
+Stage 2 decides on the full text: `find_jobs` `get` (SKILL.md → *Upwork calls*), one call per posting, at most three in one turn — a burst of job pages is what Upwork refuses. The survivors first, then the invitations' jobs, then the deferred ones below.
 
 **`get` says not found or closed** for a posting the search just listed: the posting is gone — count it as rejected, and as gone, in the return (§7), and go on.
 

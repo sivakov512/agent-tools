@@ -10,7 +10,7 @@ Run the proposals sync (`references/sync.md`) before anything else, whether or n
 
 ## 2. Select
 
-Query `jobs_inbox` (`Status` New, newest `Found` first); take the next page only while the last row is still inside the window. Keep the cards whose `Found` falls in the window, in the config timezone. The window comes from the task prompt: the morning digest covers from the evening digest's hour yesterday to now; the evening one from the morning's hour today to now. `Found` comes back as a UTC instant — convert before comparing.
+Query `jobs_inbox` (`Status` New, newest `Found` first); take the next page only while the last row is still inside the window. Keep the cards whose `Found` falls in the window, in the config timezone. The window comes from the task prompt: the morning digest covers from the evening digest's hour yesterday to now; the evening one from the morning's hour today to now (now: SKILL.md → *Automatic mode*). `Found` comes back as a UTC instant — convert before comparing.
 
 Nothing left → no push; the report is the header, the counts line (`Cards 0`) and the Log (§3).
 
