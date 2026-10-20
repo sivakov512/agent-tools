@@ -8,7 +8,7 @@ Who publishes or updates it, and when, is *When* below. Inputs: `assets/dashboar
 
 The asset's first line is `<!-- dashboard-version: N -->`, N being the plugin's version (`x.y.z`), stamped by the release; read only that line for the check. The config's `dashboard_version` is the version the user's dashboard was last published from (no line = 1; a whole number, from before versions followed the plugin, is older than any `x.y.z`).
 
-- **Below N → republished without asking** (*Update* below): a newer plugin's dashboard is part of the update the user installed, and an old page can misread data the new skill writes. The hourly run does it after its work and before its report, with no message of its own (`references/hourly.md` §6); a conversation that gets there first does it after answering, with one line saying the dashboard was updated and, from the plugin's `CHANGELOG.md` (at the plugin root, next to `skills/`) between the two versions, what is new on it in a few words. A session that cannot publish (no Artifact tool) leaves it to the next one that can; a publish that fails is not retried in the same run.
+- **Below N → republished without asking** (*Update* below), by the first conversation that finds it so, after answering: a newer plugin's dashboard is part of the update the user installed, and an old page can misread data the new skill writes. One line says the dashboard was updated and, from the plugin's `CHANGELOG.md` (at the plugin root, next to `skills/`) between the two versions, what is new on it in a few words. Scheduled runs have no Artifact tool, so they leave it: the hourly run writes `skill_version` (`references/hourly.md` §6), and the page, finding its own version below that, tells the user to open a chat. A session that cannot publish leaves it to the next conversation; a publish that fails is not retried in the same conversation.
 - **No `dashboard` line** (set up before the dashboard existed, or the user removed it): in a conversation only, once per conversation and unless the config has a `dashboard_skip` line, end with one short line in `language` — what the dashboard is and whether to publish it now. Yes → *Publish*; no → `dashboard_skip: none`. Automatic runs never publish a dashboard the config has none of.
 - **Setup** publishes it (`references/setup.md` §7); a pipeline update republishes it first (`references/update.md`).
 
@@ -44,11 +44,11 @@ The asset's first line is `<!-- dashboard-version: N -->`, N being the plugin's 
 
 The same link, so the user allows nothing again — a new artifact for an existing dashboard would ask for every connector anew; avoid it.
 
-1. Read the artifact first: `action: "read"` with the `dashboard` URL (the surface refuses a publish over an artifact this conversation has not read), then the full page it saves, every line, as the read result says (the Read tool in chunks, by offset and limit) — the surface counts the page as read only then. It is a few thousand lines once per release: the price of the update, never a reason to put it off; an hourly run with a pending update does it in that run.
+1. Read the artifact first: `action: "read"` with the `dashboard` URL (the surface refuses a publish over an artifact this conversation has not read), then the full page it saves, every line, as the read result says (the Read tool in chunks, by offset and limit) — the surface counts the page as read only then. It is a few thousand lines once per release: the price of the update, never a reason to put it off.
 2. *Publish* step 1, then publish to that URL with the capabilities of step 2 in full: a publish without them keeps the set the page was first published with, and a tool a newer page calls would be refused.
 3. `dashboard_version` = N.
 
-Only a publish that fails after the read waits for the next run.
+Only a publish that fails after the read waits for the next conversation.
 
 ## No Artifact tool
 
