@@ -25,7 +25,7 @@ Jobs · Proposals · Runs · Questions
 | Runs | one log row per run (per 2-hour chunk when catching up on a backlog): what was checked, what was rejected and why | the hourly run |
 | Questions | cases your rules did not settle, with a counter of how often they came up | the hourly run; closed by the weekly review, or by itself after four weeks unseen |
 
-Views: Jobs — Inbox (New), Applied, All, Skipped; Proposals — Open, Sent; Runs — Latest; Questions — Open. The agent reads only through these views, which cost no Notion query quota.
+Views: Jobs — Inbox (New), Applied, All, Skipped, To advise (New and never advised, past week), Recent (found in the past week); Proposals — Open, Sent; Runs — Latest; Questions — Open. The agent reads only through these views, which cost no Notion query quota.
 
 **Language.** Everything the agent writes — messages, analyses, cards, questions, rule lines — is in the `language` from the config. The structure stays English: page and database titles, columns, card section headings, the dashboard. Proposals are written in the posting's language.
 

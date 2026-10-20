@@ -1,4 +1,4 @@
-# Pipeline update — bring an older pipeline up to schema 8
+# Pipeline update — bring an older pipeline up to schema 9
 
 For a pipeline whose config `schema` (none means 1) is below what this skill writes. Who starts it and what the other sessions do meanwhile is SKILL.md → *Pipeline update*; this file is the update itself. Inputs: the root page and its config. Output: the converted pipeline and the report (*When it ends*). "Update the pipeline" in chat runs it too, and finishes one that stopped. The update works **in place**: the same root, databases, cards, links and tasks; nothing is copied to a new page, and nothing the user wrote is lost. Each version below says what its update does; a pipeline several versions behind takes them in order, oldest first, as one update: `schema` is written once, at the end, with the newest version, and there is one report.
 
@@ -75,6 +75,15 @@ Every piece of work records the model that did it (SKILL.md → *Which model*), 
 1. **Columns**, each when missing (`ADD COLUMN`): Jobs `"Reviewed by" RICH_TEXT COMMENT 'The model that last reviewed the job: assessment, estimate or advice'`; Proposals `"Drafted by" RICH_TEXT COMMENT 'The model that drafted this text; empty when written outside the pipeline'`; Runs `"Found by" RICH_TEXT COMMENT 'The model that ran the search'` and `"Reviewed by" RICH_TEXT COMMENT 'The model that reviewed the survivors'`.
 2. **Old rows** stay empty: who wrote them is not known, and a guess would be the very thing the column exists to catch. Nothing is converted.
 3. **Report** in `language`: from now on the cards, proposals and runs record the model that wrote them, and the dashboard shows it on the job; older ones have none.
+
+## To 9 (from 8)
+
+Two Jobs views keep the hourly run's reads small: it checks what it has already seen against a week of cards instead of all of them (`references/hourly.md` §4), and it picks the cards to catch up itself, so its Opus subagent no longer reads the whole Inbox and drafts mode on an hour with nothing to catch up (`references/hourly.md` §6). Nothing changes in what the user sees, and no row is touched.
+
+1. **Views.** Fetch the Jobs database: it lists its views by name. Create `To advise` and `Recent` (`notion-create-view`, `type: "table"`, the filter and sort of `references/setup.md` §5), each only when no view by that name exists — a view an earlier, stopped update created is kept, not made twice.
+2. **Config** (`update_content` on the toggle, tab-indented, after `jobs_all`): `jobs_to_advise` and `jobs_recent`, each the URL of its view (`references/setup.md` §5), added when missing.
+3. **Check.** Query each of the two views once (`mode: "view"`, `page_size: 20`). An error, or rows that break the view's filter (a card that is not New in To advise; one found more than a week ago in Recent) → stop here as *If it stops* says; `update_error` names the view and what came back. The update writes `schema` only with both views working, since the hourly run reads them from then on.
+4. **Report** in `language`, one or two lines: the two views were added to Jobs to make the hourly runs cheaper; nothing else changed.
 
 Off limits here: `PROCESSED_UNTIL` (To 3, step 8); a column the user added, and any column whose values are not yet checked in their new place (*Nothing is dropped unchecked*); any write to Upwork.
 

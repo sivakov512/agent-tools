@@ -107,13 +107,15 @@ Jobs       Inbox     (default)  FILTER "Status" = "New";   SORT BY "Found" DESC;
            Applied   table      FILTER "Status" = "Applied"; SORT BY "Decided on" DESC; SHOW "Title", "Verdict", "My $", "Proposal", "Decided on"
            Skipped   table      FILTER "Status" = "Skipped"; SORT BY "Decided on" DESC; SHOW "Title", "Verdict", "Skipped by", "Skip reason", "Decided on"
            All       table      SORT BY "Found" DESC
+           To advise table      FILTER "Status" = "New" AND "Advised on" IS EMPTY AND ("Published" >= "one_week_ago" OR ("Published" IS EMPTY AND "Found" >= "one_week_ago")); SORT BY "Found" DESC
+           Recent    table      FILTER "Found" >= "one_week_ago"; SORT BY "Found" DESC
 Proposals  Open      (default)  FILTER "Proposal ID" IS EMPTY; SORT BY "Written" DESC; SHOW "Title", "State", "Job", "Written"
            Sent      table      FILTER "Proposal ID" IS NOT EMPTY; SORT BY "Written" DESC; SHOW "Title", "Job", "Boost", "Written"
 Runs       Latest    (default)  SORT BY "Created" DESC; SHOW "Run", "Status", "Scanned", "Detailed", "Take", "Maybe", "Window"
 Questions  Open      (default)  FILTER "Status" = "Open"; SORT BY "First seen" ASC
 ```
 
-A view URL is `https://www.notion.so/<database id without dashes>?v=<view id without dashes>`.
+To advise and Recent keep the hourly run's reads small: the catch-up's candidates (`references/hourly.md` §6) and the already-seen check (`references/hourly.md` §4) read a few rows instead of the whole Inbox or every card. `one_week_ago` is a date relative to the day the view is read, so they stay current by themselves. A view URL is `https://www.notion.so/<database id without dashes>?v=<view id without dashes>`.
 
 Runs are ordered by `Created`, never by the `Run` title: `DD.MM HH:MM` as text puts `01.10` below `30.09` and January below December. An adopted Runs database without `Created` gets the column, and its view's sort is switched to it.
 
@@ -134,6 +136,8 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 	jobs_applied: `<view url>`
 	jobs_skipped: `<view url>`
 	jobs_all: `<view url>`
+	jobs_to_advise: `<view url>`
+	jobs_recent: `<view url>`
 	proposals_open: `<view url>`
 	proposals_sent: `<view url>`
 	runs_latest: `<view url>`
@@ -151,7 +155,7 @@ At the start of the root page (`insert_content`, `position: {"type": "start"}`),
 	auto_drafts: `off`
 	auto_skip: `off`
 	drafts_task: `<trigger id of the Upwork drafts task>`
-	schema: `8`
+	schema: `9`
 </details>
 ```
 
