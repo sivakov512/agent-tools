@@ -17,8 +17,8 @@ Otherwise fetch **Search rules** and **Proposal guide** (a recommendation names 
 The report's goal: the user decides the questions that matter in a minute, by number, without opening Notion. What it must hold, in `language`:
 
 - **The header**: `# Questions this week · N`, N the questions still open.
-- **The few that matter, first** — the most seen, then the newest; five at most. Each one numbered, written for the user: what they decide, in plain words, about the job that raised it (its title and short id, and how many jobs like it came up). A row written like a rules page is said plainly here; its text in Notion stays.
-- **A recommendation for each**, drawn from what the user did with those jobs ("you skipped both, as not your field → reject on sight"), else from the rules, naming in plain words the rules item or guide section it would change. When the jobs show no decision yet, say so.
+- **The few that matter, first** — five at most, ordered by `Seen`, the highest first, and among equal counts the newest `First seen` first: a case that keeps coming back costs the user most. Each one numbered, written for the user: what they decide, in plain words, about the job that raised it (its title and short id, and how many jobs like it came up). A row written like a rules page is said plainly here; its text in Notion stays.
+- **A recommendation for each, always** — one answer the user can accept with "as recommended": drawn from what the user did with those jobs ("you skipped both, as not your field → reject on sight"), or, when the jobs show no decision yet, from the rules, saying that the jobs give nothing to go on. It names in plain words the rules item or guide section it would change.
 - **The rest counted, not listed**: how many more are open, with the link to them in Notion (`questions_open`).
 - **The closed ones** (§1), when there are any: one line — how many, and that each is now "decide per job".
 - **Rules or guide items that contradict or duplicate each other**, when you saw any: one line.
