@@ -11,7 +11,7 @@
   var POLL = 600000;
   var ORIGINS = ["Upwork", "Direct", "Personal"];
 
-  var S = { cfg: null, projects: null, projErr: null, plan: {}, pageInfo: {}, problems: null, problemsErr: null, resolved: null, resolvedErr: null, lastUpdate: 0, range: "3", origins: [], tlView: null, tlOpen: {}, shown: false };
+  var S = { cfg: null, projects: null, projErr: null, plan: {}, pageInfo: {}, problems: null, problemsErr: null, resolved: null, resolvedErr: null, lastUpdate: 0, refreshing: false, range: "3", origins: [], tlView: null, tlOpen: {}, shown: false };
   try { var r0 = localStorage.getItem("pt.range"); if (PT.SPANS[r0] || r0 === "all") S.range = r0; } catch (e) {}
   try { var o0 = JSON.parse(localStorage.getItem("pt.origins") || "null"); if (Array.isArray(o0)) S.origins = o0.filter(function (k) { return typeof k === "string"; }); else { o0 = localStorage.getItem("pt.origin"); if (o0 && o0 !== "All") S.origins = [o0]; } } catch (e) {} // pt.origin: the one origin an older version kept
   try { var t0 = JSON.parse(localStorage.getItem("pt.tlOpen") || "{}"); if (t0 && typeof t0 === "object") S.tlOpen = t0; } catch (e) {}
@@ -58,30 +58,28 @@
       MCP.callTool(NOTION, tool, args, { cache: cache }).then(function (r) { clearTimeout(t); ok(r); }, function (e) { clearTimeout(t); fail(e); });
     });
   }
-  function touch(res) {
-    var t = res && res.cache && res.cache.storedAt ? res.cache.storedAt : Date.now();
-    if (t > S.lastUpdate) S.lastUpdate = t;
-    paintLive();
+  function note(run, res, cache) { // a load's oldest row or page read: what "updated hh:mm" may claim once the load ends
+    if (run && cache === DATA) run.at = Math.min(run.at, res && res.cache && res.cache.storedAt ? res.cache.storedAt : Date.now());
   }
   function payload(res) { var p = res ? res.payload : null; if (typeof p === "string") { try { p = JSON.parse(p); } catch (e) {} } return p; }
-  // After Refresh, the first read of each page or view goes to Notion past the cache: invalidate() is not there on every host,
-  // and without it a read inside its staleTime would come back from the cache unchanged
+  // During a Refresh's load, the first read of each page or view goes to Notion past the cache: invalidate() is not there on every host,
+  // and without it a read inside its staleTime would come back from the cache unchanged; null again when that load ends
   var fresh = null;
   function cacheFor(key, cache) { if (!fresh || fresh[key]) return cache; fresh[key] = true; var c = {}; for (var k in cache) c[k] = cache[k]; c.refresh = true; return c; }
-  function fetchText(id, cache) {
+  function fetchText(id, cache, run) { // run: the load it is part of, if any
     return call("notion-fetch", { id: id }, cacheFor("f:" + id, cache)).then(function (res) {
-      touch(res); var p = payload(res), t = p && typeof p === "object" ? String(p.text || "") : String(p || "");
+      note(run, res, cache); var p = payload(res), t = p && typeof p === "object" ? String(p.text || "") : String(p || "");
       var re = /notion-file-block:\/\/[^\s)"'<>]+/g, m; while ((m = re.exec(t))) fileRefPage[m[0].replace(/&amp;/g, "&")] = id; // where each file lives, for its link (fileLink)
       return t;
     });
   }
-  function queryView(viewUrl, max) {
+  function queryView(viewUrl, max, run) {
     var rows = [];
     function page(cursor, n) {
       var data = { mode: "view", view_url: viewUrl, page_size: 100 };
       if (cursor) data.start_cursor = cursor;
       return call("notion-query-data-sources", { data: data }, cacheFor("q:" + viewUrl + "|" + (cursor || ""), DATA)).then(function (res) {
-        touch(res); var p = payload(res) || {};
+        note(run, res, DATA); var p = payload(res) || {};
         rows = rows.concat(p.results || []);
         return p.has_more && p.next_cursor && n < (max || 5) ? page(p.next_cursor, n + 1) : rows;
       });
@@ -146,37 +144,60 @@
     if (!any && opts.empty) box.appendChild(el("div", "muted", opts.empty));
     return any;
   }
-  function tabView(txt, tab, want) { // a project page tab → its linked view block → the view's rows
+  function tabView(txt, tab, want, run) { // a project page tab → its linked view block → the view's rows
     var m = new RegExp("<tab>\\s*" + tab + "\\s*<database url=\"([^\"]+)\"").exec(txt);
     if (!m) return Promise.reject({ code: "config", message: "No " + tab + " tab on this project page. Ask Claude in chat to fix the page." });
     var block = cleanUrl(m[1]);
     return fetchText(block, STRUCT).then(function (bt) {
       var v = viewsOf(bt), id = v[want] || v[Object.keys(v)[0]];
       if (!id) throw { code: "config", message: "The project's " + tab + " view was not found." };
-      return queryView(viewUrl(block, id), 3);
+      return queryView(viewUrl(block, id), 3, run);
     });
   }
-  function loadProject(p) { // project page → callout, its own parts, Schedule (milestones) and Tasks (tasks) views, Done included
-    return fetchText(p.url, DATA).then(function (txt) {
+  function loadProject(p, run) { // project page → callout, its own parts, Schedule (milestones) and Tasks (tasks) views, Done included
+    return fetchText(p.url, DATA, run).then(function (txt) {
       S.pageInfo[p.key] = parseProjectPage(txt, p);
-      return Promise.all([tabView(txt, "Schedule", "Schedule"), tabView(txt, "Tasks", "Tasks")]);
+      return Promise.all([tabView(txt, "Schedule", "Schedule", run), tabView(txt, "Tasks", "Tasks", run)]);
     }).then(function (r) {
       var plan = PT.buildPlan(p, r[0], r[1]), old = S.plan[p.key] && S.plan[p.key].ms || [];
       plan.ms.forEach(function (m) { old.forEach(function (o) { if (o.url === m.url && o.pause) m.pause = o.pause; }); }); // keep what is known while it is read again
       S.plan[p.key] = plan;
       // a paused milestone's reason and date live in its history: one read per paused milestone, so the page shows why it waits
       return Promise.all(plan.ms.filter(function (m) { return m.status === "Paused"; }).map(function (m) {
-        return fetchText(m.url, DATA).then(function (t) { m.pause = PT.pauseOf(partsOf(contentOf(t)).hist); }, function () {});
+        return fetchText(m.url, DATA, run).then(function (t) { m.pause = PT.pauseOf(partsOf(contentOf(t)).hist); }, function () {});
       }));
-    }, function (err) { if (!(S.plan[p.key] && S.plan[p.key].ms) || isDenial(err)) S.plan[p.key] = { err: err }; });
+    }, function (err) { // read before: shown as it was, marked not updated; never read, or no longer allowed: failed
+      if (!(S.plan[p.key] && S.plan[p.key].ms) || isDenial(err)) S.plan[p.key] = { err: err }; else S.plan[p.key].stale = err;
+    });
   }
 
-  var loading = false;
-  function loadAll() {
-    if (loading || !MCP) return; loading = true;
+  // One load at a time. A Refresh or a poll that comes during a load is queued, never dropped: one more load starts when it ends —
+  // past the cache if a Refresh asked for it — and every caller's promise settles when the load that answers it ends.
+  var loading = null, again = null; // the load under way (a promise for its end); the one asked for meanwhile: { past, p, ok }
+  function loadAll(past) {
+    if (!MCP) return Promise.resolve();
+    if (!loading) return startLoad(!!past);
+    if (!again) { again = { past: false }; again.p = new Promise(function (ok) { again.ok = ok; }); }
+    if (past) again.past = true;
+    return again.p;
+  }
+  function startLoad(past) {
+    var run = { at: Infinity };
+    if (past) { fresh = {}; S.cfg = null; }
+    loading = loadRun(run).then(function () {
+      if (past) fresh = null;
+      if (run.at < Infinity) S.lastUpdate = run.at; // the oldest data this load read, so the time never claims more than was read
+      var q = again; again = null; loading = null;
+      if (q) startLoad(q.past).then(q.ok); // the queued load starts before anything else can, so two never run at once
+      paintLive(); render();
+    });
+    return loading;
+  }
+  function loadRun(run) { // never rejects: what fails is kept in S and said on the page
     var cfgP = S.cfg ? Promise.resolve(S.cfg) : loadConfig();
-    cfgP.then(function (cfg) {
-      var pP = queryView(cfg.active, 3).then(function (rows) {
+    function plans() { return Promise.all((S.projects || []).map(function (p) { return loadProject(p, run).then(render); })); }
+    return cfgP.then(function (cfg) {
+      var pP = queryView(cfg.active, 3, run).then(function (rows) {
         var old = {}; (S.projects || []).forEach(function (p) { old[p.key] = p; });
         S.projects = rows.map(function (r) {
           var p = old[key(r.url)] || { kind: "project" };
@@ -185,15 +206,24 @@
           return p;
         }).filter(function (p) { return p.status === "Active" || p.status === "Paused"; });
         S.projErr = null; render();
-        return Promise.all(S.projects.map(function (p) { return loadProject(p).then(render); }));
-      }, function (err) { S.projErr = err; if (isDenial(err)) S.projects = null; render(); });
-      var qP = queryView(cfg.open, 3).then(function (rows) { S.problems = rows; S.problemsErr = null; render(); }, function (err) { S.problemsErr = err; if (isDenial(err)) S.problems = null; render(); });
-      var rP = cfg.resolved ? queryView(cfg.resolved, 1).then(function (rows) { S.resolved = rows; S.resolvedErr = null; render(); }, function (err) { S.resolvedErr = err; render(); }) : Promise.resolve();
+        return plans();
+      }, function (err) { S.projErr = err; if (isDenial(err)) S.projects = null; render(); return plans(); }); // the list as it was: its projects are still read again
+      var qP = queryView(cfg.open, 3, run).then(function (rows) { S.problems = rows; S.problemsErr = null; render(); }, function (err) { S.problemsErr = err; if (isDenial(err)) S.problems = null; render(); });
+      var rP = cfg.resolved ? queryView(cfg.resolved, 1, run).then(function (rows) { S.resolved = rows; S.resolvedErr = null; render(); }, function (err) { S.resolvedErr = err; render(); }) : Promise.resolve();
       return Promise.all([pP, qP, rP]);
-    }, function (err) {
-      S.projErr = S.problemsErr = err; render();
-    }).then(function () { loading = false; paintLive(); render(); }, function () { loading = false; paintLive(); render(); }); // the live line never stays on Loading or Refreshing
+    }, function (err) { // the config did not load: nothing was read again, so whatever was read before is marked not updated
+      S.projErr = S.problemsErr = err; if (S.resolved) S.resolvedErr = err;
+      (S.projects || []).forEach(function (p) { var d = S.plan[p.key]; if (d && d.ms) d.stale = err; });
+      render();
+    }).catch(function (e) { if (window.console) console.error(e); });
   }
+  function staleParts() { // what the last load could not read again and still shows as it was before
+    var out = []; if (S.projErr && S.projects) out.push("the project list");
+    (S.projects || []).forEach(function (p) { if (S.plan[p.key] && S.plan[p.key].stale) out.push(p.name); });
+    if (S.problemsErr && S.problems) out.push("problems"); if (S.resolvedErr && S.resolved) out.push("resolved problems");
+    return out;
+  }
+  function failBox(what, err, had) { return errBox(had ? what + " not updated: " : what + " didn't load. ", err); } // had: its data from before is still shown
 
   // ---------- derived data, filtered by origin ----------
   function shown(p) { return !S.origins.length || S.origins.indexOf(p.origin) >= 0; } // no origin picked: all of them
@@ -287,6 +317,7 @@
   function renderCards() {
     var host = $("cards"), ps = sortedProjects(); clear(host);
     if (trackerErr()) { $("projCount").textContent = ""; host.appendChild(errBox("Couldn't read the tracker. ", trackerErr())); return; }
+    if (S.projErr) host.appendChild(failBox("The project list", S.projErr, true)); // read before, so shown as it was
     if (!ps.length) host.appendChild(el("div", "empty", (S.projects || []).length ? "No projects of this kind." : "No active projects."));
     var mg = moveGroups(); onYouCache = {}; mg.all.forEach(function (x) { var k = x.pk || (x.project && x.project.key); onYouCache[k] = (onYouCache[k] || 0) + 1; }); // as many as its lines in Your move
     var act = ps.filter(function (p) { return p.status !== "Paused"; }).length;
@@ -301,6 +332,7 @@
     nm.appendChild(PT.titled("pc-name", p, p.name)); nm.appendChild(el("div", "pc-who", PT.whoOf(p)));
     top.appendChild(nm); if (st.text) top.appendChild(el("span", "pill " + st.cls, st.text)); c.appendChild(top);
     var ms0 = msList(p) || [], tk0 = taskList(p) || [], strip = ms0.length ? ms0 : tk0;
+    if (d && d.stale) c.appendChild(el("div", "warn", "Not updated: " + errText(d.stale))); // shown as it was before
     if (d && d.err) c.appendChild(el("div", "crit", "Its plan didn't load. " + errText(d.err)));
     else if (f.head) {
       var now = el("div", "pc-now"), w = whenOf(f.head);
@@ -411,7 +443,7 @@
     keep(host, function () {
       clear(host); var n = 0;
       if (trackerErr()) { host.appendChild(el("div", "empty", "Nothing to show until the tracker loads.")); $("moveCount").textContent = ""; $("moveAll").hidden = true; return; }
-      if (S.problemsErr && !S.problems) host.appendChild(errBox("Problems didn't load. ", S.problemsErr));
+      if (S.problemsErr) host.appendChild(failBox("Problems", S.problemsErr, !!S.problems));
       groups.forEach(function (g) { if (!g[4]) n += g[2].length; });
       if (!n) host.appendChild(el("div", "empty", "Nothing needs you right now."));
       groupList(host, "move", groups.map(function (g) { return { name: g[0], cls: g[1], list: g[2], row: g[3], folded: g[4] }; }), $("moveAll"));
@@ -424,7 +456,7 @@
       clear(host);
       $("waitAll").hidden = true;
       if (trackerErr()) { host.appendChild(el("div", "empty", "Nothing to show until the tracker loads.")); $("waitCount").textContent = ""; return; }
-      if (S.problemsErr && !S.problems) host.appendChild(errBox("Problems didn't load. ", S.problemsErr));
+      if (S.problemsErr) host.appendChild(failBox("Problems", S.problemsErr, !!S.problems));
       var w = []; projs().forEach(function (p) { w = w.concat(waitingOf(p)); });
       var groups = {}; w.forEach(function (x) { (groups[x.waiting || "Someone"] = groups[x.waiting || "Someone"] || []).push(x); });
       function since(x) { var a = ageOf(x); return a == null ? -1 : a; }
@@ -445,7 +477,7 @@
     keep(host, function () {
       clear(host); $("riskCount").textContent = rs.length ? String(rs.length) : "";
       if (trackerErr()) { host.appendChild(el("div", "empty", "Nothing to show until the tracker loads.")); $("riskCount").textContent = ""; return; }
-      if (S.problemsErr && !S.problems) { host.appendChild(errBox("Problems didn't load. ", S.problemsErr)); return; }
+      if (S.problemsErr) { host.appendChild(failBox("Problems", S.problemsErr, !!S.problems)); if (!S.problems) return; }
       if (!rs.length) { host.appendChild(el("div", "empty", "No open risks.")); return; }
       rs.forEach(function (i) { var by = riskBy(i); host.appendChild(item(i, { meta: by != null ? "by " + fmt(by) : "" })); });
     });
@@ -458,7 +490,7 @@
     $("doneCount").textContent = out.length ? String(out.length) : "";
     var host = $("doneList"); clear(host);
     if (trackerErr()) { $("doneCount").textContent = ""; host.appendChild(el("div", "empty", "Nothing to show until the tracker loads.")); return; }
-    if (S.resolvedErr && !S.resolved) host.appendChild(errBox("Resolved problems didn't load. ", S.resolvedErr));
+    if (S.resolvedErr) host.appendChild(failBox("Resolved problems", S.resolvedErr, !!S.resolved));
     if (!out.length) { if (!(S.resolvedErr && !S.resolved)) host.appendChild(el("div", "empty", "Nothing finished in the last 7 days.")); return; }
     out.forEach(function (o) { var x = o.x; host.appendChild(item(x, { meta: fmt(o.when), cls: "good" })); });
   }
@@ -821,7 +853,7 @@
     var openProbs = c.openProbs, waitTasks = c.waitTasks;
     if (openProbs.length || waitTasks.length || (S.problemsErr && !S.problems)) {
       var b1 = dsec(body, "items", "Open items", openProbs.length + waitTasks.length);
-      if (S.problemsErr && !S.problems) b1.appendChild(errBox("Problems didn't load. ", S.problemsErr));
+      if (S.problemsErr) b1.appendChild(failBox("Problems", S.problemsErr, !!S.problems));
       var sd = SNAP ? sidesOf(p) : null;
       var groups = SNAP ? [["On your side", sd.you], ["On our side", sd.us], ["With third parties", sd.third], ["Risks to keep in mind", sd.risk]] : [
         ["Blocking", openProbs.filter(function (i) { return i.type === "Blocker"; })],
@@ -851,7 +883,8 @@
   }
   function drPlan(body, p, c) {
     var dErr = S.plan[p.key] && S.plan[p.key].err;
-    PG.planSec(body, c.ms0, c.tk0, c.f.head, { err: dErr ? errText(dErr) : "", empty: SNAP ? "No plan yet." : "No plan yet. Send Claude the plan in chat." });
+    var b = PG.planSec(body, c.ms0, c.tk0, c.f.head, { err: dErr ? errText(dErr) : "", empty: SNAP ? "No plan yet." : "No plan yet. Send Claude the plan in chat." }), st = S.plan[p.key] && S.plan[p.key].stale;
+    if (st) b.insertBefore(failBox("The plan", st, true), b.firstChild);
   }
   function drNotes(body, p, c) { // the project page's own sections: Notes, Private notes (not on a client's page), History
     var pt = c.info.parts;
@@ -948,7 +981,12 @@
   }
   function paintLive() {
     if (SNAP) { if (S.lastUpdate > 0) { var d = new Date(S.lastUpdate); $("liveText").textContent = "Updated " + fmt(Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / PT.DAY)) + ", " + hhmm(S.lastUpdate); } return; }
-    if (S.lastUpdate > 0) { $("liveDot").className = "ldot on"; $("liveText").textContent = "Live · updated " + hhmm(S.lastUpdate); $("liveWrap").title = "Live from Notion. Read-only: change things by telling Claude in chat."; }
+    var st = staleParts();
+    if (S.refreshing) $("liveText").textContent = "Refreshing…";
+    else if (S.lastUpdate > 0) { // the time of the oldest data read; what could not be read again is counted here and marked where it shows
+      $("liveDot").className = "ldot " + (st.length ? "warn" : "on"); $("liveText").textContent = "Live · updated " + hhmm(S.lastUpdate) + (st.length ? " · " + st.length + " not updated" : "");
+      $("liveWrap").title = (st.length ? "Not updated, shown as before: " + st.join(", ") + ". Refresh to try again.\n" : "") + "Live from Notion. Read-only: change things by telling Claude in chat.";
+    }
     else if (!loading) $("liveText").textContent = "Not loaded"; // nothing was read: the cards say why
     if (S.rootUrl) { $("notionLink").href = S.rootUrl; $("notionLink").hidden = false; }
   }
@@ -976,16 +1014,12 @@
   var resizeT = null;
   window.addEventListener("resize", function () { clearTimeout(resizeT); resizeT = setTimeout(function () { if (S.shown) renderGantt(false); }, 150); });
   document.addEventListener("visibilitychange", function () { if (!document.hidden && MCP && Date.now() - S.lastUpdate > POLL) loadAll(); }); // back after a while: fresh data at once
-  function refreshNow() { // everything read again from Notion; resolves when the load is done
+  function refreshNow() { // everything read again from Notion, past the cache; resolves when the load that does it ends, however long it takes
     if (!MCP) return Promise.resolve();
-    $("liveText").textContent = "Refreshing…";
-    fresh = {}; // every page and view read once more past the cache (cacheFor)
+    S.refreshing = true; paintLive();
     var p = MCP.invalidate ? MCP.invalidate(NOTION) : Promise.resolve();
     Object.keys(S.body).forEach(function (u) { if (S.body[u]) S.body[u].at = 0; }); // read again, but shown as they were meanwhile: the page keeps its height, so the scroll stays where the user was
-    return p.catch(function () {}).then(function () {
-      S.cfg = null; loadAll();
-      return new Promise(function (ok) { var n = 0, t = setInterval(function () { if (!loading || ++n > 100) { clearInterval(t); ok(); } }, 150); });
-    });
+    return p.catch(function () {}).then(function () { return loadAll(true); }).then(function () { S.refreshing = false; paintLive(); });
   }
   function refreshBy(b) { // the header's Refresh and the project page's: the same button, its arrow turning until the load ends; the open project page reads again in place
     if (b.classList.contains("spin")) return;
