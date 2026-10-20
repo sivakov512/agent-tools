@@ -63,10 +63,11 @@
   .livebtn:hover, .livebtn[aria-expanded="true"] { background: var(--surface-2); color: var(--text-2); }
   .livebtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .live-issue { color: var(--critical); }
-  /* an outdated page: the command that updates it, beside the status, copied with one tap */
-  .updcmd { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
-  .updcmd code { font-family: var(--mono); font-size: 12px; color: var(--text); background: var(--surface-2); padding: 1px 6px; border-radius: 4px; }
+  /* a status row's command to send Claude (an outdated page), copied with one tap */
+  .st-row .st-cmd { grid-column: 2; display: flex; align-items: center; gap: 2px; margin-top: 4px; min-width: 0; }
+  .st-cmd code { font-family: var(--mono); font-size: 11.5px; color: var(--text); background: var(--surface-2); padding: 2px 6px; border-radius: 4px; white-space: nowrap; min-width: 0; overflow-x: auto; }
   .stat-pop { padding: 6px 4px; }
+  @media (max-width: 560px) { .set-pop.stat-pop { left: 0; right: auto; width: min(340px, calc(100vw - 48px)); } } /* a phone: the status sits at the left, so its details open rightwards, inside the page's margins */
   .st-row { display: grid; grid-template-columns: 6px minmax(0, 1fr); gap: 2px 10px; padding: 8px 10px; }
   .st-row::before { content: ""; grid-row: 1; grid-column: 1; width: 6px; height: 6px; margin-top: 7px; border-radius: 50%; background: var(--good); }
   .st-row.bad::before { background: var(--critical); }
@@ -514,7 +515,6 @@
       <button class="livebtn" id="liveStatus" type="button" aria-expanded="false" aria-controls="statusPop" title="Status"><span class="live-dot" id="liveDot"></span><span id="liveText">Connecting…</span><span class="live-issue" id="liveIssue" hidden></span></button>
       <div class="set-pop stat-pop" id="statusPop" role="dialog" aria-label="Status" hidden></div>
     </div>
-    <span class="updcmd" id="updCmd" hidden></span>
     <button class="btn rbtn" id="refreshBtn" type="button" title="Refresh from Notion and Upwork"><svg class="rico" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.5V5h-2.5"/></svg><span class="rl">Refresh</span></button>
     <div class="setwrap" id="setWrap" hidden>
       <button class="btn" id="settingsBtn" type="button" aria-expanded="false" aria-controls="setPop"><svg class="gear" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Settings</button>
@@ -1611,14 +1611,14 @@
       text: c.updating ? "The pipeline is being updated to the new version. Leads show without numbers until it is done; refresh in a few minutes."
         : "The pipeline is about to be updated to the new version: the next hourly run (or your next chat with Claude) does it. Leads show without numbers until then." });
     else if (c.loaded && (c.schema > SCHEMA || (c.skill_version && verCmp(c.skill_version, DASH_VERSION) > 0))) out.push({ title: "Dashboard older than the plugin", note: "dashboard outdated", outdated: true,
-      text: "This dashboard (" + DASH_VERSION + ") is older than the plugin" + (c.skill_version ? " (" + c.skill_version + ")" : "") + ", so some values may show wrong. Send Claude " + UPDATE_CMD + " to update it." });
+      text: "This dashboard (" + DASH_VERSION + ") is older than the plugin" + (c.skill_version ? " (" + c.skill_version + ")" : "") + ", so some values may show wrong. To update it, send Claude:", cmd: UPDATE_CMD });
     if (c.auto_drafts === "on" && S.guideIssue) out.push({ title: "Proposal guide not filled", note: "guide not filled", guide: true,
       text: "Auto proposals are on, but the Proposal guide is not filled: " + S.guideIssue + ". Claude writes advice only until it is." });
     return out;
   }
   function renderLeadNotice() {
     var host = $("leadNotice"); clear(host); renderStatus();
-    var x = pipelineIssues().filter(function (i) { return !i.outdated; })[0]; if (!x) return; // an outdated page is said in the status, beside the command
+    var x = pipelineIssues().filter(function (i) { return !i.outdated; })[0]; if (!x) return; // an outdated page is said in the status alone, the command in its popover
     var b = el("div", "banner alert"); b.appendChild(el("span", "", x.text));
     if (x.guide && S.cfg.guide) b.appendChild(extLink("https://www.notion.so/" + S.cfg.guide.replace(/-/g, ""), "Open the guide \u2197"));
     host.appendChild(b);
@@ -1694,7 +1694,7 @@
     var nErr = isDenial(S.leadsErr) ? S.leadsErr : null, uErr = [S.dashErr, S.connectsErr, S.balanceErr, S.roomsErr].filter(isDenial)[0];
     rows.push(nErr || uErr ? ["bad", (nErr ? "Notion" : "Upwork") + " connector needs attention", errText(nErr || uErr, nErr ? NOTION : UPWORK), (nErr ? "Notion" : "Upwork") + " disconnected"]
       : ["ok", "Notion and Upwork", "Both connectors answer."]);
-    pipelineIssues().forEach(function (x) { rows.push(["bad", x.title, x.text, x.note]); });
+    pipelineIssues().forEach(function (x) { rows.push(["bad", x.title, x.text, x.note, x.cmd]); });
     return rows;
   }
   function renderStatus() {
@@ -1704,9 +1704,11 @@
     var issue = $("liveIssue"); issue.hidden = !bad.length;
     issue.textContent = !bad.length ? "" : " \u00b7 " + (bad.length > 1 ? bad.length + " issues" : bad[0][3]);
     var pop = $("statusPop"); clear(pop);
-    rows.forEach(function (r) { var d = el("div", "st-row " + r[0]); d.appendChild(el("b", "", r[1])); d.appendChild(el("span", "", r[2])); pop.appendChild(d); });
-    var cmd = $("updCmd"), old = pipelineIssues().some(function (x) { return x.outdated; }); clear(cmd); cmd.hidden = !old;
-    if (old) { var c = el("code", "", UPDATE_CMD); c.title = "Send this to Claude to update the dashboard"; cmd.appendChild(c); cmd.appendChild(cpIcon(UPDATE_CMD, "the command")); }
+    rows.forEach(function (r) {
+      var d = el("div", "st-row " + r[0]); d.appendChild(el("b", "", r[1])); d.appendChild(el("span", "", r[2]));
+      if (r[4]) { var c = el("div", "st-cmd"); c.appendChild(el("code", "", r[4])); c.appendChild(cpIcon(r[4], "the command")); d.appendChild(c); } // a command to send Claude
+      pop.appendChild(d);
+    });
   }
 
 
