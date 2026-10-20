@@ -175,15 +175,29 @@
     var d = todayNum() - pz.since;
     return "since " + fmt(pz.since) + (long && d > 0 ? " (" + days(d) + ")" : "") + " · " + (pz.reason || "no reason given");
   }
-  function whenOf(m, long) {
+  // On whom an open task or problem is, said the same way wherever it shows: `Waiting on` empty is the user's move, a name is the party
+  // we wait on (an agent too). A client's page says it by side (setSides). Nothing for a milestone (it has no `Waiting on`), a risk
+  // (it waits on no one), anything paused, done, resolved or dropped.
+  var SIDES = null; // a client's page: page id → "client" or "third", from its snapshot
+  function setSides(m) { SIDES = m; }
+  function onWhom(x) {
+    if (x.kind === "problem" ? x.type === "Risk" || !(x.status === "Open" || x.status === "Waiting") : x.kind !== "task" || !OPEN_TASK[x.status] || x.paused) return "";
+    if (!x.waiting) return SIDES ? "on our side" : "on you";
+    return !SIDES ? "waiting on " + x.waiting : SIDES[key(x.url)] === "client" ? "on your side" : "with " + x.waiting;
+  }
+  function whenOf(m, long) { // on whom (a task), then its timing
+    var who = onWhom(m), w = timing(m, long);
+    return who ? [who + " · " + w[0], w[1]] : w;
+  }
+  function timing(m, long) {
     var t = todayNum();
     if (m.status === "Done") return [m.finished != null ? "done " + fmt(m.finished) + (m.late > 0 ? ", " + days(m.late) + " late" : m.late < 0 ? ", " + days(-m.late) + " early" : "") : "done", m.late > 0 ? "crit" : ""];
     if (m.paused) return [m.kind === "task" && m.ms && m.ms.status === "Paused" ? "its milestone is paused" : pauseText(m.pause, long), ""];
-    if (m.start == null) return [m.kind === "task" ? (m.status === "Waiting" && m.waiting ? "waiting on " + m.waiting : "no dates") : "no dates yet", ""];
+    if (m.start == null) return [m.kind === "task" ? "no dates" : "no dates yet", ""];
     if (m.late > 0) return [days(m.late) + " late · was due " + fmt(m.end), "crit"];
-    if (m.openEnd) return [(m.start > t ? "starts " + soon(m.start) : "since " + fmt(m.start)) + " · no end date" + (m.status === "Waiting" && m.waiting ? " · waiting on " + m.waiting : ""), ""];
-    var left = m.end - t, w = m.status === "Waiting" && m.waiting ? " · waiting on " + m.waiting : "";
-    if (m.status === "In progress" || m.status === "Waiting" || m.start <= t) return ["due " + soon(m.end) + (left === 0 ? "" : " · " + days(left) + " left") + w, left <= 7 ? "warn" : ""];
+    if (m.openEnd) return [(m.start > t ? "starts " + soon(m.start) : "since " + fmt(m.start)) + " · no end date", ""];
+    var left = m.end - t;
+    if (m.status === "In progress" || m.status === "Waiting" || m.start <= t) return ["due " + soon(m.end) + (left === 0 ? "" : " · " + days(left) + " left"), left <= 7 ? "warn" : ""];
     return ["starts " + soon(m.start) + " · due " + fmt(m.end), ""];
   }
   // a project's state, said the same way everywhere: d is its plan ({ms, tasks}), {err} when it failed to load, or nothing yet
@@ -205,11 +219,10 @@
     var t = todayNum();
     if (m.status === "Done") return [m.finished != null ? "done " + fmt(m.finished) + (m.late > 0 ? ", " + days(m.late) + " late" : m.late < 0 ? ", " + days(-m.late) + " early" : m.late === 0 ? ", on time" : "") : "done", m.late > 0 ? "crit" : "good"];
     if (m.paused) return ["paused", ""];
-    if (m.status === "Waiting") { var w = m.waiting ? "waiting on " + m.waiting : "waiting"; if (m.late > 0) return [w + " · " + days(m.late) + " late", "crit"]; return [w, "warn"]; }
     if (m.start == null) return [m.kind === "task" ? (m.status === "In progress" ? "in progress" : "no dates") : "no dates yet", m.status === "In progress" ? "acc" : ""];
     if (m.late > 0) return [days(m.late) + " late", "crit"];
     if (m.openEnd) return [m.start > t ? "starts in " + days(m.start - t) + " · no end date" : "started " + fmt(m.start) + " · no end date", m.start > t ? "" : "acc"];
-    if (m.status === "In progress" || m.start <= t) { var l = m.end - t; return [l === 0 ? "due today" : days(l) + " left", l <= 7 ? "warn" : "acc"]; }
+    if (m.status === "In progress" || m.status === "Waiting" || m.start <= t) { var l = m.end - t; return [l === 0 ? "due today" : days(l) + " left", l <= 7 ? "warn" : m.status === "Waiting" ? "" : "acc"]; } // waiting: its colour is on whom
     return ["starts in " + days(m.start - t), ""];
   }
   function itemDot(m) { return m.state === "done" || m.state === "doneLate" ? "good" : m.state === "late" ? "crit" : m.state === "prog" ? "cur" : m.state === "wait" ? "warn" : m.state === "paused" ? "paused" : m.state === "nodate" ? "ring" : ""; }
@@ -217,8 +230,8 @@
     var d = x.start == null ? (x.kind === "ms" ? "no dates yet" : "no dates") : range(x.start, x.end), ph = planPhrase(x)[0];
     if (x.status === "Done") return ph.charAt(0).toUpperCase() + ph.slice(1) + " · " + d;
     if (x.paused) return (x.kind === "task" && x.ms && x.ms.status === "Paused" ? "Paused with its milestone" : "Paused " + pauseText(x.pause)) + " · " + d;
-    var st = x.status === "Waiting" ? (x.waiting ? "Waiting on " + x.waiting : "Waiting") : x.status || "Planned";
-    return st + " · " + d + (x.late > 0 ? " · " + days(x.late) + " late" : x.start != null && !/^(waiting|no dates|in progress)/.test(ph) ? " · " + ph : "");
+    var who = onWhom(x), st = x.status === "Waiting" && x.waiting ? who.charAt(0).toUpperCase() + who.slice(1) : [x.status || "Planned", who].filter(Boolean).join(" · "); // "Waiting on Gilad", "In progress · on you"
+    return st + " · " + d + (x.late > 0 ? " · " + days(x.late) + " late" : x.start != null && !/^(no dates|in progress)/.test(ph) ? " · " + ph : "");
   }
 
   // ---------- the timeline ----------
@@ -511,17 +524,18 @@
   function typeTag(t) { return el("span", "tt " + (t || ""), t || "Item"); }
   function phraseEl(parts) { var s = el("span", "s"); parts.forEach(function (p) { if (!p || !p[0]) return; if (s.childNodes.length) s.appendChild(document.createTextNode(" · ")); s.appendChild(span(p[0], p[1] || "")); }); return s; }
   function whoOf(p) { var c = p.client || "", o = p.origin || ""; return c && o && c.toLowerCase() === o.toLowerCase() ? c : [c, o].filter(Boolean).join(" · "); } // client · origin, once when they are the same
-  function rowPhrase(m) { // a plan row's line: its status where the timing alone does not say it, then the timing
-    var ph = planPhrase(m), st = null;
+  function rowPhrase(m) { // a plan row's line: its status where the timing alone does not say it, on whom (a task), then the timing
+    var ph = planPhrase(m), st = null, who = onWhom(m);
     if (!m.paused && m.status === "In progress" && !/in progress/.test(ph[0])) st = ["in progress", ""];
     else if (!m.paused && m.status === "Planned" && !/^starts in/.test(ph[0])) st = ["planned", ""];
-    return [st, ph];
+    else if (!m.paused && m.status === "Waiting" && !m.waiting) st = ["waiting", "warn"];
+    return [st, who ? [who, m.status === "Waiting" && m.waiting && !ph[1] ? "warn" : ""] : null, ph]; // one colour per row: waiting's, unless the timing has one
   }
-  function problemLines(list, onUs, go) { // the problems on a milestone or task, as one of its page's parts; onUs: how a problem waiting on no one reads (on the user's page, "on you"); go(i, name): a problem's name as a link to it
+  function problemLines(list, go) { // the problems on a milestone or task, as one of its page's parts; go(i, name): a problem's name as a link to it
     if (!list.length) return null;
     var bx = el("div", "part"); bx.appendChild(el("div", "xh", "Problems"));
     var ls = el("div", "plines after-xh");
-    list.forEach(function (i) { var l = el("div", "pline"); l.appendChild(typeTag(i.type)); l.appendChild(go ? go(i, i.name) : span(i.name, "pn")); var stt = i.status === "Resolved" ? "resolved" : i.waiting ? "waiting on " + i.waiting : ""; if (stt) l.appendChild(span(stt, "muted")); ls.appendChild(l); }); // the state only when it says something: a risk, or a question on the user, says nothing
+    list.forEach(function (i) { var l = el("div", "pline"); l.appendChild(typeTag(i.type)); l.appendChild(go ? go(i, i.name) : span(i.name, "pn")); var stt = i.status === "Resolved" ? "resolved" : onWhom(i); if (stt) l.appendChild(span(stt, "muted")); ls.appendChild(l); }); // a risk says nothing
     bx.appendChild(ls); return bx;
   }
   function meta(x, bits) { // the few facts the row's own header does not already say, on one quiet line
@@ -531,9 +545,9 @@
   function msFacts(x, m) { // the group's header already says the status, the dates, the timing and how many tasks are done
     meta(x, [m.project.status === "Paused" && m.status !== "Done" ? "the project is paused" : ""]);
   }
-  function taskFacts(x, k, go, inPlan) { // the row's header already says its status, dates and timing; outside the plan, which milestone it is in; go(item, text): a link to another item
+  function taskFacts(x, k, go, inPlan) { // the row's header already says its status, dates and timing; on whom, as a problem's page says it; outside the plan, which milestone it is in; go(item, text): a link to another item
     var inMs = null; if (k.ms && !inPlan) { inMs = span("in "); inMs.appendChild(go ? go(k.ms, k.ms.name) : document.createTextNode(k.ms.name)); }
-    meta(x, [inMs]);
+    meta(x, [onWhom(k), inMs]);
   }
   // the project at a glance, under its summary: when it ends and when it started, then what extra(pair) adds
   function projectSummary(p, plan, extra) {
@@ -555,10 +569,9 @@
   };
 
   // The project page's pieces. ctx: ui (open: rows opened, grp: milestone groups opened or closed, col: sections folded — kept across repaints),
-  // host() (the box the page is in), msBody(x, m) and taskBody(x, k) (what an opened milestone or task shows), onUs (how a blocker
-  // waiting on no one reads; "on you" by default).
+  // host() (the box the page is in), msBody(x, m) and taskBody(x, k) (what an opened milestone or task shows).
   function page(ctx) {
-    var ui = ctx.ui, onUs = ctx.onUs || "on you";
+    var ui = ctx.ui;
     function acc(o) { // a row that opens below itself
       var k = "d:" + o.k, on0 = !!ui.open[k], r = el("div", "arow" + (o.tsk ? " tsk" : "") + (on0 ? " open" : "")); r.dataset.k = o.k;
       var h = btn("acc-h", null); h.setAttribute("aria-expanded", String(on0));
@@ -636,7 +649,7 @@
         if (ct) { var tw = whenOf(ct), sub = el("div", "ct"); sub.appendChild(span("Current task: ", "muted")); sub.appendChild(btn("go2", ct.name, function () { reveal(key(ct.url)); })); sub.appendChild(el("div", "w " + (tw[1] || ""), tw[0])); c.appendChild(sub); }
       });
       if (f.next) line("Next", "", f.next.name, (f.byTasks ? "next task · " : "next milestone · ") + whenOf(f.next)[0], "", key(f.next.url));
-      blockers.forEach(function (i) { line("Blocked", "crit", i.name, i.waiting ? "waiting on " + i.waiting : onUs, "crit", key(i.url)); });
+      blockers.forEach(function (i) { line("Blocked", "crit", i.name, onWhom(i), "crit", key(i.url)); });
       return fc.childNodes.length ? fc : null;
     }
     function planSec(body, ms0, tk0, head, o) { // the plan: milestones with their tasks under them; tasks without a milestone at the end. o: err (why it didn't load), empty (the text with no plan)
@@ -676,7 +689,7 @@
     refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled,
     el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, fold: showPart, foldDetails: foldDetails,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
-    problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState,
+    problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState,
     timeline: timeline, actions: actions, typeTag: typeTag, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };
 })();

@@ -17,10 +17,9 @@
   try { var t0 = JSON.parse(localStorage.getItem("pt.tlOpen") || "{}"); if (t0 && typeof t0 === "object") S.tlOpen = t0; } catch (e) {}
 
   var $ = function (id) { return document.getElementById(id); };
-  var ON_US = SNAP ? "on our side" : "on you"; // a problem nobody else has to act on, as the user's page and a client's page say it
   var el = PT.el, clear = PT.clear, link = PT.link, btn = PT.btn, span = PT.span, nodash = PT.nodash, cleanUrl = PT.cleanUrl, unesc = PT.unesc, clean = PT.clean, key = PT.key, plural = PT.plural, smooth = PT.smooth, sel = PT.sel, keep = PT.keep;
   var dnum = PT.dnum, todayNum = PT.todayNum, fmt = PT.fmt, soon = PT.soon, range = PT.range, days = PT.days, hhmm = PT.hhmm;
-  var OPEN_MS = PT.OPEN_MS, CHEV = PT.CHEV, problemOf = PT.problemOf, isOpen = PT.isOpen, ageOf = PT.ageOf, ageCls = PT.ageCls, sortItems = PT.sortItems, whenOf = PT.whenOf;
+  var OPEN_MS = PT.OPEN_MS, CHEV = PT.CHEV, problemOf = PT.problemOf, isOpen = PT.isOpen, ageOf = PT.ageOf, ageCls = PT.ageCls, sortItems = PT.sortItems, whenOf = PT.whenOf, onWhom = PT.onWhom;
   var actions = PT.actions, typeTag = PT.typeTag, problemLines = PT.problemLines, foldDetails = PT.foldDetails;
   function saveOpen() { try { localStorage.setItem("pt.tlOpen", JSON.stringify(S.tlOpen)); } catch (e) {} }
 
@@ -342,7 +341,7 @@
       if (f.task) { var sb = el("span", "pc-task"), tw = whenOf(f.task); sb.appendChild(span(f.task.name)); sb.appendChild(el("span", "w " + (tw[1] || ""), tw[0])); now.appendChild(sb); }
       c.appendChild(now);
       var blk = blockersOf(p)[0];
-      if (blk) { var b2 = el("div", "pc-now"); b2.appendChild(el("span", "lab crit", "Blocked")); b2.appendChild(el("span", "t", blk.name)); b2.appendChild(el("span", "w crit", blk.waiting ? "waiting on " + blk.waiting : ON_US)); c.appendChild(b2); }
+      if (blk) { var b2 = el("div", "pc-now"); b2.appendChild(el("span", "lab crit", "Blocked")); b2.appendChild(el("span", "t", blk.name)); b2.appendChild(el("span", "w crit", onWhom(blk))); c.appendChild(b2); }
     } else if (d) c.appendChild(el("div", "muted", strip.length ? "Everything is done." : "No plan yet."));
     var foot = el("div", "pc-foot");
     if (strip.length) { var pr = el("div", "mstrip"); sortItems(strip).forEach(function (m) { pr.appendChild(el("i", m.state === "plan" ? "" : m.state)); }); foot.appendChild(pr); }
@@ -372,11 +371,12 @@
     if (x.kind === "problem") { tk = idx[x.tk] || null; ms = idx[x.mk] || (tk && tk.ms) || null; } else if (x.kind === "task") ms = x.ms;
     return [p ? p.name : "", ms ? ms.name : "", tk ? tk.name : ""].filter(Boolean).map(function (n) { return n.replace(/ /g, "\u00a0"); }).join(" › "); // it wraps only between steps, never inside a name
   }
-  function item(x, o) { // one line in a list; opens its project with the item in view. o: mark, tag (false: the group says it), say (the word the group does not say), meta, cls
+  function item(x, o) { // one line in a list; opens its project with the item in view. o: mark, tag (false: the group says it), say (a word the group does not say), meta, cls
     var b = btn("it", null, function () { goItem(x); });
     b.appendChild(el("span", "mk " + (o.mark || "")));
     var mid = el("span", "mid"), t = el("span", "t"); if (o.tag !== false) t.appendChild(kindTag(x)); t.appendChild(span(x.name)); mid.appendChild(t);
-    var s = el("span", "s"), w = whereOf(x), cut = w.lastIndexOf(" "), r = PT.refTag(x); if (o.say) s.appendChild(span(o.say, "say " + (o.sayCls || "")));
+    var s = el("span", "s"), w = whereOf(x), cut = w.lastIndexOf(" "), r = PT.refTag(x), who = onWhom(x);
+    if (who) s.appendChild(span(who, "say")); if (o.say) s.appendChild(span(o.say, "say " + (o.sayCls || ""))); // on whom, on every open task and problem, whatever the group says
     if (!r) s.appendChild(span(w)); else { s.appendChild(span(w.slice(0, cut + 1))); var tail = el("span", "nw", w.slice(cut + 1)); tail.appendChild(r); s.appendChild(tail); } // the ID never wraps away from the path's last step
     mid.appendChild(s); b.appendChild(mid);
     b.appendChild(el("span", "m " + (o.cls || ""), o.meta || ""));
@@ -430,11 +430,10 @@
   }
   function renderMove() {
     var host = $("moveList"), mg = moveGroups();
-    var waitWord = function (x) { return x.status === "Waiting" && x.waiting ? "waiting on " + x.waiting : ""; };
     var groups = [ // by what the user does, the most urgent first; Up next and Milestones without dates are not today's work: folded at first and not counted
-      ["Blocked", "crit", mg.blocked, function (i) { return item(i, { mark: "crit", say: i.waiting ? "waiting on " + i.waiting : "", meta: ageLabel(i), cls: "crit" }); }],
-      ["Overdue", "crit", mg.overdue, function (m) { return item(m, { mark: "crit", say: waitWord(m), meta: days(m.late) + " late", cls: "crit" }); }],
-      ["Due soon", "warn", mg.due, function (m) { return item(m, { mark: "warn", say: m.status === "Planned" ? "not started" : waitWord(m), meta: soon(m.end), cls: "warn" }); }],
+      ["Blocked", "crit", mg.blocked, function (i) { return item(i, { mark: "crit", meta: ageLabel(i), cls: "crit" }); }],
+      ["Overdue", "crit", mg.overdue, function (m) { return item(m, { mark: "crit", meta: days(m.late) + " late", cls: "crit" }); }],
+      ["Due soon", "warn", mg.due, function (m) { return item(m, { mark: "warn", say: m.status === "Planned" ? "not started" : "", meta: soon(m.end), cls: "warn" }); }],
       ["Doing", "", mg.doing, function (x) { return item(x, { meta: x.start == null ? "no date" : x.openEnd ? "no end date" : "due " + soon(x.end) }); }],
       ["Up next", "", mg.next, function (x) { return item(x, { meta: x.start == null ? "no date" : x.start > todayNum() ? "starts " + soon(x.start) : x.openEnd ? "no end date" : "due " + soon(x.end) }); }, true], // the timeline shows them better
       ["To decide", "", mg.decide, function (x) { var a = ageOf(x); return item(x, { meta: ageLabel(x), cls: ageCls(a) }); }],
@@ -511,6 +510,7 @@
         (q.Status === "Resolved" ? S.resolved : S.problems).push(q);
       });
     });
+    PT.setSides(S.side);
     var t = D.title || (S.projects.length === 1 ? S.projects[0].name : S.projects[0] ? S.projects[0].client : "Project status");
     $("ttl").textContent = t; if (/^__TITLE/.test(document.title)) document.title = t;
     var up = Date.parse(D.updated || ""); S.lastUpdate = isNaN(up) ? 0 : up; paintLive();
@@ -529,7 +529,7 @@
       if (!n) { host.appendChild(el("div", "empty", "Nothing open right now.")); $("sideAll").hidden = true; return; }
       groupList(host, "side", [["On your side", sd.you], ["On our side", sd.us], ["With third parties", sd.third], ["Risks to keep in mind", sd.risk]].map(function (g) { return { name: g[0], list: g[1], row: function (x) {
         var a = ageOf(x), late = x.kind === "task" && x.late > 0, blk = x.kind === "problem" && x.type === "Blocker";
-        var say = [x.waiting && g[1] === sd.third ? x.waiting : "", late ? days(x.late) + " late" : x.kind === "task" && x.end != null ? "due " + fmt(x.end) : ""].filter(Boolean).join(" · ");
+        var say = late ? days(x.late) + " late" : x.kind === "task" && x.end != null ? "due " + fmt(x.end) : "";
         return item(x, { mark: late || blk ? "crit" : g[1] === sd.risk ? "" : ageCls(a), say: say, sayCls: late ? "crit" : "", meta: ageLabel(x), cls: late ? "crit" : ageCls(a) });
       } }; }), $("sideAll"));
     });
@@ -799,19 +799,19 @@
   function problemsOn(k, field) { return allProblems().filter(function (i) { return i[field] === k && i.status !== "Dropped"; }); }
   function msBody(x, m) {
     PT.msFacts(x, m);
-    pageBody(x, m.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(m.url), "mk"), ON_US, itemLink); } });
+    pageBody(x, m.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(m.url), "mk"), itemLink); } });
     if (!SNAP) actions(x, [chatBtn(m, "ms"), link(m.url, "Open in Notion ↗", "ext")]);
   }
   function taskBody(x, k, inPlan) {
     PT.taskFacts(x, k, itemLink, inPlan);
-    pageBody(x, k.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(k.url), "tk"), ON_US, itemLink); } });
+    pageBody(x, k.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(k.url), "tk"), itemLink); } });
     if (!SNAP) actions(x, [chatBtn(k, "task"), link(k.url, "Open in Notion ↗", "ext")]);
   }
   function problemBody(x, i) {
     var idx = itemIndex(), ms = idx[i.mk], tk = idx[i.tk], a = ageOf(i);
     if (i.summary) x.appendChild(el("p", "x-lede", i.summary)); // what is wrong, first
     var where = null; if (ms || tk) { where = span(ms ? "in " : "on "); if (ms) where.appendChild(itemLink(ms, ms.name)); if (ms && tk) where.appendChild(document.createTextNode(" › ")); if (tk) where.appendChild(itemLink(tk, tk.name)); } // what it is about, each a link to it
-    PT.meta(x, [i.status === "Resolved" ? "" : i.waiting ? "waiting on " + i.waiting : SNAP ? "on our side" : "on you", where, i.opened != null ? "opened " + fmt(i.opened) + (i.status !== "Resolved" && a != null ? ", " + days(a) + " ago" : "") : "", i.resolvedOn != null ? "resolved " + fmt(i.resolvedOn) : ""]);
+    PT.meta(x, [onWhom(i), where, i.opened != null ? "opened " + fmt(i.opened) + (i.status !== "Resolved" && a != null ? ", " + days(a) + " ago" : "") : "", i.resolvedOn != null ? "resolved " + fmt(i.resolvedOn) : ""]);
     pageBody(x, i.url, { split: true });
     if (!SNAP) actions(x, [chatBtn(i, "problem"), link(i.url, "Open in Notion ↗", "ext")]);
   }
@@ -824,7 +824,7 @@
     };
   }
   S.grp = {}; // milestone groups the viewer opened or closed in this visit
-  var PG = PT.page({ ui: S, host: function () { return $("drBody"); }, msBody: msBody, taskBody: taskBody, onUs: ON_US });
+  var PG = PT.page({ ui: S, host: function () { return $("drBody"); }, msBody: msBody, taskBody: taskBody });
   var acc = PG.acc, dsec = PG.dsec, setFold = PG.setFold, taskRow = PG.taskRow, reveal = PG.reveal;
   // the project page, block by block; ctx carries what several blocks share
   function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p), c.info.parts.desc ? renderMd(c.info.parts.desc, {}) : null); }
@@ -866,9 +866,9 @@
         var gt = el("div", "grp-t"); gt.appendChild(span(g[0])); gt.appendChild(span(String(g[1].length), "n")); b1.appendChild(gt);
         g[1].sort(function (x, y) { return (ageOf(y) || 0) - (ageOf(x) || 0); }).forEach(function (i) {
           var a = ageOf(i), sub = el("span", "s");
-          var cx = context(i), tail = function (parts) { parts = parts.filter(Boolean); if (parts.length) sub.appendChild(document.createTextNode(" " + parts.join(" · "))); }; // where in the plan it sits, then who it waits on
-          if (i.kind === "task") { sub.appendChild(typeTag("Task")); tail([cx, i.waiting ? "waiting on " + i.waiting : "", i.end != null ? "due " + fmt(i.end) : ""]); b1.appendChild(acc({ k: "w:" + key(i.url), item: i, dot: i.late > 0 ? "crit" : "warn", title: i.name, line: sub, right: ageLabel(i), expand: function (x) { taskBody(x, i); } })); return; }
-          sub.appendChild(typeTag(i.type)); tail([cx, i.waiting ? "waiting on " + i.waiting : ""]);
+          var cx = context(i), tail = function (parts) { parts = parts.filter(Boolean); if (parts.length) sub.appendChild(document.createTextNode(" " + parts.join(" · "))); }; // on whom, then where in the plan it sits
+          if (i.kind === "task") { sub.appendChild(typeTag("Task")); tail([onWhom(i), cx, i.end != null ? "due " + fmt(i.end) : ""]); b1.appendChild(acc({ k: "w:" + key(i.url), item: i, dot: i.late > 0 ? "crit" : "warn", title: i.name, line: sub, right: ageLabel(i), expand: function (x) { taskBody(x, i); } })); return; }
+          sub.appendChild(typeTag(i.type)); tail([onWhom(i), cx]);
           b1.appendChild(acc({ k: key(i.url), item: i, dot: i.type === "Blocker" ? "crit" : i.type === "Risk" ? "warn" : i.waiting ? "ring" : "cur", title: i.name, line: sub, right: ageLabel(i), expand: function (x) { problemBody(x, i); } }));
         });
       });
