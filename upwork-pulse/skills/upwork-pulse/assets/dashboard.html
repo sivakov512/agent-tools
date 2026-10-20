@@ -1385,7 +1385,7 @@
         wd.addEventListener("click", function () { regenerate(r, wd); });
         x.btns.appendChild(wd);
       }
-      var ap = el("button", "ok", "Applied"); ap.type = "button"; ap.title = "Mark it Applied now — the sync in the next digest does it on its own";
+      var ap = el("button", "ok", "Applied"); ap.type = "button"; ap.title = "Mark it Applied now — the next proposals sync does it on its own";
       ap.addEventListener("click", function () { setLeadStatus(r, ap, "Applied"); });
       var sk = el("button", "no" + (r.Advice === "Skip" ? " hint" : ""), "Skip"); sk.type = "button"; sk.title = "Move to Skipped, with a reason";
       sk.addEventListener("click", function () { openSkipForm(r, x.bar); });
@@ -1606,7 +1606,7 @@
       text: c.updating ? "The pipeline is being updated to the new version. Leads show without numbers until it is done; refresh in a few minutes."
         : "The pipeline is about to be updated to the new version: the next hourly run (or your next chat with Claude) does it. Leads show without numbers until then." });
     else if (c.loaded && (c.schema > SCHEMA || (c.skill_version && verCmp(c.skill_version, DASH_VERSION) > 0))) out.push({ title: "Dashboard older than the skill", note: "dashboard outdated",
-      text: "This page is version " + DASH_VERSION + (c.skill_version ? ", the skill " + c.skill_version : "") + ", so some values may show wrong. The next hourly run republishes it; a chat with Claude does it at once." });
+      text: "This dashboard (" + DASH_VERSION + ") is older than the skill" + (c.skill_version ? " (" + c.skill_version + ")" : "") + ", so some values may show wrong. Open a chat with Claude: it updates the page." });
     if (c.auto_drafts === "on" && S.guideIssue) out.push({ title: "Proposal guide not filled", note: "guide not filled", guide: true,
       text: "Auto proposals are on, but the Proposal guide is not filled: " + S.guideIssue + ". Claude writes advice only until it is." });
     return out;
@@ -1631,7 +1631,7 @@
     $("chatProj").textContent = S.cfg.chat_project ? "Project: " + S.cfg.chat_project_name : "No project";
     // what runs where: this page, the Notion structure, the skill the scheduled runs last ran with (the hourly run writes `skill_version`)
     var sv = S.cfg.skill_version, newer = sv && verCmp(sv, DASH_VERSION) > 0;
-    $("versLine").textContent = "Dashboard " + DASH_VERSION + " · Schema " + S.cfg.schema + (S.cfg.schema !== SCHEMA ? " (page reads " + SCHEMA + ")" : "") + " · Skill " + (sv || "—") + (newer ? " — the dashboard updates with the next hourly run" : "");
+    $("versLine").textContent = "Dashboard " + DASH_VERSION + " · Schema " + S.cfg.schema + (S.cfg.schema !== SCHEMA ? " (page reads " + SCHEMA + ")" : "") + " · Skill " + (sv || "—") + (newer ? " — open a chat with Claude to update the dashboard" : "");
     $("versLine").title = "Skill: the plugin version the last hourly run used";
   }
   function verCmp(a, b) { var x = String(a).split("."), y = String(b).split("."); for (var i = 0; i < 3; i++) { var d = (+x[i] || 0) - (+y[i] || 0); if (d) return d; } return 0; }
@@ -2473,7 +2473,7 @@
     upCall("upwork__list_freelancer_proposals", { action: "get", org_uid: ORG, params: { id: p.id } }, { cache: { staleTime: 600000, gcTime: 86400000 } }).then(function (res) {
       var pl = payloadOf(res) || {}, vp = (pl.data || {}).vendorProposal || {}, t = vp.terms || {};
       clear(fs);
-      fs.appendChild(el("div", "dr-empty", S.cfg.schema >= SCHEMA ? "From Upwork \u2014 saved to Notion with the next digest." : "From Upwork."));
+      fs.appendChild(el("div", "dr-empty", S.cfg.schema >= SCHEMA ? "From Upwork \u2014 saved to Notion with the next proposals sync." : "From Upwork."));
       var rate = num((t.chargeRate || {}).rawValue);
       if (rate != null) fs.appendChild(rateField("Rate sent", p.rate ? p.rate : usd(rate), rate));
       var cl = clean(vp.proposalCoverLetter);
@@ -3016,7 +3016,7 @@
       ["Sent", "sent, no reply from the client yet."],
       ["In talks", "the client replied; newest message first. A chat where the next message is yours is marked Your turn and is in Your move as well."],
       ["Closed", "declined, archived or withdrawn, or the client moved on: hired someone else or closed the job (Upwork puts such a proposal on hold; its job, when it can be opened, says which). After talks first — the ones with a chat, how each ended and who wrote last — then No reply, folded."],
-      ["Drawer", "the proposal's terms, What you sent — the copy kept in Notion's Proposals, synced from Upwork by the digests — and the job it was for."]
+      ["Drawer", "the proposal's terms, What you sent — the copy kept in Notion's Proposals, synced from Upwork twice a day — and the job it was for."]
     ];
   });
   addInfo("hMove", function () {
