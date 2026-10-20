@@ -28,6 +28,6 @@ A named period can mean dozens of proposals, each a `get` and a few writes. Abov
 
 ## 3. What it returns
 
-To its caller, for the caller's report: the proposals written (by short id), how many of them got a new card, how many were already in place — or the failure, with the watermark left where it was. The digest puts it in its Log (`Sync`), chat in one line (`references/chat.md` → *Proposals sync*).
+To its caller, for the caller's report: the proposals written (by short id), how many of them got a new card, how many were already in place — or the failure, with the watermark left where it was. A scheduled run puts it in its Log as one line, labels in `language`: `- Sync: <n> proposal(s) written — #<short id>, …[; <k> new card(s)][; <m> already in place]`, nothing new: `- Sync: nothing new`; a failure is a `Problems` line instead. Chat says it in one line (`references/chat.md` → *Proposals sync*).
 
 Off limits here: writing to Upwork; `PROCESSED_UNTIL`; Runs; a card's verdict, score, body, advice, `My hours` and `Estimate` (of the card's judgement only `My $` changes, to the price sent).
