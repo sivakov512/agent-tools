@@ -11,7 +11,7 @@
   },
   {
    "name": "find_jobs",
-   "description": "action 'search' (params: query, sort, limit, cursor) returns job postings newest first; action 'get' (params: job_id) returns the full posting with client stats, proposals count, connects price, screening questions.",
+   "description": "action 'search' (params: query, sort, limit, cursor) returns job postings newest first; action 'get' (params: id — the numeric job id, a ~02… ciphertext or a job URL; job_id is an alias) returns the full posting with client stats, proposals count, connects price, screening questions.",
    "inputSchema": {
     "type": "object",
     "properties": {
@@ -34,7 +34,7 @@
   },
   {
    "name": "manage_proposals",
-   "description": "action 'create' builds a proposal preview for a job (screening questions, bid statistics, boost auction) without submitting; action 'accept_invitation' the same for invitations.",
+   "description": "action 'create' (params: job_reference — the numeric job id, cover_letter, charged_amount — a number; fixed price also estimated_duration — less_than_1_month / 1_to_3_months / 3_to_6_months / more_than_6_months — and payment_mode — by_milestone with milestones [{description, amount}] or by_project; optional answers [{question, answer}], boost_connects) builds a proposal preview for a job (screening questions, bid statistics, boost auction) without submitting; action 'accept_invitation' (params: invitation_uid, cover_letter, bid, the fixed-price terms as for create) the same for invitations.",
    "inputSchema": {
     "type": "object",
     "properties": {
