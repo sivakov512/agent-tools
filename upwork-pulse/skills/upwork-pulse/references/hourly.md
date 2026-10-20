@@ -1,10 +1,10 @@
 # Hourly search
 
-One run: read the rules, take the queue of postings published since the watermark, search it and drop the obvious foreign work by title, hand what is left to the assessment on Opus (`references/assess.md`: stage 2, cards, estimates and — with `auto_drafts: on` — advice and proposals), move the watermark, catch up drafts, auto-skip, and end with a short report of what it did — pushed to the phone only when there is something to apply to fast. This run is the cheap half: most hours find nothing to open past the title, and then Opus is never started. It runs in automatic mode (SKILL.md → *Automatic mode*); a config whose `schema` is not 8 is handled before anything here (SKILL.md → *Pipeline update*).
+One run: read the rules, take the queue of postings published since the watermark, search it and drop the obvious foreign work by title, hand what is left to the assessment on Opus (`references/assess.md`: stage 2, cards, estimates and — with `auto_drafts: on` — advice and proposals), move the watermark, sync the proposals the user sent when that is overdue, catch up drafts, auto-skip, and end with a short report of what it did — pushed to the phone only when there is something to apply to fast. This run is the cheap half: most hours find nothing to open past the title, and then Opus is never started. It runs in automatic mode (SKILL.md → *Automatic mode*); a config whose `schema` is not 8 is handled before anything here (SKILL.md → *Pipeline update*).
 
 Started by the hourly search task, or by the user asking to scan for new jobs. Inputs: the root page the prompt names; the run reads the config, Search rules and Run state (§1–§2). Output: the cards, the Runs rows and the report (§7).
 
-**Turns.** The first turn reads the config; the second, Search rules and Run state together; then all searches and the invitations in one turn. A write the next one depends on waits for its result: the run row before the hand-off, the cards and the row before the watermark.
+**Turns.** The first turn reads the config; the second, Search rules and Run state together; then all searches, the invitations and — when it is due (§6) — the proposals sync's lists in one turn. A write the next one depends on waits for its result: the run row before the hand-off, the cards and the row before the watermark.
 
 ## 1. Read first
 
@@ -37,6 +37,8 @@ Merge results by job id. No budget, level, duration or payment-verified filters 
 
 No pending invitations → nothing about them anywhere, the report's Log included.
 
+**The proposals sync's lists**, only when the sync is due (§6), in the same turn: `references/sync.md` §1 step 3, from its watermark in Run state (read in the second turn). The rest of the sync waits for §6.
+
 ## 4. Stage 1 and the already-seen check
 
 **Stage 1** reads only the title and the search snippet, against only the rules' "reject on sight" items: it drops what those items name as outside the user's field, and keeps everything else. Every other reject — the budget or rate, the client, the stack or a required language, the scope, any item of the rules' full-text lists — is stage 2's, on Opus (§5), however plain it looks in the snippet: snippets lie, and a lead dropped here is never seen by anyone. Skill tags are noise; never filter on them.
@@ -58,7 +60,9 @@ The run's job-page budget is §2's. For each chunk, oldest first (a queue up to 
 
 ## 6. After the chunks
 
-In this order, after the cards, the rows and the watermark (§2) are written, so a failure here never loses a card or a window. (Marking cards Applied is the proposals sync's job: `references/sync.md`.)
+In this order, after the cards, the rows and the watermark (§2) are written, so a failure here never loses a card or a window.
+
+**Proposals sync**, when Run state's `PROPOSALS_SYNCED_UNTIL` is more than 12 hours before now, or missing: the rest of `references/sync.md` on the lists read in §3 — what the user sent goes into Proposals and its card becomes Applied. The digests sync when they run, but the user may pause them, and without a sync the dashboard's proposals and leads go stale; so the hourly run keeps it going whenever no sync has run for that long. It comes first here, so the catch-up and auto skip never work on a card the user has already applied to. A sync that fails leaves its watermark (`references/sync.md` §1) and is a `Problems` line; it holds nothing else.
 
 **Catch-up drafts.** With `auto_drafts: on`, no assessment subagent returned this run (one that did ran its own catch-up), no `JOB_PAGES_PAUSE` time ahead and the Agent tool at hand: when `jobs_inbox` shows a New card that `references/drafts.md` §1 would catch up (not yet advised, posted in its window), start a subagent with `model: "opus"` and this task: "Use the upwork-pulse skill in drafts mode on <root URL> for the catch-up. You are the hourly run's subagent: write to Notion, no message, no push; return your model line, then one line per card." Wait for it as §5 step 4 says. (An assessment does its own catch-up.)
 
@@ -110,6 +114,7 @@ Advice **<apply|skip>** — <Advice why> · proposal ready   ← only when draft
 - Search: <N> in the window → <survivors> past the title → <cards written> cards[, <rejected> rejected (<gone> of them gone)]
 - Deferred: <n> waiting — #<short id>, …[; job pages paused until HH:MM][; <m> dropped after 48 h]   ← Upwork would not open job pages (`references/assess.md` §2); only when the line is not empty
 - Invitations: <n> pending, <new> new card(s): #<short id>, …
+- Sync: <the sync's line, references/sync.md §3>
 - Drafts: <n> advised — apply #<short id>, …; skip #<short id>, …
 - Auto skip: #<short id> <title, cut to 40 characters>, …
 - Update: skill <old> → <N> · dashboard <old> → <N>   ← no old skill_version: `skill <N>`
@@ -118,10 +123,10 @@ Advice **<apply|skip>** — <Advice why> · proposal ready   ← only when draft
 
 `<client's price>` is made from the columns: `$<Budget> fixed`, `$<Rate min>–<Rate max>/hr`, or `rate not stated`; money is written as money (`$8,400`). In the Client and Competition lines leave out a part whose column is empty or zero, and "verified" when it is not. `<short id>` is the last six digits of `Job ID`, as on the dashboard, so the user can refer to an item by its number in this message or by its id. Numbering runs across both sections; an empty section is left out; a horizontal rule between cards; `Client:` and `Competition:` labels not bold. `connects L` in the header is the sum over the listed cards.
 
-**The Log** (SKILL.md → *Automatic mode*): `Models` and `Search` always (`Models`: the model IDs as each context states them, SKILL.md → *Which model*; the subagent's part from its model line); `Deferred` while postings wait to be opened (a refused job page is not a `Problems` line: it is Upwork pacing, handled); `Invitations` only when there are pending ones; `Drafts` only when drafts ran — the assessments' `drafts:` lines and the catch-up's per-card lines summed into one line in the `drafts:` format of `references/assess.md` §7 (`not new` and `not advised` included); `Auto skip` only when it skipped something; `Update` only when `skill_version` changed or the dashboard was republished (just the parts that happened); `Problems` only when a call failed or was blocked. No Agent tool is not a problem: the assessment then ran in this session, which the `Models` line shows.
+**The Log** (SKILL.md → *Automatic mode*): `Models` and `Search` always (`Models`: the model IDs as each context states them, SKILL.md → *Which model*; the subagent's part from its model line); `Deferred` while postings wait to be opened (a refused job page is not a `Problems` line: it is Upwork pacing, handled); `Invitations` only when there are pending ones; `Sync` only when the sync ran (§6); `Drafts` only when drafts ran — the assessments' `drafts:` lines and the catch-up's per-card lines summed into one line in the `drafts:` format of `references/assess.md` §7 (`not new` and `not advised` included); `Auto skip` only when it skipped something; `Update` only when `skill_version` changed or the dashboard was republished (just the parts that happened); `Problems` only when a call failed or was blocked. No Agent tool is not a problem: the assessment then ran in this session, which the `Models` line shows.
 
 Forbidden in the report: narration outside the Log ("Now I'll…", "All writes are done"), notes on a value (the client's price is exactly as built above — `rate not stated`, nothing in brackets), extra sections, draft proposal text, questions.
 
 **Push line**, in `language`, plain text: `Upwork: [<M> take][, <K> maybe][, <I> invited] · #<short id> <title> · <client's price>` (a part that would be zero is left out) for the first news card (the client's price as above), with ` +<n>` after the title when there are more news cards; cut the title so the line stays within the push's length (SKILL.md → *Automatic mode*).
 
-Off limits here: `confirm_preview` and every other write to Upwork; `PROPOSALS_SYNCED_UNTIL` and the proposals sync (`references/sync.md`); a card's `Status`, except auto skip; the rules pages.
+Off limits here: `confirm_preview` and every other write to Upwork; `PROPOSALS_SYNCED_UNTIL` and the proposals sync, except when it is due (§6); a card's `Status`, except auto skip and the sync; the rules pages.
