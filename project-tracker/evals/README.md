@@ -66,10 +66,11 @@ The config carries `dashboard` and `dashboard_version: 99.0.0` so the once-per-c
 
 ## Reading failures
 
-`docs/skill-development.md` §7. What is particular to this suite: the mock Notion is a model too, and may answer a call with an error real Notion would not give — read its answer in the trace before blaming the skill. Two limits of the harness (2.1.304) that look like skill failures:
+`docs/skill-development.md` §7. What is particular to this suite: the mock Notion is a model too, and may answer a call with an error real Notion would not give — read its answer in the trace before blaming the skill. Three limits of the harness (2.1.304) that look like skill failures:
 
 - **The date.** Claude Code puts the machine's date into the agent's context and nothing pins it (`CLAUDE_CODE_OVERRIDE_DATE` has no effect), so the cases pin Oct 9 in `append_system_prompt`, and the skill takes the date the session states as today (SKILL.md → **Today is the conversation's date**).
 - **Long traces.** An `llm` grader with `focus: 'trace'` sees only a trace's first and last 12 events, and a long run's tool results fall in between. A judge that must check a reply against the data gets that data in its rubric and reads `last_message`, as `report`'s `facts` does.
+- **One-word judges.** The harness asks each judge for exactly PASS or FAIL and counts a vote as PASS only when the word FAIL is nowhere in it, so a rubric never asks the judge to explain or name what it found: an explained PASS can be scored FAIL.
 
 Add `--keep-temp` to a run whose failure you will need to read: without it the harness deletes each run's trace, and the results keep only the mock calls and the judges' votes.
 
