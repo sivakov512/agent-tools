@@ -49,6 +49,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **A 0.x tracker is copied to a new one, not converted in place**; the old page stays as the backup.
 - **A newer plugin updates the tracker's structure without asking**: installing it was the go, and nothing in the skill works on the old structure.
 - **A tracker newer than the plugin is left as it is**: the skill writes nothing and says the plugin needs updating, since its rules would misread a structure they do not know.
+- **Today is the date the conversation states, else the system's.** The user's or the session's statement of today wins over the clock, since it is the day they are working from, and every date and window counts from that one day.
 - **A place in the plan and a duration give the dates** ("two weeks after the first prototype" → Jan 8 – Jan 22): they follow from a fixed rule, so they are not a guess, and the new item is still shown first like any plan change.
 - **A resync starts a stage the platform shows active**, even when its only open task is a handover still waiting: the resync mirrors the contract, and the client sees the stage active there. It is the one exception to how the levels move together; the waiting task stays Waiting.
 - **A report is one summary of what matters, the same for any reader**: an email to the client adds a greeting and a sign-off, and the reader changes only what is private. It states only what the tracker records, so it carries no request, reason or offer of its own.
