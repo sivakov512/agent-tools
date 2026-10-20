@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.15.4](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.3...project-tracker-v1.15.4) (2026-10-20)
+
+
+### Bug Fixes
+
+* **project-tracker:** fetch a schema before adding its update columns ([f3f17d9](https://github.com/sivakov512/agent-tools/commit/f3f17d94f52210fae6100fabc75d579ba4457aad))
+* **project-tracker:** leave Waiting on empty while the user has a move ([165ad8f](https://github.com/sivakov512/agent-tools/commit/165ad8f57ff1697872dc8806d3a6f24a10757fc4))
+* **project-tracker:** page view reads and reuse view URLs ([f93989e](https://github.com/sivakov512/agent-tools/commit/f93989e6bbe3232777953a2a329e241f06cbddea))
+* **project-tracker:** say the per-step schema number is no place to stop ([e121a94](https://github.com/sivakov512/agent-tools/commit/e121a94ff1abdf677f11f868c2ca052ae07cafe1))
+* **project-tracker:** say which date is today when two are given ([e3a9554](https://github.com/sivakov512/agent-tools/commit/e3a95549f62127efddfaaacc6aa28d314396f640))
+* **project-tracker:** write each update step's schema number as it ends ([4e2e614](https://github.com/sivakov512/agent-tools/commit/4e2e614b60f3f8f9a3218ccee8de9f0c412ea326))
+
 ## [1.15.3](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.2...project-tracker-v1.15.3) (2026-10-20)
 
 
