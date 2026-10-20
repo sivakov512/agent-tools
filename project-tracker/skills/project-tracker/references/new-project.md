@@ -22,7 +22,7 @@ Only what the source says — no risks, milestones or tasks of your own. Follow 
   - **Ongoing work with no stages** ("support the hub", "monthly maintenance") → a project without milestones; each listed item is a task.
 - Work the source reports as already done: a listed item marked done is Done with `Finished` = the date the source gives for it, else the source date. Done work the source mentions without listing it becomes one Done item at the start — a task of the first milestone if there are headings, else a milestone — named with the source's phrase for the result. A Done item with no dates of its own keeps `Dates` empty: its `Finished` records when it was done, and the dashboard shows undated items.
 - Statuses: the first item not done whose start is on or before today (or that has no start) is In progress, and its milestone with it; everything else not done is Planned — a waiting handover keeps its milestone Planned. Problems from a source get `Opened` = the source date.
-- **Tasks and problems**, by what the source says:
+- **Tasks and problems**, by what the source says, `Waiting on` as SKILL.md → **`Waiting on` says who moves next** has it:
   - someone is asked to do something the plan expects (a quote, a sign-off, files) → a task, Waiting, `Waiting on` = that party (the project's `Client` value if none is named), under the milestone it serves — the source wrote it into the plan;
   - "I will do X once Y" → a task, Planned, under the milestone it serves;
   - something missing that stops work and nobody planned for ("the bench has no power analyzer — Ivan, please order one") → Blocker, Waiting, `Waiting on` = the person asked to act (none named → Open, `Waiting on` empty);
