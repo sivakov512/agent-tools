@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.20.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.19.1...upwork-pulse-v0.20.0) (2026-10-20)
+
+
+### Features
+
+* **upwork-pulse:** dashboard reads schema 9 ([91bec44](https://github.com/sivakov512/agent-tools/commit/91bec44ccb18cadeb9154b33018b62bb0ff907a7))
+* **upwork-pulse:** let the hourly run pick catch-up cards from a view ([e26cdbf](https://github.com/sivakov512/agent-tools/commit/e26cdbf572da807483bd2ff0c2bbfb4711ca0e1a))
+* **upwork-pulse:** plain-word questions; stale ones close by themselves ([7d0a0a4](https://github.com/sivakov512/agent-tools/commit/7d0a0a46782136ea0493004d48753a4bbcd7d289))
+* **upwork-pulse:** route the update command to pipeline and dashboard ([7a7c08c](https://github.com/sivakov512/agent-tools/commit/7a7c08c1e1818f63252bb06e0b30a31280b3b120))
+* **upwork-pulse:** sync proposals in the hourly run when overdue ([bde432c](https://github.com/sivakov512/agent-tools/commit/bde432c9051cd3a830e2bcbd710a323a8712a2de))
+
+
+### Bug Fixes
+
+* **upwork-pulse:** leave the dashboard republish to the first chat ([de90b76](https://github.com/sivakov512/agent-tools/commit/de90b765c885ba2afa7ee73efd9f506d742726ba))
+* **upwork-pulse:** move the update command into the status details ([b669f84](https://github.com/sivakov512/agent-tools/commit/b669f84567654762dc53e33c3767f16ed8b48b28))
+* **upwork-pulse:** name the message that updates an outdated dashboard ([8d33a05](https://github.com/sivakov512/agent-tools/commit/8d33a05054cc51a8ad1cfbac5a686426e1b306bc))
+* **upwork-pulse:** pin run time, view page size and Upwork call shapes ([253bc94](https://github.com/sivakov512/agent-tools/commit/253bc9462daec4bc7002fe4ce842d95c1918b62c))
+* **upwork-pulse:** rank weekly questions by Seen; always recommend ([3ecd964](https://github.com/sivakov512/agent-tools/commit/3ecd9648a4aedeeb089897070374dd76dff7dfec))
+* **upwork-pulse:** say the update command is in the status details ([8386aa3](https://github.com/sivakov512/agent-tools/commit/8386aa366da4c5eb44361edc729f8223530e07a1))
+* **upwork-pulse:** show the update command beside an outdated status ([3d7ef6b](https://github.com/sivakov512/agent-tools/commit/3d7ef6b2d1003a573e308b8274ebe0c804fa1dbe))
+* **upwork-pulse:** tell an outdated dashboard's reader to open a chat ([16ba2a4](https://github.com/sivakov512/agent-tools/commit/16ba2a4a91b03101b15acb3d9775e4b44705fc70))
+
 ## [0.19.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.19.0...upwork-pulse-v0.19.1) (2026-10-17)
 
 
