@@ -171,7 +171,7 @@ The moment the user writes in that same session, automatic mode ends: no more pu
 
 ## Dashboard updates
 
-The dashboard follows the plugin: when the config's `dashboard_version` is below the version on the first line of `assets/dashboard.html`, the first conversation that sees it republishes it without asking, after answering. Scheduled runs cannot — they have no Artifact tool — so until then the page shows, beside its status, the command to send Claude: `/upwork-pulse:upwork-pulse update` (modes table). The slash form loads this skill for certain, which a plain message in a new chat may not, and a chat about something else may never come. A conversation on a pipeline with no dashboard offers one. When and how: `references/dashboard.md`.
+The dashboard follows the plugin: when the config's `dashboard_version` is below the version on the first line of `assets/dashboard.html`, the first conversation that sees it republishes it without asking, after answering. Scheduled runs cannot — they have no Artifact tool — so until then the page marks its status outdated and, in the status details, gives the command to send Claude: `/upwork-pulse:upwork-pulse update` (modes table). The slash form loads this skill for certain, which a plain message in a new chat may not, and a chat about something else may never come. A conversation on a pipeline with no dashboard offers one. When and how: `references/dashboard.md`.
 
 ## Notion calls
 
