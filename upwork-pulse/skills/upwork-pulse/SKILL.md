@@ -28,7 +28,7 @@ A **root page** — its name is the user's choice ("Upwork Pulse" by default), s
 | `upwork_org` | the Upwork org_uid to pass to every Upwork call |
 | `dashboard` | URL of the published dashboard page, if any |
 | `dashboard_version` | the dashboard version that page was published from (`references/dashboard.md` → *When*) |
-| `skill_version` | the plugin version the last hourly run used (N from the asset's first line); the dashboard shows it under Settings → Versions. Written by the hourly run when it differs, and by setup |
+| `skill_version` | the plugin version the last hourly run used (N from the asset's first line); the dashboard shows it under Settings → Versions, and a line to open a chat while its own version is older. Written by the hourly run when it differs, and by setup |
 | `dashboard_skip` | present (any value) when the user declined a dashboard (`references/dashboard.md` → *When*) |
 | `chat_project` | the claude.ai project new Claude chats from the dashboard open in: `<project id> <name>`, or `none` (*Chat project*) |
 | `auto_drafts` | `on` / `off` — "Auto proposals" on the dashboard: the hourly run's assessment on Opus goes on from each new card to advice and a proposal draft (`references/drafts.md`) |
@@ -170,7 +170,7 @@ The moment the user writes in that same session, automatic mode ends: no more pu
 
 ## Dashboard updates
 
-The dashboard follows the plugin: when the config's `dashboard_version` is below the version on the first line of `assets/dashboard.html`, the hourly run (after its work) or a conversation (after answering) republishes it without asking; a conversation on a pipeline with no dashboard offers one. When and how: `references/dashboard.md`.
+The dashboard follows the plugin: when the config's `dashboard_version` is below the version on the first line of `assets/dashboard.html`, the first conversation that sees it republishes it without asking, after answering. Scheduled runs cannot — they have no Artifact tool — so until then the page itself tells the user to open a chat. A conversation on a pipeline with no dashboard offers one. When and how: `references/dashboard.md`.
 
 ## Notion calls
 
