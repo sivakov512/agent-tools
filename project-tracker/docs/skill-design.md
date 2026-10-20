@@ -88,7 +88,7 @@ Where this plugin departs from `docs/skill-development.md`, and why.
 
 Beyond `docs/skill-development.md` §7:
 
-- **Known gaps** (§7.4): `schema-update` fails because the agent writes `schema: 5` once at the end of the Tracker update instead of `schema: 2`, `3`, `4` after each step (score 0.8). It fails on origin/master too, at 0.2, before the rework.
+- **Known gaps** (§7.4): `schema-update` is not yet proven 3/3. Each step's number is now written as that step ends (`schema: 2` → `5` in order, its regex graders 3/3), but in that check two runs had their judge graders skipped by the cost ceiling, and the third failed `update-order` (judge 0/3) for a cause not yet read from a trace.
 
 - `--scaffold` on every run: `new-from-file` and `client-dashboard-refresh` need their `scaffold.sh` (`evals/README.md`).
 - The page markup (tabs, views, layouts) is only checked structurally by the mocks: after changing it, run the skill once against a scratch page in a real workspace and look at it.
