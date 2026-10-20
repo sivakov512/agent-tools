@@ -27,6 +27,8 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 	jobs_inbox: `https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000001`
 	jobs_applied: `https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000002`
 	jobs_all: `https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000003`
+	jobs_to_advise: `https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000009`
+	jobs_recent: `https://www.notion.so/40000000000040008000000000000001?v=5000000000004000800000000000000a`
 	proposals_open: `https://www.notion.so/40000000000040008000000000000004?v=50000000000040008000000000000007`
 	proposals_sent: `https://www.notion.so/40000000000040008000000000000004?v=50000000000040008000000000000008`
 	runs_latest: `https://www.notion.so/40000000000040008000000000000002?v=50000000000040008000000000000004`
@@ -44,7 +46,7 @@ Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notio
 	auto_drafts: `off`
 	auto_skip: `off`
 	drafts_task: `trig_01MockDraftsTask0000001`
-	schema: `8`
+	schema: `9`
 	chat_project: `none`
 	dashboard_version: `4`
 </callout>
@@ -139,7 +141,7 @@ Environment quirks only — facts about the API and tools. Rules live in Search 
 
 Fetching a database URL lists its data source with the schema and its views as `<view url="view://<id>">{"name":…}</view>`; **never rows**.
 
-- Jobs `4000…0001` — data source `2000…0001`; views `50000000-0000-4000-8000-000000000001` "Inbox" (Status = New, Found desc), `…0002` "Applied" (Status = Applied), `…0003` "All", `…0006` "Skipped" (Status = Skipped, Decided on desc).
+- Jobs `4000…0001` — data source `2000…0001`; views `50000000-0000-4000-8000-000000000001` "Inbox" (Status = New, Found desc), `…0002` "Applied" (Status = Applied), `…0003` "All", `…0006` "Skipped" (Status = Skipped, Decided on desc), `…0009` "To advise" (Status = New, Advised on empty, Published — or, with no Published, Found — within the past week; Found desc), `…000a` "Recent" (Found within the past week, Found desc).
 - Proposals `4000…0004` — data source `2000…0004`; views `…0007` "Open" (Proposal ID is empty, Written desc), `…0008` "Sent" (Proposal ID is set, Written desc).
 - Runs `4000…0002` — data source `2000…0002`; view `…0004` "Latest" (Created desc).
 - Questions `4000…0003` — data source `2000…0003`; view `…0005` "Open" (Status = Open).
@@ -181,6 +183,7 @@ Questions: `3000…0301` — Question "Feasibility study with analog or optical 
 ## What each read returns (strict)
 
 - Jobs "Inbox" (view …0001): cards 0101 and 0104 only (Status New), 0101 first.
+- Jobs "To advise" (…0009): cards 0101, 0104, in that order. Jobs "Recent" (…000a): 0103, 0102, 0101, 0104 (every card here was found this week), newest Found first.
 - Jobs "Applied" (…0002): 0102 only. Jobs "All" (…0003): 0101, 0102, 0103, 0104. Jobs "Skipped" (…0006): 0103 only.
 - Cards 0101 and 0104 have Advice and the skip columns empty, and no Proposal.
 - Proposals "Open" (…0007): empty. Proposals "Sent" (…0008): 0402 only.
