@@ -133,7 +133,7 @@ Environment quirks only — facts about the API and tools. Rules live in Search 
 - The API returns no attachments or photos of a posting
 ```
 
-**Run state** (`1000…0005`) content: exactly three lines, `PROCESSED_UNTIL: 2026-10-09T13:00+02:00`, `PROPOSALS_SYNCED_UNTIL: 2026-10-08T22:00+02:00` and `JOB_PAGES_PAUSE: 2026-10-09T16:00+02:00 2` (Upwork refused job pages an hour ago). `update_content` changes the line it names; `replace_content` replaces the whole body.
+**Run state** (`1000…0005`) content: exactly three lines, `PROCESSED_UNTIL: 2026-10-09T13:00+02:00`, `PROPOSALS_SYNCED_UNTIL: 2026-10-09T10:30+02:00` and `JOB_PAGES_PAUSE: 2026-10-09T16:00+02:00 2` (Upwork refused job pages an hour ago). `update_content` changes the line it names; `replace_content` replaces the whole body.
 
 ## Databases
 
