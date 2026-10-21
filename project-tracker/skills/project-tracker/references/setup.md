@@ -40,10 +40,10 @@ CREATE TABLE ("Name" TITLE, "Client" RICH_TEXT,
   "Client dashboard" URL COMMENT 'The client dashboard that shows it; set by Claude',
   "Code session" URL COMMENT 'Its Claude Code session on the Mac, opened from the dashboard; set by Claude',
   "Code folder" RICH_TEXT COMMENT 'The folder on the Mac its Code sessions open in (an absolute path); set by its first Code session or on request',
-  "Ref" UNIQUE_ID PREFIX 'PR' COMMENT 'Its ID, to name it in a chat (PR-2); numbered by Notion')
+  "Ref" UNIQUE_ID PREFIX 'PRJ' COMMENT 'Its ID, to name it in a chat (PRJ-2); numbered by Notion')
 
 -- Milestones
-CREATE TABLE ("Name" TITLE, "Ref" UNIQUE_ID PREFIX 'MS' COMMENT 'Its ID, to name it in a chat (MS-12); numbered by Notion',
+CREATE TABLE ("Name" TITLE, "Ref" UNIQUE_ID PREFIX 'MLS' COMMENT 'Its ID, to name it in a chat (MLS-12); numbered by Notion',
   "Project" RELATION('<projects>', DUAL 'Milestones'),
   "Status" SELECT('Planned':gray, 'In progress':blue, 'Paused':yellow, 'Done':green, 'Dropped':brown),
   "Dates" DATE COMMENT 'The dates set for it; drives the Gantt',
@@ -53,7 +53,7 @@ CREATE TABLE ("Name" TITLE, "Ref" UNIQUE_ID PREFIX 'MS' COMMENT 'Its ID, to name
   "Code session" URL COMMENT 'Its Claude Code session on the Mac, opened from the dashboard; set by Claude')
 
 -- Tasks
-CREATE TABLE ("Name" TITLE, "Ref" UNIQUE_ID PREFIX 'TK' COMMENT 'Its ID, to name it in a chat (TK-34); numbered by Notion',
+CREATE TABLE ("Name" TITLE, "Ref" UNIQUE_ID PREFIX 'TSK' COMMENT 'Its ID, to name it in a chat (TSK-34); numbered by Notion',
   "Project" RELATION('<projects>', DUAL 'Tasks'),
   "Milestone" RELATION('<milestones>', DUAL 'Tasks'),
   "Status" SELECT('Planned':gray, 'In progress':blue, 'Waiting':yellow, 'Done':green, 'Dropped':brown),
@@ -66,7 +66,7 @@ CREATE TABLE ("Name" TITLE, "Ref" UNIQUE_ID PREFIX 'TK' COMMENT 'Its ID, to name
 
 -- Problems
 CREATE TABLE ("Name" TITLE, "Project" RELATION('<projects>'),
-  "Ref" UNIQUE_ID PREFIX 'PB' COMMENT 'Its ID, to name it in a chat (PB-5); numbered by Notion',
+  "Ref" UNIQUE_ID PREFIX 'PRB' COMMENT 'Its ID, to name it in a chat (PRB-5); numbered by Notion',
   "Type" SELECT('Blocker':red, 'Risk':orange, 'Question':blue),
   "Status" SELECT('Open':red, 'Waiting':yellow, 'Resolved':green, 'Dropped':brown),
   "Waiting on" RICH_TEXT,
@@ -77,7 +77,7 @@ CREATE TABLE ("Name" TITLE, "Project" RELATION('<projects>'),
   "Code session" URL COMMENT 'Its Claude Code session on the Mac, opened from the dashboard; set by Claude')
 ```
 
-`Ref`'s prefix must be free in the whole Notion workspace, not only in this database: when a create is refused with `Unique ID prefix is already in use` (another tracker or database has it, or a deleted `Ref` still holds it), create that database without its `Ref` line and give it `Ref` as `references/upgrade.md` → **Tracker update** (4 → 5, step 1) says — another prefix, recorded in the config.
+**`Ref` prefixes.** `PRJ` on Projects, `MLS` on Milestones, `TSK` on Tasks, `PRB` on Problems: three letters each, so no two read alike and none reads as something else (`PR` is also a pull request). A prefix must be free in the whole Notion workspace, not only in this database — another tracker or database may have it, or a deleted `Ref` still holds it — so `Unique ID prefix is already in use` is no failure: take the next of `PRJ2` / `MLS2` / `TSK2` / `PRB2`, then `…3`, and so on, until one is accepted. A create refused that way is made without its `Ref` line, and the database then gets `Ref` with `ADD COLUMN` (`references/upgrade.md` → **Columns older trackers lack**) and the next prefix of that chain. The prefixes taken go into the config's `ref_prefixes` (§3).
 
 Then the computed columns, with `notion-update-data-source` `statements`, one `ADD COLUMN` per call (without the trailing `;`), in this order (formulas that reach into another database are rejected by the API, so statuses from other databases come in through rollups):
 
@@ -131,13 +131,13 @@ tasks: `<tasks>`
 
 problems: `<problems>`
 
-ref_prefixes: PR, MS, TK, PB
+ref_prefixes: PRJ, MLS, TSK, PRB
 
-schema: 6
+schema: 7
 </toggle>
 ```
 
-Add the missing lines with `update_content` — `old_str` the toggle's last line and its closing tag exactly as fetched (for an empty toggle, its title line), `new_str` the same with the lines added, each a paragraph of its own (SKILL.md → **Page text**). Never a second toggle. `schema: 6` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run `references/upgrade.md` → **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
+Add the missing lines with `update_content` — `old_str` the toggle's last line and its closing tag exactly as fetched (for an empty toggle, its title line), `new_str` the same with the lines added, each a paragraph of its own (SKILL.md → **Page text**). Never a second toggle. `schema: 7` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run `references/upgrade.md` → **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
 
 ## 4. Views on the databases
 
