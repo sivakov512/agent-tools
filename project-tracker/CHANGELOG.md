@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.15.6](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.5...project-tracker-v1.15.6) (2026-10-21)
+
+
+### Bug Fixes
+
+* **project-tracker:** read and write pages in Notion's current format ([ab36ed2](https://github.com/sivakov512/agent-tools/commit/ab36ed2b3737f7db16b972e8a4f68340fa14d743))
+* **project-tracker:** write a carried-over anchor line as Markdown too ([e2ded88](https://github.com/sivakov512/agent-tools/commit/e2ded885e379270e89bda276e052640ed506a7bf))
+
 ## [1.15.5](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.4...project-tracker-v1.15.5) (2026-10-21)
 
 
