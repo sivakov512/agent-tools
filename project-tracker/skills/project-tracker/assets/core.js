@@ -16,7 +16,45 @@
   function span(text, cls) { return el("span", cls || "", text); }
   function nodash(id) { return String(id || "").replace(/-/g, ""); }
   function cleanUrl(u) { return String(u || "").replace(/^\{\{|\}\}$/g, "").split("?")[0]; }
-  function unesc(s) { return String(s).replace(/\\([$~*_`#\[\]()>|-])/g, "$1"); }
+  function unesc(s) { return String(s).replace(/\\([!-\/:-@\[-`{-~])/g, "$1"); } // a Markdown escape: a backslash before any ASCII punctuation
+  // A page's text as notion-fetch returns it → the dialect everything here reads (the one it returned before Oct 20, 2026): nesting by tabs,
+  // a toggle as <details> with its first line in <summary>, **bold**, *italic*, ~~strike~~, `code`, tables as <table>, <empty-block/>.
+  // Since Oct 20 it nests by two spaces, writes <toggle>, <b>, <i>, <s>, <code>, pipe tables and <p />. Text already in the old dialect
+  // passes unchanged, so it runs once on every page, whichever a workspace returns. Backslash escapes stay: unesc() undoes them for display.
+  function notionText(text) {
+    var out = [], fence = false, depth = 0, sumAt = -1, tbl = null; // depth: the toggles we are in, whose children the old dialect indents
+    function tabs(n) { return new Array(n + 1).join("\t"); }
+    function inl(s) {
+      return s.replace(/<(b|strong)>([\s\S]*?)<\/\1>/g, "**$2**").replace(/<(i|em)>([\s\S]*?)<\/\1>/g, "*$2*")
+        .replace(/<(s|del|strike)>([\s\S]*?)<\/\1>/g, "~~$2~~").replace(/<code>([\s\S]*?)<\/code>/g, "`$1`")
+        .replace(/<u>([\s\S]*?)<\/u>/g, '<span underline="true">$1</span>').replace(/<a href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g, "[$2]($1)");
+    }
+    function cells(t) { return t.replace(/^\s*\|/, "").replace(/\|\s*$/, "").replace(/\\\|/g, "\u0000").split("|").map(function (c) { return c.trim().replace(/\u0000/g, "\\|"); }); } // an escaped \| stays in its cell
+    function flush() { // a pipe table → <table> with its rows and cells indented under it, as the old dialect wrote them
+      if (!tbl) return; var i = tbl.ind;
+      out.push(i + '<table header-row="true">');
+      tbl.rows.forEach(function (r) { out.push(i + "\t<tr>"); r.forEach(function (c) { out.push(i + "\t\t<td>" + inl(c) + "</td>"); }); out.push(i + "\t</tr>"); });
+      out.push(i + "</table>"); tbl = null;
+    }
+    String(text == null ? "" : text).split("\n").forEach(function (l) {
+      var sp = /^( {2})+/.exec(l), body = sp ? l.slice(sp[0].length) : l, ind = tabs(depth) + tabs(sp ? sp[0].length / 2 : 0), m;
+      if (/^\t*```/.test(body)) fence = !fence; else if (fence) { out.push(l); return; } // code stays as written
+      if (/^\t*\|.*\|\s*$/.test(body)) { // a pipe table: a header row, the --- row, then rows
+        if (!tbl) tbl = { ind: ind + /^\t*/.exec(body)[0], rows: [] };
+        if (!/^\t*\|(\s*:?-{3,}:?\s*\|)+\s*$/.test(body)) tbl.rows.push(cells(body));
+        return;
+      }
+      flush();
+      if ((m = /^(\t*)<toggle\b([^>]*)>\s*$/.exec(body))) { out.push(ind + m[1] + "<details" + m[2] + ">"); depth++; sumAt = out.length; return; }
+      if (depth && /^\t*<\/toggle>\s*$/.test(body)) { depth--; sumAt = -1; out.push(tabs(depth) + body.replace("</toggle>", "</details>").replace(/^\t*/, function (d) { return (sp ? tabs(sp[0].length / 2) : "") + d; })); return; }
+      if (sumAt === out.length && body.trim()) { out.push(ind.slice(1) + body.replace(/^(\t*)(.*)$/, function (x, d, s) { return d + "<summary>" + inl(s) + "</summary>"; })); sumAt = -1; return; } // a toggle's first line is its summary
+      if (!body.trim()) { out.push(""); return; }
+      if (/^\t*<p\s*\/>\s*$/.test(body)) { out.push(ind + body.replace(/<p\s*\/>/, "<empty-block/>")); return; }
+      out.push(ind + inl(body.replace(/^(\t*)<p>([\s\S]*)<\/p>\s*$/, "$1$2")));
+    });
+    flush();
+    return out.join("\n");
+  }
   function clean(s) { // Notion markdown → plain text, for one-line labels
     return unesc(String(s == null ? "" : s)
       .replace(/<mention-[a-z]+[^>]*>([^<]*)<\/mention-[a-z]+>/g, "$1")
@@ -687,7 +725,7 @@
     DAY: DAY, OPEN_MS: OPEN_MS, SPANS: SPANS, CHEV: CHEV,
     whoOf: whoOf,
     refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled,
-    el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, fold: showPart, foldDetails: foldDetails,
+    el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, notionText: notionText, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, fold: showPart, foldDetails: foldDetails,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
     problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState,
     timeline: timeline, actions: actions, typeTag: typeTag, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
