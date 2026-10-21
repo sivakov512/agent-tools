@@ -5,7 +5,7 @@ Tools for AI agents, one folder per plugin. Skills use the open [Agent Skills](h
 | Plugin | Skill | What it does | Needs |
 |---|---|---|---|
 | [`project-tracker`](project-tracker/README.md) | `project-tracker` | Keeps client project plans in Notion up to date from plain conversation: milestones and tasks, progress, slips, problems, status, weekly reports, notes, undo; new projects from emails, documents or Upwork contracts. Creates the Notion structure and a live dashboard itself. | Notion MCP (Upwork MCP for contracts) |
-| [`upwork-pulse`](upwork-pulse/README.md) | `upwork-pulse` | Runs an Upwork job search with Notion as the source of truth: hourly search and assessment by your rules, digests, a weekly review that turns open questions into rules, a live dashboard, proposals drafted in chat and sent only on your go. Creates the Notion structure, the dashboard and the scheduled tasks itself. | Notion MCP, Upwork MCP |
+| [`upwork-pulse`](upwork-pulse/README.md) | `upwork-pulse` | Runs an Upwork job search with Notion as the source of truth: hourly search and assessment by your rules, a weekly review that turns open questions into rules, a live dashboard, proposals drafted in chat and sent only on your go. Creates the Notion structure, the dashboard and the scheduled tasks itself. | Notion MCP, Upwork MCP |
 | [`alter-ego`](alter-ego/README.md) | `alter-ego` | Decides per repository whose name Claude's git and GitHub work goes under: clean (as you, no AI marks) or a GitHub bot account that commits, pushes and opens PRs, its token kept in the macOS Keychain or a Linux secret store. Asks once per repository, enforced by hooks. | Claude Code (hooks), `git`, `gh`, `jq` |
 
 ## Install
