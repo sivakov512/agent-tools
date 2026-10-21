@@ -10,7 +10,7 @@ Started by SKILL.md → **Finding things** (a `schema` below the skill's, a 0.x 
 
 SKILL.md (**Finding things**) starts it, or `references/setup.md` §3 on a tracker that has rows.
 
-The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **6**. A tracker below it is brought up before the request, as SKILL.md → **Finding things** says; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose `references/setup.md` §3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again: a column is added only where the data source's schema, fetched first, lacks it — Notion refuses a second column of the same name, and the one already there (a column the user added or restored, or an interrupted run's) may hold values that must stay. Each step ends by writing its own number in the config toggle (`schema: 2` after 1 → 2, `schema: 3` after 2 → 3, …) as its last write: the number then says exactly which steps are done, so after a step that failed the next conversation resumes at that step, and a step is never taken as done before it is. The numbers are for failures, never a place to stop: steps run in order, all of them before the request is answered (a schema-1 tracker gets 1 → 2, 2 → 3, 3 → 4, 4 → 5, then 5 → 6, in one go); only a step that fails stops it. If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
+The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **7**. A tracker below it is brought up before the request, as SKILL.md → **Finding things** says; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose `references/setup.md` §3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again: a column is added only where the data source's schema, fetched first, lacks it — Notion refuses a second column of the same name, and the one already there (a column the user added or restored, or an interrupted run's) may hold values that must stay. Each step ends by writing its own number in the config toggle (`schema: 2` after 1 → 2, `schema: 3` after 2 → 3, …) as its last write: the number then says exactly which steps are done, so after a step that failed the next conversation resumes at that step, and a step is never taken as done before it is. The numbers are for failures, never a place to stop: steps run in order, all of them before the request is answered (a schema-1 tracker gets 1 → 2, 2 → 3, 3 → 4, 4 → 5, 5 → 6, then 6 → 7, in one go); only a step that fails stops it. If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
 
 **Columns older trackers lack.** Fetch each data source and add the plain columns that are missing — `Origin`, `Chat` and `Claude project`, which only pre-release 1.0 trackers lack, `Order`, which schema 1 lacks, `Client dashboard`, which schema 2 lacks, `Ref`, which schema 4 lacks, and `Code session` and `Code folder`, which schema 5 lacks (one call per data source, statements joined by `;`):
 
@@ -29,8 +29,8 @@ ADD COLUMN "Order" NUMBER COMMENT 'Position in the plan (1, 2, …), so the orde
 -- on <projects>
 ADD COLUMN "Client dashboard" URL COMMENT 'The client dashboard that shows it; set by Claude'
 
--- on each, with its own prefix: PR <projects>, MS <milestones>, TK <tasks>, PB <problems>
-ADD COLUMN "Ref" UNIQUE_ID PREFIX 'TK' COMMENT 'Its ID, to name it in a chat (TK-34); numbered by Notion'
+-- on each, with its own prefix (`references/setup.md` §2 → `Ref` prefixes): PRJ <projects>, MLS <milestones>, TSK <tasks>, PRB <problems>
+ADD COLUMN "Ref" UNIQUE_ID PREFIX 'TSK' COMMENT 'Its ID, to name it in a chat (TSK-34); numbered by Notion'
 
 -- on <projects>, <milestones>, <tasks>, <problems>, each
 ADD COLUMN "Code session" URL COMMENT 'Its Claude Code session on the Mac, opened from the dashboard; set by Claude'
@@ -68,12 +68,12 @@ The closing line names what is new for the user: client dashboards, and that `Cl
 The closing line names what is new for the user: every page — project, milestone, task, problem — can have a description and a checklist (they ask: "add a checklist to the layout task: …"), then Notes, Private notes and History; a client dashboard shows all of it but Private notes; the user's own dashboard needs its update to show the parts (the offer follows).
 
 **4 → 5: `Ref`, an ID per row.**
-1. Fetch each data source; each one whose schema has no `Ref` gets it (`ADD COLUMN` as in **Columns older trackers lack**): `"Ref" UNIQUE_ID PREFIX 'PR'` on Projects, `'MS'` on Milestones, `'TK'` on Tasks, `'PB'` on Problems. A prefix is unique across the whole Notion workspace, so `Unique ID prefix is already in use` is no failure: take the next of `PRJ` / `MST` / `TSK` / `PRB`, then `PR2` / `MS2` / `TK2` / `PB2`, and so on, until one is accepted. Where `Ref` already exists (a column the user added or restored), it stays as it is, and its prefix is read from one row's page fetch (`"Ref":"TK-3"`). Notion numbers the rows that exist itself, in no set order; nothing is written to them.
-2. Write `ref_prefixes: <projects>, <milestones>, <tasks>, <problems>` in the config toggle (the line replaced, or added before `schema`): the prefixes in use. Views give `Ref` as the bare number, so this line is what puts `TK-` in front of it on the dashboard and what an ID the user writes is matched against.
+1. Fetch each data source; each one whose schema has no `Ref` gets it (`ADD COLUMN` as in **Columns older trackers lack**) with its prefix and, when that one is in use, the next of its chain (`references/setup.md` §2, `Ref` prefixes). Where `Ref` already exists (a column the user added or restored), it stays as it is — 6 → 7 renames its prefix — and its prefix is read from one row's page fetch (`"Ref":"TSK-3"`). Notion numbers the rows that exist itself, in no set order; nothing is written to them.
+2. Write `ref_prefixes: <projects>, <milestones>, <tasks>, <problems>` in the config toggle (the line replaced, or added before `schema`): the prefixes in use. Views give `Ref` as the bare number, so this line is what puts `TSK-` in front of it on the dashboard and what an ID the user writes is matched against.
 3. The root views show it right after `Name` (`notion-update-view`, the `SHOW` lines of `references/setup.md` §4); the project pages' views stay as they are — their rows carry `Ref` all the same.
 4. Write `schema: 5` in the config toggle, as above — last.
 
-The closing line names what is new for the user: every project, milestone, task and problem has an ID — next to its name on the dashboard and in Notion — to name it in a chat ("link PB-5 to TK-34", "TK-34 is done"); and, when a prefix other than `PR` / `MS` / `TK` / `PB` was taken, which and why (a deleted `Ref` that holds the usual one can be restored from the database's Properties → deleted properties, with its old numbers).
+The closing line names what is new for the user: every project, milestone, task and problem has an ID — next to its name on the dashboard and in Notion — to name it in a chat ("link PRB-5 to TSK-34", "TSK-34 is done"); and, when a prefix other than `PRJ` / `MLS` / `TSK` / `PRB` was taken, which and why (a deleted `Ref` that holds the usual one can be restored from the database's Properties → deleted properties, with its old numbers).
 
 **5 → 6: Code sessions.** A row gets a Claude Code session on the Mac beside its chat (`references/chats.md`).
 1. Fetch each data source; add `Code session` to each of the four and `Code folder` to Projects where they are missing (`ADD COLUMN` as in **Columns older trackers lack**). Nothing to fill: a Code session writes its own link when the dashboard starts it, and a project's first one fills `Code folder`. The views stay as they are — a view returns every property, whatever it shows.
@@ -81,12 +81,20 @@ The closing line names what is new for the user: every project, milestone, task 
 
 The closing line names what is new for the user: a Code session on the Mac for any project, milestone, task or problem, next to its chat, from the dashboard once it is updated (the offer follows); and that `Code session` and `Code folder` are best set to *Hide when empty* on the pages (`references/setup.md` §8 — the API cannot).
 
-A future step goes here as **6 → 7**, and the number above moves with it.
+**6 → 7: three-letter IDs.** The `Ref` prefixes become `PRJ` / `MLS` / `TSK` / `PRB` (`references/setup.md` §2), since `PR` reads as a pull request and `PR` and `PB` were confused; the numbers stay, so `TK-17` becomes `TSK-17`.
+1. The prefixes in use are the config's `ref_prefixes` (no such line: `PR, MS, TK, PB`).
+2. Each database whose prefix is not its new one, nor one of that one's chain (`PRJ2`, `PRJ3`, … — taken earlier when it was in use), gets `ALTER COLUMN "Ref" SET UNIQUE_ID PREFIX '<new>'` (`notion-update-data-source`): Notion keeps every row's number and frees the old prefix. `Unique ID prefix is already in use` → the next of the chain, as setup says. Nothing is written to the rows.
+3. Write `ref_prefixes: <the prefixes now in use>` and `ref_prefixes_before: <the ones step 1 read>` in the config toggle (each line replaced, or added before `schema`), then `schema: 7` — last.
+
+The closing line names what is new for the user: every ID has three letters now (`TK-17` is `TSK-17`, the number stays), the old IDs still work in a chat, and, when a prefix other than `PRJ` / `MLS` / `TSK` / `PRB` was taken, which and why.
+
+A future step goes here as **7 → 8**, and the number above moves with it.
 
 ## Old shapes
 
 What older versions left on pages and configs that are never converted in place; the modes that meet them point here.
 
+- **An ID with an older prefix** — one of the config's `ref_prefixes_before`, in its place (projects, milestones, tasks, problems) — names the row with the same number in the same database: `TK-17` is `TSK-17`. Replies name it by its current ID.
 - **A status callout** on a project page (`**Now:** …`): the first time you write to that project, remove it (`update_content`, `old_str` = the whole callout as fetched, `new_str` empty) and say so in the reply.
 - **A `Client sees` note in the dated form** (`**Oct 8** — Client sees: …`) is read the same as `**Client sees** — …` (`references/client-dashboards.md` → **What a client may see**).
 - **A published `data.js` without any `page` key** was made when the client dashboard showed no page content: before this first refresh with pages, run `references/client-dashboards.md` → **Make one** step 2 on every covered page and refresh only after the user has answered — until then it keeps showing the previous state, and the reply says so.
@@ -154,7 +162,7 @@ Tell the user what moved (counts per project), what stayed behind, the new page,
 
 ## Output
 
-A tracker at schema 6, each step's number written as that step's last write, said in one line before the request is answered; for a 0.x tracker, the new tracker and the message of **5. Retire the old tracker**.
+A tracker at schema 7, each step's number written as that step's last write, said in one line before the request is answered; for a 0.x tracker, the new tracker and the message of **5. Retire the old tracker**.
 
 ## Off limits
 
