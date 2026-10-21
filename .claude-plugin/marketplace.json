@@ -12,7 +12,7 @@
     {
       "name": "upwork-pulse",
       "source": "./upwork-pulse",
-      "description": "Upwork job search run by scheduled agents with rules and data in Notion: hourly search and assessment, digests, weekly rule review, a live dashboard, proposals drafted in chat and sent on your go."
+      "description": "Upwork job search run by scheduled agents with rules and data in Notion: hourly search and assessment, weekly rule review, a live dashboard, proposals drafted in chat and sent on your go."
     },
     {
       "name": "alter-ego",
