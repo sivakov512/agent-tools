@@ -39,7 +39,7 @@ A tracker that already has rows and lacks `Order`, `Client dashboard` or `Ref` i
 1. Milestones and Tasks get `Order` (`ADD COLUMN` as in **Columns older trackers lack**, skipped where it exists).
 2. Number the rows of every project in `Active`, `Closed` too: milestones 1, 2, … per project; tasks within each milestone, and a project's tasks without a milestone among themselves. A body's `Contract milestone N` sets N. Otherwise by `Dates`; undated rows after the dated ones, in the order history states, else as the views list them (named in the closing line, so the user can reorder — the update never waits on a question). Rows that already have `Order` keep it.
 3. Views sort by it (`notion-update-view`; the filters stay): root `Next up` and every project's `Schedule` and `Tasks` (the table) → `CLEAR SORT; SORT BY "Order" ASC, "Dates" ASC`; root Tasks `All` → `CLEAR SORT; SORT BY "Dates" ASC, "Order" ASC` (`references/setup.md` §4 says why).
-4. Write `schema: 2` in the config toggle (the line replaced, or added as its last line, tab-indented) — the step's last write.
+4. Write `schema: 2` in the config toggle (the line replaced, or added as its last line — SKILL.md → **Page text**) — the step's last write.
 
 **2 → 3: `Client dashboard`.**
 1. Projects get `Client dashboard` (`ADD COLUMN` as in **Columns older trackers lack**, skipped where it exists). Nothing to fill: it is set when a client dashboard is made (`references/client-dashboards.md`).

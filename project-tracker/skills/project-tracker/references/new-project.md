@@ -86,22 +86,26 @@ Tabs — fetch the page, then `update_content` with `old_str` = the four `<datab
 
 ```
 <tabs>
-	<tab>
-		Plan
-		<database url="<plan block url>" inline="true" data-source-url="collection://<milestones>"></database>
-	</tab>
-	<tab>
-		Tasks
-		<database url="<tasks block url>" inline="true" data-source-url="collection://<tasks>"></database>
-	</tab>
-	<tab>
-		Schedule
-		<database url="<schedule block url>" inline="true" data-source-url="collection://<milestones>"></database>
-	</tab>
-	<tab>
-		Problems
-		<database url="<problems block url>" inline="true" data-source-url="collection://<problems>"></database>
-	</tab>
+<tab>
+Plan
+
+<database url="<plan block url>" inline="true" data-source-url="collection://<milestones>"></database>
+</tab>
+<tab>
+Tasks
+
+<database url="<tasks block url>" inline="true" data-source-url="collection://<tasks>"></database>
+</tab>
+<tab>
+Schedule
+
+<database url="<schedule block url>" inline="true" data-source-url="collection://<milestones>"></database>
+</tab>
+<tab>
+Problems
+
+<database url="<problems block url>" inline="true" data-source-url="collection://<problems>"></database>
+</tab>
 </tabs>
 ```
 
