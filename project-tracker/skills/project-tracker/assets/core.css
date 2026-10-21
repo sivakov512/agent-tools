@@ -423,10 +423,11 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 .to-top.on { opacity: 1; pointer-events: auto; transform: none; }
 .to-top:hover { color: var(--text); border-color: var(--border-2); }
 @media (prefers-reduced-motion: reduce) { .to-top { transition: none; } }
-/* Claude chat: one per row, the same look as in Upwork Pulse; ▾ beside it when the chat exists, to start it over */
+/* Claude: one button per row — its chat, </> its Code session on the Mac (not on a phone), ▾ the rare actions by domain */
 .chat { position: relative; display: inline-flex; align-items: stretch; border-radius: 6px; background: var(--accent-soft); font-size: 13px; font-weight: 500; white-space: nowrap; }
 .chat > a { display: inline-flex; align-items: center; gap: 3px; padding: 4px 10px; border-radius: 6px; color: var(--accent); text-decoration: none; }
-.chat > a::before { content: "\2733"; font-size: .85em; margin-right: 2px; }
+.cico { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.chat > a > .cico { margin-right: 3px; }
 .chat > a .arr { opacity: .7; }
 .chat > a:hover, .chat > .more:hover { filter: brightness(1.08); }
 .chat.split > a { border-radius: 6px 0 0 6px; padding-right: 8px; }
@@ -437,6 +438,16 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 .chat-m a .d { display: block; font-size: 12.5px; line-height: 1.45; font-weight: 400; color: var(--text-mute); margin-top: 2px; }
 .chat-m a:hover { background: var(--surface-2); }
 .dr-bar .chat { flex: none; } .dr-bar .chat-m { left: auto; right: 0; }
+.chat-m .sep { height: 1px; margin: 6px 4px; background: var(--border); }
+.chat-m.up { top: auto; bottom: calc(100% + 6px); }
+.chat-m .grp-l { display: flex; align-items: center; gap: 6px; padding: 6px 10px 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); } /* a group's label, in the drawer-fact style, with its mode's mark */
+.chat-m .grp-l .cico { width: 13px; height: 13px; }
+.chat.split > a.cpart { display: grid; place-items: center; min-width: 30px; padding: 0 9px; border-radius: 0; border-left: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); color: var(--accent); text-decoration: none; font-size: 13px; }
+.chat > a.cpart > .cico { margin: 0; }
+.chat-m .cfolder { padding: 2px 10px 8px; font-size: 12.5px; line-height: 1.45; color: var(--text-mute); white-space: normal; overflow-wrap: anywhere; } /* the button's nowrap stops here: a long path wraps */
+.chat-m .off { display: block; padding: 9px 10px; border-radius: 8px; color: var(--text-mute); font-size: 14px; font-weight: 500; white-space: normal; cursor: default; opacity: .75; }
+.chat-m .off .d { display: block; font-size: 12.5px; font-weight: 400; margin-top: 2px; }
+@media (max-width: 600px) { .dr-bar .chat-m { left: 0; right: auto; } } /* the button sits at the bar's left on a phone: its menu opens rightwards, inside the screen */
 
 /* page text from Notion */
 .md { font-size: 14px; line-height: 1.6; color: var(--text); }

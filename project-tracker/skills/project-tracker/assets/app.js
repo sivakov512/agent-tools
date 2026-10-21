@@ -202,7 +202,7 @@
         S.projects = rows.map(function (r) {
           var p = old[key(r.url)] || { kind: "project" };
           p.url = cleanUrl(r.url); p.key = key(r.url); p.name = clean(r.Name) || "Untitled"; p.client = clean(r.Client); p.status = r.Status || "";
-          p.summary = clean(r.Summary); p.target = dnum(r["date:Target end:start"]); p.repo = r.Repository || ""; p.source = r.Source || ""; p.chat = r.Chat || ""; p.cproj = claudeProject(r["Claude project"]); p.origin = originOf(r); p.ref = PT.refOf("project", r.Ref);
+          p.summary = clean(r.Summary); p.target = dnum(r["date:Target end:start"]); p.repo = r.Repository || ""; p.source = r.Source || ""; p.chat = r.Chat || ""; p.code = r["Code session"] || ""; p.cfolder = unesc(r["Code folder"] || "").trim(); p.cproj = claudeProject(r["Claude project"]); p.origin = originOf(r); p.ref = PT.refOf("project", r.Ref);
           return p;
         }).filter(function (p) { return p.status === "Active" || p.status === "Paused"; });
         S.projErr = null; render();
@@ -746,11 +746,12 @@
     return box;
   }
 
-  // ---------- Claude chats: one per project, milestone, task or problem, its link kept in the row's `Chat` ----------
-  // Desktop: the Claude app's own link (artifacts let claude:// out there). Phone: the web, since iOS keeps claude.ai links in the browser.
+  // ---------- Claude: one chat and one Code session per project, milestone, task or problem, their links kept in the row's `Chat` and `Code session` ----------
+  // Desktop: the Claude app's own links (artifacts let claude:// out there). Phone: the web, since iOS keeps claude.ai links in the browser; a Code session lives on the Mac only.
   var MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "") || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent || ""));
   var KIND = { project: "project", ms: "milestone", task: "task", problem: "problem" }, TITLE = { project: "Project", ms: "Milestone", task: "Task", problem: "Problem" };
   function chatSid(u) { var m = /session_([A-Za-z0-9]+)/.exec(String(u || "")); return m ? m[1] : null; }
+  function codeSid(u) { var m = /\blocal_([A-Za-z0-9-]{1,64})/.exec(String(u || "")); return m ? m[1] : null; } // `Code session` holds the session's own link, claude://claude.ai/epitaxy/local_<id>
   function claudeProject(v) { // the Projects field `Claude project`: "<name> — <project id>"
     var m = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i.exec(String(v || ""));
     return m ? { id: m[1].toLowerCase(), name: clean(String(v).replace(m[0], "").replace(/[\s—–·:-]+$/, "")) || "Claude project" } : null;
@@ -758,22 +759,49 @@
   function newChatUrl(q, cp) { // the web takes the tracker project's claude.ai project; the app's own link has no way to name one
     return MOBILE ? "https://claude.ai/new?mode=cowork&surface=cowork" + (cp ? "&project=" + cp.id : "") + "&q=" + encodeURIComponent(q) : "claude://cowork/new?q=" + encodeURIComponent(q);
   }
-  function chatQ(x, kind, again) { // "Task: <name>" first, then its page, then the chat's name, which the chat sets itself (the app's own title is a guess) — only what to load, what to do next is the user's to say
-    var pr = kind === "project" ? null : x.project || allProjByKey()[x.pk], name = TITLE[kind] + ": " + x.name + (pr ? " — " + pr.name : "");
-    return name + " (Project Tracker, " + x.url + "). " + (again ? "Its old chat is gone: this is its chat from now on. " : "") + "Chat title: \"" + name + "\". Load it with the project-tracker skill.";
+  function newCodeUrl(q, folder) { return "claude://code/new?" + (folder ? "folder=" + encodeURIComponent(folder) + "&" : "") + "q=" + encodeURIComponent(q); } // the app asks to confirm the folder, or for one when there is none
+  function homePath(f) { return String(f).replace(/^\/Users\/[^/]+/, "~"); }
+  function chatQ(x, kind, again, code) { // "Task: <name>" first, then its page, for a Code session the words that say which column it claims, then the session's name, which it sets itself (the app's own title is a guess) — only what to load, what to do next is the user's to say
+    var pr = kind === "project" ? x : x.project || allProjByKey()[x.pk], name = TITLE[kind] + ": " + x.name + (kind !== "project" && pr ? " — " + pr.name : ""), what = code ? "Code session" : "chat";
+    return name + " (Project Tracker, " + x.url + "). " + (again ? "Its old " + what + " is gone: this is its " + what + " from now on. " : "") + (code ? "Code session" + (pr && pr.repo ? ", repository " + pr.repo : "") + ". " : "") + "Chat title: \"" + (code ? "Code: " : "") + name + "\". Load it with the project-tracker skill.";
   }
   function chatLink(href, text, title) { var a = el("a", "", text); a.href = href; a.target = "_blank"; a.rel = "noopener"; a.appendChild(el("span", "arr", " ↗")); if (title) a.title = title; a.addEventListener("click", function (e) { e.stopPropagation(); }); return a; }
-  function chatBtn(x, kind) { // open the row's chat; with no chat yet, start it — that chat writes its own link back to the row
-    var sid = chatSid(x.chat), w = el("span", "chat" + (sid ? " split" : "")), pr = kind === "project" ? x : x.project || allProjByKey()[x.pk], cp = pr ? pr.cproj : null;
-    if (!sid) { w.appendChild(chatLink(newChatUrl(chatQ(x, kind, false), cp), "Claude chat", "Start a chat with Claude about this " + KIND[kind] + "; every later click opens the same chat")); return w; }
-    w.appendChild(chatLink(MOBILE ? "https://claude.ai/cowork/cse_" + sid : "claude://claude.ai/code/session_" + sid, "Claude chat", "This " + KIND[kind] + "'s chat with Claude"));
+  var ICON = { // the Claude app's own marks for its two modes (outlines in the shape of Tabler's messages and code), drawn in the text's colour
+    chat: '<svg class="cico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 14l-3-3h-7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v10"/><path d="M14 15v2a1 1 0 0 1-1 1H6l-3 3V11a1 1 0 0 1 1-1h2"/></svg>',
+    code: '<svg class="cico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8l-4 4 4 4M17 8l4 4-4 4M14 4l-4 16"/></svg>' };
+  function folderLine(folder) { var d = el("div", "cfolder", folder ? "Folder: " + homePath(folder) : "Folder: not set — the app asks for it"); if (folder) d.title = folder; return d; } // a long path wraps, never cut; its full form in the tooltip
+  function grpLabel(kind, text) { var d = el("div", "grp-l"); d.innerHTML = ICON[kind]; d.appendChild(document.createTextNode(text)); return d; }
+  function menuItem(href, text, desc) { // a line of the Claude menu: a link, or with no href a greyed line whose desc says why
+    var a = href ? chatLink(href, text) : el("span", "off", text);
+    if (desc) a.appendChild(span(desc, "d"));
+    return a;
+  }
+  function placeMenu(menu, w) { // a section's panel clips what leaves it (its round corners): in its last rows the menu opens upwards when only there it fits
+    menu.classList.remove("up"); var box = w.closest(".dsec-b"); if (!box) return;
+    var b = box.getBoundingClientRect(), r = w.getBoundingClientRect(), h = menu.offsetHeight + 6;
+    if (r.bottom + h > b.bottom && r.top - h >= b.top) menu.classList.add("up");
+  }
+  function chatBtn(x, kind) { // the row's Claude: its first part opens the chat, </> its Code session on the Mac — each started when there is none yet, and it writes its own link back to the row; ▾ the rare actions
+    var sid = chatSid(x.chat), w = el("span", "chat split"), pr = kind === "project" ? x : x.project || allProjByKey()[x.pk], cp = pr ? pr.cproj : null;
+    var chatUrl = sid ? (MOBILE ? "https://claude.ai/cowork/cse_" + sid : "claude://claude.ai/code/session_" + sid) : newChatUrl(chatQ(x, kind, false), cp);
+    var main = chatLink(chatUrl, "Claude", sid ? "Opens this " + KIND[kind] + "'s chat" : "Start a chat about this " + KIND[kind] + "; every later click opens the same chat");
+    main.insertAdjacentHTML("afterbegin", ICON.chat); w.appendChild(main);
+    var csid = codeSid(x.code), folder = pr ? pr.cfolder : "", where = folder ? "in " + homePath(folder) : "the app asks for the folder";
+    var codeUrl = csid ? "claude://claude.ai/epitaxy/local_" + csid : newCodeUrl(chatQ(x, kind, false, true), folder);
+    if (!MOBILE) { // a phone cannot reach a Code session on the Mac: there the button is the chat's alone
+      var cb = el("a", "cpart"); cb.innerHTML = ICON.code; cb.href = codeUrl; cb.target = "_blank"; cb.rel = "noopener";
+      cb.title = csid ? "Opens this " + KIND[kind] + "'s Code session on this Mac" : "Start a Code session on this Mac, " + where + "; every later click opens the same session"; cb.setAttribute("aria-label", cb.title);
+      cb.addEventListener("click", function (e) { e.stopPropagation(); }); w.appendChild(cb);
+    }
+    var items = [grpLabel("chat", "Chat"), sid ? menuItem(newChatUrl(chatQ(x, kind, true), cp), "New chat", "For when the old one is deleted or too long: the new chat becomes this " + KIND[kind] + "'s chat.") : menuItem(chatUrl, "Start a chat")]; // by domain, only what the parts do not; never empty
+    items.push(el("div", "sep"), grpLabel("code", "Code"));
+    if (MOBILE) items.push(menuItem(null, csid ? "New Code session" : "Start a Code session", "On the Mac"));
+    else items.push(csid ? menuItem(newCodeUrl(chatQ(x, kind, true, true), folder), "New Code session", "For when the old one is archived or too long: the new session becomes this " + KIND[kind] + "'s Code session.") : menuItem(codeUrl, "Start a Code session", "On this Mac"), folderLine(folder));
     var mb = btn("more", null); mb.innerHTML = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.8 5 6.8 8 3.8"/></svg>';
-    mb.setAttribute("aria-label", "More chat options"); mb.setAttribute("aria-expanded", "false");
+    mb.setAttribute("aria-label", "More: new chat, new Code session"); mb.setAttribute("aria-expanded", "false");
     var menu = el("div", "chat-m"); menu.hidden = true;
-    var nw = chatLink(newChatUrl(chatQ(x, kind, true), cp), "New chat"); nw.appendChild(span("For when the old one is deleted or too long: the new chat becomes this " + KIND[kind] + "'s chat.", "d"));
-    nw.addEventListener("click", function () { menu.hidden = true; mb.setAttribute("aria-expanded", "false"); });
-    menu.appendChild(nw);
-    mb.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; document.querySelectorAll(".chat-m").forEach(function (m) { m.hidden = true; }); menu.hidden = !on; mb.setAttribute("aria-expanded", String(on)); });
+    items.forEach(function (it) { if (it.tagName === "A") it.addEventListener("click", function () { menu.hidden = true; mb.setAttribute("aria-expanded", "false"); }); menu.appendChild(it); });
+    mb.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; document.querySelectorAll(".chat-m").forEach(function (m) { m.hidden = true; }); menu.hidden = !on; mb.setAttribute("aria-expanded", String(on)); if (on) placeMenu(menu, w); });
     w.appendChild(mb); w.appendChild(menu); return w;
   }
   document.addEventListener("click", function (e) { if (!e.target.closest(".dd-m, .chat-m, .info")) closeMenus(); });
@@ -816,11 +844,13 @@
     pageBody(x, i.url, { split: true });
     if (!SNAP) actions(x, [chatBtn(i, "problem"), link(i.url, "Open in Notion ↗", "ext")]);
   }
-  function projectLinks(p) { // what the user's project page adds to the project at a glance: Claude project, repository, source — each always there or said to be missing
+  function projectLinks(p) { // what the user's project page adds to the project at a glance: Claude project, repository, Code folder, source — each always there or said to be missing
     return function (pair) {
       if (p.cproj) { var cpl = link("https://claude.ai/project/" + p.cproj.id, p.cproj.name + " ↗", "ext"); cpl.title = "The claude.ai project this project's chats open in (on the phone and the web)"; pair("Claude project", cpl); }
       else pair("Claude project", "none", true).title = "Its chats open outside claude.ai projects. To set one, tell Claude in a chat: \u201copen its chats in <project link>\u201d";
       if (p.repo) { var rp = link(p.repo, String(p.repo).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "").split("/").slice(-2).join("/") + " ↗", "ext"); rp.title = p.repo; pair("Repository", rp); }
+      if (p.cfolder) pair("Code folder", homePath(p.cfolder)).title = p.cfolder + " — new Code sessions of this project open here";
+      else pair("Code folder", "not set — the first Code session fills it", true).title = "Its first Code session writes its repository's folder here; or tell Claude in a chat: \u201cits code is in <folder>\u201d";
       if (p.source) pair(p.origin === "Upwork" ? "Upwork" : "Source", link(p.source, (p.origin === "Upwork" ? "contract" : "link") + " ↗", "ext"));
     };
   }

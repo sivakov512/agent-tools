@@ -131,7 +131,7 @@
   }
   function msOf(row, project) { // a date with no end is a start whose end is not agreed (openEnd): never late, drawn on the timeline for a set span
     var start = dnum(row["date:Dates:start"]), end = dnum(row["date:Dates:end"]);
-    var m = { kind: "ms", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, tasks: [], chat: row.Chat || "", order: num(row.Order), ref: refOf("ms", row.Ref) };
+    var m = { kind: "ms", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, tasks: [], chat: row.Chat || "", code: row["Code session"] || "", order: num(row.Order), ref: refOf("ms", row.Ref) };
     m.openEnd = start != null && end == null;
     var paused = m.status === "Paused" || project.status === "Paused";
     m.late = lateOf(m, paused); m.state = stateOfItem(m, paused); m.paused = paused && m.status !== "Done";
@@ -140,7 +140,7 @@
   function taskOf(row, project, msByKey) {
     var start = dnum(row["date:Dates:start"]), end = dnum(row["date:Dates:end"]);
     var mk = rel(row.Milestone).map(key)[0] || null, ms = mk ? msByKey[mk] : null;
-    var k = { kind: "task", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", waiting: clean(row["Waiting on"]), start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, mk: ms ? mk : null, ms: ms || null, chat: row.Chat || "", order: num(row.Order), ref: refOf("task", row.Ref) };
+    var k = { kind: "task", url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", waiting: clean(row["Waiting on"]), start: start, end: end, finished: dnum(row["date:Finished:start"]), project: project, mk: ms ? mk : null, ms: ms || null, chat: row.Chat || "", code: row["Code session"] || "", order: num(row.Order), ref: refOf("task", row.Ref) };
     k.openEnd = start != null && end == null;
     var paused = project.status === "Paused" || (ms && ms.status === "Paused");
     k.late = lateOf(k, paused); k.state = stateOfItem(k, paused); k.paused = paused && k.status !== "Done";
@@ -162,7 +162,7 @@
   }
   function titled(cls, x, name) { var s = el("span", cls, name); var r = refTag(x); if (r) s.appendChild(r); return s; } // a name with its ID after it
   function problemOf(r) {
-    return { kind: "problem", url: cleanUrl(r.url), name: clean(r.Name) || "Untitled", type: r.Type || "", status: r.Status || "", waiting: clean(r["Waiting on"]), ref: refOf("problem", r.Ref), summary: clean(r.Summary), opened: dnum(r["date:Opened:start"]), resolvedOn: dnum(r["date:Resolved on:start"]), pk: rel(r.Project).map(key)[0], mk: rel(r.Milestone).map(key)[0], tk: rel(r.Task).map(key)[0], chat: r.Chat || "" };
+    return { kind: "problem", url: cleanUrl(r.url), name: clean(r.Name) || "Untitled", type: r.Type || "", status: r.Status || "", waiting: clean(r["Waiting on"]), ref: refOf("problem", r.Ref), summary: clean(r.Summary), opened: dnum(r["date:Opened:start"]), resolvedOn: dnum(r["date:Resolved on:start"]), pk: rel(r.Project).map(key)[0], mk: rel(r.Milestone).map(key)[0], tk: rel(r.Task).map(key)[0], chat: r.Chat || "", code: r["Code session"] || "" };
   }
   function buildPlan(p, msRows, taskRows) { // a project's Schedule and Tasks rows → its milestones, each with its tasks, and all its tasks
     var msList = msRows.map(function (row) { return msOf(row, p); }).filter(function (m) { return m.status !== "Dropped"; });
