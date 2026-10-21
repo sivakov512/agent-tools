@@ -56,6 +56,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **A report covers the period the user names** ("this week", "two weeks", "since Oct 1"), else the last 7 days: one rule for whatever looks back, so no report counts its days differently.
 - **Removing asks drop or delete**: a dropped row keeps the plan's history, a deleted one goes to Notion's trash.
 - **Each tracker project may have its own claude.ai project** for its dashboard chats, set when the project is made.
+- **Pages are read in either form and written in Notion's current one.** On Oct 20, 2026 Notion's MCP changed how `notion-fetch` shows pages (`<toggle>`, `<b>`, `<code>`, blank lines, two-space nesting, escapes) and its spec now saves a written `<details>`, `<summary>` or `<code>` as literal text. So `old_str` is copied from the fetch exactly, escapes included; what is written is Markdown and Notion's own tags, containers holding their children after a blank line rather than tab-indented; the config toggle is recognised by its title in either form. One home: `SKILL.md` → **Page text**. Case `setup-partial` runs on a new-format workspace, `schema-update` on an old-format one.
 
 ## Where things live
 

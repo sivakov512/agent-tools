@@ -12,20 +12,26 @@ Today is 2026-10-09.
 
 `notion-search` is full-text: a query whose words appear in the root page's config toggle ("read by the project-tracker skill", "project-tracker", "Project tracker", "tracker") returns `{"results":[{"id":"10000000-0000-4000-8000-000000000001","title":"My clients","url":"https://app.notion.com/p/10000000000040008000000000000001","type":"page","highlight":"Config — read by the project-tracker skill; edit if the databases move --- projects: 20000000-0000-4000-8000-000000000001"}]}`; other searches return nothing.
 
-`notion-fetch` of the root page returns (until the agent changes it):
+`notion-fetch` returns pages in Notion's current format (`<toggle>`, `<b>`, `<code>`, blank lines between blocks, Markdown escapes); it accepts Markdown and Notion's own tags in writes, and saves any other HTML tag (`<details>`, `<summary>`, `<code>`) as literal text, which later fetches show escaped. An `update_content` whose `old_str` is not in the page as fetched fails with "old_str not found". `notion-fetch` of the root page returns (until the agent changes it):
 
 ```
 <page url="https://app.notion.com/p/10000000000040008000000000000001">
 <properties>{"title":"My clients"}</properties>
 <content>
-<details color="gray_bg">
-<summary>⚙️ **Config** — read by the `project-tracker` skill; edit if the databases move</summary>
-	projects: `20000000-0000-4000-8000-000000000001`
-	milestones: `20000000-0000-4000-8000-000000000002`
-	tasks: `20000000-0000-4000-8000-000000000004`
-</details>
+<toggle color="gray_bg">
+⚙️ <b>Config</b> — read by the <code>project-tracker</code> skill; edit if the databases move
+
+projects: <code>20000000-0000-4000-8000-000000000001</code>
+
+milestones: <code>20000000-0000-4000-8000-000000000002</code>
+
+tasks: <code>20000000-0000-4000-8000-000000000004</code>
+</toggle>
+
 <database url="https://app.notion.com/p/40000000000040008000000000000001" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000001">Projects</database>
+
 <database url="https://app.notion.com/p/40000000000040008000000000000002" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000002">Milestones</database>
+
 <database url="https://app.notion.com/p/40000000000040008000000000000004" inline="true" data-source-url="collection://20000000-0000-4000-8000-000000000004">Tasks</database>
 </content>
 </page>

@@ -16,12 +16,12 @@ Find it as in SKILL.md (**Finding things**) — by the config toggle, whatever t
 - Not found → the page needs a name and a place. Take what the user already said; propose the rest in one short question — "I'll create **Project tracker** at the top level of the workspace — OK, or another name or place?" — and wait. Then `notion-create-pages` with that title (top level of the workspace = no `parent`, which makes a private top-level page; under a page = `parent: {page_id}`; a teamspace's top level cannot be reached through the API — create it under a page there), no icon, and as its only content the config toggle — collapsed, because the IDs are for the skill, not for reading:
 
   ```
-  <details color="gray_bg">
-  <summary>⚙️ **Config** — read by the `project-tracker` skill; edit if the databases move</summary>
-  </details>
+  <toggle color="gray_bg">
+  ⚙️ **Config** — read by the `project-tracker` skill; edit if the databases move
+  </toggle>
   ```
 
-  Its summary line is how every later conversation finds the page, so it goes in with the page itself: an interrupted setup is found and finished instead of started over, and the user can rename or move the page at any time.
+  Its title is how every later conversation finds the page, so it goes in with the page itself: an interrupted setup is found and finished instead of started over, and the user can rename or move the page at any time.
 
 ## 2. Databases
 
@@ -115,18 +115,24 @@ Project, milestone and task pages then open at full width, and a milestone page 
 The config toggle gets the four data source IDs, the `Ref` prefixes in use (projects, milestones, tasks, problems, in that order) and the structure's version, `schema` (`references/upgrade.md` → **Tracker update** says what it means), as its lines:
 
 ```
-<details color="gray_bg">
-<summary>⚙️ **Config** — read by the `project-tracker` skill; edit if the databases move</summary>
-	projects: `<projects>`
-	milestones: `<milestones>`
-	tasks: `<tasks>`
-	problems: `<problems>`
-	ref_prefixes: PR, MS, TK, PB
-	schema: 5
-</details>
+<toggle color="gray_bg">
+⚙️ **Config** — read by the `project-tracker` skill; edit if the databases move
+
+projects: `<projects>`
+
+milestones: `<milestones>`
+
+tasks: `<tasks>`
+
+problems: `<problems>`
+
+ref_prefixes: PR, MS, TK, PB
+
+schema: 5
+</toggle>
 ```
 
-Add the missing lines with `update_content` — `old_str` from the fetch (for an empty toggle, `</summary>\n</details>`), lines indented one tab. Never a second toggle. `schema: 5` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run `references/upgrade.md` → **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
+Add the missing lines with `update_content` — `old_str` the toggle's last line and its closing tag exactly as fetched (for an empty toggle, its title line), `new_str` the same with the lines added, each a paragraph of its own (SKILL.md → **Page text**). Never a second toggle. `schema: 5` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run `references/upgrade.md` → **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
 
 ## 4. Views on the databases
 
@@ -148,26 +154,30 @@ Tasks `All` sorts by `Dates` first: `Order` restarts per milestone, so across a 
 
 ## 5. Tabs
 
-Unless the page already has its `<tabs>` block: fetch the root page and `update_content` with `old_str` = the `<database>` lines after the config toggle, as fetched (from the line after `</details>` to the end of the page), `new_str` = the same database lines wrapped in tabs. Passing an existing database's url moves it; it does not copy.
+Unless the page already has its `<tabs>` block: fetch the root page and `update_content` with `old_str` = the `<database>` lines after the config toggle, as fetched (from the line after the toggle's closing tag to the end of the page), `new_str` = the same database lines wrapped in tabs. Passing an existing database's url moves it; it does not copy.
 
 ```
 <tabs>
-	<tab>
-		Projects
-		<database url="<projects db url>" inline="true" data-source-url="collection://<projects>">Projects</database>
-	</tab>
-	<tab>
-		Milestones
-		<database url="<milestones db url>" inline="true" data-source-url="collection://<milestones>">Milestones</database>
-	</tab>
-	<tab>
-		Tasks
-		<database url="<tasks db url>" inline="true" data-source-url="collection://<tasks>">Tasks</database>
-	</tab>
-	<tab>
-		Problems
-		<database url="<problems db url>" inline="true" data-source-url="collection://<problems>">Problems</database>
-	</tab>
+<tab>
+Projects
+
+<database url="<projects db url>" inline="true" data-source-url="collection://<projects>">Projects</database>
+</tab>
+<tab>
+Milestones
+
+<database url="<milestones db url>" inline="true" data-source-url="collection://<milestones>">Milestones</database>
+</tab>
+<tab>
+Tasks
+
+<database url="<tasks db url>" inline="true" data-source-url="collection://<tasks>">Tasks</database>
+</tab>
+<tab>
+Problems
+
+<database url="<problems db url>" inline="true" data-source-url="collection://<problems>">Problems</database>
+</tab>
 </tabs>
 ```
 
