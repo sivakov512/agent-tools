@@ -67,7 +67,7 @@
   function cacheFor(key, cache) { if (!fresh || fresh[key]) return cache; fresh[key] = true; var c = {}; for (var k in cache) c[k] = cache[k]; c.refresh = true; return c; }
   function fetchText(id, cache, run) { // run: the load it is part of, if any
     return call("notion-fetch", { id: id }, cacheFor("f:" + id, cache)).then(function (res) {
-      note(run, res, cache); var p = payload(res), t = p && typeof p === "object" ? String(p.text || "") : String(p || "");
+      note(run, res, cache); var p = payload(res), t = PT.notionText(p && typeof p === "object" ? String(p.text || "") : String(p || ""));
       var re = /notion-file-block:\/\/[^\s)"'<>]+/g, m; while ((m = re.exec(t))) fileRefPage[m[0].replace(/&amp;/g, "&")] = id; // where each file lives, for its link (fileLink)
       return t;
     });
@@ -95,9 +95,9 @@
 
   function loadConfig() { // root page → config IDs → databases → views by name
     return fetchText(ROOT_PAGE, STRUCT).then(function (txt) {
-      var ids = {};
-      ["projects", "milestones", "tasks", "problems", "open_items"].forEach(function (k) { var m = new RegExp("\\b" + k + ":\\s*`?([0-9a-f-]{32,36})").exec(txt); if (m) ids[k] = m[1]; });
-      var rp = /\bref_prefixes:\s*`?([A-Za-z0-9 ,-]+)/.exec(txt); if (rp) PT.setRefPrefixes(rp[1]); // the Ref prefixes in use; without the line, the usual four
+      var ids = {}, cf = unesc(txt); // the config's lines as plain text: `ref\_prefixes` is ref_prefixes
+      ["projects", "milestones", "tasks", "problems", "open_items"].forEach(function (k) { var m = new RegExp("\\b" + k + ":\\s*`?([0-9a-f-]{32,36})").exec(cf); if (m) ids[k] = m[1]; });
+      var rp = /\bref_prefixes:\s*`?([A-Za-z0-9 ,-]+)/.exec(cf); if (rp) PT.setRefPrefixes(rp[1]); // the Ref prefixes in use; without the line, the usual four
       if (ids.open_items && !ids.tasks) throw { code: "config", message: "This tracker was made by version 0.x of the skill. Ask Claude in chat to upgrade it.", chat: "Upgrade my project tracker to the new version." };
       if (!ids.projects || !ids.problems) throw { code: "config", message: "The tracker's config toggle is missing database IDs. Run setup in chat to fix it.", chat: "Set up the project tracker: its config is missing database IDs." };
       var dbs = {}, re = /<database url="([^"]+)"[^>]*data-source-url="\{*collection:\/\/([0-9a-f-]+)\}*"/g, m;
@@ -127,7 +127,7 @@
     for (var k in out) out[k] = out[k].join("\n").trim();
     return out;
   }
-  function entriesIn(t) { return t ? t.split("\n").filter(function (l) { return l.trim() && !/^\t/.test(l); }).length : 0; } // a part's entries, for counts: its top-level lines
+  function entriesIn(t) { return t ? t.split("\n").filter(function (l) { return l.trim() && !/^\t/.test(l) && !/^<\/|^<empty-block|^<summary>/.test(l); }).length : 0; } // a part's entries, for counts: its top-level lines, not a closing tag, a toggle's title or an empty block
   var LOCK = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
   function partHead(t, priv) { var h = el("div", "xh" + (priv ? " priv-h" : "")); if (priv) h.insertAdjacentHTML("beforeend", LOCK); h.appendChild(span(t)); if (priv) h.title = "Only you see this — never on a client dashboard"; return h; }
   function renderParts(box, pt, opts) { // a page's parts in their order, each under its label: Description, Notes, Private notes (never on a client's page), History
@@ -498,8 +498,8 @@
   // ---------- a client's page: the snapshot, and the open items by whose side they are on ----------
   function loadSnapshot(D) { // data.js: per project its row, milestones, tasks and problems, rows as the views return them (references/client-dashboards.md)
     S.side = {}; S.projects = []; S.problems = []; S.resolved = []; S.cfg = {}; S.snapPages = {};
-    var pub = function (t) { var pt = partsOf(t), o = []; if (pt.desc) o.push(pt.desc); if (pt.notes) o.push("## Notes\n" + pt.notes); if (pt.hist) o.push("## History\n" + pt.hist); return o.join("\n\n"); }; // Private notes never reach a client's page, even if the data has them
-    for (var sp in D.subpages || {}) S.snapPages[key(sp)] = D.subpages[sp];
+    var pub = function (t) { var pt = partsOf(PT.notionText(t)), o = []; if (pt.desc) o.push(pt.desc); if (pt.notes) o.push("## Notes\n" + pt.notes); if (pt.hist) o.push("## History\n" + pt.hist); return o.join("\n\n"); }; // Private notes never reach a client's page, even if the data has them
+    for (var sp in D.subpages || {}) S.snapPages[key(sp)] = PT.notionText(D.subpages[sp]);
     (D.projects || []).forEach(function (x) {
       var r = x.project || {}, p = { kind: "project", url: cleanUrl(r.url), key: key(r.url), name: clean(r.Name) || "Untitled", client: clean(r.Client), status: r.Status || "", summary: clean(r.Summary), target: dnum(r["date:Target end:start"]), origin: "", ref: PT.refOf("project", r.Ref) };
       var plan = PT.buildPlan(p, x.milestones || [], x.tasks || []);
