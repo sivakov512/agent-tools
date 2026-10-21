@@ -146,7 +146,7 @@
     k.late = lateOf(k, paused); k.state = stateOfItem(k, paused); k.paused = paused && k.status !== "Done";
     return k;
   }
-  var REF = { project: "PR", ms: "MS", task: "TK", problem: "PB" }; // the `Ref` field's prefix per database, as the config's ref_prefixes line sets them (setup.md); a view gives only the number
+  var REF = { project: "PRJ", ms: "MLS", task: "TSK", problem: "PRB" }; // the `Ref` field's prefix per database, as the config's ref_prefixes line sets them (setup.md); a view gives only the number
   function setRefPrefixes(line) { var p = String(line || "").split(/[,\s]+/).filter(Boolean); if (p.length === 4) { REF.project = p[0]; REF.ms = p[1]; REF.task = p[2]; REF.problem = p[3]; } }
   function refOf(kind, v) { v = String(v == null ? "" : v).trim(); return !v ? "" : /^\d+$/.test(v) ? REF[kind] + "-" + v : v; }
   function copyText(t) { // the clipboard, or the old way where a page may not use it
@@ -154,7 +154,7 @@
     legacy(); return Promise.resolve();
     function legacy() { var ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch (e) {} document.body.removeChild(ta); }
   }
-  function refTag(x) { // an item's ID next to its name, to use in a chat ("link PB-5 to TK-34"); a click copies it
+  function refTag(x) { // an item's ID next to its name, to use in a chat ("link PRB-5 to TSK-34"); a click copies it
     if (!x || !x.ref) return null;
     var t = el("span", "ref", x.ref); t.title = "Copy " + x.ref;
     t.addEventListener("click", function (e) { e.stopPropagation(); e.preventDefault(); copyText(x.ref); t.classList.add("copied"); setTimeout(function () { t.classList.remove("copied"); }, 1200); });
