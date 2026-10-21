@@ -762,7 +762,7 @@
   function newCodeUrl(q, folder) { return "claude://code/new?" + (folder ? "folder=" + encodeURIComponent(folder) + "&" : "") + "q=" + encodeURIComponent(q); } // the app asks to confirm the folder, or for one when there is none
   function homePath(f) { return String(f).replace(/^\/Users\/[^/]+/, "~"); }
   function chatQ(x, kind, again, code) { // "Task: <name> <ID> — <project>" first, then its page, for a Code session the words that say which column it claims, then the session's name, which it sets itself (the app's own title is a guess): the same name for the row's chat and Code session, the app already marks which is which — only what to load, what to do next is the user's to say
-    var pr = kind === "project" ? x : x.project || allProjByKey()[x.pk], name = TITLE[kind] + ": " + x.name + (kind !== "project" && x.ref ? " " + x.ref : "") + (kind !== "project" && pr ? " — " + pr.name : ""), what = code ? "Code session" : "chat";
+    var pr = kind === "project" ? x : x.project || allProjByKey()[x.pk], name = TITLE[kind] + ": " + x.name + (x.ref ? " " + x.ref : "") + (kind !== "project" && pr ? " — " + pr.name : ""), what = code ? "Code session" : "chat";
     return name + " (Project Tracker, " + x.url + "). " + (again ? "Its old " + what + " is gone: this is its " + what + " from now on. " : "") + (code ? "Code session" + (pr && pr.repo ? ", repository " + pr.repo : "") + ". " : "") + "Chat title: \"" + name + "\". Load it with the project-tracker skill.";
   }
   function chatLink(href, text, title) { var a = el("a", "", text); a.href = href; a.target = "_blank"; a.rel = "noopener"; a.appendChild(el("span", "arr", " ↗")); if (title) a.title = title; a.addEventListener("click", function (e) { e.stopPropagation(); }); return a; }
