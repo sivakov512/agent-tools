@@ -68,7 +68,7 @@ The body: exactly these four sections in this order, nothing else — the headin
 ## Complexity
 One sentence why this level (the level itself is the Complexity property).
 ## Risks
-- bullets: what could go wrong with the job. That the rules leave the case open is not one — it is a question and goes only to Questions (§3): reports and digests quote this section, and questions wait for the weekly review (SKILL.md → *Questions and quirks*).
+- bullets: what could go wrong with the job. That the rules leave the case open is not one — it is a question and goes only to Questions (§3): run reports quote this section, and questions wait for the weekly review (SKILL.md → *Questions and quirks*).
 ## To clarify
 - only questions whose answer changes the estimate
 ```

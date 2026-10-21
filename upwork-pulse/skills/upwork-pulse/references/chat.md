@@ -20,7 +20,7 @@ Fresh data, then the link, and an assessment by Search rules with the card struc
 
 No card and the verdict is Take or Maybe → offer to create an assessed card; do not create it silently.
 
-## "details N" — after a run report or a digest
+## "details N" — after a run report
 
 "details 3" or "details #584350" → that card in full, in the format of one card of the hourly report (`references/hourly.md` §7, without its number), from the card's properties and body. Which card a number means: SKILL.md → *Finding things*.
 
@@ -98,7 +98,7 @@ Never guess a fact for a screening answer or the text: profile, portfolio, cards
 
 ## Proposals sync — "sync proposals", "pull my past proposals"
 
-`references/sync.md`: no period → from its watermark, as a digest would; a period the user names ("for the last 3 months", "all") → from that start. Reply with one line: how many proposals written, how many of them for jobs the pipeline never saw, how many already in place.
+`references/sync.md`: no period → from its watermark, as the hourly run does; a period the user names ("for the last 3 months", "all") → from that start. Reply with one line: how many proposals written, how many of them for jobs the pipeline never saw, how many already in place.
 
 ## Connects — "how many connects", "what's my balance"
 
