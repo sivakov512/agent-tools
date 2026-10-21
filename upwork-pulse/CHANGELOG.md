@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.21.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.20.2...upwork-pulse-v0.21.0) (2026-10-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* **upwork-pulse:** remove the digest mode
+
+### Features
+
+* **upwork-pulse:** remove the digest mode ([76b02c9](https://github.com/sivakov512/agent-tools/commit/76b02c976bb4e217e321c62577a117686344b866))
+
 ## [0.20.2](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.20.1...upwork-pulse-v0.20.2) (2026-10-21)
 
 
