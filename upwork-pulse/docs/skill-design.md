@@ -75,4 +75,5 @@ Where this plugin departs from `docs/skill-development.md`, and why.
 Beyond `docs/skill-development.md` §7:
 
 - **Evals**: two groups on two models, `routine` on Sonnet and `proposal` on Opus (`evals/README.md`); a change to `SKILL.md` runs both.
+- **Known gap — `weekly-questions`** (guarantee 7, not made worse by any change so far: it fails on the commit before the digest removal too, 1 of 2 there, 2 of 2 after): the weekly report says outside its Log what the agent did or could not see ("Nothing was closed as stale", "I can't see what you did with it"), and its Log carries a line about the missing push tool, which *Automatic mode* forbids. The judge rejects both. No diagnosis or fix yet; it gets a change of its own.
 - **Dashboard**: `tests/check_dashboard.py` checks that the page carries every placeholder `references/dashboard.md` → *Publish* fills, and no other — a missing one leaves the page reading nothing, an unknown one is published as is.
