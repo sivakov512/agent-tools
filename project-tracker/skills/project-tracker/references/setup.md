@@ -38,6 +38,8 @@ CREATE TABLE ("Name" TITLE, "Client" RICH_TEXT,
   "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude',
   "Claude project" RICH_TEXT COMMENT 'The claude.ai project its dashboard chats open in: <name> — <project id>; empty = none',
   "Client dashboard" URL COMMENT 'The client dashboard that shows it; set by Claude',
+  "Code session" URL COMMENT 'Its Claude Code session on the Mac, opened from the dashboard; set by Claude',
+  "Code folder" RICH_TEXT COMMENT 'The folder on the Mac its Code sessions open in (an absolute path); set by its first Code session or on request',
   "Ref" UNIQUE_ID PREFIX 'PR' COMMENT 'Its ID, to name it in a chat (PR-2); numbered by Notion')
 
 -- Milestones
@@ -47,7 +49,8 @@ CREATE TABLE ("Name" TITLE, "Ref" UNIQUE_ID PREFIX 'MS' COMMENT 'Its ID, to name
   "Dates" DATE COMMENT 'The dates set for it; drives the Gantt',
   "Finished" DATE COMMENT 'The day it was actually done',
   "Order" NUMBER COMMENT 'Position in the plan (1, 2, …), so the order holds without dates; set by Claude',
-  "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude')
+  "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude',
+  "Code session" URL COMMENT 'Its Claude Code session on the Mac, opened from the dashboard; set by Claude')
 
 -- Tasks
 CREATE TABLE ("Name" TITLE, "Ref" UNIQUE_ID PREFIX 'TK' COMMENT 'Its ID, to name it in a chat (TK-34); numbered by Notion',
@@ -58,7 +61,8 @@ CREATE TABLE ("Name" TITLE, "Ref" UNIQUE_ID PREFIX 'TK' COMMENT 'Its ID, to name
   "Waiting on" RICH_TEXT COMMENT 'Who has to act; empty = on me',
   "Finished" DATE COMMENT 'The day it was actually done',
   "Order" NUMBER COMMENT 'Position in the plan (1, 2, …), so the order holds without dates; set by Claude',
-  "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude')
+  "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude',
+  "Code session" URL COMMENT 'Its Claude Code session on the Mac, opened from the dashboard; set by Claude')
 
 -- Problems
 CREATE TABLE ("Name" TITLE, "Project" RELATION('<projects>'),
@@ -69,7 +73,8 @@ CREATE TABLE ("Name" TITLE, "Project" RELATION('<projects>'),
   "Milestone" RELATION('<milestones>') COMMENT 'Which milestone this affects, if any',
   "Task" RELATION('<tasks>') COMMENT 'Which task this affects, if any',
   "Summary" RICH_TEXT COMMENT 'One sentence: what is wrong and what it would cost; once resolved, how it ended', "Opened" DATE, "Resolved on" DATE,
-  "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude')
+  "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude',
+  "Code session" URL COMMENT 'Its Claude Code session on the Mac, opened from the dashboard; set by Claude')
 ```
 
 `Ref`'s prefix must be free in the whole Notion workspace, not only in this database: when a create is refused with `Unique ID prefix is already in use` (another tracker or database has it, or a deleted `Ref` still holds it), create that database without its `Ref` line and give it `Ref` as `references/upgrade.md` → **Tracker update** (4 → 5, step 1) says — another prefix, recorded in the config.
@@ -128,11 +133,11 @@ problems: `<problems>`
 
 ref_prefixes: PR, MS, TK, PB
 
-schema: 5
+schema: 6
 </toggle>
 ```
 
-Add the missing lines with `update_content` — `old_str` the toggle's last line and its closing tag exactly as fetched (for an empty toggle, its title line), `new_str` the same with the lines added, each a paragraph of its own (SKILL.md → **Page text**). Never a second toggle. `schema: 5` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run `references/upgrade.md` → **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
+Add the missing lines with `update_content` — `old_str` the toggle's last line and its closing tag exactly as fetched (for an empty toggle, its title line), `new_str` the same with the lines added, each a paragraph of its own (SKILL.md → **Page text**). Never a second toggle. `schema: 6` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run `references/upgrade.md` → **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
 
 ## 4. Views on the databases
 
@@ -195,7 +200,7 @@ What was created or added (or that everything was already in place), the dashboa
 
 - **Recently resolved**: Problems tab → `Recently resolved` → Filter → `Resolved on` → *is within* → *Past month*, so the view stays short.
 - **Full width** on the tracker page itself (••• → Full width) — without it Notion folds each tab's second view (`Closed`, `Timeline`, `Recently resolved`) into a dropdown. Project, milestone and task pages are already full width.
-- After the first project exists — **hide properties**, once for the whole database (the API cannot set property visibility): on any project page, click `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*, and `Chat`, `Claude project`, `Client dashboard` → *Hide when empty*; on any milestone page, `Project status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on any task page, `Project status`, `Milestone status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on any problem page, `Chat` → *Hide when empty*. The helpers exist only to compute lateness, and `Order` shows in the sorting; `Chat` and `Claude project` are set later, from the dashboard and on request. (`references/new-project.md` repeats this, and the timeline zoom, when it creates the first project.)
+- After the first project exists — **hide properties**, once for the whole database (the API cannot set property visibility): on any project page, click `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*, and `Chat`, `Code session`, `Claude project`, `Code folder`, `Client dashboard` → *Hide when empty*; on any milestone page, `Project status`, `Open late` and `Order` → *Always hide*, `Chat`, `Code session` → *Hide when empty*; on any task page, `Project status`, `Milestone status`, `Open late` and `Order` → *Always hide*, `Chat`, `Code session` → *Hide when empty*; on any problem page, `Chat`, `Code session` → *Hide when empty*. The helpers exist only to compute lateness, and `Order` shows in the sorting; `Chat`, `Code session`, `Claude project` and `Code folder` are set later, from the dashboard and on request. (`references/new-project.md` repeats this, and the timeline zoom, when it creates the first project.)
 
 Next step: a new project.
 
