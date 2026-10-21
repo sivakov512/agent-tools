@@ -1673,11 +1673,11 @@
       }, function (err) { input.checked = !input.checked; toast("Couldn't save: " + errText(err, NOTION)); })
       .then(function () { input.disabled = false; renderSettings(); renderLeadNotice(); if (key === "auto_drafts" && value === "on") checkGuide(); });
   }
-  function checkGuide() { // drafts need the user's voice, portfolio and rate in the guide
+  function checkGuide() { // drafts need the user's voice, portfolio and rate in the guide; a placeholder `_to fill_` comes back from Notion as italics (*to fill*)
     if (!S.cfg.guide || S.cfg.auto_drafts !== "on") { S.guideIssue = null; return; }
     fetchPage(S.cfg.guide, { staleTime: 600000, gcTime: 86400000 }).then(function (pg) {
       var body = unesc(pg.content);
-      S.guideIssue = /_to fill_/i.test(body) ? "some parts still say \u201c_to fill_\u201d" : body.replace(/\s+/g, " ").length < 400 ? "it is nearly empty" : null;
+      S.guideIssue = /[_*]to fill[_*]/i.test(body) ? "some parts still say \u201c_to fill_\u201d" : body.replace(/\s+/g, " ").length < 400 ? "it is nearly empty" : null;
       renderLeadNotice();
     }, function () {});
   }

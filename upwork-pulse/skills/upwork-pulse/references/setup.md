@@ -29,7 +29,7 @@ The rules pages are written from the user's profile. Gather it before writing an
 11. **When the digests and the weekly review come** — two digest times and a weekly slot, to the minute; 11:00, 22:00 and Sunday 20:00 unless the user says otherwise. The digests are optional: a user who reads the dashboard may want none (§8).
 12. **Drafts** — whether Opus should write advice and a ready proposal for each new card (`auto_drafts`), and whether the hourly run should skip every card Claude advises to skip, except locked ones (`auto_skip`). Both off unless the user says so; the dashboard has a switch for each.
 
-Anything the user does not know yet is left as a marked placeholder (`_to fill_`) in the page, not invented.
+Anything the user does not know yet is left as a marked placeholder (`_to fill_`, which Notion shows back in italics, `<i>to fill</i>`) in the page, not invented.
 
 When the profile comes from existing rules pages (a hand-built pipeline, an older version of this one), carry over the user's decisions only: queries, scope, what they reject and flag beyond the defaults, how they assess and price, their voice, portfolio and rate. Leave out what this skill already defines — search and filter mechanics, the two default rejects and the default flags, card fields and sections, statuses, message formats, the run log, the questions protocol, the proposal package and the send guard — and move facts about the API and tools to Field notes. A copied mechanic freezes an old version of it, and since the rules pages win on content, it would override the skill from then on.
 

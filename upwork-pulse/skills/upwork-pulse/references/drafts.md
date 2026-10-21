@@ -16,7 +16,7 @@ It never sends anything to Upwork. The user copies the text and submits it.
 - Fetch **Search rules**, **Proposal guide**, **Field notes** and **Run state** (only for its `JOB_PAGES_PAUSE` line, §2) once per run. Search rules that cannot be read or hold no rules (empty, a stub, a pointer to something else) → no advice can be honest: write nothing (the request rows go back as §3 says for a card without a new proposal) and return or say `rules unreadable`.
 - Only cards still New are worked on; one the user has meanwhile skipped or applied to is left alone (return `#<short id> not new`), except that its request row is put back as §3 says for a card without a new proposal, so it does not stay Writing.
 
-**Is the guide ready?** Drafting needs the user's voice, portfolio and rate in the guide. A guide that still holds `_to fill_` in any of those, or has none of them, is not ready: write advice only (§3), write no proposal, and put the reason in `Advice why` after the advice, in `language` ("… — no proposal: the Proposal guide is missing <what>"). The dashboard shows the same.
+**Is the guide ready?** Drafting needs the user's voice, portfolio and rate in the guide. A guide that still holds the `to fill` placeholder in any of those (written `_to fill_`; Notion shows it back in italics, `<i>to fill</i>`), or has none of them, is not ready: write advice only (§3), write no proposal, and put the reason in `Advice why` after the advice, in `language` ("… — no proposal: the Proposal guide is missing <what>"). The dashboard shows the same.
 
 ## 2. Fresh data, per card
 
