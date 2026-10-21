@@ -679,7 +679,21 @@
     if (/&[#a-z0-9]+;/i.test(s)) s = parser.parseFromString("<!doctype html><body>" + s.replace(/</g, "&lt;"), "text/html").body.textContent;
     return s;
   }
-  function unesc(s) { return s == null ? "" : String(s).replace(/\\([$~*_`#\[\]()>|-])/g, "$1"); }
+  function unesc(s) { return s == null ? "" : String(s).replace(/\\([!-\/:-@\[-`{-~])/g, "$1"); } // a Markdown escape: a backslash before any ASCII punctuation
+  // A page's text as notion-fetch returns it → the dialect the readers here expect (the one it returned before Oct 20, 2026): **bold**,
+  // *italic*, ~~strike~~, `code`, a toggle as <details> with its first line in <summary>, <empty-block/>. Since Oct 20 it writes <b>, <i>,
+  // <s>, <code>, <toggle> and <p />, and escapes more (\_ \:). Text in the old dialect passes unchanged. Escapes stay: unesc() undoes them.
+  function notionText(text) {
+    var sum = false;
+    return String(text == null ? "" : text).split("\n").map(function (l) {
+      if (/^\s*<toggle\b[^>]*>\s*$/.test(l)) { sum = true; return l.replace("<toggle", "<details"); }
+      if (/^\s*<\/toggle>\s*$/.test(l)) { sum = false; return l.replace("</toggle>", "</details>"); }
+      l = l.replace(/<(b|strong)>([\s\S]*?)<\/\1>/g, "**$2**").replace(/<(i|em)>([\s\S]*?)<\/\1>/g, "*$2*").replace(/<(s|del|strike)>([\s\S]*?)<\/\1>/g, "~~$2~~")
+        .replace(/<code>([\s\S]*?)<\/code>/g, "`$1`").replace(/^(\s*)<p\s*\/>\s*$/, "$1<empty-block/>").replace(/^(\s*)<p>([\s\S]*)<\/p>\s*$/, "$1$2");
+      if (sum && l.trim()) { sum = false; return l.replace(/^(\s*)(.*)$/, "$1<summary>$2</summary>"); } // a toggle's first line is its title
+      return l;
+    }).join("\n");
+  }
   function shortId(id) { id = String(id || ""); return "#" + id.slice(-6); }
   function num(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
   function usd(v) { var n = num(v); return n == null ? "" : "$" + n.toLocaleString("en-US", { maximumFractionDigits: 2 }); }
