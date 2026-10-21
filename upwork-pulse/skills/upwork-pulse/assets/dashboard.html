@@ -1234,11 +1234,13 @@
 
   // ---------- notes (Notion page body, as-is) ----------
   var notesCache = {};
-  function fetchPage(id, cache) { // a Notion page as notion-fetch returns it: {text: the whole answer, content: the body inside <content>}
+  // A Notion page as notion-fetch returns it: {raw: the answer as is (what update_content's old_str must match), text: the whole answer in
+  // the dialect read here (notionText), fields: the same with escapes undone, for `key: value` lines, content: the body inside <content>}
+  function fetchPage(id, cache) {
     return MCP.callTool(NOTION, "notion-fetch", { id: id }, { cache: cache }).then(function (res) {
-      var p = payloadOf(res), txt = (p && typeof p === "object" ? p.text : typeof p === "string" ? p : "") || "";
+      var p = payloadOf(res), raw = (p && typeof p === "object" ? p.text : typeof p === "string" ? p : "") || "", txt = notionText(raw);
       var m = /<content>([\s\S]*?)<\/content>/.exec(txt);
-      return { text: txt, content: m ? m[1] : "" };
+      return { raw: raw, text: txt, fields: unesc(txt), content: m ? m[1] : "" };
     });
   }
   function pageContent(url, ver) { // a Notion page's body, kept per version (ver: the row's Written time, Proposal ID and State — a rewrite reads afresh)
@@ -1657,12 +1659,12 @@
   function closeSettings() { $("setPop").hidden = true; $("settingsBtn").setAttribute("aria-expanded", "false"); }
   function setFlag(key, value, input) { // the switch writes the config line in the root page
     if (!MCP) return;
-    var from = new RegExp(key + ":\\s*`?(on|off)`?").exec(S.cfgText || "");
+    var from = new RegExp(key.replace(/_/g, "\\\\?_") + ":\\s*(?:`|<code>)?(on|off)(?:`|<\\/code>)?").exec(S.cfgText || ""), to; // the line as the page has it: `auto_drafts: \`on\`` or, since Oct 20, 2026, `auto\\_drafts: <code>on</code>`
     if (!from) { toast("The config has no " + key + " key"); input.checked = !input.checked; return; }
-    input.disabled = true;
-    MCP.callTool(NOTION, "notion-update-page", { page_id: ROOT_PAGE, command: "update_content", content_updates: [{ old_str: from[0], new_str: key + ": `" + value + "`" }] }, { cache: false })
+    input.disabled = true; to = from[0].replace(/(on|off)((?:`|<\/code>)?)$/, value + "$2"); // the same line, in the same dialect, with the new value
+    MCP.callTool(NOTION, "notion-update-page", { page_id: ROOT_PAGE, command: "update_content", content_updates: [{ old_str: from[0], new_str: to }] }, { cache: false })
       .then(function () {
-        S.cfg[key] = value; S.cfgText = S.cfgText.replace(from[0], key + ": `" + value + "`");
+        S.cfg[key] = value; S.cfgText = S.cfgText.replace(from[0], to);
         toast((key === "auto_drafts" ? "Auto proposals " : "Auto skip ") + value);
         MCP.invalidate(NOTION, "notion-fetch").catch(function () {});
       }, function (err) { input.checked = !input.checked; toast("Couldn't save: " + errText(err, NOTION)); })
@@ -1671,7 +1673,7 @@
   function checkGuide() { // drafts need the user's voice, portfolio and rate in the guide
     if (!S.cfg.guide || S.cfg.auto_drafts !== "on") { S.guideIssue = null; return; }
     fetchPage(S.cfg.guide, { staleTime: 600000, gcTime: 86400000 }).then(function (pg) {
-      var body = pg.content;
+      var body = unesc(pg.content);
       S.guideIssue = /_to fill_/i.test(body) ? "some parts still say \u201c_to fill_\u201d" : body.replace(/\s+/g, " ").length < 400 ? "it is nearly empty" : null;
       renderLeadNotice();
     }, function () {});
@@ -1681,7 +1683,7 @@
   function checkJobPages() {
     if (!S.cfg.state) { S.jobPages = null; return; }
     fetchPage(S.cfg.state, { staleTime: 300000, gcTime: 86400000 }).then(function (pg) {
-      var txt = pg.text;
+      var txt = pg.fields;
       var pause = /JOB_PAGES_PAUSE:\s*(\S+)/.exec(txt || ""), def = /DEFERRED:\s*([^\n<]*)/.exec(txt || "");
       var until = pause ? Date.parse(pause[1]) : NaN, old = Date.now() - 2 * DAY;
       var waiting = def ? def[1].split(",").filter(function (x) { var t = Date.parse((x.split("@")[1] || "").trim()); return /\d/.test(x) && !(t < old); }).length : 0;
@@ -2684,11 +2686,11 @@
   }
   function loadConfig() { // match_score lives in the root page's config toggle; read it on every load so edits apply at once
     return fetchPage(ROOT_PAGE, { staleTime: 300000, gcTime: 86400000 }).then(function (pg) {
-      var txt = pg.text;
+      var txt = pg.fields;
       var m = /match_score:\s*`?\s*(-?\d+(?:\.\d+)?)/.exec(txt || "");
       S.matchScore = m ? +m[1] : null;
       var key = function (k) { var x = new RegExp("\\b" + k + ":\\s*`([^`]*)`").exec(txt || ""); return x ? x[1].trim() : null; };
-      S.cfgText = txt || "";
+      S.cfgText = pg.raw || "";
       S.cfg = { loaded: true, schema: +(key("schema") || 1), auto_drafts: key("auto_drafts"), auto_skip: key("auto_skip"), drafts_task: /^trig_/.test(key("drafts_task") || "") ? key("drafts_task") : null, guide: key("guide"), proposals: key("proposals"), updating: key("updating"), update_error: key("update_error"), skill_version: key("skill_version") };
       var cp = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\s*(.*)$/i.exec(key("chat_project") || ""); // `<project id> <name>`, or `none`
       S.cfg.chat_project = cp ? cp[1] : null; S.cfg.chat_project_name = cp ? (cp[2] || "A project") : null;
