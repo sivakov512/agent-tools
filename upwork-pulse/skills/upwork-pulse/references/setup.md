@@ -124,42 +124,72 @@ Runs are ordered by `Created`, never by the `Run` title: `DD.MM HH:MM` as text p
 At the start of the root page (`insert_content`, `position: {"type": "start"}`), unless it is there, with every line below that has a value now — the `chat_project` line included — if it exists but lacks keys, `update_content` to add them. The config is a toggle, so it stays collapsed and does not fill the page; an older pipeline's callout is left as a callout and gets the missing keys.
 
 ```
-<details color="gray_bg">
-<summary>⚙️ **Config** — read by the `upwork-pulse` skill; edit if something moves</summary>
-	language: `<the user's language, e.g. English>`
-	timezone: `<IANA zone, e.g. Europe/Belgrade>`
-	jobs: `<jobs data source id — the bare UUID, without collection://>`
-	proposals: `<proposals data source id>`
-	runs: `<runs data source id>`
-	questions: `<questions data source id>`
-	jobs_inbox: `<view url>`
-	jobs_applied: `<view url>`
-	jobs_skipped: `<view url>`
-	jobs_all: `<view url>`
-	jobs_to_advise: `<view url>`
-	jobs_recent: `<view url>`
-	proposals_open: `<view url>`
-	proposals_sent: `<view url>`
-	runs_latest: `<view url>`
-	questions_open: `<view url>`
-	rules: `<page id>`
-	guide: `<page id>`
-	notes: `<page id>`
-	state: `<page id>`
-	match_score: `4`
-	upwork_org: `<org_uid>`
-	dashboard: `<url, once published>`
-	dashboard_version: `<N from the asset's first line, once published>`
-	skill_version: `<N from the asset's first line>`
-	chat_project: `none`
-	auto_drafts: `off`
-	auto_skip: `off`
-	drafts_task: `<trigger id of the Upwork drafts task>`
-	schema: `9`
-</details>
+<toggle color="gray_bg">
+⚙️ **Config** — read by the `upwork-pulse` skill; edit if something moves
+
+language: `<the user's language, e.g. English>`
+
+timezone: `<IANA zone, e.g. Europe/Belgrade>`
+
+jobs: `<jobs data source id — the bare UUID, without collection://>`
+
+proposals: `<proposals data source id>`
+
+runs: `<runs data source id>`
+
+questions: `<questions data source id>`
+
+jobs_inbox: `<view url>`
+
+jobs_applied: `<view url>`
+
+jobs_skipped: `<view url>`
+
+jobs_all: `<view url>`
+
+jobs_to_advise: `<view url>`
+
+jobs_recent: `<view url>`
+
+proposals_open: `<view url>`
+
+proposals_sent: `<view url>`
+
+runs_latest: `<view url>`
+
+questions_open: `<view url>`
+
+rules: `<page id>`
+
+guide: `<page id>`
+
+notes: `<page id>`
+
+state: `<page id>`
+
+match_score: `4`
+
+upwork_org: `<org_uid>`
+
+dashboard: `<url, once published>`
+
+dashboard_version: `<N from the asset's first line, once published>`
+
+skill_version: `<N from the asset's first line>`
+
+chat_project: `none`
+
+auto_drafts: `off`
+
+auto_skip: `off`
+
+drafts_task: `<trigger id of the Upwork drafts task>`
+
+schema: `9`
+</toggle>
 ```
 
-`dashboard`, `dashboard_version` and `drafts_task` wait until there is something to put in them; every other line is written now. `chat_project` as SKILL.md → *Chat project* says. Lines inside the toggle are indented with a tab (unindented lines fall outside it); `<details color="gray_bg">` and `<summary>` go as raw characters (SKILL.md → *Notion calls*). After the write, fetch the page and check the toggle is first, holds every key, and rendered as a toggle (not as `&lt;details` text).
+`dashboard`, `dashboard_version` and `drafts_task` wait until there is something to put in them; every other line is written now. `chat_project` as SKILL.md → *Chat project* says. Inside the toggle the title comes first, then each line as a paragraph of its own, a blank line between them; `<toggle color="gray_bg">` goes as raw characters (SKILL.md → *Notion calls* → **Page text**). After the write, fetch the page and check the toggle is first, holds every key, and rendered as a toggle (not as `&lt;toggle` text).
 
 ## 7. Dashboard
 

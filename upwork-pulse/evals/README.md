@@ -28,7 +28,7 @@ Layout:
 
 ```
 evals/
-├── mocks/notion/          the shared fake workspace: an existing schema-9 pipeline (drafts and auto skip off) with rules pages, four cards, one sent proposal (for #000102), one run, one open question
+├── mocks/notion/          the shared fake workspace, fetched in Notion's current format (`<toggle>`, `<code>`, escapes; the cases with their own Notion mock keep the earlier one): an existing schema-9 pipeline (drafts and auto skip off) with rules pages, four cards, one sent proposal (for #000102), one run, one open question
 ├── mocks/upwork/          the shared fake Upwork: three fresh postings (a Take, a stage-1 reject, a Maybe), the postings behind cards #000101 and #000104, and two own proposals (one for #000104, still New in Notion)
 ├── <case>/prompt.md       what the user or the scheduled task says; frontmatter: date/time, tools, runs
 ├── <case>/graders/*.md    checks
