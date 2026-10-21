@@ -42,7 +42,7 @@ Every scheduled run ends with a report whose last block is `## Log` (SKILL.md �
 
 ## Reading failures
 
-`docs/skill-development.md` §7.4–7.5 (at the repository root): a failing case is run three times and only 3 of 3 passes; a case still failing after one diagnosis and fix is written into `docs/skill-design.md` as a known gap. No case is a known gap now. The platform sometimes moves the hourly run's assessment subagent to the background even with `run_in_background: false`; the run then writes nothing until its completion notice and gets the report out in a second turn (`references/hourly.md` §5), and the judge sees only that report.
+`docs/skill-development.md` §7.4–7.5 (at the repository root): a failing case is run three times and only 3 of 3 passes; a case still failing after one diagnosis and fix is written into `docs/skill-design.md` as a known gap. One case is a known gap now: `weekly-questions` (`docs/skill-design.md` → *Checking a change*). The platform sometimes moves the hourly run's assessment subagent to the background even with `run_in_background: false`; the run then writes nothing until its completion notice and gets the report out in a second turn (`references/hourly.md` §5), and the judge sees only that report.
 
 ## Pushes
 
