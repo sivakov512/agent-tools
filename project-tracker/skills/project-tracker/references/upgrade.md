@@ -86,7 +86,7 @@ The closing line names what is new for the user: a Code session on the Mac for a
 2. Each database whose prefix is not its new one, nor one of that one's chain (`PRJ2`, `PRJ3`, … — taken earlier when it was in use), gets `ALTER COLUMN "Ref" SET UNIQUE_ID PREFIX '<new>'` (`notion-update-data-source`): Notion keeps every row's number and frees the old prefix. `Unique ID prefix is already in use` → the next of the chain, as setup says. Nothing is written to the rows.
 3. Write `ref_prefixes: <the prefixes now in use>` and `ref_prefixes_before: <the ones step 1 read>` in the config toggle (each line replaced, or added before `schema`), then `schema: 7` — last.
 
-The closing line names what is new for the user: every ID has three letters now (`TK-17` is `TSK-17`, the number stays), the old IDs still work in a chat, and, when a prefix other than `PRJ` / `MLS` / `TSK` / `PRB` was taken, which and why.
+The closing line names what is new for the user, both halves of it: every ID has three letters now (`TK-17` is `TSK-17`, the number stays), and the old IDs still work in a chat — the user has the old ones in notes and messages, and without this half would take them for broken; and, when a prefix other than `PRJ` / `MLS` / `TSK` / `PRB` was taken, which and why.
 
 A future step goes here as **7 → 8**, and the number above moves with it.
 
