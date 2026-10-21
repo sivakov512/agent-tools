@@ -12,53 +12,92 @@ Today in this workspace is Friday 2026-10-09; the current time is 14:05 in Europ
 
 Root page **Upwork pipeline**, id `10000000-0000-4000-8000-000000000001`. `notion-search` for "Upwork pipeline", "pipeline", or any query containing "upwork-pulse" or "read by the" (the config callout marker, full-text match) returns `{"results":[{"id":"10000000-0000-4000-8000-000000000001","title":"Upwork pipeline","url":"https://app.notion.com/p/10000000000040008000000000000001","type":"page"}]}`. Other searches return pages whose title contains the query (the pages and cards below), else an empty list.
 
-`notion-fetch` of the root page returns:
+Pages come back in Notion's current fetch format: `<toggle>` with its title first, `<b>`, `<code>`, a blank line between blocks, Markdown escapes (`\_`, `\:`). Writes take Markdown and Notion's own tags; any other HTML tag (`<details>`, `<summary>`, `<code>`) is stored as literal text. `notion-fetch` of the root page returns:
 
 ```
 <page url="https://app.notion.com/p/10000000000040008000000000000001">
 <properties>{"title":"Upwork pipeline"}</properties>
 <content>
-<callout icon="⚙️" color="gray_bg">
-	**Config** — read by the `upwork-pulse` skill; edit if something moves
-	jobs: `20000000-0000-4000-8000-000000000001`
-	proposals: `20000000-0000-4000-8000-000000000004`
-	runs: `20000000-0000-4000-8000-000000000002`
-	questions: `20000000-0000-4000-8000-000000000003`
-	jobs_inbox: `https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000001`
-	jobs_applied: `https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000002`
-	jobs_all: `https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000003`
-	jobs_to_advise: `https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000009`
-	jobs_recent: `https://www.notion.so/40000000000040008000000000000001?v=5000000000004000800000000000000a`
-	proposals_open: `https://www.notion.so/40000000000040008000000000000004?v=50000000000040008000000000000007`
-	proposals_sent: `https://www.notion.so/40000000000040008000000000000004?v=50000000000040008000000000000008`
-	runs_latest: `https://www.notion.so/40000000000040008000000000000002?v=50000000000040008000000000000004`
-	questions_open: `https://www.notion.so/40000000000040008000000000000003?v=50000000000040008000000000000005`
-	rules: `10000000-0000-4000-8000-000000000002`
-	guide: `10000000-0000-4000-8000-000000000003`
-	notes: `10000000-0000-4000-8000-000000000004`
-	state: `10000000-0000-4000-8000-000000000005`
-	language: `English`
-	timezone: `Europe/Belgrade`
-	match_score: `4`
-	upwork_org: `99001`
-	dashboard: `https://claude.ai/artifact/mockdash`
-	jobs_skipped: `https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000006`
-	auto_drafts: `off`
-	auto_skip: `off`
-	drafts_task: `trig_01MockDraftsTask0000001`
-	schema: `9`
-	chat_project: `none`
-	dashboard_version: `4`
-</callout>
+<toggle color="gray_bg">
+⚙️ <b>Config</b> — read by the <code>upwork-pulse</code> skill; edit if something moves
+
+jobs: <code>20000000-0000-4000-8000-000000000001</code>
+
+proposals: <code>20000000-0000-4000-8000-000000000004</code>
+
+runs: <code>20000000-0000-4000-8000-000000000002</code>
+
+questions: <code>20000000-0000-4000-8000-000000000003</code>
+
+jobs\_inbox: <code>https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000001</code>
+
+jobs\_applied: <code>https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000002</code>
+
+jobs\_all: <code>https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000003</code>
+
+jobs\_to\_advise: <code>https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000009</code>
+
+jobs\_recent: <code>https://www.notion.so/40000000000040008000000000000001?v=5000000000004000800000000000000a</code>
+
+proposals\_open: <code>https://www.notion.so/40000000000040008000000000000004?v=50000000000040008000000000000007</code>
+
+proposals\_sent: <code>https://www.notion.so/40000000000040008000000000000004?v=50000000000040008000000000000008</code>
+
+runs\_latest: <code>https://www.notion.so/40000000000040008000000000000002?v=50000000000040008000000000000004</code>
+
+questions\_open: <code>https://www.notion.so/40000000000040008000000000000003?v=50000000000040008000000000000005</code>
+
+rules: <code>10000000-0000-4000-8000-000000000002</code>
+
+guide: <code>10000000-0000-4000-8000-000000000003</code>
+
+notes: <code>10000000-0000-4000-8000-000000000004</code>
+
+state: <code>10000000-0000-4000-8000-000000000005</code>
+
+language: <code>English</code>
+
+timezone: <code>Europe/Belgrade</code>
+
+match\_score: <code>4</code>
+
+upwork\_org: <code>99001</code>
+
+dashboard: <code>https://claude.ai/artifact/mockdash</code>
+
+jobs\_skipped: <code>https://www.notion.so/40000000000040008000000000000001?v=50000000000040008000000000000006</code>
+
+auto\_drafts: <code>off</code>
+
+auto\_skip: <code>off</code>
+
+drafts\_task: <code>trig_01MockDraftsTask0000001</code>
+
+schema: <code>9</code>
+
+chat\_project: <code>none</code>
+
+dashboard\_version: <code>4</code>
+</toggle>
+
 <page url="https://app.notion.com/p/10000000000040008000000000000002">Search rules</page>
+
 <page url="https://app.notion.com/p/10000000000040008000000000000003">Proposal guide</page>
+
 <page url="https://app.notion.com/p/10000000000040008000000000000004">Field notes</page>
+
 <page url="https://app.notion.com/p/10000000000040008000000000000005">Run state</page>
+
 <database url="https://app.notion.com/p/40000000000040008000000000000001" inline="false" data-source-url="collection://20000000-0000-4000-8000-000000000001">Jobs</database>
+
 <database url="https://app.notion.com/p/40000000000040008000000000000004" inline="false" data-source-url="collection://20000000-0000-4000-8000-000000000004">Proposals</database>
+
 <database url="https://app.notion.com/p/40000000000040008000000000000002" inline="false" data-source-url="collection://20000000-0000-4000-8000-000000000002">Runs</database>
+
 <database url="https://app.notion.com/p/40000000000040008000000000000003" inline="false" data-source-url="collection://20000000-0000-4000-8000-000000000003">Questions</database>
+
 </content>
+
 </page>
 ```
 
@@ -135,7 +174,7 @@ Environment quirks only — facts about the API and tools. Rules live in Search 
 - The API returns no attachments or photos of a posting
 ```
 
-**Run state** (`1000…0005`) content: exactly two lines, `PROCESSED_UNTIL: 2026-10-09T13:00+02:00` and `PROPOSALS_SYNCED_UNTIL: 2026-10-09T10:30+02:00`. `update_content` changes the line it names; `replace_content` replaces the whole body.
+**Run state** (`1000…0005`) content: exactly two lines, a blank line between them, as the current fetch shows them: `PROCESSED\_UNTIL: 2026-10-09T13\:00+02\:00` and `PROPOSALS\_SYNCED\_UNTIL: 2026-10-09T10\:30+02\:00`. A line written plain (`PROCESSED_UNTIL: 2026-10-09T14:05+02:00`) is stored and fetched back in the same escaped form. `update_content` changes the line it names; `replace_content` replaces the whole body.
 
 ## Databases
 
