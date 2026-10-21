@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.20.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.20.0...upwork-pulse-v0.20.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** copy cover letters with real line breaks ([3b1ecbb](https://github.com/sivakov512/agent-tools/commit/3b1ecbbd16d67f630dcaab8d5d976c3c0d76b4f0))
+* **upwork-pulse:** read config, Run state and cards through notionText ([852762e](https://github.com/sivakov512/agent-tools/commit/852762ee4a03a72f2d26d2c2e264754220588c99))
+* **upwork-pulse:** read Notion's new page text format ([4e22c2b](https://github.com/sivakov512/agent-tools/commit/4e22c2b594b39acbad6ac11844cb5bb2e81d5b37))
+* **upwork-pulse:** send nothing to the user while a scheduled run works ([4e2948c](https://github.com/sivakov512/agent-tools/commit/4e2948cbacd3a92c856d1f1652cb8c4698eae3e8))
+* **upwork-pulse:** write a settings switch's line as Markdown ([9cc8447](https://github.com/sivakov512/agent-tools/commit/9cc84476ce4bcf653e98935dfc4fa2d3d82aa530))
+
 ## [0.20.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.19.1...upwork-pulse-v0.20.0) (2026-10-20)
 
 
