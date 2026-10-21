@@ -28,7 +28,7 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 	problems: `20000000-0000-4000-8000-000000000003`
 	dashboard: `https://claude.ai/artifact/d0000000-0000-4000-8000-000000000001`
 	dashboard_version: 99.0.0
-	schema: 5
+	schema: 6
 </details>
 <tabs>
 	<tab>
@@ -62,10 +62,10 @@ Fetching a database URL lists its data source with the schema below and its view
 A view is queried with `data: {mode: "view", view_url: "https://app.notion.com/p/<database or block id without dashes>?v=<view id without dashes>"}` and returns `{"results":[{…row properties…, "url":"https://app.notion.com/p/<row id>"}],"has_more":false}` with dates as `date:<Prop>:start` / `date:<Prop>:end`, relations as JSON arrays of page URLs, `Late, days`, `Open late` and the rollups as opaque formula references.
 
 Schemas:
-- Projects: Name (title), Ref (unique ID, prefix PR), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Claude project (text), Client dashboard (url), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
-- Milestones: Name (title), Ref (unique ID, prefix MS), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Order (number), Chat (url), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
-- Tasks: Name (title), Ref (unique ID, prefix TK), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Order (number), Chat (url), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
-- Problems: Name (title), Ref (unique ID, prefix PB), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Summary (text), Opened (date), Resolved on (date), Chat (url). `Chat` is empty on every row at the start.
+- Projects: Name (title), Ref (unique ID, prefix PR), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Chat (url), Code session (url), Claude project (text), Code folder (text), Client dashboard (url), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
+- Milestones: Name (title), Ref (unique ID, prefix MS), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Order (number), Chat (url), Code session (url), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
+- Tasks: Name (title), Ref (unique ID, prefix TK), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Order (number), Chat (url), Code session (url), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
+- Problems: Name (title), Ref (unique ID, prefix PB), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Summary (text), Opened (date), Resolved on (date), Chat (url), Code session (url). `Chat` and `Code session` are empty on every row, `Code folder` on every project, at the start.
 
 `Ref` (all four databases) is a Notion unique ID — numbered by Notion itself, per database, and read-only: a write to it fails with a validation error. A fetch of a database or data source lists it in the schema as a unique ID with its prefix (`PR` Projects, `MS` Milestones, `TK` Tasks, `PB` Problems). **Its value reads differently by call, exactly as real Notion returns it:** in view query results it is the bare number as a string, with no prefix — `"Ref":"4"`; in a page fetch's `<properties>` it carries the prefix — `"Ref":"TK-4"`. Every row below gives its `Ref` (`Ref PR-1` on a project, `(Ref TK-4)` on the other rows); return it in every view query row (whatever the view shows) and in every page fetch, each in the form for that call. A row the agent creates gets the next free number of its database (the next project `PR-3`, milestone `MS-6`, task `TK-12`, problem `PB-3`).
 

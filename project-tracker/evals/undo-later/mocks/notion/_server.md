@@ -28,7 +28,7 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 	problems: `20000000-0000-4000-8000-000000000003`
 	dashboard: `https://claude.ai/artifact/d0000000-0000-4000-8000-000000000001`
 	dashboard_version: 99.0.0
-	schema: 5
+	schema: 6
 </details>
 <tabs>
 	<tab>
