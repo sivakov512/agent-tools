@@ -1489,10 +1489,11 @@
   function plain(s) { return unesc(String(s == null ? "" : s).replace(/<br\s*\/?>/gi, "\n")).replace(/\\([\\"<{}.!+])/g, "$1").replace(/\[([^\]]+)\]\((?:https?:)?\/\/[^)\s]+\)/g, "$1").trim(); }
   // A proposal's page has fixed sections (references/drafts.md §4); the dashboard shows them as written and only
   // picks the presentation by the section's name: what to confirm stands out, form fields get a copy icon, background is quiet.
-  // Notion's inline markdown to the plain text it stands for: `code` (file names are written so) and the links Notion
-  // makes by itself out of anything that looks like a domain ("clip.mp4" comes back as "[clip.mp](http://clip.mp)4").
+  // Notion's inline markdown to the plain text it stands for: `code` (file names are written so), a line break inside a block
+  // (<br>, which the new fetch format writes as <br />) as a real one, and the links Notion makes by itself out of anything that
+  // looks like a domain ("clip.mp4" comes back as "[clip.mp](http://clip.mp)4").
   function inlineText(l) {
-    return unesc(l).replace(/`([^`]+)`/g, "$1").replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, function (m, t, u) { return u.replace(/^https?:\/\//, "") === t ? t : m; });
+    return unesc(l.replace(/<br\s*\/?>/gi, "\n")).replace(/`([^`]+)`/g, "$1").replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, function (m, t, u) { return u.replace(/^https?:\/\//, "") === t ? t : m; });
   }
   // A page body comes back one block per line; paragraphs get a blank line between them, list items stay together.
   function blocksText(lines) {
