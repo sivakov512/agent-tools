@@ -6,7 +6,7 @@ Started by the user ("make a client dashboard for Brightbrush", "a dashboard for
 
 **Inputs:** the covered projects' rows from the views and their pages; the project page's `Client sees` and `Client side` private notes; for a refresh, the published page and its `data.js`.
 
-**What it shows.** The work as it is, so the client sees not only that a task is under way but what is happening in it: names and IDs (`TK-34`, to name a row when talking to the user), statuses, dates and lateness of projects, milestones, tasks and problems; problem types, who is waited on, `Summary` (a project's and a problem's); and every page's public parts (SKILL.md → **Pages**) — the description, `## Notes` (a public sub-page with its text, a file by its name only) and `## History`. Never `## Private notes`, links into Notion (a mention of a row the page shows opens that row on the page; any other mention is its plain title), chats, `Claude project`, origin, source or repository. What keeps the private part private is that it is left out of the data — anyone with the link can read the file — and SKILL.md → **Who sees what** decides what is written where.
+**What it shows.** The work as it is, so the client sees not only that a task is under way but what is happening in it: names and IDs (`TK-34`, to name a row when talking to the user), statuses, dates and lateness of projects, milestones, tasks and problems; problem types, who is waited on, `Summary` (a project's and a problem's); and every page's public parts (SKILL.md → **Pages**) — the description, `## Notes` (a public sub-page with its text, a file by its name only) and `## History`. Never `## Private notes`, links into Notion (a mention of a row the page shows opens that row on the page; any other mention is its plain title), chats and Code sessions, `Claude project`, `Code folder`, origin, source or repository. What keeps the private part private is that it is left out of the data — anyone with the link can read the file — and SKILL.md → **Who sees what** decides what is written where.
 
 It is a snapshot, not live: `assets/client.html` runs on a `data.js` that the skill writes and republishes after every change to what it covers, so the client needs no Notion access and no connector.
 
@@ -85,4 +85,4 @@ A published page whose link is in `Client dashboard` on every project it covers,
 
 ## Off limits
 
-Anything in `data.js` beyond the keys of **The data**, above all Private notes, links into Notion, chats, `Claude project`, origin, source and repository. Taking a dashboard down without the user's yes.
+Anything in `data.js` beyond the keys of **The data**, above all Private notes, links into Notion, chats and Code sessions, `Claude project`, `Code folder`, origin, source and repository. Taking a dashboard down without the user's yes.
