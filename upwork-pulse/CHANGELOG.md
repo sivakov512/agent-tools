@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.20.2](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.20.1...upwork-pulse-v0.20.2) (2026-10-21)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** let a settings switch flip twice in one visit ([ec00240](https://github.com/sivakov512/agent-tools/commit/ec002404fb1088758f242bd5ec207d5229debb3f))
+* **upwork-pulse:** read and write pages in Notion's current format ([201cdb4](https://github.com/sivakov512/agent-tools/commit/201cdb443a243926265a0fd218be6b1b2e7a691b))
+* **upwork-pulse:** see a guide placeholder Notion shows in italics ([255a72c](https://github.com/sivakov512/agent-tools/commit/255a72c9ecbc5012c6cf5c2437ffdab4da9f50f8))
+* **upwork-pulse:** write a carried-over anchor line as Markdown too ([0e436eb](https://github.com/sivakov512/agent-tools/commit/0e436eb17d112dcb257968a9f8d3c9303fb31574))
+
 ## [0.20.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.20.0...upwork-pulse-v0.20.1) (2026-10-21)
 
 
