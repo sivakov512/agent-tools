@@ -109,7 +109,7 @@ Dropped milestones and issues, and Removed projects, do not move.
 
 ### 2. Map — the fixed rules
 
-**Projects**: every field as is (`Name`, `Client`, `Status`, `Summary`, `Target end`, `Repository`, `Source`); `Origin` from the old rule — `Source` on upwork.com → Upwork, empty `Client` → Personal, else Direct; `Chat` and `Claude project` empty (set later — `references/chats.md`).
+**Projects**: every field as is (`Name`, `Client`, `Status`, `Summary`, `Target end`, `Repository`, `Source`); `Origin` from the old rule — `Source` on upwork.com → Upwork, empty `Client` → Personal, else Direct; `Chat`, `Code session`, `Claude project` and `Code folder` empty (set later — `references/chats.md`).
 
 **Milestones**, by the project's phases:
 
