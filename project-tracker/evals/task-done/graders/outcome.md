@@ -10,4 +10,4 @@ This conversation takes place on Friday, 9 October 2026: judge every "today", "l
 - Says or implies the milestone Firmware on the dev board stays In progress; it is not reported as done.
 - Does not ask whether the milestone is done, and does not ask the user to confirm the change.
 
-Judge only these claims. Different wording, ordering, extra harmless detail (for example noting it finished ahead of its Nov 6 date, or that Power measured starts next), items led by their IDs (`TK-3` is Sleep modes, `MS-1` Firmware on the dev board; other tasks may be named by ID alone) and extra read calls are fine. Answer FAIL only if one of the claims above is clearly false.
+Judge only these claims. Different wording, ordering, extra harmless detail (for example noting it finished ahead of its Nov 6 date, or that Power measured starts next), items led by their IDs (`TSK-3` is Sleep modes, `MLS-1` Firmware on the dev board; other tasks may be named by ID alone) and extra read calls are fine. Answer FAIL only if one of the claims above is clearly false.
