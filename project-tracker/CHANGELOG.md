@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.15.5](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.4...project-tracker-v1.15.5) (2026-10-21)
+
+
+### Bug Fixes
+
+* **project-tracker:** pass every fetched page through notionText ([cf2c782](https://github.com/sivakov512/agent-tools/commit/cf2c782cbc2fa1e7d47bd68eccd086f3bab934ab))
+* **project-tracker:** read Notion's new page text format ([24ec0e5](https://github.com/sivakov512/agent-tools/commit/24ec0e5bfb99f573c47a7567702656125b127bae))
+
 ## [1.15.4](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.3...project-tracker-v1.15.4) (2026-10-20)
 
 
