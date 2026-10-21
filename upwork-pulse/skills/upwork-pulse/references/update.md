@@ -8,7 +8,7 @@ For a pipeline whose config `schema` (none means 1) is below what this skill wri
 
 **Safe to stop and run again.** Every step checks first and does only what is missing, so an update cut short is finished by the next session that runs it. `schema` is written last: until then the scheduled runs stay paused, and nothing half-converted is read by them.
 
-**If it stops** — a check below fails, a write errors (SKILL.md → *Rules that protect the user*: stop, re-fetch, report), the session runs out of budget — replace the `updating` line with `update_error: `<version and step> — <why, one line in language>`` (no backticks inside the value). The automatic runs then stay paused and the digests say so until a conversation runs the update again: an hourly run does not retry a cause that would only repeat every hour.
+**If it stops** — a check below fails, a write errors (SKILL.md → *Rules that protect the user*: stop, re-fetch, report), the session runs out of budget — replace the `updating` line with `update_error: `<version and step> — <why, one line in language>`` (no backticks inside the value). The automatic runs then stay paused and the dashboard says so until a conversation runs the update again: an hourly run does not retry a cause that would only repeat every hour.
 
 **Nothing is dropped unchecked.** A column is removed only after its values are verified to be in their new place. What an old text column held beyond the facts that have columns (a client's open jobs or review count, a region) goes with it — say so in the report. A column the update does not know (one the user added by hand) is never removed — it is named in the report. "Now" is the session clock in the config's timezone.
 
@@ -84,6 +84,10 @@ Two Jobs views keep the hourly run's reads small: it checks what it has already 
 2. **Config** (`update_content` on the toggle, SKILL.md → *Notion calls* → **Page text**, after `jobs_all`): `jobs_to_advise` and `jobs_recent`, each the URL of its view (`references/setup.md` §5), added when missing.
 3. **Check.** Query each of the two views once (`mode: "view"`, `page_size: 20`). An error, or rows that break the view's filter (a card that is not New in To advise; one found more than a week ago in Recent) → stop here as *If it stops* says; `update_error` names the view and what came back. The update writes `schema` only with both views working, since the hourly run reads them from then on.
 4. **Report** in `language`, one or two lines: the two views were added to Jobs to make the hourly runs cheaper; nothing else changed.
+
+## Digest tasks
+
+Older versions set up a morning and an evening digest task; the skill no longer has that mode. The user reads the leads on the dashboard, live, a Take or an invitation is pushed by the hourly run that finds it, and the hourly run syncs the proposals the digests used to (`references/hourly.md` §6). The skill cannot delete a task, so a digest task that still fires fetches only the root page, for `language`, and writes nothing — no sync, no rules, no schema check — and only tells the user it can go: it loads `PushNotification` and pushes, in `language`, "Upwork Pulse has no digests any more: the dashboard shows the leads and the hourly run syncs proposals. Delete this task", and its reply is that line. The push repeats with every run until the task is deleted, which is the point: a silent run would cost a session twice a day forever.
 
 Off limits here: `PROCESSED_UNTIL` (To 3, step 8); a column the user added, and any column whose values are not yet checked in their new place (*Nothing is dropped unchecked*); any write to Upwork.
 
