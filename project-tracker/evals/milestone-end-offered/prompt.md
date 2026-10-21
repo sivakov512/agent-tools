@@ -6,4 +6,4 @@ runs: 3
 tags: [dates, tasks]
 append_system_prompt: 'The current date is Friday, 9 October 2026. Any other date in the environment, a "Today''s date" line included, is wrong for this session: today is 2026-10-09 — use it for every date you write and every "today" you count from.'
 ---
-On the energy meter, TK-4 Power measured now ends Nov 20 — set it.
+On the energy meter, TSK-4 Power measured now ends Nov 20 — set it.
