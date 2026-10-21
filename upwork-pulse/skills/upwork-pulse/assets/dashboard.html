@@ -1662,7 +1662,7 @@
     if (!MCP) return;
     var from = new RegExp(key.replace(/_/g, "\\\\?_") + ":\\s*(?:`|<code>)?(on|off)(?:`|<\\/code>)?").exec(S.cfgText || ""), to; // the line as the page has it: `auto_drafts: \`on\`` or, since Oct 20, 2026, `auto\\_drafts: <code>on</code>`
     if (!from) { toast("The config has no " + key + " key"); input.checked = !input.checked; return; }
-    input.disabled = true; to = from[0].replace(/(on|off)((?:`|<\/code>)?)$/, value + "$2"); // the same line, in the same dialect, with the new value
+    input.disabled = true; to = key + ": `" + value + "`"; // written as Markdown: Notion saves a written <code> as literal text
     MCP.callTool(NOTION, "notion-update-page", { page_id: ROOT_PAGE, command: "update_content", content_updates: [{ old_str: from[0], new_str: to }] }, { cache: false })
       .then(function () {
         S.cfg[key] = value; S.cfgText = S.cfgText.replace(from[0], to);
