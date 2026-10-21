@@ -1665,9 +1665,11 @@
     input.disabled = true; to = key + ": `" + value + "`"; // written as Markdown: Notion saves a written <code> as literal text
     MCP.callTool(NOTION, "notion-update-page", { page_id: ROOT_PAGE, command: "update_content", content_updates: [{ old_str: from[0], new_str: to }] }, { cache: false })
       .then(function () {
-        S.cfg[key] = value; S.cfgText = S.cfgText.replace(from[0], to);
+        S.cfg[key] = value;
         toast((key === "auto_drafts" ? "Auto proposals " : "Auto skip ") + value);
         MCP.invalidate(NOTION, "notion-fetch").catch(function () {});
+        // the next flip's old_str is the line as Notion now shows it, not as written: read the page again before the switch is free
+        return fetchPage(ROOT_PAGE, false).then(function (pg) { if (pg.raw) S.cfgText = pg.raw; }, function () {});
       }, function (err) { input.checked = !input.checked; toast("Couldn't save: " + errText(err, NOTION)); })
       .then(function () { input.disabled = false; renderSettings(); renderLeadNotice(); if (key === "auto_drafts" && value === "on") checkGuide(); });
   }
