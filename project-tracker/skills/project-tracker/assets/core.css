@@ -225,9 +225,9 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .acts .chat-m { left: auto; right: 0; } /* the buttons sit at the right: the menu opens leftwards, inside the page */
 .acts .ext { white-space: nowrap; }
 /* One header stuck at a time: an opened item's sticks while it is read and goes with its end; inside an opened milestone, an opened task's
-   takes the place while the task is read (stick()). */
+   takes the place while the task is read, the two pushing each other, never overlapping (stick()). */
 .blk.open > .blk-h { position: sticky; top: 0; z-index: 3; background: var(--surface-2); border-radius: 12px 12px 0 0; }
-.blk .blk.open > .blk-h { z-index: 4; background: var(--sunken); border-radius: 0; } /* an inner header slides in over its parent's, and away off it */
+.blk .blk.open > .blk-h { z-index: 4; background: var(--sunken); border-radius: 0; } /* an inner header and its parent's hand over by pushing (stickPlan), the inner one drawn above at the seam */
 .blk-h.under { visibility: hidden; }
 .blk-b { padding: 4px 16px 26px 36px; } /* a problem's or task's body, at its header's text */
 .blk-b > * + * { margin-top: 12px; }
