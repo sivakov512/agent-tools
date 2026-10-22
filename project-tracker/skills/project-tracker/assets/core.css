@@ -598,22 +598,15 @@ h1 .ref { vertical-align: 4px; }
 .dr-body .arow.open > .acc-x { padding-bottom: 26px; }
 .dr-body .mgrp.open .mdet { padding-bottom: 22px; }
 .dr-body .mtw > .arow:last-child { border-bottom: 0; }
-/* A milestone's tasks, one level down. Indented (the default): the tasks sit in from the milestone, their strips starting there. */
-.dr-body .mtw { margin-left: 36px; }
-.dr-body .mtw .mtl { padding-left: 12px; }
-.dr-body .mtw .arow.tsk > .acc-h { padding-left: 12px; }
-.dr-body .mtw .arow.tsk > .acc-x { padding-left: 32px; }
-@media (max-width: 860px) { .dr-body .mtw { margin-left: 16px; } }
-/* Not indented (.nest-flat): the tasks keep the full width, and an opened milestone reads as a chapter — its header, a size larger on the darker
-   strip, stays at the top of the page while its tasks scroll under it, and a firmer line closes it — so whose a task is stays in view
-   without costing width. */
-.nest-flat .dr-body .mtw { margin-left: 0; }
-.nest-flat .dr-body .mtw .mtl { padding-left: 16px; }
-.nest-flat .dr-body .mtw .arow.tsk > .acc-h { padding-left: 16px; }
-.nest-flat .dr-body .mtw .arow.tsk > .acc-x { padding-left: 36px; }
-.nest-flat .dr-body .mgrp > .mh .t { font-size: 15.5px; }
-.nest-flat .dr-body .mgrp.open > .mh { position: sticky; top: 0; z-index: 2; background: var(--sunken); box-shadow: 0 1px 0 var(--border-2); }
-.nest-flat .dr-body .mgrp.open { border-bottom: 2px solid var(--border-2); }
+/* A milestone's tasks keep the full width, and an opened milestone reads as a chapter: its header, a size larger on the darker strip, stays at
+   the top of the page while its tasks scroll under it, and a firmer line closes it — so whose a task is stays in view without costing width
+   (indenting each level made tasks narrow). */
+.dr-body .mtw .mtl { padding-left: 16px; }
+.dr-body .mtw .arow.tsk > .acc-h { padding-left: 16px; }
+.dr-body .mtw .arow.tsk > .acc-x { padding-left: 36px; }
+.dr-body .mgrp > .mh .t { font-size: 15.5px; }
+.dr-body .mgrp.open > .mh { position: sticky; top: 0; z-index: 2; background: var(--sunken); box-shadow: 0 1px 0 var(--border-2); }
+.dr-body .mgrp.open, .dr-body .dsec-b > .mgrp.open:last-child { border-bottom: 2px solid var(--border-2); }
 /* the bar names the item being read: its tag and name, in the text's own colour */
 .dr-bar.ctx .ttl { color: var(--text); font-weight: 500; }
 .dr-bar.ctx .ttl .tt { margin-right: 6px; }
