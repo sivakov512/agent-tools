@@ -81,7 +81,6 @@ A runtime rule two skills need is written in each of them, since each ships alon
 | Text read from a Notion view is markdown-escaped: write plain text, never copy the backslashes back | upwork-pulse, project-tracker |
 | The config lives on a root page in Notion, found by its toggle, with a `schema` line (§4.7) | upwork-pulse, project-tracker |
 | A dashboard chat link opens a chat whose first message names the item, its ids and the skill; that chat writes its own link to the item's `Chat` | upwork-pulse, project-tracker |
-| A dashboard Code link starts a local Claude Code session whose first message also says `Code session`; that session writes its own link (`get_session` `self`) to the item's `Code session`, never to `Chat`, and a chat never to `Code session` | project-tracker (upwork-pulse to follow) |
 | The dashboards share one look: tokens, pills, rows, drawer | upwork-pulse, project-tracker |
 
 ## 6. Pages and code
