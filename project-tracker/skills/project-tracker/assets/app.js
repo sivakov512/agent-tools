@@ -202,7 +202,7 @@
         S.projects = rows.map(function (r) {
           var p = old[key(r.url)] || { kind: "project" };
           p.url = cleanUrl(r.url); p.key = key(r.url); p.name = clean(r.Name) || "Untitled"; p.client = clean(r.Client); p.status = r.Status || "";
-          p.summary = clean(r.Summary); p.target = dnum(r["date:Target end:start"]); p.repo = r.Repository || ""; p.source = r.Source || ""; p.chat = r.Chat || ""; p.code = r["Code session"] || ""; p.cfolder = unesc(r["Code folder"] || "").trim(); p.cproj = claudeProject(r["Claude project"]); p.origin = originOf(r); p.ref = PT.refOf("project", r.Ref);
+          p.summary = clean(r.Summary); p.target = dnum(r["date:Target end:start"]); p.repo = r.Repository || ""; p.source = r.Source || ""; p.chat = r.Chat || ""; p.code = r["Code session"] || ""; p.cfolder = PT.plain(r["Code folder"]); p.cproj = claudeProject(r["Claude project"]); p.origin = originOf(r); p.ref = PT.refOf("project", r.Ref);
           return p;
         }).filter(function (p) { return p.status === "Active" || p.status === "Paused"; });
         S.projErr = null; render();
