@@ -24,7 +24,9 @@ The link stays the same. No artifact tool on this surface → the folder is the 
 
 The asset's first line, `<!-- dashboard-version: N -->`, carries the plugin's version (`x.y.z`); a release that did not change the page still offers it, and a yes republishes the same page. The config's `dashboard_version` is the version the user's dashboard was last published from; SKILL.md says how a missing or old-style value compares.
 
-The offer itself — when it is due and what it says — is in SKILL.md (**The dashboard offer**); a yes comes here: **Publish**, or **Republishing** for an existing dashboard (it keeps the link and sets `dashboard_version` to N).
+## The offer
+
+When it is due is SKILL.md's (**The dashboard offer**). It is one short line in the user's language: with no dashboard, what it is in a few words and whether to publish it; with an older one, that it has an update to N, what is new in a few words (the dashboard entries between the two versions in the plugin's `CHANGELOG.md`, next to `skills/`; if it cannot be read, just that an update is out), and whether to republish it. Yes → **Publish**, or **Republishing** for an existing dashboard (it keeps the link and sets `dashboard_version` to N). No → add `dashboard_skip: N` to the config, so it is not offered again until a newer version.
 
 A change to the page itself — a new section, a different look — is a change to the plugin, not to the tracker: say so, and that it ships with a plugin release; the page shows only what the tracker holds.
 

@@ -70,17 +70,17 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 
 | File | Owns |
 |---|---|
-| `SKILL.md` | trigger; the data model and its words; page parts; who sees what; the plan's rules (order, task or problem, names, task size, dates, lateness, levels); the rules that protect the data; taking in a message — what changed, what is worth writing, where it goes, propose then write, tidy-ups as the work goes; finding things, the overdue check and long waits; Notion call shapes; every change and the reply; the frequent scenarios (progress, tasks, delay, problems, corrections, notes); the dashboard offer; the routing table |
+| `SKILL.md` | trigger; the data model and its words; page parts; who sees what; the plan's rules (order, task or problem, names, task size, dates, lateness, levels); the rules that protect the data; taking in a message — what changed, what is worth writing, where it goes, propose then write, tidy-ups as the work goes; finding things, the overdue check and long waits; Notion call shapes; every change and the reply; the frequent scenarios (progress, tasks, delay, problems, corrections, notes); when the dashboard offer is due; the routing table |
 | `references/chats.md` | a chat or Code session opened from the dashboard: claiming the row (`Chat` or `Code session`, and an empty `Code folder`), naming the session, the first reply; `Claude project`, `Code folder` |
 | `references/client-dashboards.md` | client dashboards: what a client may see, making one, `data.js`, keeping it current, changing and removing it |
 | `references/contracts.md` | a project from a platform contract (Upwork), and resync |
-| `references/dashboard.md` | publishing and republishing the user's dashboard |
+| `references/dashboard.md` | publishing and republishing the user's dashboard; the offer's wording and its yes or no |
 | `references/new-project.md` | a new project from a source: extract, dates, confirm, create, the project page's views and tabs |
 | `references/notes.md` | long text as sub-pages, and files |
-| `references/plan-changes.md` | plan changes, removing and restoring, undo |
+| `references/plan-changes.md` | plan changes, reordering, removing and restoring, undo |
 | `references/report.md` | answering from the tracker: the goal, scope and period, the blocks and their views, the defaults for the usual questions; the weekly report |
 | `references/setup.md` | setting the tracker up or finishing it |
-| `references/tidy.md` | a tidy-up the user asks for, of a task, a milestone with its tasks or a project |
+| `references/tidy.md` | what a tidy-up does; a sweep the user asks for, of a task, a milestone with its tasks or a project |
 | `references/state.md` | pausing (the rule and its line) and resuming; a project's state and fields |
 | `references/upgrade.md` | everything only older trackers need: the Tracker update (the schema steps, the columns older trackers lack), the old shapes still met on pages, a tracker made by 0.x copied to a new one |
 | `assets/` | `dashboard.html`, `client.html` and their shared `app.js`, `core.js`, `core.css` — specified in `docs/dashboard-design.md` |
