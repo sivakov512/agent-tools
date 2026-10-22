@@ -130,7 +130,7 @@ Tasks of Energy meter (id — name — milestone — status — Dates — Waitin
 - `3000…0203` (Ref TSK-9) Invoice received from Acme — 0111 — Waiting — no Dates — Waiting on Acme
 - `3000…0205` (Ref TSK-10) Laboratory found — 0111 — Planned — no Dates — Waiting on empty
 
-Each of these task pages holds only its history — a `## History` heading, then the line: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Oct 5** — Asked Marko to set up a CI runner for the firmware.`; 0202 `- **Oct 5** — Sent the RFQ to Northwind for review.`; 0203 `- **Oct 5** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; the others are empty.
+Each of these task pages holds only its history — a `## History` heading, then the line: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Sep 22** — Asked Marko to set up a CI runner for the firmware.`; 0202 `- **Sep 22** — Sent the RFQ to Northwind for review.`; 0203 `- **Sep 22** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; the others are empty.
 
 Problems of Energy meter:
 - `3000…0204` (Ref PRB-1) Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0111 — Task empty — Summary "+3 weeks if the second board run misses it" — Opened 2026-09-22
@@ -149,7 +149,7 @@ Linked-view blocks `60000000…0021` Plan, `…0022` Tasks (views `70000000…00
 - Milestone `3000…0301` (Ref MLS-3) Schematic — Done — 2026-09-01 → 2026-09-18 — Finished 2026-09-18. Body: `Contract milestone 1. Done when the schematic PDF is delivered.`
 - Milestone `3000…0302` (Ref MLS-4) Layout — In progress — 2026-09-18 → 2026-10-20. Body: `Contract milestone 2. Done when the Gerbers are delivered.`
 - Milestone `3000…0303` (Ref MLS-5) Firmware — Planned — 2026-10-20 → 2026-11-10. Body: `Contract milestone 3. Done when the firmware runs on the prototype.`
-- Task `3000…0401` (Ref TSK-11) Firmware spec approved by Brightbrush Ltd — milestone 0303 — Waiting — no Dates — Waiting on Brightbrush Ltd. Body: `## History`, then `- **Oct 5** — Sent the firmware spec to Brightbrush Ltd for approval.`
+- Task `3000…0401` (Ref TSK-11) Firmware spec approved by Brightbrush Ltd — milestone 0303 — Waiting — no Dates — Waiting on Brightbrush Ltd. Body: `## History`, then `- **Sep 18** — Sent the firmware spec to Brightbrush Ltd for approval.`
 - No problems.
 
 ## What each read returns (strict)
