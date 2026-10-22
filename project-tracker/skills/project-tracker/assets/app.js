@@ -883,19 +883,15 @@
     var a = el("span"); a.appendChild(chatBtn(x, x.kind)); var n = link(x.url, "Notion ↗", "ext"); n.title = "Opens this " + KIND[x.kind] + " in Notion"; n.addEventListener("click", function (e) { e.stopPropagation(); }); a.appendChild(n);
     return a;
   }
-  var GLYPH = { more: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.1"/><circle cx="8" cy="8" r="1.1"/><circle cx="12.5" cy="8" r="1.1"/></svg>', out: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 8 8M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3"/></svg>' };
+  var GLYPH = { out: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 8 8M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3"/></svg>' };
   function ib(href, html, word, title) { // one of an item's buttons: its mark and its word (a phone shows the mark alone)
     var a = el(href ? "a" : "button", "ib"); a.innerHTML = html; if (word) a.appendChild(span(word, "lbl")); a.title = title; a.setAttribute("aria-label", title);
     if (href) { a.href = href; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", function (e) { e.stopPropagation(); }); } else a.type = "button";
     return a;
   }
-  function itemActions(x) { // an item's own buttons, in its header: its chat, its Code session (not on a phone), Notion, and ⋯ the rest
+  function itemActions(x) { // an item's own buttons, in its header: its Claude — one control: the chat, </> its Code session (not on a phone), ▾ a new chat or session — then Notion
     if (SNAP) return null;
-    var c = claudeOf(x, x.kind), w = el("span", "ibs");
-    w.appendChild(ib(c.chatUrl, ICON.chat, "Chat", c.chatTitle));
-    if (c.codeUrl) w.appendChild(ib(c.codeUrl, ICON.code, "Code", c.codeTitle));
-    w.appendChild(ib(x.url, GLYPH.out, "Notion", "Opens this " + KIND[x.kind] + " in Notion"));
-    menuBtn(w, ib(null, GLYPH.more, "", "More: new chat, new Code session"), c.items);
+    var w = el("span"); w.appendChild(chatBtn(x, x.kind)); w.appendChild(ib(x.url, GLYPH.out, "Notion", "Opens this " + KIND[x.kind] + " in Notion"));
     return w;
   }
   var PG = PT.page({ ui: S, host: function () { return $("drBody"); }, msBody: msBody, taskBody: taskBody, actions: actions, itemActions: itemActions });

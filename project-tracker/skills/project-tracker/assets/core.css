@@ -208,21 +208,24 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .acc-h .t { grid-area: t; font-size: 15px; font-weight: 500; line-height: 1.35; overflow-wrap: anywhere; }
 .acc-h .s { grid-area: s; font-size: 13px; color: var(--text-mute); }
 .acc-h .s .crit, .acc-h .s .warn, .acc-h .s .good, .acc-h .s .acc { font-weight: 500; }
-.acc-h > .acts { grid-area: acts; display: flex; align-items: center; gap: 4px; margin: -3px 0; visibility: hidden; opacity: 0; transition: opacity .15s, visibility .15s; } /* no taller than the meta line */
+.acc-h > .acts { grid-area: acts; display: flex; align-items: center; gap: 10px; visibility: hidden; opacity: 0; transition: opacity .15s, visibility .15s; } /* there when folded too, unseen: the meta line is the control's height in every state, and all of it centres on the control */
 .acc-h > .chev { grid-area: chev; transition: transform .15s; }
-.blk.open > .acc-h > .acts { visibility: visible; opacity: 1; }
-@media (hover: hover) { .acc-h:hover > .acts, .acc-h:focus-within > .acts { visibility: visible; opacity: 1; } }
+.blk.open > .acc-h > .acts { visibility: visible; opacity: 1; } /* only when opened: never under the pointer, where they would catch the click that opens the item */
 @media (prefers-reduced-motion: reduce) { .acc-h > .acts { transition: none; } }
 .blk.ms > .blk-h .t { font-size: 15.5px; font-weight: 600; }
 .blk.tsk > .blk-h .t { font-size: 14.5px; font-weight: 400; }
 .blk.open > .blk-h > .chev { transform: rotate(90deg); }
-.ibs { position: relative; }
 .ib { display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 22px; min-width: 22px; padding: 0 6px; border: 0; border-radius: 6px; background: none; color: var(--accent); font: inherit; font-size: 12.5px; font-weight: 500; white-space: nowrap; text-decoration: none; cursor: pointer; }
 .ib:hover, .ib[aria-expanded="true"] { background: var(--accent-soft); }
 .ib .cico, .ib .ico { width: 14px; height: 14px; margin: 0; flex: none; }
 .ib .ico { stroke: currentColor; fill: none; stroke-width: 1.5; }
 .ib .ico circle { fill: currentColor; stroke: none; }
 .acts .chat-m { left: auto; right: 0; } /* the buttons sit at the right: the menu opens leftwards, inside the page */
+.acc-h .chat { font-size: 12.5px; } /* the item's Claude, the project's control made to fit the meta line */
+.acc-h .chat > a, .acc-h .chat > .more { height: 24px; padding-top: 0; padding-bottom: 0; }
+.acc-h .chat > a { padding-left: 8px; }
+.acc-h .chat.split > a.cpart { min-width: 26px; padding: 0 7px; }
+.acc-h .chat .cico { width: 14px; height: 14px; }
 .acts .ext { white-space: nowrap; }
 /* One header stuck at a time: an opened item's sticks while it is read and goes with its end; inside an opened milestone, an opened task's
    takes the place while the task is read, the two pushing each other, never overlapping (stick()). */
@@ -516,7 +519,8 @@ h1 .ref { vertical-align: 4px; }
 .pline .ilink { font-size: 14px; color: var(--text); }
 @media (max-width: 600px) { /* a phone: the bar on one line; an item's buttons as marks, so its name keeps the room */
   .dr-bar { gap: 4px; padding-left: 16px; }
-  .acc-h .ib .lbl { display: none; } /* a phone: the buttons are marks on the meta line */
+  .acc-h .acts .lbl, .acc-h .acts .arr { display: none; } /* a phone: the buttons are marks on the meta line */
+  .acc-h .acts .chat > a > .cico { margin-right: 0; }
   .acc-h .ib { padding: 0 4px; }
 }
 .tl-b.open, .tl-chip.open, .tl-seg.open { -webkit-mask-image: linear-gradient(to right, #000 70%, transparent); mask-image: linear-gradient(to right, #000 70%, transparent); } /* an edge that is no date fades: a start with no agreed end, drawn for a set span, fades where the end would be */
