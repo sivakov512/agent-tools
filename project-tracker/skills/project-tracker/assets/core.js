@@ -561,7 +561,6 @@
     pairs.forEach(function (x) { if (x[1] == null || x[1] === "") return; dl.appendChild(el("dt", "", x[0])); var dd = el("dd"); if (typeof x[1] === "string") dd.textContent = x[1]; else dd.appendChild(x[1]); dl.appendChild(dd); });
     if (dl.childNodes.length) host.appendChild(dl);
   }
-  function actions(host, items) { var a = el("div", "actions"); items.forEach(function (x) { if (x) a.appendChild(x); }); if (a.childNodes.length) host.appendChild(a); }
   function typeTag(t) { return el("span", "tt " + (t || ""), t || "Item"); }
   function phraseEl(parts) { var s = el("span", "s"); parts.forEach(function (p) { if (!p || !p[0]) return; if (s.childNodes.length) s.appendChild(document.createTextNode(" · ")); s.appendChild(span(p[0], p[1] || "")); }); return s; }
   function whoOf(p) { var c = p.client || "", o = p.origin || ""; return c && o && c.toLowerCase() === o.toLowerCase() ? c : [c, o].filter(Boolean).join(" · "); } // client · origin, once when they are the same
@@ -650,7 +649,7 @@
       var det = el("div", "mdet"); b.appendChild(det);
       function fill() { if (!det.firstChild) ctx.msBody(det, m); }
       if (on) fill();
-      if (m.tasks.length) b.appendChild(taskList(m.tasks));
+      if (m.tasks.length) b.appendChild(taskList(m.tasks, m.name));
       g._fill = fill; g._item = m;
       h.addEventListener("click", function () { setGroup(g, k, !g.classList.contains("open")); });
       g.dataset.g = k; g.appendChild(h); g.appendChild(b); return g;
@@ -661,8 +660,8 @@
       b.addEventListener("click", function (e) { e.stopPropagation(); var on = !!b.dataset.open; rows().forEach(function (r) { if (isOpen(r) !== on) set(r, on); }); paint(); });
       b.paint = paint; return b;
     }
-    function taskList(tasks) { // "Tasks N" and the tasks; with several, one button opens or folds them all
-      var w = el("div", "mtw"), tl = el("div", "mtl"); tl.appendChild(span("Tasks")); tl.appendChild(span(String(tasks.length), "n")); w.appendChild(tl);
+    function taskList(tasks, of) { // "Tasks · <milestone> N" and the tasks; with several, one button opens or folds them all
+      var w = el("div", "mtw"), tl = el("div", "mtl"); tl.appendChild(span("Tasks")); if (of) tl.appendChild(span("· " + of, "of")); tl.appendChild(span(String(tasks.length), "n")); w.appendChild(tl);
       tasks.forEach(function (x) { w.appendChild(taskRow(x)); });
       if (tasks.length > 1) {
         var all = allBtn(function () { return [].slice.call(w.querySelectorAll(":scope > .arow")); }, function (r) { return r.classList.contains("open"); }, function (r) { r.querySelector(".acc-h").click(); }, "tasks");
@@ -731,6 +730,6 @@
     el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, plain: plain, notionText: notionText, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, fold: showPart, foldDetails: foldDetails,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
     problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState,
-    timeline: timeline, actions: actions, typeTag: typeTag, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
+    timeline: timeline, typeTag: typeTag, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };
 })();

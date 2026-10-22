@@ -586,17 +586,34 @@ h1 .ref { vertical-align: 4px; }
 .nc-gray { color: var(--text-mute); } .nc-brown, .nc-orange, .nc-yellow { color: var(--warn); } .nc-green { color: var(--good); } .nc-blue, .nc-purple, .nc-pink { color: var(--accent); } .nc-red { color: var(--critical); }
 .nc-gray-bg, .nc-brown-bg { background: var(--sunken); } .nc-orange-bg, .nc-yellow-bg { background: var(--warn-soft); } .nc-green-bg { background: var(--good-soft); } .nc-blue-bg, .nc-purple-bg, .nc-pink-bg { background: var(--accent-soft); } .nc-red-bg { background: var(--critical-soft); }
 
-/* ---------- the project page: an opened milestone, task or problem is a card of its own ---------- */
-/* Several opened items read as separate blocks: a border round each, space between neighbours, its header set apart from its body. */
-.dr-body .dsec-b > .arow.open, .dr-body .mtw > .arow.open, .dr-body .dsec-b > .mgrp.open { margin: 10px; border: 1px solid var(--border-2); border-radius: 10px; overflow: hidden; background: var(--surface); }
-.dr-body .dsec-b > .arow.open:last-child, .dr-body .mtw > .arow.open:last-child, .dr-body .dsec-b > .mgrp.open:last-child { border-bottom: 1px solid var(--border-2); }
-.dr-body .mtw > .arow.open { margin: 8px 10px; }
-.dr-body .arow.open > .acc-h, .dr-body .mgrp.open > .mh { background: var(--surface-2); border-bottom: 1px solid var(--border); }
+/* ---------- the project page: opened items without boxes ---------- */
+/* No outlines inside the page: rows are split by hairlines. An opened milestone, task or problem gets one tinted strip on its header, its body sits on
+   the page, and a firmer line with space under it marks where it ends — so opened items never become a box in a box. */
+.dr-body .dsec-b { border: 0; border-radius: 0; border-top: 1px solid var(--border); overflow: visible; }
+.dr-body .dsec-b > .arow:last-child, .dr-body .dsec-b > .mgrp:last-child { border-bottom: 1px solid var(--border); }
+.dr-body .arow.open, .dr-body .mgrp.open { border-bottom-color: var(--border-2); }
+.dr-body .arow.open > .acc-h, .dr-body .mgrp.open > .mh { background: var(--surface-2); }
 .dr-body .arow.open > .acc-h .t, .dr-body .mgrp.open > .mh .t { font-weight: 600; }
-.dr-body .arow.open > .acc-x, .dr-body .mgrp.open .mdet { background: var(--surface); }
-.dr-body .mgrp.open > .mgrp-b { border-top: 0; }
-.dr-body .mgrp.open .mtl { background: var(--surface-2); }
-.dr-body .arow.open + .arow, .dr-body .mgrp.open + .mgrp { border-top: 1px solid var(--border); }
+.dr-body .acc-x, .dr-body .mdet { background: none; }
+.dr-body .arow.open > .acc-x { padding-bottom: 26px; }
+.dr-body .mgrp.open .mdet { padding-bottom: 22px; }
+.dr-body .mtw > .arow:last-child { border-bottom: 0; }
+/* A milestone's tasks, one level down. Indented (the default): the tasks sit in from the milestone, their strips starting there. */
+.dr-body .mtw { margin-left: 36px; }
+.dr-body .mtw .mtl { padding-left: 12px; }
+.dr-body .mtw .arow.tsk > .acc-h { padding-left: 12px; }
+.dr-body .mtw .arow.tsk > .acc-x { padding-left: 32px; }
+.dr-body .mtl .of { display: none; }
+@media (max-width: 860px) { .dr-body .mtw { margin-left: 16px; } }
+/* Not indented (.nest-flat): the tasks keep the full width; a "Tasks · <milestone>" heading strip says whose they are, the milestone's own
+   title is a size larger, and a firmer line closes the milestone after its last task. */
+.nest-flat .dr-body .mtw { margin-left: 0; }
+.nest-flat .dr-body .mtw .mtl { padding: 8px 16px; background: var(--sunken); color: var(--text-2); }
+.nest-flat .dr-body .mtl .of { display: inline; text-transform: none; letter-spacing: 0; }
+.nest-flat .dr-body .mtw .arow.tsk > .acc-h { padding-left: 16px; }
+.nest-flat .dr-body .mtw .arow.tsk > .acc-x { padding-left: 36px; }
+.nest-flat .dr-body .mgrp > .mh .t { font-size: 15.5px; }
+.nest-flat .dr-body .mgrp.open { border-bottom: 2px solid var(--border-2); }
 /* the bar names the item being read: its tag and name, in the text's own colour */
 .dr-bar.ctx .ttl { color: var(--text); font-weight: 500; }
 .dr-bar.ctx .ttl .tt { margin-right: 6px; }
