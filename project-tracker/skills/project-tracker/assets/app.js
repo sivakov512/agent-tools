@@ -953,7 +953,7 @@
     });
   }
   // The bar above the project page names what is being read, with that item's own Claude and Notion buttons — the only ones the page has for
-  // a milestone, task or problem: the deepest opened item in view (barCtx), else the project.
+  // a milestone, task or problem: the opened item the reader is in, as the page draws it (barCtx), else the project.
   var barKey;
   function barFor(x) {
     var p = S.dr ? allProjByKey()[S.dr.pid] : null, it = x || p, k = x ? key(x.url) : null; if (!it || k === barKey) return; barKey = k;
@@ -963,20 +963,16 @@
     else { t.removeAttribute("title"); paintNav(); }
     if (!SNAP) { $("drNotion").href = it.url; $("drNotion").title = x ? "Opens this " + KIND[kind] + " in Notion" : "Opens the project in Notion"; clear($("drChat")); $("drChat").appendChild(chatBtn(it, kind)); }
   }
-  var BAR_RANK = { task: 0, ms: 1, problem: 2 }; // what the bar prefers when several opened blocks are in view: the deepest level first
-  function barCtx() { // the deepest opened item in view — a task, else a milestone (its pinned header counts), else a problem — else the project; of two at one level, the one the reading line crosses, else the one more of which shows
-    var body = $("drBody"), box = body.getBoundingClientRect(), line = box.top + Math.min(160, box.height * .3), best = null, bestKey = null;
-    [].forEach.call(body.querySelectorAll(".arow.open, .mgrp.open"), function (b) {
-      var x = b._item, rank = x ? BAR_RANK[x.kind] : null; if (rank == null) return;
-      var r = b.getBoundingClientRect(), shown = Math.min(r.bottom, box.bottom) - Math.max(r.top, box.top); if (shown < 48) return;
-      var k = [rank, r.top <= line && r.bottom > line ? 0 : 1, -shown];
-      if (!bestKey || k[0] < bestKey[0] || k[0] === bestKey[0] && (k[1] < bestKey[1] || k[1] === bestKey[1] && k[2] < bestKey[2])) { best = b; bestKey = k; }
-    });
+  var barPin = null; // the block just opened: in focus until the reader scrolls
+  function barCtx() { // by the page as drawn, never by the plan's parents: the block just opened while it shows, until the reader scrolls; else the deepest opened block a reading line a third down crosses; else the project
+    var body = $("drBody"), box = body.getBoundingClientRect(), line = box.top + Math.min(160, box.height * .3), best = null;
+    if (barPin && barPin.isConnected && barPin.classList.contains("open")) { var p = barPin.getBoundingClientRect(); if (Math.min(p.bottom, box.bottom) - Math.max(p.top, box.top) >= 48) best = barPin; }
+    if (!best) [].forEach.call(body.querySelectorAll(".arow.open, .mgrp.open"), function (b) { if (!b._item) return; var r = b.getBoundingClientRect(); if (r.top <= line && r.bottom > line) best = b; }); // blocks come in document order: the last the line crosses is the innermost
     barFor(best ? best._item : null);
   }
   var barRaf = 0; function barSoon() { if (!barRaf) barRaf = requestAnimationFrame(function () { barRaf = 0; if (S.dr) barCtx(); }); }
-  $("drBody").addEventListener("scroll", barSoon, { passive: true });
-  $("drBody").addEventListener("fold", function () { barSoon(); setTimeout(barSoon, 260); }); // and once more when the fold has moved what is below
+  $("drBody").addEventListener("scroll", function () { barPin = null; barSoon(); }, { passive: true });
+  $("drBody").addEventListener("fold", function (e) { var b = e.target; barPin = b._item && b.classList.contains("open") ? b : null; barSoon(); setTimeout(barSoon, 260); }); // and once more when the fold has moved what is below
   var lastFocus = null;
   function openProject(p, k) {
     var same = S.dr && S.dr.pid === p.key && $("drawer").classList.contains("on");
