@@ -17,6 +17,9 @@
   function nodash(id) { return String(id || "").replace(/-/g, ""); }
   function cleanUrl(u) { return String(u || "").replace(/^\{\{|\}\}$/g, "").split("?")[0]; }
   function unesc(s) { return String(s).replace(/\\([!-\/:-@\[-`{-~])/g, "$1"); } // a Markdown escape: a backslash before any ASCII punctuation
+  function plain(s) { // a text field holding a literal value (a folder path) as it was meant: Notion turns a domain-like part into a link, [sivakov.tech/x](http://sivakov.tech/x), and returns inline code as <code>…</code> or backticks; nothing else counts as markup, so a path's __ and * stay
+    return unesc(String(s == null ? "" : s).replace(/(^|[^\\])\[((?:\\.|[^\]\\])*)\]\([^)]*\)/g, "$1$2").replace(/<\/?code>|`/g, "")).trim();
+  }
   // A page's text as notion-fetch returns it → the dialect everything here reads (the one it returned before Oct 20, 2026): nesting by tabs,
   // a toggle as <details> with its first line in <summary>, **bold**, *italic*, ~~strike~~, `code`, tables as <table>, <empty-block/>.
   // Since Oct 20 it nests by two spaces, writes <toggle>, <b>, <i>, <s>, <code>, pipe tables and <p />. Text already in the old dialect
@@ -725,7 +728,7 @@
     DAY: DAY, OPEN_MS: OPEN_MS, SPANS: SPANS, CHEV: CHEV,
     whoOf: whoOf,
     refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled,
-    el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, notionText: notionText, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, fold: showPart, foldDetails: foldDetails,
+    el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, plain: plain, notionText: notionText, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, fold: showPart, foldDetails: foldDetails,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
     problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState,
     timeline: timeline, actions: actions, typeTag: typeTag, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
