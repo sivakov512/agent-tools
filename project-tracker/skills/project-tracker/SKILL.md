@@ -86,7 +86,6 @@ Pages are read by the user and the client: a page that grows by everything said 
 2. **What the pages already say.** Before anything is proposed or written, read all of it — a message is measured against all this, never on its own:
    - each of those items as it is now — fields, description, notes, history — fetched fresh (**Read a row again before asking about it, stating it or changing it**);
    - around them, the project's `Tasks`, `Schedule` and `Problems` views, so you see what else is open — a problem this news resolves, a task waiting on the same party, an exchange it answers;
-   - the first time in a conversation that you propose or make a change to that project, the pages of its Waiting tasks and of its problems waiting on someone (**Long waits**);
    - before calling anything private or public, the project page's `Client sees` private note (**Who sees what**);
    - what was said earlier in this conversation.
 
@@ -149,7 +148,7 @@ By default the reply puts to the user what you would write — the change list o
 
 **A doubt is not an instruction.** A doubt about how to record something ("not sure where this goes") is answered and proposed, and written once the user agrees — unless they left it to you ("sort it out"); then decide, do it, and say why that way is the better one.
 
-One proposal per message, covering every item; a question the change needs (how long the delay is, which of two tasks, which day it finished) goes in the same reply, and the answer to it is also the yes, unless it changes what was proposed. One question closes the reply: other things you would ask (whether the milestone is done too, the next item to start, an overdue item, a long wait, a tidy-up) are folded into it ("Write it? And tidy TSK-7?") or wait for the next reply; the dashboard offer stays its own last line.
+One proposal per message, covering every item; a question the change needs (how long the delay is, which of two tasks, which day it finished) goes in the same reply, and the answer to it is also the yes, unless it changes what was proposed. One question closes the reply: other things you would ask (whether the milestone is done too, the next item to start, an overdue item, a tidy-up) are folded into it ("Write it? And tidy TSK-7?") or wait for the next reply; the dashboard offer stays its own last line.
 
 ### Keeping pages tidy
 
@@ -190,8 +189,6 @@ The `schema` is checked the first time the config is read in a conversation, bef
 A project: the `Active` view, by meaning ("the rain gauge" → "Weather station", "the masts" → "Weather station" whose repository is `wx_mast`); a Done one in `Closed`; a Removed one only when the user names it or asks to bring it back. A milestone, task or open problem: the project's `Schedule` / `Tasks` / `Problems` views; a Resolved problem ("it came back, not fixed"): the root `Recently resolved` (the past month), older ones by `notion-search`. All by meaning, a task before a milestone when the words name a step ("the demo firmware" is the task *Demo firmware*, not the milestone *Demo prototype*). One candidate → no question; several plausible ones → ask.
 
 **Overdue check.** When you work on one project and one of its open milestones or tasks has an end before today (**Nothing paused is late**), mention it and ask what happened — finished (on which day), a new date, or still going — unless its latest history line already explains it or the user answered earlier in this conversation. "Still going" with a reason gets a history line with the reason as a fact (`- **Mar 24** — Past its end: the second batch is late.`); the item stays late, and a Planned one becomes In progress.
-
-**Long waits.** Every reply that proposes or makes a change to a project checks its waits, from their pages (**Taking in a message** step 2): a Waiting task, or a problem waiting on someone, whose latest history line (a problem without one: `Opened`) is more than 7 days old. They are named together in one line of the closing question, each with whom and since when (`TSK-10 Lab quotes waits on Halden Labs since Oct 5, 15 days: chase?`), with the overdue check's exceptions, nothing paused, and each at most once per conversation: the user who passed over it has seen it. A wait shows in the views only when asked, and the user asks inside other work, so a week without a word is when a secretary would remind them. A chase the user then reports is a reminder: a history line.
 
 ## Notion calls
 
