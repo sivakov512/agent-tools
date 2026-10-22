@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """On the project page an opened item's header sticks while the item is read, one at a time — the innermost item being read
-(assets/core.js → stuckOne) — and a fold keeps the folded item's header where the reader sees it, stuck or not, never under its
+(assets/core.js → stickPlan), handing over by pushing, never overlapping — and a fold keeps the folded item's header where the reader sees it, stuck or not, never under its
 parent's header that sticks again (foldScroll).
 
-stuckOne gets the page's blocks (items that open in place) in document order — the block each is drawn in, open or not, its box from the
-view's top, its header's height — and returns the block whose header is stuck. foldScroll gets the scroll box, where the folded item's
+stickPlan gets the page's blocks (items that open in place) in document order — the block each is drawn in, open or not, its box from the
+view's top, its header's height — and returns the block whose header is stuck, the ones whose headers give way, and where the stuck
+header sits while an inner item's header arrives at the top (pushed up above it) or leaves it (right under it). foldScroll gets the scroll box, where the folded item's
 header shows, where the item starts and its parent's header height, and returns where the page must stand so nothing moves under the reader.
 
 Run from anywhere: python3 project-tracker/tests/check_drawer.py
@@ -17,10 +18,10 @@ from pathlib import Path
 CORE = Path(__file__).resolve().parent.parent / "skills" / "project-tracker" / "assets" / "core.js"
 RUN = """
 const src = require("fs").readFileSync(process.argv[1], "utf8");
-const fn = src.slice(src.indexOf("  function stuckOne("), src.indexOf("  // ---------- the timeline ----------"));
-const f = new Function(fn + "; return { stuckOne: stuckOne, foldScroll: foldScroll };")();
+const fn = src.slice(src.indexOf("  function stickPlan("), src.indexOf("  // ---------- the timeline ----------"));
+const f = new Function(fn + "; return { stickPlan: stickPlan, foldScroll: foldScroll };")();
 const c = JSON.parse(process.argv[2]);
-console.log(JSON.stringify({ stuck: c.stuck.map(f.stuckOne), fold: c.fold.map(f.foldScroll) }));
+console.log(JSON.stringify({ stuck: c.stuck.map(x => { const r = f.stickPlan(x); return [r.at, r.under, r.top]; }), fold: c.fold.map(f.foldScroll) }));
 """
 
 
@@ -36,18 +37,25 @@ def page(w=(None, None), m10=(None, None), t13=(None, None), m11=(None, None), m
             blk(2, t13, 46, 600, 46), b(2, False, 900, 946, 46), blk(-1, m11, 48, 1500, 48)]
 
 
-STUCK = [  # (what, blocks, the block whose header is stuck: -1 none)
-    ("nothing opened has reached the top", page(m10=(100, 900)), -1),
-    ("reading a milestone: its header is the stuck one", page(m10=(-200, 900)), 2),
-    ("a task opened inside it reaching the top takes the place; the milestone's gives way", page(m10=(-500, 1200), t13=(-50, 400)), 3),
-    ("a task not at the top yet: the milestone's stays, the task's slides in over it", page(m10=(-500, 1200), t13=(20, 400)), 2),
-    ("a task ending: less than its header left, the milestone's is back as the task's slides away", page(m10=(-900, 900), t13=(-400, 30)), 2),
-    ("past the task, in the milestone's rest: the milestone's", page(m10=(-1200, 600), t13=(-700, -100)), 2),
-    ("the milestone ending: nothing item-level is stuck", page(m10=(-1200, 40)), -1),
-    ("an item under Open items alone, whatever milestone it is in", page(w=(-100, 300)), 0),
+STUCK = [  # (what, blocks, [the block whose header is stuck (-1 none), the blocks whose headers give way, where the stuck one sits])
+    ("nothing opened has reached the top", page(m10=(100, 900)), [-1, [], 0]),
+    ("reading a milestone: its header is the stuck one", page(m10=(-200, 900)), [2, [], 0]),
+    ("a task opened inside it reaching the top takes the place; the milestone's gives way", page(m10=(-500, 1200), t13=(-50, 400)), [3, [2], 0]),
+    ("a task arriving, its header 20 px from the top: the milestone's is pushed up right above it, never under it",
+     page(m10=(-500, 1200), t13=(20, 400)), [2, [], -28]),
+    ("a task arriving, its header just below the milestone's: the milestone's stays whole", page(m10=(-500, 1200), t13=(48, 400)), [2, [], 0]),
+    ("a task at the very top: it is the stuck one", page(m10=(-500, 1200), t13=(0, 400)), [3, [2], 0]),
+    ("a task leaving, its header pushed out by its end, 30 px of it left: the milestone's sits right under it",
+     page(m10=(-900, 900), t13=(-400, 30)), [2, [], 30]),
+    ("a task leaving with a whole header's height still left: the task's is still the stuck one", page(m10=(-900, 900), t13=(-400, 46)), [3, [2], 0]),
+    ("past the task, in the milestone's rest: the milestone's, at the top", page(m10=(-1200, 600), t13=(-700, -100)), [2, [], 0]),
+    ("the milestone ending: nothing item-level is stuck", page(m10=(-1200, 40)), [-1, [], 0]),
+    ("an item under Open items alone, whatever milestone it is in", page(w=(-100, 300)), [0, [], 0]),
     ("a task left open inside a milestone just folded (its box still sliding away) is not the stuck one",
-     page(m10=(-600, 400), t13=(-50, 400), m10_open=False), -1),
-    ("two milestones: the second one read after the first ended", page(m10=(-1200, -200), m11=(-100, 700)), 5),
+     page(m10=(-600, 400), t13=(-50, 400), m10_open=False), [-1, [], 0]),
+    ("two milestones: the second one read after the first ended", page(m10=(-1200, -200), m11=(-100, 700)), [5, [], 0]),
+    ("a closed task row reaching the top just scrolls under the milestone's header, which stays put",
+     [b(-1, True, -500, 1200, 48), b(0, False, 20, 66, 46)], [0, [], 0]),
 ]
 
 FOLD = [  # (what, state, expected)
@@ -73,7 +81,7 @@ FOLD = [  # (what, state, expected)
 def main():
     cases = {"stuck": [x for _, x, _ in STUCK], "fold": [x for _, x, _ in FOLD]}
     out = json.loads(subprocess.run(["node", "-e", RUN, str(CORE), json.dumps(cases)], capture_output=True, text=True, check=True).stdout)
-    bad = [f"stuckOne, {what}: {got}, expected {want}" for (what, _, want), got in zip(STUCK, out["stuck"]) if got != want]
+    bad = [f"stickPlan, {what}: {got}, expected {want}" for (what, _, want), got in zip(STUCK, out["stuck"]) if got != want]
     bad += [f"foldScroll, {what}: {got}, expected {want}" for (what, _, want), got in zip(FOLD, out["fold"]) if got != want]
     for x in bad:
         print(x)
