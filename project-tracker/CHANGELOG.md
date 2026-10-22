@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.16.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.6...project-tracker-v1.16.0) (2026-10-22)
+
+
+### Features
+
+* **project-tracker:** add a Code session part to the Claude button ([a138703](https://github.com/sivakov512/agent-tools/commit/a1387035caeb76c86bce6a6c92388b397b3b9045))
+* **project-tracker:** add Code session columns in schema step 6 ([3855d80](https://github.com/sivakov512/agent-tools/commit/3855d805f0b10c882d2a5718cd285c010fff6f53))
+* **project-tracker:** build ID-first titles and first messages ([ba0fd0b](https://github.com/sivakov512/agent-tools/commit/ba0fd0b2c540e6f6857f5a01f8b2e48364f670fd))
+* **project-tracker:** default the page to the three-letter IDs ([a575147](https://github.com/sivakov512/agent-tools/commit/a5751478ba82e6c489557bf0c9cb98c9477a33dc))
+* **project-tracker:** fill Code folder only from the project's own repo ([5323304](https://github.com/sivakov512/agent-tools/commit/532330405ccaaa3b535cdc80482b5d671f80294f))
+* **project-tracker:** lead chat and Code session titles with the ID ([8a105d2](https://github.com/sivakov512/agent-tools/commit/8a105d2f6f350f3250c82964ee547a0d0de67221))
+* **project-tracker:** let a Code session claim its row's Code session ([6614d8c](https://github.com/sivakov512/agent-tools/commit/6614d8c61bd2cb665dba0c8f4ac44921e1354889))
+* **project-tracker:** one title for a row's chat and Code session ([929cda6](https://github.com/sivakov512/agent-tools/commit/929cda6629ae67eb1f7f248ca19d08da8cb37275))
+* **project-tracker:** put the row's ID in chat and Code session titles ([b5f56b2](https://github.com/sivakov512/agent-tools/commit/b5f56b280b6dd4a1c6e472e8b71cad703cae8eb7))
+* **project-tracker:** refresh Ref descriptions to the new prefixes ([a7b3647](https://github.com/sivakov512/agent-tools/commit/a7b3647b7ff83d2c8718cd81a68fea880f6e01f4))
+* **project-tracker:** rename ID prefixes to PRJ, MLS, TSK, PRB ([7b96ad9](https://github.com/sivakov512/agent-tools/commit/7b96ad93ee5c1a24c88e6fbe048fdf6f758a8933))
+
+
+### Bug Fixes
+
+* **project-tracker:** add each update step's columns in its own step ([e91bae5](https://github.com/sivakov512/agent-tools/commit/e91bae59fa6779696b42dd26c08523f9be17796c))
+* **project-tracker:** put the project's own ID in its session title ([0fdb214](https://github.com/sivakov512/agent-tools/commit/0fdb2140f506ae1add32e1764b13449df4a2c4f5))
+* **project-tracker:** read the project's Code folder before claiming ([1ef756e](https://github.com/sivakov512/agent-tools/commit/1ef756e45ecd0545597c7311cb1c72ae3a2c60ff))
+* **project-tracker:** say old IDs still work after the prefix update ([b1ebbc2](https://github.com/sivakov512/agent-tools/commit/b1ebbc26d3e5e5a64955dc878019035536c02870))
+* **project-tracker:** say on whom once in an opened task ([aaef7e6](https://github.com/sivakov512/agent-tools/commit/aaef7e6c45a62c3b34b847b20b82347f71b4dd76))
+
 ## [1.15.6](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.5...project-tracker-v1.15.6) (2026-10-21)
 
 
