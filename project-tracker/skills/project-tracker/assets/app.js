@@ -944,7 +944,7 @@
     keep(host, function () {
       clear(host);
       if (!p) { $("drTitle").textContent = ""; if (!SNAP) { clear($("drChat")); $("drNotion").removeAttribute("href"); } host.appendChild(el("div", "dr-in muted", "This project is no longer in the active list.")); return; }
-      $("drTitle").textContent = p.name; if (!SNAP) { $("drNotion").href = p.url; clear($("drChat")); $("drChat").appendChild(chatBtn(p, "project")); } paintNav();
+      barKey = undefined; barFor(null);
       var ms0 = msList(p), tk0 = taskList(p);
       var c = { ms0: ms0, tk0: tk0, info: S.pageInfo[p.key] || { notes: [], parts: partsOf("") }, st: stateOfProject(p), f: focusOf(p),
         openProbs: allProblems().filter(function (i) { return i.pk === p.key && (i.status === "Open" || i.status === "Waiting"); }),
@@ -952,8 +952,28 @@
       drHead(host, p, c);
       var body = el("div", "dr-in"); host.appendChild(body);
       drStatus(body, c); drFocus(body, p, c); drNumbers(body, p, c); drItems(body, p, c); drResolved(body, p); drPlan(body, p, c); drNotes(body, p, c);
+      barSoon(); // a repaint keeps the scroll: the bar follows it
     });
   }
+  // The bar above the project page names what is being read: the project, or — once the reader is inside an opened milestone, task or problem,
+  // its own header scrolled out of sight — that item, with its own Claude and Notion buttons, so a button never opens something else than it says.
+  var barKey;
+  function barFor(x) {
+    var p = S.dr ? allProjByKey()[S.dr.pid] : null, it = x || p, k = x ? key(x.url) : null; if (!it || k === barKey) return; barKey = k;
+    var t = $("drTitle"), kind = x ? (x.kind === "problem" ? "problem" : x.kind === "ms" ? "ms" : "task") : "project";
+    $("drawer").querySelector(".dr-bar").classList.toggle("ctx", !!x);
+    if (x) { clear(t); t.appendChild(typeTag(kind === "problem" ? x.type : kind === "ms" ? "Milestone" : "Task")); t.appendChild(document.createTextNode((x.ref ? x.ref + " " : "") + x.name)); t.title = x.name + " — in " + (p ? p.name : ""); }
+    else { t.removeAttribute("title"); paintNav(); }
+    if (!SNAP) { $("drNotion").href = it.url; $("drNotion").title = x ? "Opens this " + KIND[kind] + " in Notion" : "Opens the project in Notion"; clear($("drChat")); $("drChat").appendChild(chatBtn(it, kind)); }
+  }
+  function barCtx() { // the deepest opened block that crosses the bar's lower edge, its own header above it
+    var body = $("drBody"), top = body.getBoundingClientRect().top + 4, best = null;
+    [].forEach.call(body.querySelectorAll(".arow.open, .mgrp.open"), function (b) { if (!b._item) return; var r = b.getBoundingClientRect(), h = b.firstChild.getBoundingClientRect(); if (h.bottom <= top && r.bottom > top + 24) best = b; });
+    barFor(best ? best._item : null);
+  }
+  var barRaf = 0; function barSoon() { if (!barRaf) barRaf = requestAnimationFrame(function () { barRaf = 0; if (S.dr) barCtx(); }); }
+  $("drBody").addEventListener("scroll", barSoon, { passive: true });
+  $("drBody").addEventListener("fold", function () { barSoon(); setTimeout(barSoon, 260); }); // and once more when the fold has moved what is below
   var lastFocus = null;
   function openProject(p, k) {
     var same = S.dr && S.dr.pid === p.key && $("drawer").classList.contains("on");
