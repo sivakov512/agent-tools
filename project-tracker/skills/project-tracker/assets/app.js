@@ -1015,7 +1015,7 @@
   function focusKey() { // where keyboard focus is in the project page, by what it shows rather than by node
     var a = document.activeElement; if (!a || !$("drawer").contains(a)) return null;
     if (a.id) return "#" + a.id;
-    var b = a.closest(".blk"); if (b && a.classList.contains("acc-h")) return '.blk[data-k="' + sel(b.dataset.k) + '"] > .blk-h > .acc-h';
+    var b = a.closest(".blk"); if (b && a.classList.contains("acc-h")) return '.blk[data-k="' + sel(b.dataset.k) + '"] > .acc-h';
     return null;
   }
   function paint(keepHeader) { // keepHeader: the origin menu is open and has updated itself; the rest follows it

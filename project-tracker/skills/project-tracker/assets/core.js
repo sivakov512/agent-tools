@@ -632,31 +632,29 @@
   function page(ctx) {
     var ui = ctx.ui;
     // o: k, item, cls (ms, row, row tsk), open (until the viewer chooses), dot, title, line, right, fill(x) (the body, made when it first opens).
-    // Closed, its header is the name with its line and dates; open, a strip of the name and the item's buttons — short, as it sticks — and
-    // the line and dates are the body's first line.
+    // Its header is one row, the same folded, opened and stuck: the name with its ID, the dates and the chevron, then its line and the
+    // item's buttons (.acts) — there when folded too, unseen, so opening only fades them in and nothing in the row moves. Not a <button>:
+    // the item's own buttons sit in it.
     function block(o) {
       var on = ui.open["d:" + o.k] != null ? !!ui.open["d:" + o.k] : !!o.open, b = el("div", "blk " + o.cls + (on ? " open" : ""));
       b.dataset.k = o.k; b._item = o.item;
-      var hs = el("div", "blk-h"), h = btn("acc-h", null, function () { setOpen(b, !b.classList.contains("open")); }); h.setAttribute("aria-expanded", String(on));
-      h.appendChild(el("span", "dot " + (o.dot || "")));
-      var mid = el("span", "mid"); mid.appendChild(titled("t", o.item, o.title)); if (o.line) mid.appendChild(o.line);
-      h.appendChild(mid); h.appendChild(el("span", "r", o.right || "")); h.insertAdjacentHTML("beforeend", CHEV); hs.appendChild(h);
+      var h = el("div", "blk-h acc-h"); h.setAttribute("role", "button"); h.tabIndex = 0; h.setAttribute("aria-expanded", String(on));
+      h.appendChild(el("span", "dot " + (o.dot || ""))); h.appendChild(titled("t", o.item, o.title)); h.appendChild(el("span", "r", o.right || "")); h.insertAdjacentHTML("beforeend", CHEV);
+      var l2 = el("span", "l2"), acts = ctx.actions(o.item); if (o.line) l2.appendChild(o.line); if (acts) { acts.classList.add("acts"); l2.appendChild(acts); } h.appendChild(l2); // its line, and its buttons at the right of it
+      function toggle() { setOpen(b, !b.classList.contains("open")); }
+      h.addEventListener("click", function (e) { if (!e.target.closest(".acts")) toggle(); });
+      h.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target === h) { e.preventDefault(); toggle(); } });
       var x = el("div", "blk-b"); x.hidden = !on;
-      b._fill = function () {
-        if (b._filled) return; b._filled = true;
-        var acts = ctx.actions(o.item); if (acts) { acts.classList.add("acts"); hs.appendChild(acts); } // shown while it is open
-        var st = el("div", "blk-st"); if (o.line) st.appendChild(o.line.cloneNode(true)); if (o.right) st.appendChild(span((o.line ? " · " : "") + o.right)); if (st.firstChild) x.appendChild(st);
-        o.fill(x);
-      };
-      b.appendChild(hs); b.appendChild(x); if (on) b._fill(); return b;
+      b._fill = function () { if (!b._filled) { b._filled = true; o.fill(x); } };
+      b.appendChild(h); b.appendChild(x); if (on) b._fill(); return b;
     }
     // Opens or folds a block; "fold" tells the page its layout changed.
     function setOpen(b, on) {
-      var hs = b.firstChild, h = hs.firstChild, x = b.lastChild;
+      var h = b.firstChild, x = b.lastChild;
       if (b.classList.contains("open") === on) return;
       ui.open["d:" + b.dataset.k] = on;
       var mark = function () { b.classList.toggle("open", on); h.setAttribute("aria-expanded", String(on)); };
-      if (on) { b._fill(); mark(); unfold(x); } else fold(hs, b, x, mark, function () { return !b.classList.contains("open"); });
+      if (on) { b._fill(); mark(); unfold(x); } else fold(h, b, x, mark, function () { return !b.classList.contains("open"); });
       stick();
       b.dispatchEvent(new CustomEvent("fold", { bubbles: true, detail: { open: on } }));
     }

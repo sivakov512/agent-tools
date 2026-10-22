@@ -195,41 +195,41 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .blk.open { border-bottom-color: var(--border-2); }
 .blk.ms.open { border-bottom-width: 2px; }
 .mtw > .blk:last-child { border-bottom: 0; } /* the milestone's own closing line follows */
-.blk-h { display: flex; align-items: flex-start; }
-.blk-h > .acc-h { flex: 1; min-width: 0; }
-.blk-h > .acts { display: none; }
-.acc-h { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto 14px; column-gap: 12px; align-items: start; width: 100%; border: 0; background: none; text-align: left; padding: 12px 14px 12px 16px; cursor: pointer; }
+/* An item's header: one grid, the same folded, opened and stuck — the name with its ID, the dates, the chevron at the far right; under them
+   its line and its buttons (Claude, Notion), there when folded too but unseen, so opening only fades them in: no line, height
+   or chevron moves. The buttons sit at the right of the line under the name, never beside the name; on narrower screens the name has the
+   first line to itself, its line the next, and the buttons share the last with the dates. */
+.acc-h { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto 14px; grid-template-areas: "dot t r chev" ". l2 l2 l2"; column-gap: 12px; row-gap: 3px; align-items: center; width: 100%; text-align: left; padding: 12px 14px 12px 16px; cursor: pointer; }
 .acc-h:hover { background: var(--surface-2); }
 .acc-h:hover .t { color: var(--accent); }
-.acc-h .dot { margin-top: 7px; }
-.acc-h .t { font-size: 14.5px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
-.acc-h .s { font-size: 13px; color: var(--text-mute); margin-top: 3px; }
+.acc-h > .dot { grid-area: dot; align-self: start; margin-top: 7px; }
+.acc-h > .t { grid-area: t; align-self: start; font-size: 14.5px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
+.acc-h > .r { grid-area: r; align-self: start; font-size: 13px; color: var(--text-mute); white-space: nowrap; padding-top: 2px; }
+.acc-h > .chev { grid-area: chev; align-self: start; margin-top: 4px; transition: transform .15s; }
+.acc-h > .l2 { grid-area: l2; display: flex; align-items: center; gap: 4px 12px; min-width: 0; }
+.acc-h .l2 > .s { flex: 1 1 auto; min-width: 0; font-size: 13px; color: var(--text-mute); }
 .acc-h .s .crit, .acc-h .s .warn, .acc-h .s .good, .acc-h .s .acc { font-weight: 500; }
-.acc-h .r { font-size: 13px; color: var(--text-mute); white-space: nowrap; padding-top: 2px; }
-.acc-h .chev { margin-top: 4px; transition: transform .15s; }
+.acc-h .acts { flex: none; margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; visibility: hidden; opacity: 0; transition: opacity .15s, visibility .15s; }
+.acc-h .acts .chat > a, .acc-h .acts .chat > .more { padding-top: 2px; padding-bottom: 2px; } /* as tall as a line of text, so the row is the same with or without them */
+.blk.open > .acc-h .acts { visibility: visible; opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .acc-h .acts { transition: none; } }
 .blk.ms > .blk-h .t { font-size: 15.5px; font-weight: 600; }
 .blk.tsk > .blk-h .t { font-size: 14px; font-weight: 400; }
-/* Opened, the header is one strip: the name (two lines at most) and the item's own buttons — Claude, Notion; the line and dates move to the
-   body's first line. It sticks to the top while its item is read and goes with its item's end; inside an opened milestone, an opened
-   task's strip takes the place while the task is read. A hairline under it keeps the text scrolling beneath apart. */
+/* Opened, the header is a tinted strip, its name semibold, its buttons faded in. It sticks to the top while its item is read and goes with
+   its item's end; inside an opened milestone, an opened task's strip takes the place while the task is read. A hairline under it keeps the
+   text scrolling beneath apart. */
 .blk.open > .blk-h { position: sticky; top: 0; z-index: 3; background: var(--surface-2); box-shadow: 0 1px 0 var(--border); }
 .blk .blk.open > .blk-h { z-index: 4; } /* an inner header slides in over its parent's, and away off it */
 .blk-h.under { visibility: hidden; } /* one stuck header at a time: the parent's gives way while an inner one is stuck (stick()) */
 .blk.ms.open > .blk-h { background: var(--sunken); }
-.blk.open > .blk-h > .acc-h:hover { background: none; }
-.blk.open > .blk-h .t { font-weight: 600; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
-.blk.open > .blk-h .acc-h .s, .blk.open > .blk-h .acc-h .r { display: none; }
-.blk.open > .blk-h .chev { transform: rotate(90deg); }
-.blk.open > .blk-h > .acts { display: flex; flex: none; align-items: center; gap: 12px; padding: 9px 14px 9px 0; font-size: 13px; }
+.blk.open > .blk-h .t { font-weight: 600; }
+.blk.open > .blk-h > .chev { transform: rotate(90deg); }
 .acts .ext { white-space: nowrap; }
 .acts .chat-m { left: auto; right: 0; } /* the buttons sit at the right: the menu opens leftwards, inside the page */
-.blk-st { font-size: 13px; color: var(--text-mute); } /* an opened item's line and dates, first in its body */
-.blk-st .crit, .blk-st .warn, .blk-st .good, .blk-st .acc { font-weight: 500; }
-.blk-b { padding: 10px 16px 26px 36px; } /* a problem's or task's body, at its header's text */
+.blk-b { padding: 4px 16px 26px 36px; } /* a problem's or task's body, at its header's text */
 .blk-b > * + * { margin-top: 12px; }
 .blk.ms > .blk-b { padding: 0; }
-.blk.ms > .blk-b > .blk-st { padding: 10px 16px 0 36px; }
-.mdet { padding: 2px 16px 22px 36px; } /* a milestone's own details, then its tasks */
+.mdet { padding: 14px 16px 22px 36px; } /* a milestone's own details, then its tasks */
 .mdet > * + * { margin-top: 12px; }
 .mtl { display: flex; align-items: baseline; gap: 8px; padding: 7px 16px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-mute); }
 .mtl .n { font-weight: 400; text-transform: none; letter-spacing: 0; }
@@ -254,10 +254,12 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
   .stats { gap: 8px; }
   .stat { padding: 10px 11px; }
   .stat .v { font-size: 15px; white-space: normal; }
-  .acc-h { grid-template-columns: 8px minmax(0, 1fr) 14px; }
-  .acc-h .r { grid-column: 2; grid-row: 2; padding-top: 2px; }
-  .acc-h .chev { grid-column: 3; grid-row: 1; }
-  .blk-b, .mdet, .blk.ms > .blk-b > .blk-st { padding-left: 16px; }
+  .acc-h { grid-template-areas: "dot t t chev" ". s s s" ". r acts acts"; }
+  .acc-h > .l2 { display: contents; } /* its line gets the width; the buttons share the short dates line */
+  .acc-h .l2 > .s { grid-area: s; }
+  .acc-h .acts { grid-area: acts; justify-self: end; }
+  .acc-h > .r { padding-top: 0; }
+  .blk-b, .mdet { padding-left: 16px; }
   .tl-scroll { max-height: none; }
 }
 @media (max-width: 600px) { /* a phone's header: name with its buttons, the live line under it, then the filter and the pills, each a full row shared evenly */
@@ -315,7 +317,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .tl-chip.hov { z-index: 3; }
 .tl-corner { height: 100%; border-bottom: 0; }
 /* small pieces that used to be inline styles */
-.mid { min-width: 0; } .mid > .t, .mid > .s, .acc-h .mid > .s { display: block; }
+.mid { min-width: 0; } .mid > .t, .mid > .s { display: block; }
 .md.after-xh { margin-top: 6px; }
 .err .fix { display: block; margin-top: 6px; font-weight: 500; }
 .actions.sub-acts { margin-top: 10px; }
@@ -516,8 +518,8 @@ h1 .ref { vertical-align: 4px; }
 .pline .ilink { font-size: 14px; color: var(--text); }
 @media (max-width: 600px) { /* a phone: the bar on one line; an item's buttons as marks, so its name keeps the room */
   .dr-bar { gap: 4px; padding-left: 16px; }
-  .blk-h .acts .lbl, .blk-h .acts .chat .arr { display: none; }
-  .blk.open > .blk-h > .acts { gap: 8px; padding-right: 10px; }
+  .acc-h .acts .lbl, .acc-h .acts .chat .arr { display: none; }
+  .acc-h .acts { gap: 8px; }
 }
 .tl-b.open, .tl-chip.open, .tl-seg.open { -webkit-mask-image: linear-gradient(to right, #000 70%, transparent); mask-image: linear-gradient(to right, #000 70%, transparent); } /* an edge that is no date fades: a start with no agreed end, drawn for a set span, fades where the end would be */
 .tl-b.box.ph { -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); } /* and a milestone with no dates at all, placed for a month from today, fades at both */
