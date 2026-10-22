@@ -649,7 +649,7 @@
       var det = el("div", "mdet"); b.appendChild(det);
       function fill() { if (!det.firstChild) ctx.msBody(det, m); }
       if (on) fill();
-      if (m.tasks.length) b.appendChild(taskList(m.tasks, m.name));
+      if (m.tasks.length) b.appendChild(taskList(m.tasks));
       g._fill = fill; g._item = m;
       h.addEventListener("click", function () { setGroup(g, k, !g.classList.contains("open")); });
       g.dataset.g = k; g.appendChild(h); g.appendChild(b); return g;
@@ -660,8 +660,8 @@
       b.addEventListener("click", function (e) { e.stopPropagation(); var on = !!b.dataset.open; rows().forEach(function (r) { if (isOpen(r) !== on) set(r, on); }); paint(); });
       b.paint = paint; return b;
     }
-    function taskList(tasks, of) { // "Tasks · <milestone> N" and the tasks; with several, one button opens or folds them all
-      var w = el("div", "mtw"), tl = el("div", "mtl"); tl.appendChild(span("Tasks")); if (of) tl.appendChild(span("· " + of, "of")); tl.appendChild(span(String(tasks.length), "n")); w.appendChild(tl);
+    function taskList(tasks) { // "Tasks N" and the tasks; with several, one button opens or folds them all
+      var w = el("div", "mtw"), tl = el("div", "mtl"); tl.appendChild(span("Tasks")); tl.appendChild(span(String(tasks.length), "n")); w.appendChild(tl);
       tasks.forEach(function (x) { w.appendChild(taskRow(x)); });
       if (tasks.length > 1) {
         var all = allBtn(function () { return [].slice.call(w.querySelectorAll(":scope > .arow")); }, function (r) { return r.classList.contains("open"); }, function (r) { r.querySelector(".acc-h").click(); }, "tasks");

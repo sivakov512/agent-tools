@@ -603,16 +603,16 @@ h1 .ref { vertical-align: 4px; }
 .dr-body .mtw .mtl { padding-left: 12px; }
 .dr-body .mtw .arow.tsk > .acc-h { padding-left: 12px; }
 .dr-body .mtw .arow.tsk > .acc-x { padding-left: 32px; }
-.dr-body .mtl .of { display: none; }
 @media (max-width: 860px) { .dr-body .mtw { margin-left: 16px; } }
-/* Not indented (.nest-flat): the tasks keep the full width; a "Tasks · <milestone>" heading strip says whose they are, the milestone's own
-   title is a size larger, and a firmer line closes the milestone after its last task. */
+/* Not indented (.nest-flat): the tasks keep the full width, and an opened milestone reads as a chapter — its header, a size larger on the darker
+   strip, stays at the top of the page while its tasks scroll under it, and a firmer line closes it — so whose a task is stays in view
+   without costing width. */
 .nest-flat .dr-body .mtw { margin-left: 0; }
-.nest-flat .dr-body .mtw .mtl { padding: 8px 16px; background: var(--sunken); color: var(--text-2); }
-.nest-flat .dr-body .mtl .of { display: inline; text-transform: none; letter-spacing: 0; }
+.nest-flat .dr-body .mtw .mtl { padding-left: 16px; }
 .nest-flat .dr-body .mtw .arow.tsk > .acc-h { padding-left: 16px; }
 .nest-flat .dr-body .mtw .arow.tsk > .acc-x { padding-left: 36px; }
 .nest-flat .dr-body .mgrp > .mh .t { font-size: 15.5px; }
+.nest-flat .dr-body .mgrp.open > .mh { position: sticky; top: 0; z-index: 2; background: var(--sunken); box-shadow: 0 1px 0 var(--border-2); }
 .nest-flat .dr-body .mgrp.open { border-bottom: 2px solid var(--border-2); }
 /* the bar names the item being read: its tag and name, in the text's own colour */
 .dr-bar.ctx .ttl { color: var(--text); font-weight: 500; }
