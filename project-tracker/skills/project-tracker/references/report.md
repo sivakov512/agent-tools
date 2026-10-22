@@ -18,7 +18,7 @@ Each has one meaning in every answer. Nothing Paused, or under something Paused,
 - **Now** — the In-progress milestones with their ends, each with its In-progress and Waiting tasks; in a project without milestones, its In-progress tasks.
 - **Late** — open milestones and tasks whose end is before today, with days late; looking back, those finished in the period after their end, with how late.
 - **Due** — open milestones and tasks whose end falls in the period ahead.
-- **Starting** — Planned milestones and tasks whose start falls in the period ahead.
+- **Starting** — Planned milestones and tasks whose start falls in the period ahead, or has passed without the work starting ("not started").
 - **On you** — what the user has to move: open milestones and tasks, not Waiting and with `Waiting on` empty (a milestone with open tasks counts through them), that are In progress, late, due or starting, or Planned without dates under an In-progress milestone or in a project without milestones ("no date"); Blockers and Questions with `Waiting on` empty. A risk is never on the user.
 - **Chase** — Waiting tasks and problems waiting on someone, grouped by whom, oldest first: a problem's age counts from `Opened`, a task's from the start of its `Dates`, or, without dates, from the history line that set it Waiting.
 - **On hold** — paused projects and milestones, with the reason and since when (their pause line, `references/state.md`).
