@@ -32,7 +32,7 @@ Removing has two forms, and the user picks one: **drop** — the row stays with 
 - **Task** — the one the user names → Dropped, with a history line `- **Mar 18** — Dropped (was Planned): <reason, if given>.`
 - **Milestone**, or several tasks → a plan change: drop them as above, with confirmation.
 
-`Removed` and `Dropped` are outside every view, overview and report, so nothing of it shows as live or as progress. Reply with what was set, and that the user can delete the pages by hand if they want them gone.
+`Removed` and `Dropped` are not live statuses (SKILL.md → **The tracker**), so nothing of it shows as live or as progress. Reply with what was set, and that the user can delete the pages by hand if they want them gone.
 
 **Restoring** ("bring the test project back"): a deleted page comes back from the trash with `notion-restore-pages` (Notion empties the trash after a while; past that it is gone). A dropped one: find it with `notion-search`, read the removal line in its history, and put the project and every row listed there back to the status recorded. Rows dropped for another reason stay dropped. A single problem, task or milestone comes back the same way, from the `Dropped (was X)` line in its history (older forms: `references/upgrade.md` → **Old shapes**), with a history line `Restored`.
 
