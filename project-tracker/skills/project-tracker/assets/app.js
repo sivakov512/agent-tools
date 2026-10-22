@@ -127,7 +127,16 @@
     for (var k in out) out[k] = out[k].join("\n").trim();
     return out;
   }
-  function entriesIn(t) { return t ? t.split("\n").filter(function (l) { return l.trim() && !/^\t/.test(l) && !/^<\/|^<empty-block|^<summary>/.test(l); }).length : 0; } // a part's entries, for counts: its top-level lines, not a closing tag, a toggle's title or an empty block
+  function entriesIn(t) { // a part's entries, for counts: its top-level lines, not a closing tag, a toggle's title or an empty block; a sub-page, database or file spread over lines (<page url="…">, its title, </page>) is one
+    var n = 0, inTag = null;
+    String(t || "").split("\n").forEach(function (l) {
+      if (!l.trim() || /^\t/.test(l)) return;
+      if (inTag) { if (new RegExp("^<\\/" + inTag + ">").test(l)) inTag = null; return; }
+      var m = /^<(page|database|folder|pdf|file|image|video|audio|embed)\b[^>]*>/.exec(l); if (m && !/\/>$/.test(m[0]) && l.indexOf("</" + m[1] + ">") < 0) inTag = m[1];
+      if (!/^<\/|^<empty-block|^<summary>/.test(l)) n++;
+    });
+    return n;
+  }
   var LOCK = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
   function partHead(t, priv) { var h = el("div", "xh" + (priv ? " priv-h" : "")); if (priv) h.insertAdjacentHTML("beforeend", LOCK); h.appendChild(span(t)); if (priv) h.title = "Only you see this — never on a client dashboard"; return h; }
   function renderParts(box, pt, opts) { // a page's parts in their order, each under its label: Description, Notes, Private notes (never on a client's page), History
@@ -706,11 +715,16 @@
         i = close + 1; continue;
       }
       if (/^<\/[a-z-_]+>\s*$/.test(t)) { i++; continue; } // a stray closing tag
+      var ml = /^<(page|database|folder|pdf|file|image|video|audio|embed)\b[^>]*>/.exec(t), wide = 0; // since Oct 20 these spread over lines — <page url="…">, its title, </page> — and read here as one
+      if (ml && !/\/>$/.test(ml[0]) && t.indexOf("</" + ml[1] + ">") < 0) {
+        var k6 = i + 1, in6 = [], cl6 = new RegExp("^<\\/" + ml[1] + ">\\s*$"); while (k6 < end && !cl6.test(rows[k6].t)) { if (rows[k6].t.trim()) in6.push(rows[k6].t.trim()); k6++; }
+        if (k6 < end) { t = ml[0] + in6.join(" ") + "</" + ml[1] + ">"; wide = k6 - i; }
+      }
       var pg = /^<page url="([^"]+)"[^>]*>([^<]*)<\/page>/.exec(t);
-      if (pg) { host.appendChild(subPage(cleanUrl(pg[1]), clean(pg[2]) || "Untitled")); i++; continue; }
-      if (/^<(database|folder)\b/.test(t)) { host.appendChild(el("div", "muted", /^<folder/.test(t) ? "A folder — open the page in Notion to see it." : "An embedded database — open the page in Notion to see it.")); i++; continue; }
+      if (pg) { host.appendChild(subPage(cleanUrl(pg[1]), clean(pg[2]) || "Untitled")); i += 1 + wide; continue; }
+      if (/^<(database|folder)\b/.test(t)) { host.appendChild(el("div", "muted", /^<folder/.test(t) ? "A folder — open the page in Notion to see it." : "An embedded database — open the page in Notion to see it.")); i += 1 + wide; continue; }
       var fb = /^<(pdf|file|image|video|audio|embed)\b([^>]*?)\/?>(?:([\s\S]*?)<\/\1>)?\s*$/.exec(t) || (m = /^!\[([^\]]*)\]\(([^)\s]+)\)/.exec(t)) && [t, "image", 'src="' + m[2] + '"', m[1]]; // a file block, its caption inside; its src a Notion reference, a link, or none (a client's page)
-      if (fb) { var fsrc = /\bsrc="([^"]*)"/.exec(fb[2]), fp = el("p", "fline"); fp.appendChild(fileChip(fsrc ? fsrc[1] : "", fb[3], fb[1])); host.appendChild(fp); i++; continue; }
+      if (fb) { var fsrc = /\bsrc="([^"]*)"/.exec(fb[2]), fp = el("p", "fline"); fp.appendChild(fileChip(fsrc ? fsrc[1] : "", fb[3], fb[1])); host.appendChild(fp); i += 1 + wide; continue; }
       if (/^---+\s*$/.test(t)) { host.appendChild(el("hr")); i++; continue; }
       next = childEnd(rows, i); var blk;
       var h = /^(#{1,6})\s+(.*)$/.exec(t);
@@ -849,7 +863,7 @@
       if (p.cproj) { var cpl = link("https://claude.ai/project/" + p.cproj.id, p.cproj.name + " ↗", "ext"); cpl.title = "The claude.ai project this project's chats open in (on the phone and the web)"; pair("Claude project", cpl); }
       else pair("Claude project", "none", true).title = "Its chats open outside claude.ai projects. To set one, tell Claude in a chat: \u201copen its chats in <project link>\u201d";
       if (p.repo) { var rp = link(p.repo, String(p.repo).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "").split("/").slice(-2).join("/") + " ↗", "ext"); rp.title = p.repo; pair("Repository", rp); }
-      if (p.cfolder) pair("Code folder", homePath(p.cfolder)).title = p.cfolder + " — new Code sessions of this project open here";
+      if (p.cfolder) { var cf = pair("Code folder", homePath(p.cfolder)); cf.classList.add("long"); cf.title = p.cfolder + " — new Code sessions of this project open here"; } // a path wraps, never cut
       else pair("Code folder", "not set — the first Code session fills it", true).title = "Its first Code session writes its repository's folder here; or tell Claude in a chat: \u201cits code is in <folder>\u201d";
       if (p.source) pair(p.origin === "Upwork" ? "Upwork" : "Source", link(p.source, (p.origin === "Upwork" ? "contract" : "link") + " ↗", "ext"));
     };
