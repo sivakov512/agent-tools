@@ -278,10 +278,6 @@ The fact was different from what was recorded. Fix exactly that: `Finished`, the
 
 A note goes where **Every record goes where it belongs** puts it, under `## Notes`, or `## Private notes` by **Who sees what**, written as **What is worth writing** says; a short one as `**Subject** — text`, dated only for dated material (**Pages**, **Bodies**), long text and files by `references/notes.md`. A description or a checklist the user gives for an item ("the task is …", "checklist for the layout: …") is its description, not a note. If the note also reports progress or a problem, handle that as its own scenario — unless the user asked only to save it ("just note it"); then save only — proposed like any record unless they named the place — and mention what it seems to imply.
 
-### Status — "how is X going?", "how are the masts?"
-
-Query the project's `Schedule`, `Tasks` and `Problems` views. Answer in four parts: **Now** (the In-progress milestones and their due dates, each with its current tasks); **Late** (every open milestone and task past its end, by how many days, and those finished late in the last two weeks; "nothing late" if none); **Blocked / waiting / on hold** (blockers first, then whom the project waits on and since when, paused milestones with reason and since when, open risks and questions in one line); **Next** (the next one or two milestones or tasks by `Order`, with their dates if they have them). With no project named and several active, give the overview instead (`references/report.md` → **Overview**).
-
 ## The dashboard offer
 
 In a conversation with the user (never a scheduled or unattended run), once per conversation and after answering what was asked — when the config has no `dashboard` line, or its `dashboard_version` is not an `x.y.z` of at least N, N being the version on the first line of `assets/dashboard.html` (read only that line), and `dashboard_skip` is not N — end with one short line in the user's language: with no dashboard, what it is in a few words and whether to publish it; with an older one, that it has an update to N, what is new in a few words (the dashboard entries between the two versions in the plugin's `CHANGELOG.md`, next to `skills/`; if it cannot be read, just that an update is out), and whether to republish it. Yes → `references/dashboard.md`. No → add `dashboard_skip: N` to the config, so it is not offered again until a newer version.
@@ -302,8 +298,7 @@ In a conversation with the user (never a scheduled or unattended run), once per 
 | New project from a platform contract (Upwork) | `references/new-project.md` and `references/contracts.md` |
 | Resync a project with its contract | `references/contracts.md` |
 | Add, drop, rename, split or merge milestones; break a milestone into tasks; finish early and pull the plan in; remove or restore a project or item | `references/plan-changes.md` |
-| What is on the user this week; across projects: what is late or burning, whom to chase, what got done; a status question with no project named and several active | `references/report.md` → **Reading the tracker** |
-| Weekly report or client update | `references/report.md` |
+| A question the tracker answers: how a project is going ("how are the masts?"), what is on the user, what is due, late or burning, whom to chase, what got done; a weekly report or client update | `references/report.md` |
 | Publish or republish the dashboard | `references/dashboard.md` |
 | Make, refresh, change or remove a client dashboard; the user opens more to a client ("Northwind can see the supplier prices") or says who is on the client's side | `references/client-dashboards.md` |
 

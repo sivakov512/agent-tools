@@ -140,9 +140,7 @@ Talk normally. After every change the agent replies with one line per change, **
 | "The client added a second enclosure revision" / "break the demo into these steps: …" / "drop the accuracy validation" / "finished early, pull the rest in" | proposes the plan change, asks, applies it with history lines |
 | "Hardware comes before firmware — swap them" | renumbers the plan without asking; if the dates now contradict the new order, says so and offers to move them |
 | "Sync Brightbrush with Upwork" | re-reads the contract and applies stages started or submitted there and changed due dates |
-| "How are the masts?" | now (milestone and its current task) / late / blocked, waiting or on hold / next |
-| "What's on me this week?" | your overdue, due, in-progress and starting items, grouped by project, and whom to chase |
-| "What's burning this week?" / "Who do I chase?" | overview across all projects |
+| "How are the masts?" / "What's on me this week?" / "What's burning?" / "Who do I chase?" / "What's due in the next two weeks?" | an answer from the tracker to exactly that question, over the period you name (else the last 7 days back, through Sunday ahead): for a project, where it is, what is late, what holds it, what is next; for you, what you have to move and whom to chase; across projects, what is late or due, on hold, whom to chase |
 | "Weekly report for the meter" / "…as an email to the client" | a summary of the week in the chat; a client email only if you ask for one |
 | "Delete the test project" / "bring it back" | asks whether to drop it (Removed, its unfinished milestones, tasks and open problems dropped, the history kept) or delete it (to Notion's trash); restoring puts it back |
 
@@ -189,7 +187,8 @@ project-tracker/
         ├── plan-changes.md       adding / dropping milestones and tasks, pulling in, removing, undoing an earlier change
         ├── state.md              pausing and resuming; a project's status and fields
         ├── notes.md              long text and files on a page
-        ├── report.md             my week, the overview across projects, the weekly report
+        ├── report.md             answering from the tracker (status, your week, the overview, any such question), the weekly report
+        ├── tidy.md               a tidy-up of a task, milestone or project you ask for
         ├── chats.md              Claude chats opened from the dashboard; a project's claude.ai project
         ├── dashboard.md          publishing and republishing the dashboard
         └── client-dashboards.md  dashboards for clients: what they show, keeping them current
