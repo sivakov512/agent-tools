@@ -794,28 +794,37 @@
     menu.classList.remove("up"); var box = $("drBody").getBoundingClientRect(), r = w.getBoundingClientRect(), h = menu.offsetHeight + 6;
     if (r.bottom + h > box.bottom && r.top - h >= box.top) menu.classList.add("up");
   }
-  function chatBtn(x, kind) { // the row's Claude: its first part opens the chat, </> its Code session on the Mac — each started when there is none yet, and it writes its own link back to the row; ▾ the rare actions
-    var sid = chatSid(x.chat), w = el("span", "chat split"), pr = kind === "project" ? x : x.project || allProjByKey()[x.pk], cp = pr ? pr.cproj : null;
-    var chatUrl = sid ? (MOBILE ? "https://claude.ai/cowork/cse_" + sid : "claude://claude.ai/code/session_" + sid) : newChatUrl(chatQ(x, kind, false), cp);
-    var main = chatLink(chatUrl, "Claude", sid ? "Opens this " + KIND[kind] + "'s chat" : "Start a chat about this " + KIND[kind] + "; every later click opens the same chat");
-    main.insertAdjacentHTML("afterbegin", ICON.chat); w.appendChild(main);
+  // A row's Claude: its chat, its Code session on the Mac (not on a phone) — each started when there is none yet, and it writes its own link
+  // back to the row — and the rare actions by domain (items), only what those two do not; never empty.
+  function claudeOf(x, kind) {
+    var sid = chatSid(x.chat), pr = kind === "project" ? x : x.project || allProjByKey()[x.pk], cp = pr ? pr.cproj : null;
+    var c = { chatUrl: sid ? (MOBILE ? "https://claude.ai/cowork/cse_" + sid : "claude://claude.ai/code/session_" + sid) : newChatUrl(chatQ(x, kind, false), cp) };
+    c.chatTitle = sid ? "Opens this " + KIND[kind] + "'s chat" : "Start a chat about this " + KIND[kind] + "; every later click opens the same chat";
     var csid = codeSid(x.code), folder = pr ? pr.cfolder : "", where = folder ? "in " + homePath(folder) : "the app asks for the folder";
-    var codeUrl = csid ? "claude://claude.ai/epitaxy/local_" + csid : newCodeUrl(chatQ(x, kind, false, true), folder);
-    if (!MOBILE) { // a phone cannot reach a Code session on the Mac: there the button is the chat's alone
-      var cb = el("a", "cpart"); cb.innerHTML = ICON.code; cb.href = codeUrl; cb.target = "_blank"; cb.rel = "noopener";
-      cb.title = csid ? "Opens this " + KIND[kind] + "'s Code session on this Mac" : "Start a Code session on this Mac, " + where + "; every later click opens the same session"; cb.setAttribute("aria-label", cb.title);
-      cb.addEventListener("click", function (e) { e.stopPropagation(); }); w.appendChild(cb);
+    if (!MOBILE) { // a phone cannot reach a Code session on the Mac
+      c.codeUrl = csid ? "claude://claude.ai/epitaxy/local_" + csid : newCodeUrl(chatQ(x, kind, false, true), folder);
+      c.codeTitle = csid ? "Opens this " + KIND[kind] + "'s Code session on this Mac" : "Start a Code session on this Mac, " + where + "; every later click opens the same session";
     }
-    var items = [grpLabel("chat", "Chat"), sid ? menuItem(newChatUrl(chatQ(x, kind, true), cp), "New chat", "For when the old one is deleted or too long: the new chat becomes this " + KIND[kind] + "'s chat.") : menuItem(chatUrl, "Start a chat")]; // by domain, only what the parts do not; never empty
-    items.push(el("div", "sep"), grpLabel("code", "Code"));
-    if (MOBILE) items.push(menuItem(null, csid ? "New Code session" : "Start a Code session", "On the Mac"));
-    else items.push(csid ? menuItem(newCodeUrl(chatQ(x, kind, true, true), folder), "New Code session", "For when the old one is archived or too long: the new session becomes this " + KIND[kind] + "'s Code session.") : menuItem(codeUrl, "Start a Code session", "On this Mac"), folderLine(folder));
-    var mb = btn("more", null); mb.innerHTML = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.8 5 6.8 8 3.8"/></svg>';
-    mb.setAttribute("aria-label", "More: new chat, new Code session"); mb.setAttribute("aria-expanded", "false");
-    var menu = el("div", "chat-m"); menu.hidden = true;
-    items.forEach(function (it) { if (it.tagName === "A") it.addEventListener("click", function () { menu.hidden = true; mb.setAttribute("aria-expanded", "false"); }); menu.appendChild(it); });
-    mb.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; document.querySelectorAll(".chat-m").forEach(function (m) { m.hidden = true; }); menu.hidden = !on; mb.setAttribute("aria-expanded", String(on)); if (on) placeMenu(menu, w); });
-    w.appendChild(mb); w.appendChild(menu); return w;
+    c.newChat = sid ? function () { return menuItem(newChatUrl(chatQ(x, kind, true), cp), "New chat", "For when the old one is deleted or too long: the new chat becomes this " + KIND[kind] + "'s chat."); } : null; // what replaces a thread, once there is one
+    c.newCode = csid && !MOBILE ? function () { return menuItem(newCodeUrl(chatQ(x, kind, true, true), folder), "New Code session", "For when the old one is archived or too long: the new session becomes this " + KIND[kind] + "'s Code session."); } : null;
+    c.items = [grpLabel("chat", "Chat"), c.newChat ? c.newChat() : menuItem(c.chatUrl, "Start a chat")];
+    c.items.push(el("div", "sep"), grpLabel("code", "Code"));
+    if (MOBILE) c.items.push(menuItem(null, csid ? "New Code session" : "Start a Code session", "On the Mac"));
+    else c.items.push(c.newCode ? c.newCode() : menuItem(c.codeUrl, "Start a Code session", "On this Mac"), folderLine(folder));
+    return c;
+  }
+  function menuBtn(w, b, items) { // b opens the menu of items under it, inside w
+    var menu = el("div", "chat-m"); menu.hidden = true; b.setAttribute("aria-expanded", "false");
+    items.forEach(function (it) { if (it.tagName === "A") it.addEventListener("click", function () { menu.hidden = true; b.setAttribute("aria-expanded", "false"); }); menu.appendChild(it); });
+    b.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; document.querySelectorAll(".chat-m").forEach(function (m) { m.hidden = true; }); menu.hidden = !on; b.setAttribute("aria-expanded", String(on)); if (on) placeMenu(menu, w); });
+    w.appendChild(b); w.appendChild(menu); return w;
+  }
+  function chatBtn(x, kind) { // the project's Claude, one split button: its chat, </> its Code session, ▾ the rest
+    var c = claudeOf(x, kind), w = el("span", "chat split"), main = chatLink(c.chatUrl, "Claude", c.chatTitle);
+    main.insertAdjacentHTML("afterbegin", ICON.chat); w.appendChild(main);
+    if (c.codeUrl) { var cb = el("a", "cpart"); cb.innerHTML = ICON.code; cb.href = c.codeUrl; cb.target = "_blank"; cb.rel = "noopener"; cb.title = c.codeTitle; cb.setAttribute("aria-label", c.codeTitle); cb.addEventListener("click", function (e) { e.stopPropagation(); }); w.appendChild(cb); }
+    var mb = btn("more", null); mb.innerHTML = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.8 5 6.8 8 3.8"/></svg>'; mb.setAttribute("aria-label", "More: new chat, new Code session");
+    return menuBtn(w, mb, c.items);
   }
   document.addEventListener("click", function (e) { if (!e.target.closest(".dd-m, .chat-m, .info")) closeMenus(); });
   document.addEventListener("click", function (e) { // a Notion toggle in a page's text opens and folds smoothly, as the rest of the page does
@@ -869,12 +878,27 @@
       if (p.source) pair(p.origin === "Upwork" ? "Upwork" : "Source", link(p.source, (p.origin === "Upwork" ? "contract" : "link") + " ↗", "ext"));
     };
   }
-  function actions(x) { // an item's own buttons, in its header: Claude (</>, ▾) and Notion; none on a client's page
+  function actions(x) { // the project's own buttons, in its head: Claude (</>, ▾) and Notion; none on a client's page
     if (SNAP) return null;
     var a = el("span"); a.appendChild(chatBtn(x, x.kind)); var n = link(x.url, "Notion ↗", "ext"); n.title = "Opens this " + KIND[x.kind] + " in Notion"; n.addEventListener("click", function (e) { e.stopPropagation(); }); a.appendChild(n);
     return a;
   }
-  var PG = PT.page({ ui: S, host: function () { return $("drBody"); }, msBody: msBody, taskBody: taskBody, actions: actions });
+  var GLYPH = { more: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.1"/><circle cx="8" cy="8" r="1.1"/><circle cx="12.5" cy="8" r="1.1"/></svg>', out: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 8 8M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3"/></svg>' };
+  function ib(href, html, word, title) { // one of an item's buttons: its mark and its word (a phone shows the mark alone)
+    var a = el(href ? "a" : "button", "ib"); a.innerHTML = html; if (word) a.appendChild(span(word, "lbl")); a.title = title; a.setAttribute("aria-label", title);
+    if (href) { a.href = href; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", function (e) { e.stopPropagation(); }); } else a.type = "button";
+    return a;
+  }
+  function itemActions(x) { // an item's own buttons, in its header: its chat, its Code session (not on a phone), Notion, and ⋯ the rest
+    if (SNAP) return null;
+    var c = claudeOf(x, x.kind), w = el("span", "ibs");
+    w.appendChild(ib(c.chatUrl, ICON.chat, "Chat", c.chatTitle));
+    if (c.codeUrl) w.appendChild(ib(c.codeUrl, ICON.code, "Code", c.codeTitle));
+    w.appendChild(ib(x.url, GLYPH.out, "Notion", "Opens this " + KIND[x.kind] + " in Notion"));
+    menuBtn(w, ib(null, GLYPH.more, "", "More: new chat, new Code session"), c.items);
+    return w;
+  }
+  var PG = PT.page({ ui: S, host: function () { return $("drBody"); }, msBody: msBody, taskBody: taskBody, actions: actions, itemActions: itemActions });
   var dsec = PG.dsec, setFold = PG.setFold, reveal = PG.reveal;
   // the project page, block by block; ctx carries what several blocks share
   function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p), c.info.parts.desc ? renderMd(c.info.parts.desc, {}) : null); }

@@ -639,8 +639,10 @@
       var on = ui.open["d:" + o.k] != null ? !!ui.open["d:" + o.k] : !!o.open, b = el("div", "blk " + o.cls + (on ? " open" : ""));
       b.dataset.k = o.k; b._item = o.item;
       var h = el("div", "blk-h acc-h"); h.setAttribute("role", "button"); h.tabIndex = 0; h.setAttribute("aria-expanded", String(on));
-      h.appendChild(el("span", "dot " + (o.dot || ""))); h.appendChild(titled("t", o.item, o.title)); h.appendChild(el("span", "r", o.right || "")); h.insertAdjacentHTML("beforeend", CHEV);
-      var l2 = el("span", "l2"), acts = ctx.actions(o.item); if (o.line) l2.appendChild(o.line); if (acts) { acts.classList.add("acts"); l2.appendChild(acts); } h.appendChild(l2); // its line, and its buttons at the right of it
+      var tl = el("span", "tl"), l2 = el("span", "l2"), acts = ctx.itemActions(o.item), rt = refTag(o.item);
+      tl.appendChild(el("span", "t", o.title)); if (rt) tl.appendChild(rt); // its name, its ID after it
+      if (o.line) l2.appendChild(o.line); if (o.right) l2.appendChild(el("span", "r", o.right)); // its line, then its dates
+      h.appendChild(el("span", "dot " + (o.dot || ""))); h.appendChild(tl); h.appendChild(l2); if (acts) { acts.classList.add("acts"); h.appendChild(acts); } h.insertAdjacentHTML("beforeend", CHEV);
       function toggle() { setOpen(b, !b.classList.contains("open")); }
       h.addEventListener("click", function (e) { if (!e.target.closest(".acts")) toggle(); });
       h.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target === h) { e.preventDefault(); toggle(); } });
