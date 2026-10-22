@@ -272,23 +272,27 @@
     return st + " · " + d + (x.late > 0 ? " · " + days(x.late) + " late" : x.start != null && !/^(no dates|in progress)/.test(ph) ? " · " + ph : "");
   }
 
-  // ---------- the project page: where opened items' headers stick, and where a fold leaves the page (pure: tests/check_drawer.py runs them) ----------
-  // An opened item's header sticks to the top of the page while its item is read, under the headers of the opened items it is drawn in.
-  // blocks: the page's items that open in place, in document order, each { parent (the index of the block it is drawn in, or -1), open,
-  // head (its header's height) }. Returns, for each, the offset its header sticks at: the heights of its opened parents' headers.
-  function stickTops(blocks) {
-    var tops = [];
-    blocks.forEach(function (b, i) { var p = b.parent; tops[i] = p < 0 ? 0 : tops[p] + (blocks[p].open ? blocks[p].head : 0); });
-    return tops;
+  // ---------- the project page: which opened item's header is stuck, and where a fold leaves the page (pure: tests/check_drawer.py runs them) ----------
+  // An opened item's header sticks to the top of the page while its item is read; one at a time: the innermost item being read. blocks:
+  // the page's items that open in place, in document order, each { parent (the index of the block it is drawn in, or -1), open, top,
+  // bottom (its box, from the view's top: one not drawn has no height), head (its header's height) }. Returns the block whose header is
+  // stuck whole — it starts at or above the top and still has a header's height of itself below it — the deepest such, or -1; the
+  // headers of the blocks it is drawn in give way to it.
+  function stuckOne(blocks) {
+    function drawn(i) { var b = blocks[i]; return b.bottom > b.top && (b.parent < 0 || blocks[b.parent].open && drawn(b.parent)); }
+    var at = -1;
+    blocks.forEach(function (b, i) { if (b.open && b.top <= 0 && b.bottom - b.head >= 0 && drawn(i)) at = i; }); // later in the page and stuck too: drawn inside
+    return at;
   }
   // Where the page stands after a fold, so the folded item's header stays where the reader sees it: in its place, it stays put; stuck at
   // the top while its item was read (or scrolled away above), the item is moved up to where the header shows — at once, as a slide would
-  // move the page under the reader. s: { top (scrollTop), view (clientHeight), height (scrollHeight), pad (the room added below the page
-  // by an earlier fold), head (where the header shows, from the view's top), from (where the item starts on the page, the same way),
+  // move the page under the reader — but never under the header of the item it is drawn in, which sticks again once it is folded.
+  // s: { top (scrollTop), view (clientHeight), height (scrollHeight), pad (the room added below the page by an earlier fold), head (where
+  // the header shows, from the view's top), from (where the item starts, the same way), under (the height of its parent's header, or 0),
   // shrink (how much shorter the fold makes the page) }. Returns { top, pad, now }: the scrollTop, the room below the page that keeps the
   // browser from pulling the page back where it ends, and whether to fold at once.
   function foldScroll(s) {
-    var at = Math.max(0, s.head), now = s.from < at, top = Math.max(0, s.top + s.from - at);
+    var at = Math.max(s.under, s.head), now = s.from < at, top = Math.max(0, s.top + s.from - at);
     return { top: top, pad: Math.max(0, Math.ceil(top + s.view - (s.height - s.pad - s.shrink))), now: now };
   }
 
@@ -624,7 +628,7 @@
   // host() (the box the page scrolls in), msBody(x, m) and taskBody(x, k) (what an opened milestone or task shows), actions(item) (an
   // item's own buttons, or nothing on a client's page). Every item that opens in place — a milestone, a task, a problem — is one kind of
   // block: .blk, its header strip (.blk-h: the .acc-h that opens and folds it, and once open its buttons), its body (.blk-b), the item in
-  // ._item, its key on the page in data-k. An opened item's header sticks while its item is read (stack).
+  // ._item, its key on the page in data-k. An opened item's header sticks while its item is read, one at a time (stick).
   function page(ctx) {
     var ui = ctx.ui;
     // o: k, item, cls (ms, row, row tsk), open (until the viewer chooses), dot, title, line, right, fill(x) (the body, made when it first opens).
@@ -646,29 +650,32 @@
       };
       b.appendChild(hs); b.appendChild(x); if (on) b._fill(); return b;
     }
-    // Opens or folds a block; "fold" tells the page its layout changed (the stuck headers are stacked again).
+    // Opens or folds a block; "fold" tells the page its layout changed.
     function setOpen(b, on) {
       var hs = b.firstChild, h = hs.firstChild, x = b.lastChild;
       if (b.classList.contains("open") === on) return;
       ui.open["d:" + b.dataset.k] = on;
       var mark = function () { b.classList.toggle("open", on); h.setAttribute("aria-expanded", String(on)); };
       if (on) { b._fill(); mark(); unfold(x); } else fold(hs, b, x, mark, function () { return !b.classList.contains("open"); });
-      stack();
+      stick();
       b.dispatchEvent(new CustomEvent("fold", { bubbles: true, detail: { open: on } }));
     }
-    // Every opened item's header sticks under the opened ones it is drawn in (stickTops), the outer above the inner, so an inner header
-    // slides under its parent's when its item ends; any item scrolled to stops under them (scroll-margin).
-    function stack() {
-      var els = [].slice.call(ctx.host().querySelectorAll(".blk")), deep = [];
-      var tops = stickTops(els.map(function (e, i) { var p = els.indexOf(e.parentNode.closest(".blk")); deep[i] = p < 0 ? 0 : deep[p] + 1; return { parent: p, open: e.classList.contains("open"), head: e.firstChild.offsetHeight }; }));
-      els.forEach(function (e, i) { e.firstChild.style.top = tops[i] ? tops[i] + "px" : ""; e.firstChild.style.zIndex = String(5 - deep[i]); e.style.scrollMarginTop = tops[i] ? tops[i] + "px" : ""; });
+    // One header stuck at a time (stuckOne): the innermost opened item being read; the headers of the items it is drawn in give way
+    // (.under) — an inner header slides in over its parent's as its item reaches the top (CSS: deeper above) and away off it at its end.
+    // Run on every scroll, fold and repaint.
+    function stick() {
+      var sc = ctx.host(), v = sc.getBoundingClientRect().top, els = [].slice.call(sc.querySelectorAll(".blk"));
+      var blocks = els.map(function (e) { var r = e.getBoundingClientRect(); return { parent: els.indexOf(e.parentNode.closest(".blk")), open: e.classList.contains("open"), top: r.top - v, bottom: r.bottom - v, head: e.firstChild.offsetHeight }; });
+      var at = stuckOne(blocks), under = [];
+      for (var i = at >= 0 ? blocks[at].parent : -1; i >= 0; i = blocks[i].parent) under[i] = true;
+      els.forEach(function (e, j) { e.firstChild.classList.toggle("under", !!under[j]); });
     }
     function unfold(body) { body.hidden = false; slide(body, true); }
     // Folds body (under head, inside box) so head stays where the reader sees it, stuck or not (foldScroll): mark() turns the head at once,
     // shut() says at the end whether it is still folded. The room a fold adds below the page goes once the reader scrolls it out of view (trim).
     function fold(head, box, body, mark, shut) {
-      var sc = ctx.host(), v = sc.getBoundingClientRect().top, hb = head.getBoundingClientRect(), bb = box.getBoundingClientRect();
-      var r = foldScroll({ top: sc.scrollTop, view: sc.clientHeight, height: sc.scrollHeight, pad: padOf(sc), head: hb.top - v, from: bb.top - v, shrink: bb.height - hb.height });
+      var sc = ctx.host(), v = sc.getBoundingClientRect().top, hb = head.getBoundingClientRect(), bb = box.getBoundingClientRect(), up = box.parentNode.closest(".blk.open");
+      var r = foldScroll({ top: sc.scrollTop, view: sc.clientHeight, height: sc.scrollHeight, pad: padOf(sc), head: hb.top - v, from: bb.top - v, under: up ? up.firstChild.offsetHeight : 0, shrink: bb.height - hb.height });
       sc.style.paddingBottom = r.pad ? r.pad + "px" : "";
       mark();
       if (!r.now) { slide(body, false, function () { if (shut()) body.hidden = true; }); return; }
@@ -763,9 +770,9 @@
       var sec = b.closest(".dsec"); if (sec) setFold(sec, false);
       for (var g = b.parentNode.closest(".blk"); g; g = g.parentNode.closest(".blk")) setOpen(g, true);
       setOpen(b, true);
-      b.scrollIntoView({ block: "start", behavior: smooth() }); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); // it stops under the headers stuck above it (scroll-margin)
+      b.scrollIntoView({ block: "start", behavior: smooth() }); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); // at the top its own header is the one stuck
     }
-    return { block: block, setOpen: setOpen, stack: stack, fold: fold, unfold: unfold, trim: trim, dsec: dsec, setFold: setFold, taskRow: taskRow, projectHead: projectHead, focusBlock: focusBlock, planSec: planSec, reveal: reveal };
+    return { block: block, setOpen: setOpen, stick: stick, fold: fold, unfold: unfold, trim: trim, dsec: dsec, setFold: setFold, taskRow: taskRow, projectHead: projectHead, focusBlock: focusBlock, planSec: planSec, reveal: reveal };
   }
 
   window.PT = {
@@ -774,7 +781,7 @@
     refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled,
     el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, plain: plain, notionText: notionText, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, foldDetails: foldDetails,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
-    problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState, stickTops: stickTops, foldScroll: foldScroll,
+    problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState, stuckOne: stuckOne, foldScroll: foldScroll,
     timeline: timeline, typeTag: typeTag, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };
 })();

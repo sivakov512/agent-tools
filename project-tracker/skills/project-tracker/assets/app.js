@@ -958,11 +958,15 @@
       var body = el("div", "dr-in"); host.appendChild(body);
       drStatus(body, c); drFocus(body, p, c); drNumbers(body, p, c); drItems(body, p, c); drResolved(body, p); drPlan(body, p, c); drNotes(body, p, c);
     });
-    paintNav(); PG.stack();
+    paintNav(); PG.stick();
   }
 
-  $("drBody").addEventListener("scroll", function () { PG.trim(); $("drTop").classList.toggle("on", $("drBody").scrollTop > 360); }, { passive: true });
-  if (window.ResizeObserver) new ResizeObserver(function () { if (S.dr) PG.stack(); }).observe($("drBody")); // a header that wraps anew moves the ones stuck under it
+  var stickRaf = 0;
+  $("drBody").addEventListener("scroll", function () {
+    PG.trim(); $("drTop").classList.toggle("on", $("drBody").scrollTop > 360);
+    if (!stickRaf) stickRaf = requestAnimationFrame(function () { stickRaf = 0; if (S.dr) PG.stick(); });
+  }, { passive: true });
+  if (window.ResizeObserver) new ResizeObserver(function () { if (S.dr) PG.stick(); }).observe($("drBody")); // a header that wraps anew changes where its item's end begins
   var lastFocus = null;
   function openProject(p, k) {
     var same = S.dr && S.dr.pid === p.key && $("drawer").classList.contains("on");

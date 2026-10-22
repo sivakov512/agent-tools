@@ -210,9 +210,11 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .blk.ms > .blk-h .t { font-size: 15.5px; font-weight: 600; }
 .blk.tsk > .blk-h .t { font-size: 14px; font-weight: 400; }
 /* Opened, the header is one strip: the name (two lines at most) and the item's own buttons — Claude, Notion; the line and dates move to the
-   body's first line. It sticks while its item is read, under the opened ones it is drawn in (stack() sets top and z-index), and goes with
-   its item's end; a hairline under it keeps the text scrolling beneath apart. */
-.blk.open > .blk-h { position: sticky; top: 0; z-index: 5; background: var(--surface-2); box-shadow: 0 1px 0 var(--border); }
+   body's first line. It sticks to the top while its item is read and goes with its item's end; inside an opened milestone, an opened
+   task's strip takes the place while the task is read. A hairline under it keeps the text scrolling beneath apart. */
+.blk.open > .blk-h { position: sticky; top: 0; z-index: 3; background: var(--surface-2); box-shadow: 0 1px 0 var(--border); }
+.blk .blk.open > .blk-h { z-index: 4; } /* an inner header slides in over its parent's, and away off it */
+.blk-h.under { visibility: hidden; } /* one stuck header at a time: the parent's gives way while an inner one is stuck (stick()) */
 .blk.ms.open > .blk-h { background: var(--sunken); }
 .blk.open > .blk-h > .acc-h:hover { background: none; }
 .blk.open > .blk-h .t { font-weight: 600; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
