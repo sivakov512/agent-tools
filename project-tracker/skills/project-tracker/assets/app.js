@@ -949,22 +949,25 @@
       var body = el("div", "dr-in"); host.appendChild(body);
       drStatus(body, c); drFocus(body, p, c); drNumbers(body, p, c); drItems(body, p, c); drResolved(body, p); drPlan(body, p, c); drNotes(body, p, c);
     });
-    paintNav(); barSig = null; paintBar(); // a repaint keeps the scroll and what the bar names
+    paintNav(); barSig = null; focusOn("layout"); // a repaint keeps the scroll and the focus
   }
 
-  // ---------- the bar above the project page: what the reader is in, and its actions ----------
-  // It names what is being read, as the page draws it (PT.focusChain): the opened block at the focus line, a third down — or the one the reader
-  // just opened, until they scroll — after the blocks it is drawn in, as a breadcrumb (MLS-10 Architecture › TSK-13 Prototypes); nothing opened
-  // there, the project. Its Claude, Notion and fold act on the last of them: the only buttons a milestone, task or problem has.
-  var pin = null, barSig = null; // the key of the block the reader just opened; what the bar shows, so it is redrawn only when that changes
+  // ---------- the bar above the project page: the focus, and its actions ----------
+  // The bar names the item the reader is working on — the focus, kept by PT.focusStep: the innermost opened item at the reading line, a
+  // third down, as the reader scrolls; or the item they expanded or clicked in, until they scroll past its end or it leaves the screen —
+  // after the blocks it is drawn in, as a breadcrumb (MLS-10 Architecture › TSK-13 Prototypes). Its Claude, Notion and fold act on that
+  // item: the only buttons a milestone, task or problem has. The focused item's header strip takes the accent tint, so it is plain which.
+  var fs = { k: null, picked: false, end: null }, barSig = null; // the focus; what the bar shows, so it is redrawn only when that changes
   function blockOf(k) { return $("drBody").querySelector('.blk[data-k="' + sel(k) + '"]'); }
-  function focusNow() { // the blocks the reader is in, outermost first
+  function focusOn(type, k) { // one event for the focus (pick, free, scroll, layout); then the bar and the tint follow
     var body = $("drBody"), els = [].slice.call(body.querySelectorAll(".blk")), v = body.getBoundingClientRect();
-    var blocks = els.map(function (e) { var r = e.getBoundingClientRect(); return { parent: els.indexOf(e.parentNode.closest(".blk")), open: e.classList.contains("open"), top: r.top, bottom: r.bottom }; });
-    return PT.focusChain(blocks, { top: v.top, bottom: v.bottom, line: v.top + v.height / 3 }, pin ? els.indexOf(blockOf(pin)) : -1).map(function (i) { return els[i]; });
+    var blocks = els.map(function (e) { var r = e.getBoundingClientRect(); return { k: e.dataset.k, parent: els.indexOf(e.parentNode.closest(".blk")), open: e.classList.contains("open"), top: r.top, bottom: r.bottom }; });
+    fs = PT.focusStep(fs, { type: type, k: k }, blocks, { top: v.top, bottom: v.bottom, line: v.top + v.height / 3 });
+    els.forEach(function (e) { e.classList.toggle("focus", e.dataset.k === fs.k); });
+    paintBar(PT.focusChain(blocks, fs.k).map(function (i) { return els[i]; }));
   }
-  function paintBar() {
-    var p = S.dr ? allProjByKey()[S.dr.pid] : null, chain = p ? focusNow() : [], last = chain[chain.length - 1], x = last ? last._item : null;
+  function paintBar(chain) {
+    var p = S.dr ? allProjByKey()[S.dr.pid] : null, last = chain[chain.length - 1], x = last ? last._item : null;
     var sig = (p ? p.key : "") + chain.map(function (b) { return ">" + b.dataset.k; }).join(""); if (sig === barSig) return; barSig = sig;
     var t = $("drTitle"), kind = x ? x.kind : "project", names = chain.map(function (b) { return (b._item.ref ? b._item.ref + " " : "") + b._item.name; });
     clear(t); t.removeAttribute("title"); $("drawer").querySelector(".dr-bar").classList.toggle("ctx", !!x);
@@ -982,20 +985,21 @@
     }
     if (!SNAP) { var it = x || p; $("drNotion").href = it.url; $("drNotion").title = "Opens this " + KIND[kind] + " in Notion"; $("drChat").appendChild(chatBtn(it, kind)); }
   }
-  var barRaf = 0; function barSoon() { if (!barRaf) barRaf = requestAnimationFrame(function () { barRaf = 0; paintBar(); }); }
-  function letGo() { if (pin) { pin = null; barSoon(); } } // the reader scrolls: the bar follows the focus line again
-  $("drBody").addEventListener("pin", function (e) { pin = e.target.dataset.k; barSoon(); });
-  $("drBody").addEventListener("fold", function (e) { // a fold moves what is below it: the bar looks again now and when it has moved
-    var pb = pin && !e.detail.open ? blockOf(pin) : null; if (pb && e.target.contains(pb)) pin = null; // the pinned block, or one it is drawn in, folded
-    barSoon(); setTimeout(barSoon, 260);
+  var scrollRaf = 0;
+  $("drBody").addEventListener("pick", function (e) { focusOn("pick", e.target.dataset.k); });
+  $("drBody").addEventListener("click", function (e) { // a click in an opened item picks it (its header opens or folds it instead); anywhere else, the bar follows the reading line
+    if (e.target.closest(".acc-h")) return;
+    var b = e.target.closest(".blk.open"); focusOn(b ? "pick" : "free", b ? b.dataset.k : null);
   });
-  $("drBody").addEventListener("scroll", function () { PG.trim(); barSoon(); $("drTop").classList.toggle("on", $("drBody").scrollTop > 360); }, { passive: true });
-  ["wheel", "touchmove"].forEach(function (n) { $("drBody").addEventListener(n, letGo, { passive: true }); });
-  $("drBody").addEventListener("pointerdown", function (e) { if (e.target === $("drBody")) letGo(); }); // its scrollbar
+  $("drBody").addEventListener("fold", function () { focusOn("layout"); setTimeout(function () { if (S.dr) focusOn("layout"); }, 260); }); // and once the fold has moved what is below
+  $("drBody").addEventListener("scroll", function () {
+    PG.trim(); $("drTop").classList.toggle("on", $("drBody").scrollTop > 360);
+    if (!scrollRaf) scrollRaf = requestAnimationFrame(function () { scrollRaf = 0; if (S.dr) focusOn("scroll"); });
+  }, { passive: true });
   var lastFocus = null;
   function openProject(p, k) {
     var same = S.dr && S.dr.pid === p.key && $("drawer").classList.contains("on");
-    if (!same) { lastFocus = document.activeElement; S.dr = { pid: p.key }; pin = null; $("drBody").scrollTop = 0; $("drBody").style.paddingBottom = ""; renderDrawer(); $("drTop").classList.remove("on"); }
+    if (!same) { lastFocus = document.activeElement; S.dr = { pid: p.key }; fs = { k: null, picked: false, end: null }; $("drBody").scrollTop = 0; $("drBody").style.paddingBottom = ""; renderDrawer(); $("drTop").classList.remove("on"); }
     $("drawer").classList.add("on"); $("drawer").setAttribute("aria-hidden", "false"); $("scrim").classList.add("on");
     if (k) setTimeout(function () { reveal(k); }, same ? 0 : 240); else $("drClose").focus({ preventScroll: true });
   }
@@ -1012,7 +1016,7 @@
     $("drawer").classList.remove("on"); $("drawer").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("on");
     if (lastFocus && lastFocus.focus) try { lastFocus.focus({ preventScroll: true }); } catch (e) {}
   }
-  $("drTop").addEventListener("click", function () { letGo(); $("drBody").scrollTo({ top: 0, behavior: smooth() }); });
+  $("drTop").addEventListener("click", function () { $("drBody").scrollTo({ top: 0, behavior: smooth() }); });
   $("drClose").addEventListener("click", closeDrawer); $("scrim").addEventListener("click", closeDrawer);
   function closeMenus() { var n = 0; document.querySelectorAll(".dd-m, .chat-m, .info .pop").forEach(function (m) { if (!m.hidden) { m.hidden = true; n++; var b = m.parentNode.querySelector("[aria-expanded]"); if (b) b.setAttribute("aria-expanded", "false"); } }); if (n && pending) { pending = false; paint(); } return n; }
   document.addEventListener("keydown", function (e) {
@@ -1023,7 +1027,6 @@
     else if (/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "")) return;
     else if (e.key === "ArrowDown" || e.key === "j") { e.preventDefault(); stepProject(1); }
     else if (e.key === "ArrowUp" || e.key === "k") { e.preventDefault(); stepProject(-1); }
-    else if (/^(PageUp|PageDown|Home|End)$/.test(e.key) || e.key === " " && !e.target.closest("button, a, [role=button]")) letGo(); // keys that scroll the page
   });
 
   // ---------- painting: placeholders until the first full set, then in place ----------
