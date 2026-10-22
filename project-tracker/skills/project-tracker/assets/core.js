@@ -82,9 +82,6 @@
     function end() { if (end.ran) return; end.ran = 1; if (done) done(); if (box._an !== an) return; an.cancel(); box.style.overflow = ""; }
     an.onfinish = end; setTimeout(end, 260); // also where frames are not drawn (a hidden tab), so it never stays half-way
   }
-  function showPart(box, open, isOpen) { // shows or hides a part, smoothly; isOpen() says, at the end, whether it should still be shown
-    if (open) { box.hidden = false; slide(box, true); } else slide(box, false, function () { if (!isOpen()) box.hidden = true; });
-  }
   function foldDetails(d, body) { // a <details> opens or folds smoothly; its chevron turns at once (.shut while it folds)
     if (!d.open || d.classList.contains("shut")) { d.classList.remove("shut"); d.open = true; slide(body, true); }
     else { d.classList.add("shut"); slide(body, false, function () { if (d.classList.contains("shut")) { d.open = false; d.classList.remove("shut"); } }); }
@@ -273,6 +270,30 @@
     if (x.paused) return (x.kind === "task" && x.ms && x.ms.status === "Paused" ? "Paused with its milestone" : "Paused " + pauseText(x.pause)) + " · " + d;
     var who = onWhom(x), st = x.status === "Waiting" && x.waiting ? who.charAt(0).toUpperCase() + who.slice(1) : [x.status || "Planned", who].filter(Boolean).join(" · "); // "Waiting on Gilad", "In progress · on you"
     return st + " · " + d + (x.late > 0 ? " · " + days(x.late) + " late" : x.start != null && !/^(no dates|in progress)/.test(ph) ? " · " + ph : "");
+  }
+
+  // ---------- the project page: what the reader is in, and where a fold leaves the page (pure: tests/check_drawer.py runs them) ----------
+  // What the reader is in, by the page as drawn — never by the plan's parents. blocks: the page's items that open in place, in document order,
+  // each { parent (the index of the block it is drawn in, or -1), open, top, bottom } (its box on screen: one not drawn has no height);
+  // view: { top, bottom, line } (the scroll box's edges and the focus line, a third down); pin: the block the reader just opened, or -1.
+  // The pinned block while it is open and in view, else the deepest opened block the line crosses; then the blocks it is drawn in.
+  // Returns their indices, outermost first; none: the project.
+  function focusChain(blocks, view, pin) {
+    function drawn(i) { var b = blocks[i]; return b.bottom > b.top && (b.parent < 0 || blocks[b.parent].open && drawn(b.parent)); }
+    var at = -1, p = blocks[pin];
+    if (p && p.open && drawn(pin) && p.bottom > view.top && p.top < view.bottom) at = pin;
+    else blocks.forEach(function (b, i) { if (b.open && b.top <= view.line && b.bottom > view.line && drawn(i)) at = i; }); // later in the page and crossing the same line: drawn inside
+    var chain = []; for (var i = at; i >= 0; i = blocks[i].parent) chain.unshift(i);
+    return chain;
+  }
+  // Where the page stands after a fold, so the folded item's header stays where the reader looks: in view, it stays put; scrolled away above,
+  // it comes to the top of the view, at once (a slide would move the page under the reader). s: { top (scrollTop), view (clientHeight),
+  // height (scrollHeight), pad (the room added below the page by an earlier fold), head (the header's top, from the view's top),
+  // shrink (how much shorter the fold makes the page) }. Returns { top, pad, now }: the scrollTop, the room below the page that keeps the
+  // browser from pulling the page back where it ends, and whether to fold at once.
+  function foldScroll(s) {
+    var now = s.head < 0, top = Math.max(0, now ? s.top + s.head : s.top);
+    return { top: top, pad: Math.max(0, Math.ceil(top + s.view - (s.height - s.pad - s.shrink))), now: now };
   }
 
   // ---------- the timeline ----------
@@ -556,11 +577,6 @@
   }
 
   // ---------- the pieces of a project page ----------
-  function facts(host, pairs) {
-    var dl = el("dl", "facts");
-    pairs.forEach(function (x) { if (x[1] == null || x[1] === "") return; dl.appendChild(el("dt", "", x[0])); var dd = el("dd"); if (typeof x[1] === "string") dd.textContent = x[1]; else dd.appendChild(x[1]); dl.appendChild(dd); });
-    if (dl.childNodes.length) host.appendChild(dl);
-  }
   function typeTag(t) { return el("span", "tt " + (t || ""), t || "Item"); }
   function phraseEl(parts) { var s = el("span", "s"); parts.forEach(function (p) { if (!p || !p[0]) return; if (s.childNodes.length) s.appendChild(document.createTextNode(" · ")); s.appendChild(span(p[0], p[1] || "")); }); return s; }
   function whoOf(p) { var c = p.client || "", o = p.origin || ""; return c && o && c.toLowerCase() === o.toLowerCase() ? c : [c, o].filter(Boolean).join(" · "); } // client · origin, once when they are the same
@@ -608,24 +624,50 @@
     history: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.2l2 1.3"/></svg>'
   };
 
-  // The project page's pieces. ctx: ui (open: rows opened, grp: milestone groups opened or closed, col: sections folded — kept across repaints),
-  // host() (the box the page is in), msBody(x, m) and taskBody(x, k) (what an opened milestone or task shows).
+  // The project page's pieces. ctx: ui (open: items and sub-pages opened or closed, col: sections folded — kept across repaints),
+  // host() (the box the page scrolls in), msBody(x, m) and taskBody(x, k) (what an opened milestone or task shows).
+  // Every item that opens in place — a milestone, a task, a problem — is one kind of block: .blk, its header (.acc-h), its body (.blk-b),
+  // the item it shows in ._item, its key on the page in data-k. The page's top bar reads them (focusChain) to name what is being read.
   function page(ctx) {
     var ui = ctx.ui;
-    function acc(o) { // a row that opens below itself
-      var k = "d:" + o.k, on0 = !!ui.open[k], r = el("div", "arow" + (o.tsk ? " tsk" : "") + (on0 ? " open" : "")); r.dataset.k = o.k; r._item = o.item; // the item it shows: the drawer's bar names it while it is read
-      var h = btn("acc-h", null); h.setAttribute("aria-expanded", String(on0));
+    function block(o) { // o: k, item, cls (ms, row, row tsk), open (until the viewer chooses), dot, title, line, right, fill(x) (the body, made when it first opens)
+      var on = ui.open["d:" + o.k] != null ? !!ui.open["d:" + o.k] : !!o.open, b = el("div", "blk " + o.cls + (on ? " open" : ""));
+      b.dataset.k = o.k; b._item = o.item;
+      var h = btn("acc-h", null, function () { setOpen(b, !b.classList.contains("open"), true); }); h.setAttribute("aria-expanded", String(on));
       h.appendChild(el("span", "dot " + (o.dot || "")));
-      var mid = el("span", "mid"); mid.appendChild(titled("t", o.item, o.title));
-      if (o.line) mid.appendChild(o.line);
+      var mid = el("span", "mid"); mid.appendChild(titled("t", o.item, o.title)); if (o.line) mid.appendChild(o.line);
       h.appendChild(mid); h.appendChild(el("span", "r", o.right || "")); h.insertAdjacentHTML("beforeend", CHEV);
-      var x = el("div", "acc-x"); x.hidden = !on0; if (on0) o.expand(x);
-      h.addEventListener("click", function () { var on = !ui.open[k]; if (on) ui.open[k] = 1; else delete ui.open[k]; r.classList.toggle("open", on); h.setAttribute("aria-expanded", String(on)); if (on && !x.firstChild) o.expand(x); showPart(x, on, function () { return r.classList.contains("open"); }); r.dispatchEvent(new CustomEvent("fold", { bubbles: true })); });
-      r.appendChild(h); r.appendChild(x); return r;
+      var x = el("div", "blk-b"); x.hidden = !on;
+      b._fill = function () { if (!b._filled) { b._filled = true; o.fill(x); } };
+      b.appendChild(h); b.appendChild(x); if (on) b._fill(); return b;
     }
+    // Opens or folds a block; "fold" tells the page its layout changed, "pin" that the reader opened this one (mine) — the bar names it.
+    function setOpen(b, on, mine) {
+      var h = b.firstChild, x = b.lastChild;
+      if (b.classList.contains("open") !== on) {
+        ui.open["d:" + b.dataset.k] = on;
+        var mark = function () { b.classList.toggle("open", on); h.setAttribute("aria-expanded", String(on)); };
+        if (on) { b._fill(); mark(); unfold(x); } else fold(h, b, x, mark, function () { return !b.classList.contains("open"); });
+        b.dispatchEvent(new CustomEvent("fold", { bubbles: true, detail: { open: on } }));
+      }
+      if (on && mine) b.dispatchEvent(new CustomEvent("pin", { bubbles: true }));
+    }
+    function unfold(body) { body.hidden = false; slide(body, true); }
+    // Folds body (under head, inside box) so head stays where the reader looks (foldScroll): mark() turns the head at once, shut() says at the
+    // end whether it is still folded. The room a fold adds below the page goes once the reader scrolls it out of view (trim).
+    function fold(head, box, body, mark, shut) {
+      var sc = ctx.host(), hb = head.getBoundingClientRect();
+      var r = foldScroll({ top: sc.scrollTop, view: sc.clientHeight, height: sc.scrollHeight, pad: padOf(sc), head: hb.top - sc.getBoundingClientRect().top, shrink: box.getBoundingClientRect().height - hb.height });
+      sc.style.paddingBottom = r.pad ? r.pad + "px" : "";
+      mark();
+      if (!r.now) { slide(body, false, function () { if (shut()) body.hidden = true; }); return; }
+      body.getAnimations().forEach(function (a) { a.cancel(); }); body.hidden = true; sc.scrollTop = r.top;
+    }
+    function padOf(sc) { return parseFloat(sc.style.paddingBottom) || 0; }
+    function trim() { var sc = ctx.host(), p = padOf(sc); if (p && sc.scrollTop + sc.clientHeight <= sc.scrollHeight - p) sc.style.paddingBottom = ""; }
     function dsec(host, ico, title, n, right) { // a big section of the page; its header folds it, open by default
       var s = el("section", "dsec" + (ui.col[ico] ? " folded" : "")); s.dataset.sec = ico;
-      var hh = el("div", "dsec-h"); hh.setAttribute("role", "button"); hh.tabIndex = 0; hh.setAttribute("aria-expanded", String(!ui.col[ico])); hh.innerHTML = DICO[ico]; hh.appendChild(el("h3", "", title)); // not a <button>: a tool button may sit in it
+      var hh = el("div", "dsec-h"); hh.setAttribute("role", "button"); hh.tabIndex = 0; hh.setAttribute("aria-expanded", String(!ui.col[ico])); hh.innerHTML = DICO[ico]; hh.appendChild(el("h3", "", title)); // not a <button>: Expand all may sit in it
       if (n != null) hh.appendChild(el("span", "cnt", String(n))); if (right) { right.classList.add("r"); hh.appendChild(right); }
       hh.insertAdjacentHTML("beforeend", CHEV);
       var b = el("div", "dsec-b"); b.hidden = !!ui.col[ico];
@@ -633,47 +675,36 @@
       hh.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target === hh) { e.preventDefault(); setFold(s, !s.classList.contains("folded")); } });
       s.appendChild(hh); s.appendChild(b); host.appendChild(s); return b;
     }
-    function setFold(s, fold) {
-      var k = s.dataset.sec; if (fold) ui.col[k] = 1; else delete ui.col[k];
-      s.classList.toggle("folded", fold); s.querySelector(".dsec-h").setAttribute("aria-expanded", String(!fold)); showPart(s.querySelector(".dsec-b"), !fold, function () { return !s.classList.contains("folded"); });
+    function setFold(s, shut) {
+      if (s.classList.contains("folded") === shut) return;
+      var hh = s.firstChild, b = s.lastChild; if (shut) ui.col[s.dataset.sec] = 1; else delete ui.col[s.dataset.sec];
+      var mark = function () { s.classList.toggle("folded", shut); hh.setAttribute("aria-expanded", String(!shut)); };
+      if (shut) fold(hh, s, b, mark, function () { return s.classList.contains("folded"); }); else { mark(); unfold(b); }
+      s.dispatchEvent(new CustomEvent("fold", { bubbles: true, detail: { open: !shut } }));
     }
-    function taskRow(k) { return acc({ k: key(k.url), item: k, tsk: true, dot: itemDot(k), title: k.name, line: phraseEl(rowPhrase(k)), right: k.start == null ? "" : range(k.start, k.end), expand: function (x) { ctx.taskBody(x, k, true); } }); }
-    function msGroup(m, openByDefault) { // a milestone and everything in it: opening it shows its details, then its tasks
-      var k = key(m.url), on = ui.grp[k] != null ? ui.grp[k] : openByDefault, g = el("div", "mgrp" + (on ? " open" : "")), tdn = m.tasks.filter(function (x) { return x.status === "Done"; }).length;
-      var h = btn("acc-h mh", null); h.setAttribute("aria-expanded", String(on));
-      h.appendChild(el("span", "dot " + itemDot(m)));
-      var mid = el("span", "mid"); mid.appendChild(titled("t", m, m.name));
-      mid.appendChild(phraseEl(rowPhrase(m).concat([m.tasks.length ? [tdn + " of " + plural(m.tasks.length, "task") + " done", ""] : null])));
-      h.appendChild(mid); h.appendChild(el("span", "r", m.start == null ? "" : range(m.start, m.end))); h.insertAdjacentHTML("beforeend", CHEV);
-      var b = el("div", "mgrp-b"); b.hidden = !on;
-      var det = el("div", "mdet"); b.appendChild(det);
-      function fill() { if (!det.firstChild) ctx.msBody(det, m); }
-      if (on) fill();
-      if (m.tasks.length) b.appendChild(taskList(m.tasks));
-      g._fill = fill; g._item = m;
-      h.addEventListener("click", function () {
-        var on = !g.classList.contains("open"), pinned = !on && g.getBoundingClientRect().top < h.getBoundingClientRect().top - 1; // folded from its header pinned at the top, deep inside the milestone
-        setGroup(g, k, on);
-        if (pinned) { var sc = ctx.host(); sc.scrollTop += g.getBoundingClientRect().top - sc.getBoundingClientRect().top; } // the reader stays at the milestone, not where its tasks used to end
-      });
-      g.dataset.g = k; g.appendChild(h); g.appendChild(b); return g;
+    function taskRow(k, inPlan) { return block({ k: key(k.url), item: k, cls: "row" + (inPlan ? " tsk" : ""), dot: itemDot(k), title: k.name, line: phraseEl(rowPhrase(k)), right: k.start == null ? "" : range(k.start, k.end), fill: function (x) { ctx.taskBody(x, k, true); } }); }
+    function msGroup(m, open) { // a milestone and everything in it: opening it shows its details, then its tasks
+      var tdn = m.tasks.filter(function (x) { return x.status === "Done"; }).length, det = el("div", "mdet");
+      var g = block({ k: key(m.url), item: m, cls: "ms", open: open, dot: itemDot(m), title: m.name, line: phraseEl(rowPhrase(m).concat([m.tasks.length ? [tdn + " of " + plural(m.tasks.length, "task") + " done", ""] : null])), right: m.start == null ? "" : range(m.start, m.end), fill: function () { ctx.msBody(det, m); } });
+      g.lastChild.appendChild(det); if (m.tasks.length) g.lastChild.appendChild(taskList(m.tasks)); // its tasks are there from the start, so one asked for is found
+      return g;
     }
-    function allBtn(rows, isOpen, set, what) { // "Expand all" / "Collapse all" for a list of rows that open; it follows their state
+    function allBtn(rows, set, what) { // "Expand all" / "Collapse all" for a list of blocks; it follows their state
       var b = btn("gall", ""); b.title = "Open or fold all the " + what;
-      function paint() { var closed = rows().some(function (r) { return !isOpen(r); }); b.textContent = closed ? "Expand all" : "Collapse all"; b.dataset.open = closed ? "1" : ""; }
-      b.addEventListener("click", function (e) { e.stopPropagation(); var on = !!b.dataset.open; rows().forEach(function (r) { if (isOpen(r) !== on) set(r, on); }); paint(); });
+      function open(r) { return r.classList.contains("open"); }
+      function paint() { var closed = !rows().every(open); b.textContent = closed ? "Expand all" : "Collapse all"; b.dataset.open = closed ? "1" : ""; }
+      b.addEventListener("click", function (e) { e.stopPropagation(); var on = !!b.dataset.open; rows().forEach(function (r) { setOpen(r, on); }); paint(); });
       b.paint = paint; return b;
     }
     function taskList(tasks) { // "Tasks N" and the tasks; with several, one button opens or folds them all
       var w = el("div", "mtw"), tl = el("div", "mtl"); tl.appendChild(span("Tasks")); tl.appendChild(span(String(tasks.length), "n")); w.appendChild(tl);
-      tasks.forEach(function (x) { w.appendChild(taskRow(x)); });
+      tasks.forEach(function (x) { w.appendChild(taskRow(x, true)); });
       if (tasks.length > 1) {
-        var all = allBtn(function () { return [].slice.call(w.querySelectorAll(":scope > .arow")); }, function (r) { return r.classList.contains("open"); }, function (r) { r.querySelector(".acc-h").click(); }, "tasks");
+        var all = allBtn(function () { return [].slice.call(w.querySelectorAll(":scope > .blk")); }, "tasks");
         tl.appendChild(all); w.addEventListener("fold", all.paint); all.paint();
       }
       return w;
     }
-    function setGroup(g, k, on) { ui.grp[k] = on; if (on && g._fill) g._fill(); g.classList.toggle("open", on); g.querySelector(".mh").setAttribute("aria-expanded", String(on)); showPart(g.querySelector(".mgrp-b"), on, function () { return g.classList.contains("open"); }); g.dispatchEvent(new CustomEvent("fold", { bubbles: true })); }
     function projectHead(host, p, st, plan, extra, desc) { // who, the name with its state, what the project is (its description), the project at a glance
       var hd = el("header", "dr-head");
       hd.appendChild(el("div", "dr-who", whoOf(p)));
@@ -702,38 +733,37 @@
       if (!ms0) b2.appendChild(el("div", o.err ? "err" : "empty", o.err ? "The plan didn't load. " + o.err : "Loading…"));
       else if (!ms0.length && !tk0.length) b2.appendChild(el("div", "empty", o.empty));
       else {
-        sortItems(ms0).forEach(function (m) { b2.appendChild(msGroup(m, m.status === "In progress" || (m.late > 0 && OPEN_MS[m.status]) || m === head)); });
+        sortItems(ms0).forEach(function (m) { b2.appendChild(msGroup(m, m.status === "In progress" || (m.late > 0 && OPEN_MS[m.status]) || m === head)); }); // the milestone under way, late or in focus starts open
         if (ms0.length > 1) { // as a panel on the overview: its head opens or folds every milestone
-          var ma = allBtn(function () { return [].slice.call(b2.querySelectorAll(":scope > .mgrp")); }, function (g) { return g.classList.contains("open"); }, function (g, on) { setGroup(g, g.dataset.g, on); }, "milestones");
-          var hd = b2.parentNode.querySelector(".dsec-h"); hd.insertBefore(ma, hd.querySelector(".chev")); b2.addEventListener("fold", function (e) { if (e.target.classList.contains("mgrp")) ma.paint(); }); ma.paint();
+          var ma = allBtn(function () { return [].slice.call(b2.querySelectorAll(":scope > .blk.ms")); }, "milestones");
+          var hd = b2.parentNode.querySelector(".dsec-h"); hd.insertBefore(ma, hd.querySelector(".chev")); b2.addEventListener("fold", function (e) { if (e.target.parentNode === b2) ma.paint(); }); ma.paint();
         }
         var loose = sortItems(tk0.filter(function (k) { return !k.ms; }));
         if (loose.length) {
           if (ms0.length) { var gt2 = el("div", "grp-t"); gt2.appendChild(span("Other tasks")); gt2.appendChild(span(String(loose.length), "n")); b2.appendChild(gt2); }
-          loose.forEach(function (k) { var r = taskRow(k); if (!ms0.length) r.classList.remove("tsk"); b2.appendChild(r); });
+          loose.forEach(function (k) { b2.appendChild(taskRow(k, ms0.length > 0)); });
         }
       }
       return b2;
     }
-    function reveal(k) { // open an item on the page and bring it into view
-      var host = ctx.host(), mg = host.querySelector('.mgrp[data-g="' + sel(k) + '"]');
-      if (mg) { if (!mg.classList.contains("open")) setGroup(mg, k, true); var sec0 = mg.closest(".dsec"); if (sec0 && sec0.classList.contains("folded")) setFold(sec0, false); mg.scrollIntoView({ block: "start", behavior: smooth() }); mg.classList.remove("flash"); void mg.offsetWidth; mg.classList.add("flash"); return; }
-      var r = host.querySelector('.arow[data-k="' + sel(k) + '"]') || host.querySelector('.arow[data-k="' + sel("w:" + k) + '"]') || host.querySelector('.arow[data-k="' + sel("r:" + k) + '"]');
-      var sec = r && r.closest(".dsec"); if (sec && sec.classList.contains("folded")) setFold(sec, false); // a folded section opens for the item asked for
-      var grp = r && r.closest(".mgrp"); if (grp && !grp.classList.contains("open")) setGroup(grp, grp.dataset.g, true); // and so does a folded milestone
-      if (r && !r.classList.contains("open")) r.querySelector(".acc-h").click();
-      if (r) { r.scrollIntoView({ block: "start", behavior: smooth() }); r.classList.remove("flash"); void r.offsetWidth; r.classList.add("flash"); }
+    function reveal(k) { // open an item on the page — and the section and blocks it is drawn in — bring it into view; the bar names it
+      var host = ctx.host(), b = ["", "w:", "r:"].map(function (p) { return host.querySelector('.blk[data-k="' + sel(p + k) + '"]'); }).filter(Boolean)[0]; // the plan's row first, else the open items' or resolved one's
+      if (!b) return;
+      var sec = b.closest(".dsec"); if (sec) setFold(sec, false);
+      for (var g = b.parentNode.closest(".blk"); g; g = g.parentNode.closest(".blk")) setOpen(g, true);
+      setOpen(b, true, true);
+      b.scrollIntoView({ block: "start", behavior: smooth() }); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash");
     }
-    return { acc: acc, dsec: dsec, setFold: setFold, taskRow: taskRow, msGroup: msGroup, setGroup: setGroup, projectHead: projectHead, focusBlock: focusBlock, planSec: planSec, reveal: reveal };
+    return { block: block, setOpen: setOpen, fold: fold, unfold: unfold, trim: trim, dsec: dsec, setFold: setFold, taskRow: taskRow, projectHead: projectHead, focusBlock: focusBlock, planSec: planSec, reveal: reveal };
   }
 
   window.PT = {
     DAY: DAY, OPEN_MS: OPEN_MS, SPANS: SPANS, CHEV: CHEV,
     whoOf: whoOf,
     refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled,
-    el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, plain: plain, notionText: notionText, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, fold: showPart, foldDetails: foldDetails,
+    el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, plain: plain, notionText: notionText, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, foldDetails: foldDetails,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
-    problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState,
+    problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState, focusChain: focusChain, foldScroll: foldScroll,
     timeline: timeline, typeTag: typeTag, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };
 })();

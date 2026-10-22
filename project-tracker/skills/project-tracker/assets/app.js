@@ -790,11 +790,6 @@
     if (desc) a.appendChild(span(desc, "d"));
     return a;
   }
-  function placeMenu(menu, w) { // a section's panel clips what leaves it (its round corners): in its last rows the menu opens upwards when only there it fits
-    menu.classList.remove("up"); var box = w.closest(".dsec-b"); if (!box) return;
-    var b = box.getBoundingClientRect(), r = w.getBoundingClientRect(), h = menu.offsetHeight + 6;
-    if (r.bottom + h > b.bottom && r.top - h >= b.top) menu.classList.add("up");
-  }
   function chatBtn(x, kind) { // the row's Claude: its first part opens the chat, </> its Code session on the Mac — each started when there is none yet, and it writes its own link back to the row; ▾ the rare actions
     var sid = chatSid(x.chat), w = el("span", "chat split"), pr = kind === "project" ? x : x.project || allProjByKey()[x.pk], cp = pr ? pr.cproj : null;
     var chatUrl = sid ? (MOBILE ? "https://claude.ai/cowork/cse_" + sid : "claude://claude.ai/code/session_" + sid) : newChatUrl(chatQ(x, kind, false), cp);
@@ -815,7 +810,7 @@
     mb.setAttribute("aria-label", "More: new chat, new Code session"); mb.setAttribute("aria-expanded", "false");
     var menu = el("div", "chat-m"); menu.hidden = true;
     items.forEach(function (it) { if (it.tagName === "A") it.addEventListener("click", function () { menu.hidden = true; mb.setAttribute("aria-expanded", "false"); }); menu.appendChild(it); });
-    mb.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; document.querySelectorAll(".chat-m").forEach(function (m) { m.hidden = true; }); menu.hidden = !on; mb.setAttribute("aria-expanded", String(on)); if (on) placeMenu(menu, w); });
+    mb.addEventListener("click", function (e) { e.stopPropagation(); var on = menu.hidden; document.querySelectorAll(".chat-m").forEach(function (m) { m.hidden = true; }); menu.hidden = !on; mb.setAttribute("aria-expanded", String(on)); });
     w.appendChild(mb); w.appendChild(menu); return w;
   }
   document.addEventListener("click", function (e) { if (!e.target.closest(".dd-m, .chat-m, .info")) closeMenus(); });
@@ -833,7 +828,12 @@
     var body = el("div", "sub-b"); body.hidden = !S.open[k];
     function fill() { pageBody(body, u, { empty: "This page is empty." }); if (SNAP) return; var a = el("div", "actions sub-acts"); a.appendChild(link(u, "Open in Notion ↗", "ext")); body.appendChild(a); }
     if (S.open[k]) fill();
-    b.addEventListener("click", function () { var on = !S.open[k]; if (on) S.open[k] = 1; else delete S.open[k]; d.classList.toggle("open", on); b.setAttribute("aria-expanded", String(on)); if (on && !body.firstChild) fill(); PT.fold(body, on, function () { return d.classList.contains("open"); }); });
+    b.addEventListener("click", function () {
+      var on = !S.open[k], mark = function () { d.classList.toggle("open", on); b.setAttribute("aria-expanded", String(on)); };
+      if (on) S.open[k] = 1; else delete S.open[k];
+      if (on) { if (!body.firstChild) fill(); mark(); PG.unfold(body); } else PG.fold(b, d, body, mark, function () { return !d.classList.contains("open"); });
+      d.dispatchEvent(new CustomEvent("fold", { bubbles: true, detail: { open: on } }));
+    });
     d.appendChild(b); d.appendChild(body); return d;
   }
   S.col = {}; // sections folded in this visit; every new visit starts with all of them open
@@ -865,9 +865,8 @@
       if (p.source) pair(p.origin === "Upwork" ? "Upwork" : "Source", link(p.source, (p.origin === "Upwork" ? "contract" : "link") + " ↗", "ext"));
     };
   }
-  S.grp = {}; // milestone groups the viewer opened or closed in this visit
   var PG = PT.page({ ui: S, host: function () { return $("drBody"); }, msBody: msBody, taskBody: taskBody });
-  var acc = PG.acc, dsec = PG.dsec, setFold = PG.setFold, taskRow = PG.taskRow, reveal = PG.reveal;
+  var dsec = PG.dsec, setFold = PG.setFold, reveal = PG.reveal;
   // the project page, block by block; ctx carries what several blocks share
   function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p), c.info.parts.desc ? renderMd(c.info.parts.desc, {}) : null); }
   function drStatus(body, c) {
@@ -909,9 +908,9 @@
         g[1].sort(function (x, y) { return (ageOf(y) || 0) - (ageOf(x) || 0); }).forEach(function (i) {
           var a = ageOf(i), sub = el("span", "s");
           var cx = context(i), tail = function (parts) { parts = parts.filter(Boolean); if (parts.length) sub.appendChild(document.createTextNode(" " + parts.join(" · "))); }; // on whom, then where in the plan it sits
-          if (i.kind === "task") { sub.appendChild(typeTag("Task")); tail([onWhom(i), cx, i.end != null ? "due " + fmt(i.end) : ""]); b1.appendChild(acc({ k: "w:" + key(i.url), item: i, dot: i.late > 0 ? "crit" : "warn", title: i.name, line: sub, right: ageLabel(i), expand: function (x) { taskBody(x, i); } })); return; }
+          if (i.kind === "task") { sub.appendChild(typeTag("Task")); tail([onWhom(i), cx, i.end != null ? "due " + fmt(i.end) : ""]); b1.appendChild(PG.block({ k: "w:" + key(i.url), item: i, cls: "row", dot: i.late > 0 ? "crit" : "warn", title: i.name, line: sub, right: ageLabel(i), fill: function (x) { taskBody(x, i); } })); return; }
           sub.appendChild(typeTag(i.type)); tail([onWhom(i), cx]);
-          b1.appendChild(acc({ k: key(i.url), item: i, dot: i.type === "Blocker" ? "crit" : i.type === "Risk" ? "warn" : i.waiting ? "ring" : "cur", title: i.name, line: sub, right: ageLabel(i), expand: function (x) { problemBody(x, i); } }));
+          b1.appendChild(PG.block({ k: key(i.url), item: i, cls: "row", dot: i.type === "Blocker" ? "crit" : i.type === "Risk" ? "warn" : i.waiting ? "ring" : "cur", title: i.name, line: sub, right: ageLabel(i), fill: function (x) { problemBody(x, i); } }));
         });
       });
     }
@@ -920,7 +919,7 @@
     var resolvedP = (S.resolved || []).map(problemOf).filter(function (i) { return i.pk === p.key && i.status === "Resolved"; });
     if (resolvedP.length) {
       var b4 = dsec(body, "resolved", "Resolved lately", resolvedP.length);
-      resolvedP.forEach(function (i) { var sub = el("span", "s"); sub.appendChild(typeTag(i.type)); sub.appendChild(document.createTextNode(" " + [context(i), i.resolvedOn != null ? "resolved " + fmt(i.resolvedOn) : "resolved"].filter(Boolean).join(" · "))); b4.appendChild(acc({ k: "r:" + key(i.url), item: i, dot: "good", title: i.name, line: sub, right: "", expand: function (x) { problemBody(x, i); } })); });
+      resolvedP.forEach(function (i) { var sub = el("span", "s"); sub.appendChild(typeTag(i.type)); sub.appendChild(document.createTextNode(" " + [context(i), i.resolvedOn != null ? "resolved " + fmt(i.resolvedOn) : "resolved"].filter(Boolean).join(" · "))); b4.appendChild(PG.block({ k: "r:" + key(i.url), item: i, cls: "row", dot: "good", title: i.name, line: sub, right: "", fill: function (x) { problemBody(x, i); } })); });
     }
   }
   function drPlan(body, p, c) {
@@ -937,11 +936,11 @@
     if (pt.hist) { var b6 = dsec(body, "history", "History", entriesIn(pt.hist)); var hl = renderMd(pt.hist, { history: true }); hl.classList.add("pad"); b6.appendChild(hl); }
   }
   function renderDrawer() {
-    var host = $("drBody"), p = S.dr ? allProjByKey()[S.dr.pid] : null; if (!S.dr) return;
+    if (!S.dr) return;
+    var host = $("drBody"), p = allProjByKey()[S.dr.pid];
     keep(host, function () {
       clear(host);
-      if (!p) { $("drTitle").textContent = ""; if (!SNAP) { clear($("drChat")); $("drNotion").removeAttribute("href"); } host.appendChild(el("div", "dr-in muted", "This project is no longer in the active list.")); return; }
-      barKey = undefined; barFor(null);
+      if (!p) { host.appendChild(el("div", "dr-in muted", "This project is no longer in the active list.")); return; }
       var ms0 = msList(p), tk0 = taskList(p);
       var c = { ms0: ms0, tk0: tk0, info: S.pageInfo[p.key] || { notes: [], parts: partsOf("") }, st: stateOfProject(p), f: focusOf(p),
         openProbs: allProblems().filter(function (i) { return i.pk === p.key && (i.status === "Open" || i.status === "Waiting"); }),
@@ -949,42 +948,59 @@
       drHead(host, p, c);
       var body = el("div", "dr-in"); host.appendChild(body);
       drStatus(body, c); drFocus(body, p, c); drNumbers(body, p, c); drItems(body, p, c); drResolved(body, p); drPlan(body, p, c); drNotes(body, p, c);
-      barSoon(); // a repaint keeps the scroll: the bar follows it
     });
+    paintNav(); barSig = null; paintBar(); // a repaint keeps the scroll and what the bar names
   }
-  // The bar above the project page names what is being read, with that item's own Claude and Notion buttons — the only ones the page has for
-  // a milestone, task or problem: the opened item the reader is in, as the page draws it (barCtx), else the project.
-  var barKey;
-  function barFor(x) {
-    var p = S.dr ? allProjByKey()[S.dr.pid] : null, it = x || p, k = x ? key(x.url) : null; if (!it || k === barKey) return; barKey = k;
-    var t = $("drTitle"), kind = x ? (x.kind === "problem" ? "problem" : x.kind === "ms" ? "ms" : "task") : "project";
-    $("drawer").querySelector(".dr-bar").classList.toggle("ctx", !!x);
-    if (x) { clear(t); t.appendChild(typeTag(kind === "problem" ? x.type : kind === "ms" ? "Milestone" : "Task")); t.appendChild(document.createTextNode((x.ref ? x.ref + " " : "") + x.name)); t.title = x.name + " — in " + (p ? p.name : ""); }
-    else { t.removeAttribute("title"); paintNav(); }
-    if (!SNAP) { $("drNotion").href = it.url; $("drNotion").title = x ? "Opens this " + KIND[kind] + " in Notion" : "Opens the project in Notion"; clear($("drChat")); $("drChat").appendChild(chatBtn(it, kind)); }
+
+  // ---------- the bar above the project page: what the reader is in, and its actions ----------
+  // It names what is being read, as the page draws it (PT.focusChain): the opened block at the focus line, a third down — or the one the reader
+  // just opened, until they scroll — after the blocks it is drawn in, as a breadcrumb (MLS-10 Architecture › TSK-13 Prototypes); nothing opened
+  // there, the project. Its Claude, Notion and fold act on the last of them: the only buttons a milestone, task or problem has.
+  var pin = null, barSig = null; // the key of the block the reader just opened; what the bar shows, so it is redrawn only when that changes
+  function blockOf(k) { return $("drBody").querySelector('.blk[data-k="' + sel(k) + '"]'); }
+  function focusNow() { // the blocks the reader is in, outermost first
+    var body = $("drBody"), els = [].slice.call(body.querySelectorAll(".blk")), v = body.getBoundingClientRect();
+    var blocks = els.map(function (e) { var r = e.getBoundingClientRect(); return { parent: els.indexOf(e.parentNode.closest(".blk")), open: e.classList.contains("open"), top: r.top, bottom: r.bottom }; });
+    return PT.focusChain(blocks, { top: v.top, bottom: v.bottom, line: v.top + v.height / 3 }, pin ? els.indexOf(blockOf(pin)) : -1).map(function (i) { return els[i]; });
   }
-  var barPin = null; // the block just opened: in focus until the reader scrolls
-  function barCtx() { // by the page as drawn, never by the plan's parents: the block just opened while it shows, until the reader scrolls; else the deepest opened block a reading line a third down crosses; else the project
-    var body = $("drBody"), box = body.getBoundingClientRect(), line = box.top + Math.min(160, box.height * .3), best = null;
-    if (barPin && barPin.isConnected && barPin.classList.contains("open")) { var p = barPin.getBoundingClientRect(); if (Math.min(p.bottom, box.bottom) - Math.max(p.top, box.top) >= 48) best = barPin; }
-    if (!best) [].forEach.call(body.querySelectorAll(".arow.open, .mgrp.open"), function (b) { if (!b._item) return; var r = b.getBoundingClientRect(); if (r.top <= line && r.bottom > line) best = b; }); // blocks come in document order: the last the line crosses is the innermost
-    barFor(best ? best._item : null);
+  function paintBar() {
+    var p = S.dr ? allProjByKey()[S.dr.pid] : null, chain = p ? focusNow() : [], last = chain[chain.length - 1], x = last ? last._item : null;
+    var sig = (p ? p.key : "") + chain.map(function (b) { return ">" + b.dataset.k; }).join(""); if (sig === barSig) return; barSig = sig;
+    var t = $("drTitle"), kind = x ? x.kind : "project", names = chain.map(function (b) { return (b._item.ref ? b._item.ref + " " : "") + b._item.name; });
+    clear(t); t.removeAttribute("title"); $("drawer").querySelector(".dr-bar").classList.toggle("ctx", !!x);
+    if (!SNAP) { clear($("drChat")); $("drNotion").removeAttribute("href"); }
+    if (!p) return;
+    var cr = el("span", "crumbs");
+    if (!x) { var n = navPos(); cr.appendChild(span(p.name + (n.ps.length > 1 ? " · " + (n.i + 1) + " of " + n.ps.length : ""))); t.appendChild(cr); }
+    else {
+      t.appendChild(typeTag(kind === "problem" ? x.type : kind === "ms" ? "Milestone" : "Task"));
+      names.forEach(function (nm, i) { if (i) cr.appendChild(span("›", "sep")); cr.appendChild(span(nm, "crumb" + (i === names.length - 1 ? " cur" : ""))); });
+      t.appendChild(cr); t.title = names.join(" › ") + " — in " + p.name;
+      var fb = btn("icon-btn fold", null, function () { var b = blockOf(last.dataset.k); if (b) { PG.setOpen(b, false); b.firstChild.focus({ preventScroll: true }); } }); // the bar is drawn anew: the keyboard goes on from the folded header
+      fb.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M8 1.5V6M5.8 3.8 8 6l2.2-2.2M8 14.5V10M5.8 12.2 8 10l2.2 2.2"/></svg>'; fb.title = "Fold " + names[names.length - 1]; fb.setAttribute("aria-label", fb.title);
+      t.appendChild(fb);
+    }
+    if (!SNAP) { var it = x || p; $("drNotion").href = it.url; $("drNotion").title = "Opens this " + KIND[kind] + " in Notion"; $("drChat").appendChild(chatBtn(it, kind)); }
   }
-  var barRaf = 0; function barSoon() { if (!barRaf) barRaf = requestAnimationFrame(function () { barRaf = 0; if (S.dr) barCtx(); }); }
-  $("drBody").addEventListener("scroll", function () { barPin = null; barSoon(); }, { passive: true });
-  $("drBody").addEventListener("fold", function (e) { var b = e.target; barPin = b._item && b.classList.contains("open") ? b : null; barSoon(); setTimeout(barSoon, 260); }); // and once more when the fold has moved what is below
+  var barRaf = 0; function barSoon() { if (!barRaf) barRaf = requestAnimationFrame(function () { barRaf = 0; paintBar(); }); }
+  function letGo() { if (pin) { pin = null; barSoon(); } } // the reader scrolls: the bar follows the focus line again
+  $("drBody").addEventListener("pin", function (e) { pin = e.target.dataset.k; barSoon(); });
+  $("drBody").addEventListener("fold", function (e) { // a fold moves what is below it: the bar looks again now and when it has moved
+    var pb = pin && !e.detail.open ? blockOf(pin) : null; if (pb && e.target.contains(pb)) pin = null; // the pinned block, or one it is drawn in, folded
+    barSoon(); setTimeout(barSoon, 260);
+  });
+  $("drBody").addEventListener("scroll", function () { PG.trim(); barSoon(); $("drTop").classList.toggle("on", $("drBody").scrollTop > 360); }, { passive: true });
+  ["wheel", "touchmove"].forEach(function (n) { $("drBody").addEventListener(n, letGo, { passive: true }); });
+  $("drBody").addEventListener("pointerdown", function (e) { if (e.target === $("drBody")) letGo(); }); // its scrollbar
   var lastFocus = null;
   function openProject(p, k) {
     var same = S.dr && S.dr.pid === p.key && $("drawer").classList.contains("on");
-    if (!same) { lastFocus = document.activeElement; S.dr = { pid: p.key }; renderDrawer(); $("drBody").scrollTop = 0; $("drTop").classList.remove("on"); }
+    if (!same) { lastFocus = document.activeElement; S.dr = { pid: p.key }; pin = null; $("drBody").scrollTop = 0; $("drBody").style.paddingBottom = ""; renderDrawer(); $("drTop").classList.remove("on"); }
     $("drawer").classList.add("on"); $("drawer").setAttribute("aria-hidden", "false"); $("scrim").classList.add("on");
     if (k) setTimeout(function () { reveal(k); }, same ? 0 : 240); else $("drClose").focus({ preventScroll: true });
   }
   function navPos() { var ps = sortedProjects(), i = -1; ps.forEach(function (x, n) { if (S.dr && x.key === S.dr.pid) i = n; }); return { ps: ps, i: i }; }
-  function paintNav() {
-    var n = navPos(); $("drPrev").disabled = n.i <= 0; $("drNext").disabled = n.i < 0 || n.i >= n.ps.length - 1;
-    var p = n.ps[n.i]; if (p) $("drTitle").textContent = p.name + (n.ps.length > 1 ? " · " + (n.i + 1) + " of " + n.ps.length : "");
-  }
+  function paintNav() { var n = navPos(); $("drPrev").disabled = n.i <= 0; $("drNext").disabled = n.i < 0 || n.i >= n.ps.length - 1; }
   function stepProject(d) { var n = navPos(), p = n.ps[n.i + d]; if (p) openProject(p); }
   $("drPrev").addEventListener("click", function () { stepProject(-1); });
   $("drNext").addEventListener("click", function () { stepProject(1); });
@@ -996,8 +1012,7 @@
     $("drawer").classList.remove("on"); $("drawer").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("on");
     if (lastFocus && lastFocus.focus) try { lastFocus.focus({ preventScroll: true }); } catch (e) {}
   }
-  $("drTop").addEventListener("click", function () { $("drBody").scrollTo({ top: 0, behavior: smooth() }); });
-  $("drBody").addEventListener("scroll", function () { $("drTop").classList.toggle("on", $("drBody").scrollTop > 360); }, { passive: true });
+  $("drTop").addEventListener("click", function () { letGo(); $("drBody").scrollTo({ top: 0, behavior: smooth() }); });
   $("drClose").addEventListener("click", closeDrawer); $("scrim").addEventListener("click", closeDrawer);
   function closeMenus() { var n = 0; document.querySelectorAll(".dd-m, .chat-m, .info .pop").forEach(function (m) { if (!m.hidden) { m.hidden = true; n++; var b = m.parentNode.querySelector("[aria-expanded]"); if (b) b.setAttribute("aria-expanded", "false"); } }); if (n && pending) { pending = false; paint(); } return n; }
   document.addEventListener("keydown", function (e) {
@@ -1008,6 +1023,7 @@
     else if (/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "")) return;
     else if (e.key === "ArrowDown" || e.key === "j") { e.preventDefault(); stepProject(1); }
     else if (e.key === "ArrowUp" || e.key === "k") { e.preventDefault(); stepProject(-1); }
+    else if (/^(PageUp|PageDown|Home|End)$/.test(e.key) || e.key === " " && !e.target.closest("button, a, [role=button]")) letGo(); // keys that scroll the page
   });
 
   // ---------- painting: placeholders until the first full set, then in place ----------
@@ -1022,8 +1038,7 @@
   function focusKey() { // where keyboard focus is in the project page, by what it shows rather than by node
     var a = document.activeElement; if (!a || !$("drawer").contains(a)) return null;
     if (a.id) return "#" + a.id;
-    var r = a.closest(".arow"); if (r && a.classList.contains("acc-h")) return '.arow[data-k="' + sel(r.dataset.k) + '"] > .acc-h';
-    var g = a.closest(".mgrp"); if (g && a.classList.contains("mh")) return '.mgrp[data-g="' + sel(g.dataset.g) + '"] > .mh';
+    var b = a.closest(".blk"); if (b && a.classList.contains("acc-h")) return '.blk[data-k="' + sel(b.dataset.k) + '"] > .acc-h';
     return null;
   }
   function paint(keepHeader) { // keepHeader: the origin menu is open and has updated itself; the rest follows it
