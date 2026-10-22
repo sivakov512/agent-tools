@@ -963,7 +963,7 @@
     var body = $("drBody"), els = [].slice.call(body.querySelectorAll(".blk")), v = body.getBoundingClientRect();
     var blocks = els.map(function (e) { var r = e.getBoundingClientRect(); return { k: e.dataset.k, parent: els.indexOf(e.parentNode.closest(".blk")), open: e.classList.contains("open"), top: r.top, bottom: r.bottom }; });
     fs = PT.focusStep(fs, { type: type, k: k }, blocks, { top: v.top, bottom: v.bottom, line: v.top + v.height / 3 });
-    els.forEach(function (e) { e.classList.toggle("focus", e.dataset.k === fs.k); });
+    els.forEach(function (e) { e.classList.toggle("focal", e.dataset.k === fs.k); });
     paintBar(PT.focusChain(blocks, fs.k).map(function (i) { return els[i]; }));
   }
   function paintBar(chain) {
