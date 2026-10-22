@@ -953,7 +953,7 @@
     });
   }
   // The bar above the project page names what is being read, with that item's own Claude and Notion buttons — the only ones the page has for
-  // a milestone, task or problem: the item just opened while it is in view, else the opened block the reading line crosses, else the project.
+  // a milestone, task or problem: the deepest opened item in view (barCtx), else the project.
   var barKey;
   function barFor(x) {
     var p = S.dr ? allProjByKey()[S.dr.pid] : null, it = x || p, k = x ? key(x.url) : null; if (!it || k === barKey) return; barKey = k;
@@ -963,20 +963,24 @@
     else { t.removeAttribute("title"); paintNav(); }
     if (!SNAP) { $("drNotion").href = it.url; $("drNotion").title = x ? "Opens this " + KIND[kind] + " in Notion" : "Opens the project in Notion"; clear($("drChat")); $("drChat").appendChild(chatBtn(it, kind)); }
   }
-  var barPin = null; // the block opened last: the bar names it while it is in view and the reader has not moved into another block
-  function barCtx() {
-    var body = $("drBody"), box = body.getBoundingClientRect(), line = box.top + Math.min(160, box.height * .3), hit = null; // the reading line, a third down
-    [].forEach.call(body.querySelectorAll(".arow.open, .mgrp.open"), function (b) { if (!b._item) return; var r = b.getBoundingClientRect(); if (r.top <= line && r.bottom > line) hit = b; }); // the deepest, as blocks come in document order
-    if (barPin) { var p = barPin.getBoundingClientRect(), seen = barPin.isConnected && barPin.classList.contains("open") && p.bottom > line && p.top < box.bottom - 24; if (!seen || hit && !hit.contains(barPin)) barPin = null; } // read past, out of view, or another block reached
-    var b = barPin || hit; barFor(b ? b._item : null);
+  var BAR_RANK = { task: 0, ms: 1, problem: 2 }; // what the bar prefers when several opened blocks are in view: the deepest level first
+  function barCtx() { // the deepest opened item in view — a task, else a milestone (its pinned header counts), else a problem — else the project; of two at one level, the one the reading line crosses, else the one more of which shows
+    var body = $("drBody"), box = body.getBoundingClientRect(), line = box.top + Math.min(160, box.height * .3), best = null, bestKey = null;
+    [].forEach.call(body.querySelectorAll(".arow.open, .mgrp.open"), function (b) {
+      var x = b._item, rank = x ? BAR_RANK[x.kind] : null; if (rank == null) return;
+      var r = b.getBoundingClientRect(), shown = Math.min(r.bottom, box.bottom) - Math.max(r.top, box.top); if (shown < 48) return;
+      var k = [rank, r.top <= line && r.bottom > line ? 0 : 1, -shown];
+      if (!bestKey || k[0] < bestKey[0] || k[0] === bestKey[0] && (k[1] < bestKey[1] || k[1] === bestKey[1] && k[2] < bestKey[2])) { best = b; bestKey = k; }
+    });
+    barFor(best ? best._item : null);
   }
   var barRaf = 0; function barSoon() { if (!barRaf) barRaf = requestAnimationFrame(function () { barRaf = 0; if (S.dr) barCtx(); }); }
   $("drBody").addEventListener("scroll", barSoon, { passive: true });
-  $("drBody").addEventListener("fold", function (e) { var b = e.target; if (b._item && b.classList.contains("open")) barPin = b; else if (b === barPin) barPin = null; barSoon(); setTimeout(barSoon, 260); }); // and once more when the fold has moved what is below
+  $("drBody").addEventListener("fold", function () { barSoon(); setTimeout(barSoon, 260); }); // and once more when the fold has moved what is below
   var lastFocus = null;
   function openProject(p, k) {
     var same = S.dr && S.dr.pid === p.key && $("drawer").classList.contains("on");
-    if (!same) { lastFocus = document.activeElement; S.dr = { pid: p.key }; barPin = null; renderDrawer(); $("drBody").scrollTop = 0; $("drTop").classList.remove("on"); }
+    if (!same) { lastFocus = document.activeElement; S.dr = { pid: p.key }; renderDrawer(); $("drBody").scrollTop = 0; $("drTop").classList.remove("on"); }
     $("drawer").classList.add("on"); $("drawer").setAttribute("aria-hidden", "false"); $("scrim").classList.add("on");
     if (k) setTimeout(function () { reveal(k); }, same ? 0 : 240); else $("drClose").focus({ preventScroll: true });
   }
