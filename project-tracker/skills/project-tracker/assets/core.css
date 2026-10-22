@@ -188,44 +188,47 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .tt { display: inline-block; font-size: 11.5px; font-weight: 600; line-height: 1; padding: 3px 6px; border-radius: 5px; background: var(--sunken); color: var(--text-2); margin-right: 4px; vertical-align: 1px; }
 .tt.Blocker { background: var(--critical-soft); color: var(--critical); } .tt.Risk { background: var(--warn-soft); color: var(--warn); } .tt.Question { background: var(--accent-soft); color: var(--accent); }
 /* ---------- the project page's items: a milestone, task or problem that opens in place (.blk) ---------- */
-/* No boxes: rows are split by hairlines. An opened item's header is one tinted strip, its body sits on the page at the header's text, and a
-   firmer line closes it. A milestone's tasks keep the full width, no indent ladder: the level reads from the type — a milestone 15.5px semibold,
-   on the darker strip when open; a task 14px regular — and from where its milestone ends, a 2px line after its last task. */
+/* Rows are split by hairlines; a milestone's tasks keep the full width. An item's header is one grid, the same folded, opened and stuck: a
+   quiet meta line — its ID, its dates, its buttons in words (Chat, Code, Notion, ⋯) and the chevron, all on that one line — then its name, a
+   size larger, then its line. The buttons always have their place: folded they show only under the pointer, opened they stay; nothing in the
+   row moves or grows. An opened item is one soft rounded panel, header and text together, ending where the panel ends; an opened task inside
+   an opened milestone is a darker strip on the milestone's panel, never a panel in a panel. */
 .blk { border-bottom: 1px solid var(--border); }
-.blk.open { border-bottom-color: var(--border-2); }
-.blk.ms.open { border-bottom-width: 2px; }
-.mtw > .blk:last-child { border-bottom: 0; } /* the milestone's own closing line follows */
-/* An item's header: one grid, the same folded, opened and stuck — the name with its ID, the dates, the chevron at the far right; under them
-   its line and its buttons (Claude, Notion), there when folded too but unseen, so opening only fades them in: no line, height
-   or chevron moves. The buttons sit at the right of the line under the name, never beside the name; on narrower screens the name has the
-   first line to itself, its line the next, and the buttons share the last with the dates. */
-.acc-h { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto 14px; grid-template-areas: "dot t r chev" ". l2 l2 l2"; column-gap: 12px; row-gap: 3px; align-items: center; width: 100%; text-align: left; padding: 12px 14px 12px 16px; cursor: pointer; }
+.mtw > .blk:last-child { border-bottom: 0; } /* the milestone's own end follows */
+.blk.open { background: var(--surface-2); border-radius: 12px; border-bottom-color: transparent; }
+.blk .blk.open { background: none; border-radius: 0; border-bottom: 1px solid var(--border-2); }
+.blk.open .mtl, .blk.open .blk { border-color: var(--border-2); }
+.acc-h { display: grid; grid-template-columns: 8px auto minmax(0, 1fr) auto 14px; grid-template-areas: ". ref r acts chev" "dot t t t ." ". s s s ."; column-gap: 12px; row-gap: 2px; align-items: center; width: 100%; text-align: left; padding: 10px 14px 12px 16px; cursor: pointer; }
 .acc-h:hover { background: var(--surface-2); }
 .acc-h:hover .t { color: var(--accent); }
-.acc-h > .dot { grid-area: dot; align-self: start; margin-top: 7px; }
-.acc-h > .t { grid-area: t; align-self: start; font-size: 14.5px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
-.acc-h > .r { grid-area: r; align-self: start; font-size: 13px; color: var(--text-mute); white-space: nowrap; padding-top: 2px; }
-.acc-h > .chev { grid-area: chev; align-self: start; margin-top: 4px; transition: transform .15s; }
-.acc-h > .l2 { grid-area: l2; display: flex; align-items: center; gap: 4px 12px; min-width: 0; }
-.acc-h .l2 > .s { flex: 1 1 auto; min-width: 0; font-size: 13px; color: var(--text-mute); }
+.acc-h > .tl, .acc-h > .l2 { display: contents; }
+.acc-h > .dot { grid-area: dot; align-self: start; margin-top: 8px; }
+.acc-h .ref { grid-area: ref; margin: 0; padding: 0; background: none; font-size: 11.5px; }
+.acc-h .r { grid-area: r; font-size: 12px; color: var(--text-mute); white-space: nowrap; }
+.acc-h .t { grid-area: t; font-size: 15px; font-weight: 500; line-height: 1.35; overflow-wrap: anywhere; }
+.acc-h .s { grid-area: s; font-size: 13px; color: var(--text-mute); }
 .acc-h .s .crit, .acc-h .s .warn, .acc-h .s .good, .acc-h .s .acc { font-weight: 500; }
-.acc-h .acts { flex: none; margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; visibility: hidden; opacity: 0; transition: opacity .15s, visibility .15s; }
-.acc-h .acts .chat > a, .acc-h .acts .chat > .more { padding-top: 2px; padding-bottom: 2px; } /* as tall as a line of text, so the row is the same with or without them */
-.blk.open > .acc-h .acts { visibility: visible; opacity: 1; }
-@media (prefers-reduced-motion: reduce) { .acc-h .acts { transition: none; } }
+.acc-h > .acts { grid-area: acts; display: flex; align-items: center; gap: 4px; margin: -3px 0; visibility: hidden; opacity: 0; transition: opacity .15s, visibility .15s; } /* no taller than the meta line */
+.acc-h > .chev { grid-area: chev; transition: transform .15s; }
+.blk.open > .acc-h > .acts { visibility: visible; opacity: 1; }
+@media (hover: hover) { .acc-h:hover > .acts, .acc-h:focus-within > .acts { visibility: visible; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .acc-h > .acts { transition: none; } }
 .blk.ms > .blk-h .t { font-size: 15.5px; font-weight: 600; }
-.blk.tsk > .blk-h .t { font-size: 14px; font-weight: 400; }
-/* Opened, the header is a tinted strip, its name semibold, its buttons faded in. It sticks to the top while its item is read and goes with
-   its item's end; inside an opened milestone, an opened task's strip takes the place while the task is read. A hairline under it keeps the
-   text scrolling beneath apart. */
-.blk.open > .blk-h { position: sticky; top: 0; z-index: 3; background: var(--surface-2); box-shadow: 0 1px 0 var(--border); }
-.blk .blk.open > .blk-h { z-index: 4; } /* an inner header slides in over its parent's, and away off it */
-.blk-h.under { visibility: hidden; } /* one stuck header at a time: the parent's gives way while an inner one is stuck (stick()) */
-.blk.ms.open > .blk-h { background: var(--sunken); }
-.blk.open > .blk-h .t { font-weight: 600; }
+.blk.tsk > .blk-h .t { font-size: 14.5px; font-weight: 400; }
 .blk.open > .blk-h > .chev { transform: rotate(90deg); }
-.acts .ext { white-space: nowrap; }
+.ibs { position: relative; }
+.ib { display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 22px; min-width: 22px; padding: 0 6px; border: 0; border-radius: 6px; background: none; color: var(--accent); font: inherit; font-size: 12.5px; font-weight: 500; white-space: nowrap; text-decoration: none; cursor: pointer; }
+.ib:hover, .ib[aria-expanded="true"] { background: var(--accent-soft); }
+.ib .cico, .ib .ico { width: 14px; height: 14px; margin: 0; flex: none; }
+.ib .ico { stroke: currentColor; fill: none; stroke-width: 1.5; }
+.ib .ico circle { fill: currentColor; stroke: none; }
 .acts .chat-m { left: auto; right: 0; } /* the buttons sit at the right: the menu opens leftwards, inside the page */
+.acts .ext { white-space: nowrap; }
+/* One header stuck at a time: an opened item's sticks while it is read and goes with its end; inside an opened milestone, an opened task's
+   takes the place while the task is read (stick()). */
+.blk.open > .blk-h { position: sticky; top: 0; z-index: 3; background: var(--surface-2); border-radius: 12px 12px 0 0; }
+.blk .blk.open > .blk-h { z-index: 4; background: var(--sunken); border-radius: 0; } /* an inner header slides in over its parent's, and away off it */
+.blk-h.under { visibility: hidden; }
 .blk-b { padding: 4px 16px 26px 36px; } /* a problem's or task's body, at its header's text */
 .blk-b > * + * { margin-top: 12px; }
 .blk.ms > .blk-b { padding: 0; }
@@ -254,11 +257,6 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
   .stats { gap: 8px; }
   .stat { padding: 10px 11px; }
   .stat .v { font-size: 15px; white-space: normal; }
-  .acc-h { grid-template-areas: "dot t t chev" ". s s s" ". r acts acts"; }
-  .acc-h > .l2 { display: contents; } /* its line gets the width; the buttons share the short dates line */
-  .acc-h .l2 > .s { grid-area: s; }
-  .acc-h .acts { grid-area: acts; justify-self: end; }
-  .acc-h > .r { padding-top: 0; }
   .blk-b, .mdet { padding-left: 16px; }
   .tl-scroll { max-height: none; }
 }
@@ -518,8 +516,8 @@ h1 .ref { vertical-align: 4px; }
 .pline .ilink { font-size: 14px; color: var(--text); }
 @media (max-width: 600px) { /* a phone: the bar on one line; an item's buttons as marks, so its name keeps the room */
   .dr-bar { gap: 4px; padding-left: 16px; }
-  .acc-h .acts .lbl, .acc-h .acts .chat .arr { display: none; }
-  .acc-h .acts { gap: 8px; }
+  .acc-h .ib .lbl { display: none; } /* a phone: the buttons are marks on the meta line */
+  .acc-h .ib { padding: 0 4px; }
 }
 .tl-b.open, .tl-chip.open, .tl-seg.open { -webkit-mask-image: linear-gradient(to right, #000 70%, transparent); mask-image: linear-gradient(to right, #000 70%, transparent); } /* an edge that is no date fades: a start with no agreed end, drawn for a set span, fades where the end would be */
 .tl-b.box.ph { -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); } /* and a milestone with no dates at all, placed for a month from today, fades at both */
