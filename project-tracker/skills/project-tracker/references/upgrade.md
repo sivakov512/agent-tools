@@ -39,7 +39,7 @@ ADD COLUMN "Code session" URL COMMENT 'Its Claude Code session on the Mac, opene
 ADD COLUMN "Code folder" RICH_TEXT COMMENT 'The folder on the Mac its Code sessions open in (an absolute path); set by its first Code session or on request'
 
 -- on <projects>
-ADD COLUMN "Views" RICH_TEXT COMMENT 'Links to its page views, read by Claude instead of the page: Tasks <url>; Schedule <url>; Problems <url>; set by Claude'
+ADD COLUMN "Views" RICH_TEXT COMMENT 'Links to its page views, read by Claude instead of the page, each in inline code; set by Claude'
 ```
 
 A tracker that already has rows and lacks `Order`, `Client dashboard` or `Ref` is brought up by the schema steps below, which also number the rows.
@@ -94,7 +94,7 @@ The closing line names what is new for the user, both halves of it: every ID has
 **7 → 8: stored view links.** Reading a view took a fetch of its database or of the project page and its block, about 10k characters each, only to learn an id that never changes, and what closed in a period meant walking every project. The step adds the root `Done` views and stores every view link the skill reads (SKILL.md → **Reading a view**).
 1. Projects gets `Views` (`ADD COLUMN` as in **Columns older trackers lack**, skipped where it exists).
 2. Fetch the Milestones and Tasks databases; each one without a view named `Done` gets it (`notion-create-view` with `database_id` and `data_source_id`, configured as `references/setup.md` §4 lists it). Fetch the Problems database: `Recently resolved` gets its month (`notion-update-view`, `CLEAR FILTER; FILTER "Status" = "Resolved"; FILTER "Resolved on" >= "one_month_ago"`; the sort stays).
-3. Every project in `Active` and `Closed` whose `Views` is empty: fetch its page, then the block of each of its `Tasks`, `Schedule` and `Problems` tabs; write `Views` as `Tasks <url>; Schedule <url>; Problems <url>` (`update_properties`), each the view named like its tab (`references/new-project.md` → **Project page**). A tab the page lacks is left out of the value; that project's view is then found by fetching, as before. Nothing else is written to the rows.
+3. Every project in `Active` and `Closed` whose `Views` holds no view link (`?v=`): fetch its page, then the block of each of its `Tasks`, `Schedule` and `Problems` tabs; write `Views` as ``Tasks `<url>`; Schedule `<url>`; Problems `<url>` `` (`update_properties`), each URL in inline code (SKILL.md → **A text value may come back as a link**), each the view named like its tab (`references/new-project.md` → **Project page**). A tab the page lacks is left out of the value; that project's view is then found by fetching, as before. Nothing else is written to the rows.
 4. Write `projects_views`, `milestones_views`, `tasks_views` and `problems_views` in the config toggle (each line replaced, or added before `schema`), as `references/setup.md` §3 shows, with the view ids the database fetches of step 2 and of Projects listed.
 5. Write `schema: 8` in the config toggle, as above — last.
 

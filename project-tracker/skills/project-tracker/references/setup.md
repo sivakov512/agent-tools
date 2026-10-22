@@ -40,7 +40,7 @@ CREATE TABLE ("Name" TITLE, "Client" RICH_TEXT,
   "Client dashboard" URL COMMENT 'The client dashboard that shows it; set by Claude',
   "Code session" URL COMMENT 'Its Claude Code session on the Mac, opened from the dashboard; set by Claude',
   "Code folder" RICH_TEXT COMMENT 'The folder on the Mac its Code sessions open in (an absolute path); set by its first Code session or on request',
-  "Views" RICH_TEXT COMMENT 'Links to its page views, read by Claude instead of the page: Tasks <url>; Schedule <url>; Problems <url>; set by Claude',
+  "Views" RICH_TEXT COMMENT 'Links to its page views, read by Claude instead of the page, each in inline code; set by Claude',
   "Ref" UNIQUE_ID PREFIX 'PRJ' COMMENT 'Its ID, to name it in a chat (PRJ-2); numbered by Notion')
 
 -- Milestones
