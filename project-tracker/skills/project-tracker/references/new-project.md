@@ -52,7 +52,7 @@ First check `Active` for a project of this name. If one exists, an earlier attem
 Otherwise, in this order — the page comes before the rows, so an interrupted attempt can always be resumed through the project's own views:
 
 1. The Projects row: `Status` Active, `Target end` = the end of the last milestone, empty if that one has no dates yet (without milestones: the end the source gives for the work, else empty — ongoing work has no end), `Source` = the source's URL if it is a shared web document, else empty; `Repository` only if the user gave one; `Claude project` as confirmed (`<name> — <project id>`), empty for none or when not asked.
-2. The project page's views and tabs (below).
+2. The project page's views and tabs, then the row's `Views` (below).
 3. Milestones (new rows, `Project` = the row) with their `Dates` and `Order` 1, 2, … in the source's order.
 4. Tasks (`Project` = the row, `Milestone` = its milestone, `Order` 1, 2, … within their milestone in the source's order).
 5. Problems, `Opened` = the source date.
@@ -111,11 +111,13 @@ Problems
 
 Verify by fetch: the page's ancestor path goes through the Projects database; the body is one `<tabs>` block with the four tabs — Plan, Tasks, Schedule, Problems — no `icon=`, and after it only the parts of SKILL.md **Pages** (none yet on a new page, or the description and the source's sub-page). If a block came out in the wrong order, one `update_content` over both blocks puts them back. If the page already had some of this, keep it and add only what is missing — never a second view or tabs block.
 
+Then the row's `Views`, so later reads query the views without fetching the page: `update_properties` with `Views` = `Tasks <url>; Schedule <url>; Problems <url>`, each URL the block's id (its `<database url=…>` in the page fetch) with the id `notion-create-view` returned for the view of that name — for `Tasks` the table, not the timeline — as SKILL.md → **Reading a view** writes a URL. It comes after the check, so it names only views that are in place; a resumed attempt that finds it empty writes it.
+
 Filters on formula columns are dropped by the API, so `Schedule` lists every live milestone; `Late, days` is the column to scan. A project without milestones keeps the same tabs: its `Plan` is simply empty.
 
 ## Output
 
-The project's row, page, views and tabs, milestones, tasks and problems as confirmed, and a reply with what was created and the zoom reminder (§5).
+The project's row, page, views and tabs, its `Views`, milestones, tasks and problems as confirmed, and a reply with what was created and the zoom reminder (§5).
 
 ## Off limits
 

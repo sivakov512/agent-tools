@@ -18,9 +18,9 @@ A root page — you name it at setup, **Project tracker** by default — with fo
 | Tab | Database · views | Use it for |
 |---|---|---|
 | Projects | Projects · Active, Closed | the portfolio at a glance: summary, target date, source; finished and removed projects |
-| Milestones | Milestones · Next up, Timeline | what is left across projects, and whether they collide |
-| Tasks | Tasks · All, Waiting on, Timeline | every open task by project; whom you are waiting on; the steps across projects |
-| Problems | Problems · Open, Recently resolved | what is in the way; what got closed, newest first (set to the past month by hand at setup) |
+| Milestones | Milestones · Next up, Timeline, Done | what is left across projects, and whether they collide; what got finished, newest first |
+| Tasks | Tasks · All, Waiting on, Timeline, Done | every open task by project; whom you are waiting on; the steps across projects; what got finished, newest first |
+| Problems | Problems · Open, Recently resolved | what is in the way; what got closed in the past month, newest first |
 
 **Project page** — tabs, then the page's own parts:
 
@@ -60,7 +60,7 @@ All four databases have `Ref` — an ID Notion numbers itself (`PR-2`, `MS-6`, `
 
 `Removed` and `Dropped` are for things you threw away: they disappear from every view, overview and report instead of showing up as finished work.
 
-The root page's **Config** toggle lists the four database IDs. The skill finds the root page by this toggle and reads it on every run, so nothing is hardcoded: rename or move the page as you like; if you move or recreate the databases, edit the IDs. Keep the toggle's title line — that is what the skill searches for. Setup also adds a `dashboard` line with the dashboard's link, `dashboard_version` with the version it was published from, `ref_prefixes` (the ID prefixes, `PR, MS, TK, PB` unless taken elsewhere in your workspace) and `schema`, the version of the structure. When a newer plugin changes the structure, the first conversation that finds an older tracker brings it up to date by itself, whatever you asked, says so in one line, then answers you. A tracker built by a newer plugin than yours is left untouched: the agent writes nothing and says the plugin needs updating.
+The root page's **Config** toggle lists the four database IDs. The skill finds the root page by this toggle and reads it on every run, so nothing is hardcoded: rename or move the page as you like; if you move or recreate the databases, edit the IDs. Keep the toggle's title line — that is what the skill searches for. Setup also adds a `dashboard` line with the dashboard's link, `dashboard_version` with the version it was published from, `ref_prefixes` (the ID prefixes, `PRJ, MLS, TSK, PRB` unless taken elsewhere in your workspace), the links of the views the agent reads (`projects_views` and the like; each project keeps its own in a hidden `Views` column), so it queries them without looking them up first, and `schema`, the version of the structure. When a newer plugin changes the structure, the first conversation that finds an older tracker brings it up to date by itself, whatever you asked, says so in one line, then answers you. A tracker built by a newer plugin than yours is left untouched: the agent writes nothing and says the plugin needs updating.
 
 **Coming from 0.x** (three databases, `Phase` on milestones, Issues with a `Task` type)? The skill recognises the old tracker and offers the upgrade: it sets up the new structure next to the old one, copies the live data by fixed rules (phases become milestones and their milestones tasks, `Task` issues become tasks, everything else problems, histories kept), keeps the same dashboard link, and retires the old page without deleting it — it stays as your backup.
 
@@ -113,7 +113,7 @@ then authenticate Notion as the Codex docs describe. Any other agent that reads 
 1. "Set up the project tracker in Notion" (or `/project-tracker set up`). It proposes a name and a place for the page (`Project tracker`, top level) — answer OK or give your own, or say them up front: "set up the tracker as *Client work* under *Freelance*". Running it again is safe: it finishes an interrupted setup instead of making a second one.
 2. Click through the short list setup ends with — the API cannot do these:
    - **full width** for the page (••• → Full width), optional but recommended: without it Notion folds each tab's second view (`Closed`, `Timeline`, `Recently resolved`) into a dropdown;
-   - **hide properties**, once per database: on a project page `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*, `Chat` and `Claude project` → *Hide when empty*; on a milestone page `Project status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on a task page `Project status`, `Milestone status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on a problem page `Chat` → *Hide when empty*. Project, milestone and task pages already open at full width.
+   - **hide properties**, once per database: on a project page `Milestones`, `Tasks`, `Milestones late`, `Tasks late`, `Views` → *Always hide*, `Chat` and `Claude project` → *Hide when empty*; on a milestone page `Project status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on a task page `Project status`, `Milestone status`, `Open late` and `Order` → *Always hide*, `Chat` → *Hide when empty*; on a problem page `Chat` → *Hide when empty*. Project, milestone and task pages already open at full width.
 3. Create a project: paste a plan or an email, point to one ("my last weekly report in Sent"), or name an Upwork contract. Section headings become milestones and the items under them tasks; a flat list becomes milestones; a contract gives its stages as milestones. The agent shows what it extracted and which source it used, and waits for your OK.
 4. On the project page: switch the Plan timeline and the Tasks tab's Timeline view to **Quarter** or **Month**. Notion remembers it.
 
