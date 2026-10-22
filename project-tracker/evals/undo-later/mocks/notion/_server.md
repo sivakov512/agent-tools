@@ -29,7 +29,11 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 	dashboard: `https://claude.ai/artifact/d0000000-0000-4000-8000-000000000001`
 	dashboard_version: 99.0.0
 	ref_prefixes: PRJ, MLS, TSK, PRB
-	schema: 7
+	projects_views: Active `https://app.notion.com/p/40000000000040008000000000000001?v=50000000000040008000000000000001`; Closed `https://app.notion.com/p/40000000000040008000000000000001?v=50000000000040008000000000000009`
+	milestones_views: Next up `https://app.notion.com/p/40000000000040008000000000000002?v=50000000000040008000000000000002`; Done `https://app.notion.com/p/40000000000040008000000000000002?v=5000000000004000800000000000000a`
+	tasks_views: All `https://app.notion.com/p/40000000000040008000000000000004?v=50000000000040008000000000000008`; Waiting on `https://app.notion.com/p/40000000000040008000000000000004?v=50000000000040008000000000000006`; Done `https://app.notion.com/p/40000000000040008000000000000004?v=5000000000004000800000000000000b`
+	problems_views: Open `https://app.notion.com/p/40000000000040008000000000000003?v=50000000000040008000000000000004`; Recently resolved `https://app.notion.com/p/40000000000040008000000000000003?v=50000000000040008000000000000005`
+	schema: 8
 </details>
 <tabs>
 	<tab>
@@ -56,14 +60,14 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 Fetching a database URL lists its data source with the schema below and its views as `<view url="view://<id>">{"name":…,"type":…,…}</view>`:
 
 - Projects database `40000000…0001` — data source `20000000…0001`; views `50000000-0000-4000-8000-000000000001` "Active" (Status in Active, Paused) and `50000000-…-000000000009` "Closed" (Status in Done, Removed; Target end newest first).
-- Milestones database `40000000…0002` — data source `20000000…0002`; views `50000000-…-000000000002` "Next up" (Status in Planned, In progress, Paused; grouped by Project) and `50000000-…-000000000003` "Timeline" (same filter, timeline by Dates).
-- Tasks database `40000000…0004` — data source `20000000…0004`; views `50000000-…-000000000008` "All" (the default view: Status in Planned, In progress, Waiting; grouped by Project), `50000000-…-000000000006` "Waiting on" (Status = Waiting; grouped by Waiting on) and `50000000-…-000000000007` "Timeline" (Status in Planned, In progress, Waiting; timeline by Dates).
-- Problems database `40000000…0003` — data source `20000000…0003`; views `50000000-…-000000000004` "Open" (Status in Open, Waiting; grouped by Type) and `50000000-…-000000000005` "Recently resolved" (Status = Resolved, newest first).
+- Milestones database `40000000…0002` — data source `20000000…0002`; views `50000000-…-000000000002` "Next up" (Status in Planned, In progress, Paused; grouped by Project) and `50000000-…-000000000003` "Timeline" (same filter, timeline by Dates) and `50000000-…-00000000000a` "Done" (Status = Done; Finished newest first).
+- Tasks database `40000000…0004` — data source `20000000…0004`; views `50000000-…-000000000008` "All" (the default view: Status in Planned, In progress, Waiting; grouped by Project), `50000000-…-000000000006` "Waiting on" (Status = Waiting; grouped by Waiting on) `50000000-…-000000000007` "Timeline" (Status in Planned, In progress, Waiting; timeline by Dates) and `50000000-…-00000000000b` "Done" (Status = Done; Finished newest first).
+- Problems database `40000000…0003` — data source `20000000…0003`; views `50000000-…-000000000004` "Open" (Status in Open, Waiting; grouped by Type) and `50000000-…-000000000005` "Recently resolved" (Status = Resolved and Resolved on within the past month, newest first).
 
 A view is queried with `data: {mode: "view", view_url: "https://app.notion.com/p/<database or block id without dashes>?v=<view id without dashes>"}` and returns `{"results":[{…row properties…, "url":"https://app.notion.com/p/<row id>"}],"has_more":false}` with dates as `date:<Prop>:start` / `date:<Prop>:end`, relations as JSON arrays of page URLs, `Late, days`, `Open late` and the rollups as opaque formula references.
 
 Schemas:
-- Projects: Name (title), Ref (unique ID, prefix PRJ), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Client dashboard (url), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
+- Projects: Name (title), Ref (unique ID, prefix PRJ), Client (text), Origin (select Upwork / Direct / Personal), Status (Active / Paused / Done / Removed), Summary (text), Target end (date), Repository (url), Source (url), Client dashboard (url), Views (text), Milestones (relation, reverse of Milestones.Project), Tasks (relation, reverse of Tasks.Project), Milestones late (rollup), Tasks late (rollup), Late, days (formula).
 - Milestones: Name (title), Ref (unique ID, prefix MLS), Project (relation → Projects), Status (Planned / In progress / Paused / Done / Dropped), Dates (date range), Finished (date), Tasks (relation, reverse of Tasks.Milestone), Project status (rollup), Late, days (formula), Open late (formula).
 - Tasks: Name (title), Ref (unique ID, prefix TSK), Project (relation → Projects), Milestone (relation → Milestones), Status (Planned / In progress / Waiting / Done / Dropped), Dates (date range), Waiting on (text), Finished (date), Project status (rollup), Milestone status (rollup), Late, days (formula), Open late (formula).
 - Problems: Name (title), Ref (unique ID, prefix PRB), Project (relation), Type (Blocker / Risk / Question), Status (Open / Waiting / Resolved / Dropped), Waiting on (text), Milestone (relation), Task (relation), Summary (text), Opened (date), Resolved on (date).
@@ -72,7 +76,7 @@ Schemas:
 
 ## Projects
 
-**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Ref PRJ-1; Client Northwind; Origin Direct; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-15; Summary "Firmware on the dev board in progress, due Nov 20; sleep modes moved a week with Northwind on vendor samples."
+**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Ref PRJ-1; Client Northwind; Origin Direct; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-15; Views "Tasks https://app.notion.com/p/60000000000040008000000000000012?v=70000000000040008000000000000012; Schedule https://app.notion.com/p/60000000000040008000000000000013?v=70000000000040008000000000000013; Problems https://app.notion.com/p/60000000000040008000000000000014?v=70000000000040008000000000000014"; Summary "Firmware on the dev board in progress, due Nov 20; sleep modes moved a week with Northwind on vendor samples."
 
 Its page (fetch of the row id) contains:
 
@@ -126,13 +130,13 @@ Tasks of Energy meter (id — name — milestone — status — Dates — Waitin
 - `3000…0203` (Ref TSK-9) Invoice received from Acme — 0111 — Waiting — no Dates — Waiting on Acme
 - `3000…0205` (Ref TSK-10) Laboratory found — 0111 — Planned — no Dates — Waiting on empty
 
-Each of these task pages holds only its history — a `## History` heading, then the line: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Sep 22** — Asked Marko to set up a CI runner for the firmware.`; 0202 `- **Sep 22** — Sent the RFQ to Northwind for review.`; 0203 `- **Sep 22** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; 0103 `- **Oct 5** — Moved with Northwind: vendor samples late. Nov 6 → Nov 13.`; 0104 `- **Oct 5** — Pushed by the Sleep modes move, Nov 6 – Nov 13 → Nov 13 – Nov 20.`; 0105 `- **Oct 5** — Pushed by the Sleep modes move, Nov 13 – Dec 4 → Nov 20 – Dec 11.`; 0106 `- **Oct 5** — Pushed by the Sleep modes move, Dec 4 – Jan 8 → Dec 11 – Jan 15.`
+Each of these task pages holds only its history — a `## History` heading, then the line: 0101 `- **Sep 22** — Stack configured, binding works.`; 0102 `- **Sep 22** — Started after the stack bring-up.`; 0201 `- **Oct 5** — Asked Marko to set up a CI runner for the firmware.`; 0202 `- **Oct 5** — Sent the RFQ to Northwind for review.`; 0203 `- **Oct 5** — Waiting for Acme's invoice for the parts.`; 0205 `- **Sep 22** — Added.`; 0103 `- **Oct 5** — Moved with Northwind: vendor samples late. Nov 6 → Nov 13.`; 0104 `- **Oct 5** — Pushed by the Sleep modes move, Nov 6 – Nov 13 → Nov 13 – Nov 20.`; 0105 `- **Oct 5** — Pushed by the Sleep modes move, Nov 13 – Dec 4 → Nov 20 – Dec 11.`; 0106 `- **Oct 5** — Pushed by the Sleep modes move, Dec 4 – Jan 8 → Dec 11 – Jan 15.`
 
 Problems of Energy meter:
 - `3000…0204` (Ref PRB-1) Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0111 — Task 0105 — Summary "+3 weeks if the second board run misses it" — Opened 2026-09-22
 - `3000…0206` (Ref PRB-2) Zigbee binding error — Blocker — Resolved — Milestone 0110 — Task 0102 — Opened 2026-09-22 — Resolved on 2026-10-02 — Summary "Fixed with a custom converter."
 
-**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Ref PRJ-2; Client Brightbrush Ltd; Origin Upwork; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Summary "Layout in progress, due Oct 20; firmware starts Oct 20, once the spec is approved." Same page layout, with this callout and nothing below `</tabs>`:
+**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Ref PRJ-2; Client Brightbrush Ltd; Origin Upwork; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Views "Tasks https://app.notion.com/p/60000000000040008000000000000022?v=70000000000040008000000000000022; Schedule https://app.notion.com/p/60000000000040008000000000000023?v=70000000000040008000000000000023; Problems https://app.notion.com/p/60000000000040008000000000000024?v=70000000000040008000000000000024"; Summary "Layout in progress, due Oct 20; firmware starts Oct 20, once the spec is approved." Same page layout, with this callout and nothing below `</tabs>`:
 
 ```
 <callout icon="🔵" color="blue_bg">
@@ -145,7 +149,7 @@ Linked-view blocks `60000000…0021` Plan, `…0022` Tasks (views `70000000…00
 - Milestone `3000…0301` (Ref MLS-3) Schematic — Done — 2026-09-01 → 2026-09-18 — Finished 2026-09-18. Body: `Contract milestone 1. Done when the schematic PDF is delivered.`
 - Milestone `3000…0302` (Ref MLS-4) Layout — In progress — 2026-09-18 → 2026-10-20. Body: `Contract milestone 2. Done when the Gerbers are delivered.`
 - Milestone `3000…0303` (Ref MLS-5) Firmware — Planned — 2026-10-20 → 2026-11-10. Body: `Contract milestone 3. Done when the firmware runs on the prototype.`
-- Task `3000…0401` (Ref TSK-11) Firmware spec approved by Brightbrush Ltd — milestone 0303 — Waiting — no Dates — Waiting on Brightbrush Ltd. Body: `## History`, then `- **Sep 18** — Sent the firmware spec to Brightbrush Ltd for approval.`
+- Task `3000…0401` (Ref TSK-11) Firmware spec approved by Brightbrush Ltd — milestone 0303 — Waiting — no Dates — Waiting on Brightbrush Ltd. Body: `## History`, then `- **Oct 5** — Sent the firmware spec to Brightbrush Ltd for approval.`
 - No problems.
 
 ## What each read returns (strict)
@@ -161,6 +165,7 @@ Linked-view blocks `60000000…0021` Plan, `…0022` Tasks (views `70000000…00
   - Tasks "Timeline" (…0007): every task not Done — 0102–0106, 0201, 0202, 0203, 0205, 0401. Never 0101.
   - Problems "Open" (…0004): 0204 only.
   - Problems "Recently resolved" (…0005): 0206 only.
+  - Milestones "Done" (…000a): 0301 only. Tasks "Done" (…000b): 0101 only.
   - Energy meter "Plan" (7000…0011) and "Schedule" (…0013): milestones 0110, 0111. "Tasks" (…0012) and "Timeline" (…0015): tasks 0101–0106, 0201, 0202, 0203, 0205. "Problems" (…0014): 0204.
   - Brightbrush "Plan" (…0021) and "Schedule" (…0023): 0301–0303. "Tasks" (…0022) and "Timeline" (…0025): 0401. "Problems" (…0024): no rows.
   After writes, later queries reflect them.
