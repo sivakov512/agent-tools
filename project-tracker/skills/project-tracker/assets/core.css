@@ -585,3 +585,21 @@ h1 .ref { vertical-align: 4px; }
 .md .cite { font-size: 11px; vertical-align: super; text-decoration: none; }
 .nc-gray { color: var(--text-mute); } .nc-brown, .nc-orange, .nc-yellow { color: var(--warn); } .nc-green { color: var(--good); } .nc-blue, .nc-purple, .nc-pink { color: var(--accent); } .nc-red { color: var(--critical); }
 .nc-gray-bg, .nc-brown-bg { background: var(--sunken); } .nc-orange-bg, .nc-yellow-bg { background: var(--warn-soft); } .nc-green-bg { background: var(--good-soft); } .nc-blue-bg, .nc-purple-bg, .nc-pink-bg { background: var(--accent-soft); } .nc-red-bg { background: var(--critical-soft); }
+
+/* ---------- the project page: an opened milestone, task or problem is a card of its own ---------- */
+/* Several opened items read as separate blocks: a border round each, space between neighbours, its header set apart from its body. */
+.dr-body .dsec-b > .arow.open, .dr-body .mtw > .arow.open, .dr-body .dsec-b > .mgrp.open { margin: 10px; border: 1px solid var(--border-2); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.dr-body .dsec-b > .arow.open:last-child, .dr-body .mtw > .arow.open:last-child, .dr-body .dsec-b > .mgrp.open:last-child { border-bottom: 1px solid var(--border-2); }
+.dr-body .mtw > .arow.open { margin: 8px 10px; }
+.dr-body .arow.open > .acc-h, .dr-body .mgrp.open > .mh { background: var(--surface-2); border-bottom: 1px solid var(--border); }
+.dr-body .arow.open > .acc-h .t, .dr-body .mgrp.open > .mh .t { font-weight: 600; }
+.dr-body .arow.open > .acc-x, .dr-body .mgrp.open .mdet { background: var(--surface); }
+.dr-body .mgrp.open > .mgrp-b { border-top: 0; }
+.dr-body .mgrp.open .mtl { background: var(--surface-2); }
+.dr-body .arow.open + .arow, .dr-body .mgrp.open + .mgrp { border-top: 1px solid var(--border); }
+/* the bar names the item being read: its tag and name, in the text's own colour */
+.dr-bar.ctx .ttl { color: var(--text); font-weight: 500; }
+.dr-bar.ctx .ttl .tt { margin-right: 6px; }
+.dr-bar.ctx .long { display: none; } /* "Notion ↗" alone, so the item's name has the room */
+@media (max-width: 600px) { .dr-bar.ctx { flex-wrap: wrap; row-gap: 6px; } .dr-bar.ctx .ttl { visibility: visible; order: 10; flex-basis: 100%; } } /* a phone's bar has no room beside its buttons: the item's name takes a line under them */
+.dr-sum .long dd { white-space: normal; overflow-wrap: anywhere; max-width: 48ch; } /* a folder path wraps, never cut */
