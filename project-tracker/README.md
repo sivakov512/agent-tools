@@ -144,7 +144,7 @@ Talk normally. After every change the agent replies with one line per change, **
 | "Weekly report for the meter" / "…as an email to the client" | a summary of the week in the chat; a client email only if you ask for one |
 | "Delete the test project" / "bring it back" | asks whether to drop it (Removed, its unfinished milestones, tasks and open problems dropped, the history kept) or delete it (to Notion's trash); restoring puts it back |
 
-The agent asks before a plan change — creating a project, moving dates, adding or dropping milestones — and whenever a milestone date is not stated and does not follow from the source; it never guesses dates. Facts you report (done, waiting, resolved, paused, a corrected date, a task you asked for) and undo it just records and reports. When it sees a milestone or task past its date, it asks what happened.
+The agent asks before a plan change — creating a project, moving dates, adding or dropping milestones — and whenever a milestone date is not stated and does not follow from the source; it never guesses dates. Facts you report (done, waiting, resolved, paused, a corrected date, a task you asked for) and undo it just records and reports. When it sees a milestone or task past its date, it asks what happened; when something has waited on someone for over a week with nothing recorded, it asks whether to chase them.
 
 If a message does not trigger the skill, name the project or say "tracker", or start it with `/project-tracker`.
 
