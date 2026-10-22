@@ -20,7 +20,7 @@
   var el = PT.el, clear = PT.clear, link = PT.link, btn = PT.btn, span = PT.span, nodash = PT.nodash, cleanUrl = PT.cleanUrl, unesc = PT.unesc, clean = PT.clean, key = PT.key, plural = PT.plural, smooth = PT.smooth, sel = PT.sel, keep = PT.keep;
   var dnum = PT.dnum, todayNum = PT.todayNum, fmt = PT.fmt, soon = PT.soon, range = PT.range, days = PT.days, hhmm = PT.hhmm;
   var OPEN_MS = PT.OPEN_MS, CHEV = PT.CHEV, problemOf = PT.problemOf, isOpen = PT.isOpen, ageOf = PT.ageOf, ageCls = PT.ageCls, sortItems = PT.sortItems, whenOf = PT.whenOf, onWhom = PT.onWhom;
-  var actions = PT.actions, typeTag = PT.typeTag, problemLines = PT.problemLines, foldDetails = PT.foldDetails;
+  var typeTag = PT.typeTag, problemLines = PT.problemLines, foldDetails = PT.foldDetails;
   function saveOpen() { try { localStorage.setItem("pt.tlOpen", JSON.stringify(S.tlOpen)); } catch (e) {} }
 
   // where a project comes from: an Origin property if the tracker has one, else from Source and Client
@@ -843,12 +843,10 @@
   function msBody(x, m) {
     PT.msFacts(x, m);
     pageBody(x, m.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(m.url), "mk"), itemLink); } });
-    if (!SNAP) actions(x, [chatBtn(m, "ms"), link(m.url, "Open in Notion ↗", "ext")]);
   }
   function taskBody(x, k, inPlan) {
     PT.taskFacts(x, k, itemLink, inPlan);
     pageBody(x, k.url, { split: true, empty: "Nothing written yet.", extra: function () { return problemLines(problemsOn(key(k.url), "tk"), itemLink); } });
-    if (!SNAP) actions(x, [chatBtn(k, "task"), link(k.url, "Open in Notion ↗", "ext")]);
   }
   function problemBody(x, i) {
     var idx = itemIndex(), ms = idx[i.mk], tk = idx[i.tk], a = ageOf(i);
@@ -856,7 +854,6 @@
     var where = null; if (ms || tk) { where = span(ms ? "in " : "on "); if (ms) where.appendChild(itemLink(ms, ms.name)); if (ms && tk) where.appendChild(document.createTextNode(" › ")); if (tk) where.appendChild(itemLink(tk, tk.name)); } // what it is about, each a link to it
     PT.meta(x, [onWhom(i), where, i.opened != null ? "opened " + fmt(i.opened) + (i.status !== "Resolved" && a != null ? ", " + days(a) + " ago" : "") : "", i.resolvedOn != null ? "resolved " + fmt(i.resolvedOn) : ""]);
     pageBody(x, i.url, { split: true });
-    if (!SNAP) actions(x, [chatBtn(i, "problem"), link(i.url, "Open in Notion ↗", "ext")]);
   }
   function projectLinks(p) { // what the user's project page adds to the project at a glance: Claude project, repository, Code folder, source — each always there or said to be missing
     return function (pair) {
@@ -955,8 +952,8 @@
       barSoon(); // a repaint keeps the scroll: the bar follows it
     });
   }
-  // The bar above the project page names what is being read: the project, or — once the reader is inside an opened milestone, task or problem,
-  // its own header scrolled out of sight — that item, with its own Claude and Notion buttons, so a button never opens something else than it says.
+  // The bar above the project page names what is being read, with that item's own Claude and Notion buttons — the only ones the page has for
+  // a milestone, task or problem: the item just opened while it is in view, else the opened block the reading line crosses, else the project.
   var barKey;
   function barFor(x) {
     var p = S.dr ? allProjByKey()[S.dr.pid] : null, it = x || p, k = x ? key(x.url) : null; if (!it || k === barKey) return; barKey = k;
@@ -966,18 +963,20 @@
     else { t.removeAttribute("title"); paintNav(); }
     if (!SNAP) { $("drNotion").href = it.url; $("drNotion").title = x ? "Opens this " + KIND[kind] + " in Notion" : "Opens the project in Notion"; clear($("drChat")); $("drChat").appendChild(chatBtn(it, kind)); }
   }
-  function barCtx() { // the deepest opened block that crosses the bar's lower edge, its own header above it
-    var body = $("drBody"), top = body.getBoundingClientRect().top + 4, best = null;
-    [].forEach.call(body.querySelectorAll(".arow.open, .mgrp.open"), function (b) { if (!b._item) return; var r = b.getBoundingClientRect(), h = b.firstChild.getBoundingClientRect(); if (h.bottom <= top && r.bottom > top + 24) best = b; });
-    barFor(best ? best._item : null);
+  var barPin = null; // the block opened last: the bar names it while it is in view and the reader has not moved into another block
+  function barCtx() {
+    var body = $("drBody"), box = body.getBoundingClientRect(), line = box.top + Math.min(160, box.height * .3), hit = null; // the reading line, a third down
+    [].forEach.call(body.querySelectorAll(".arow.open, .mgrp.open"), function (b) { if (!b._item) return; var r = b.getBoundingClientRect(); if (r.top <= line && r.bottom > line) hit = b; }); // the deepest, as blocks come in document order
+    if (barPin) { var p = barPin.getBoundingClientRect(), seen = barPin.isConnected && barPin.classList.contains("open") && p.bottom > line && p.top < box.bottom - 24; if (!seen || hit && !hit.contains(barPin)) barPin = null; } // read past, out of view, or another block reached
+    var b = barPin || hit; barFor(b ? b._item : null);
   }
   var barRaf = 0; function barSoon() { if (!barRaf) barRaf = requestAnimationFrame(function () { barRaf = 0; if (S.dr) barCtx(); }); }
   $("drBody").addEventListener("scroll", barSoon, { passive: true });
-  $("drBody").addEventListener("fold", function () { barSoon(); setTimeout(barSoon, 260); }); // and once more when the fold has moved what is below
+  $("drBody").addEventListener("fold", function (e) { var b = e.target; if (b._item && b.classList.contains("open")) barPin = b; else if (b === barPin) barPin = null; barSoon(); setTimeout(barSoon, 260); }); // and once more when the fold has moved what is below
   var lastFocus = null;
   function openProject(p, k) {
     var same = S.dr && S.dr.pid === p.key && $("drawer").classList.contains("on");
-    if (!same) { lastFocus = document.activeElement; S.dr = { pid: p.key }; renderDrawer(); $("drBody").scrollTop = 0; $("drTop").classList.remove("on"); }
+    if (!same) { lastFocus = document.activeElement; S.dr = { pid: p.key }; barPin = null; renderDrawer(); $("drBody").scrollTop = 0; $("drTop").classList.remove("on"); }
     $("drawer").classList.add("on"); $("drawer").setAttribute("aria-hidden", "false"); $("scrim").classList.add("on");
     if (k) setTimeout(function () { reveal(k); }, same ? 0 : 240); else $("drClose").focus({ preventScroll: true });
   }
