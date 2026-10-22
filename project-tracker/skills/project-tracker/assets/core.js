@@ -614,7 +614,7 @@
   function page(ctx) {
     var ui = ctx.ui;
     function acc(o) { // a row that opens below itself
-      var k = "d:" + o.k, on0 = !!ui.open[k], r = el("div", "arow" + (o.tsk ? " tsk" : "") + (on0 ? " open" : "")); r.dataset.k = o.k;
+      var k = "d:" + o.k, on0 = !!ui.open[k], r = el("div", "arow" + (o.tsk ? " tsk" : "") + (on0 ? " open" : "")); r.dataset.k = o.k; r._item = o.item; // the item it shows: the drawer's bar names it while it is read
       var h = btn("acc-h", null); h.setAttribute("aria-expanded", String(on0));
       h.appendChild(el("span", "dot " + (o.dot || "")));
       var mid = el("span", "mid"); mid.appendChild(titled("t", o.item, o.title));
@@ -651,7 +651,7 @@
       function fill() { if (!det.firstChild) ctx.msBody(det, m); }
       if (on) fill();
       if (m.tasks.length) b.appendChild(taskList(m.tasks));
-      g._fill = fill;
+      g._fill = fill; g._item = m;
       h.addEventListener("click", function () { setGroup(g, k, !g.classList.contains("open")); });
       g.dataset.g = k; g.appendChild(h); g.appendChild(b); return g;
     }
