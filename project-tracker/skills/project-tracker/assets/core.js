@@ -651,7 +651,11 @@
       if (on) fill();
       if (m.tasks.length) b.appendChild(taskList(m.tasks));
       g._fill = fill; g._item = m;
-      h.addEventListener("click", function () { setGroup(g, k, !g.classList.contains("open")); });
+      h.addEventListener("click", function () {
+        var on = !g.classList.contains("open"), pinned = !on && g.getBoundingClientRect().top < h.getBoundingClientRect().top - 1; // folded from its header pinned at the top, deep inside the milestone
+        setGroup(g, k, on);
+        if (pinned) { var sc = ctx.host(); sc.scrollTop += g.getBoundingClientRect().top - sc.getBoundingClientRect().top; } // the reader stays at the milestone, not where its tasks used to end
+      });
       g.dataset.g = k; g.appendChild(h); g.appendChild(b); return g;
     }
     function allBtn(rows, isOpen, set, what) { // "Expand all" / "Collapse all" for a list of rows that open; it follows their state
