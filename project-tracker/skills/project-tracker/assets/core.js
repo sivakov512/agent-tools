@@ -273,19 +273,34 @@
   }
 
   // ---------- the project page: what the reader is in, and where a fold leaves the page (pure: tests/check_drawer.py runs them) ----------
-  // What the reader is in, by the page as drawn — never by the plan's parents. blocks: the page's items that open in place, in document order,
-  // each { parent (the index of the block it is drawn in, or -1), open, top, bottom } (its box on screen: one not drawn has no height);
-  // view: { top, bottom, line } (the scroll box's edges and the focus line, a third down); pin: the block the reader just opened, or -1.
-  // The pinned block while it is open and in view, else the deepest opened block the line crosses; then the blocks it is drawn in.
-  // Returns their indices, outermost first; none: the project.
-  function focusChain(blocks, view, pin) {
+  // What the reader is working on in the project page — the focus its top bar names and acts on — as a small state machine.
+  // st: { k (the focused block's key; null: the project), picked (the reader picked it), end (a picked block's bottom when last looked at) }.
+  // blocks: the page's items that open in place, in document order, each { k, parent (the index of the block it is drawn in, or -1), open,
+  // top, bottom } (its box on screen: one not drawn has no height); view: { top, bottom, line } (the scroll box, and its reading line a third down).
+  // ev.type: "pick" (ev.k) the reader expanded an item or clicked in an opened one; "free" a click outside any item, or another project;
+  // "scroll" the reader scrolled; "layout" a fold, a repaint or a refresh moved the page.
+  //  - A picked item keeps the focus while it is opened and on screen, until the reader scrolls its end up past the reading line.
+  //  - Otherwise the focus follows the reading line: the innermost opened item crossing it, else the project. The item in focus keeps it
+  //    while it is within SLACK px of the line — unless an item drawn inside it reaches the line — so a small scroll never flips it.
+  var SLACK = 24;
+  function focusStep(st, ev, blocks, view) {
     function drawn(i) { var b = blocks[i]; return b.bottom > b.top && (b.parent < 0 || blocks[b.parent].open && drawn(b.parent)); }
-    var at = -1, p = blocks[pin];
-    if (p && p.open && drawn(pin) && p.bottom > view.top && p.top < view.bottom) at = pin;
-    else blocks.forEach(function (b, i) { if (b.open && b.top <= view.line && b.bottom > view.line && drawn(i)) at = i; }); // later in the page and crossing the same line: drawn inside
-    var chain = []; for (var i = at; i >= 0; i = blocks[i].parent) chain.unshift(i);
+    function shown(i) { var b = blocks[i]; return b.open && drawn(i) && b.bottom > view.top && b.top < view.bottom; }
+    function within(c, i) { for (var p = blocks[c].parent; p >= 0; p = blocks[p].parent) if (p === i) return true; return false; }
+    var pk = ev.type === "pick" ? indexOfKey(blocks, ev.k) : -1;
+    if (pk >= 0 && shown(pk)) return { k: ev.k, picked: true, end: blocks[pk].bottom };
+    var i = ev.type === "free" ? -1 : indexOfKey(blocks, st.k), b = blocks[i];
+    if (st.picked && i >= 0 && shown(i) && !(ev.type === "scroll" && st.end > view.line && b.bottom <= view.line)) return { k: st.k, picked: true, end: b.bottom };
+    var c = -1; blocks.forEach(function (x, j) { if (x.open && x.top <= view.line && x.bottom > view.line && drawn(j)) c = j; }); // later in the page and crossing the same line: drawn inside
+    var keep = !st.picked && i >= 0 && b.open && drawn(i) && b.top < view.line + SLACK && b.bottom > view.line - SLACK && !(c >= 0 && within(c, i));
+    var f = keep ? i : c;
+    return { k: f < 0 ? null : blocks[f].k, picked: false, end: null };
+  }
+  function focusChain(blocks, focus) { // the focus and the blocks it is drawn in, outermost first: the bar's breadcrumb
+    var chain = []; for (var i = indexOfKey(blocks, focus); i >= 0; i = blocks[i].parent) chain.unshift(i);
     return chain;
   }
+  function indexOfKey(blocks, k) { for (var i = 0; i < blocks.length; i++) if (k != null && blocks[i].k === k) return i; return -1; }
   // Where the page stands after a fold, so the folded item's header stays where the reader looks: in view, it stays put; scrolled away above,
   // it comes to the top of the view, at once (a slide would move the page under the reader). s: { top (scrollTop), view (clientHeight),
   // height (scrollHeight), pad (the room added below the page by an earlier fold), head (the header's top, from the view's top),
@@ -627,7 +642,7 @@
   // The project page's pieces. ctx: ui (open: items and sub-pages opened or closed, col: sections folded — kept across repaints),
   // host() (the box the page scrolls in), msBody(x, m) and taskBody(x, k) (what an opened milestone or task shows).
   // Every item that opens in place — a milestone, a task, a problem — is one kind of block: .blk, its header (.acc-h), its body (.blk-b),
-  // the item it shows in ._item, its key on the page in data-k. The page's top bar reads them (focusChain) to name what is being read.
+  // the item it shows in ._item, its key on the page in data-k. The page's top bar keeps its focus on them (focusStep).
   function page(ctx) {
     var ui = ctx.ui;
     function block(o) { // o: k, item, cls (ms, row, row tsk), open (until the viewer chooses), dot, title, line, right, fill(x) (the body, made when it first opens)
@@ -641,7 +656,7 @@
       b._fill = function () { if (!b._filled) { b._filled = true; o.fill(x); } };
       b.appendChild(h); b.appendChild(x); if (on) b._fill(); return b;
     }
-    // Opens or folds a block; "fold" tells the page its layout changed, "pin" that the reader opened this one (mine) — the bar names it.
+    // Opens or folds a block; "fold" tells the page its layout changed, "pick" that the reader opened this one (mine): it is the focus.
     function setOpen(b, on, mine) {
       var h = b.firstChild, x = b.lastChild;
       if (b.classList.contains("open") !== on) {
@@ -650,7 +665,7 @@
         if (on) { b._fill(); mark(); unfold(x); } else fold(h, b, x, mark, function () { return !b.classList.contains("open"); });
         b.dispatchEvent(new CustomEvent("fold", { bubbles: true, detail: { open: on } }));
       }
-      if (on && mine) b.dispatchEvent(new CustomEvent("pin", { bubbles: true }));
+      if (on && mine) b.dispatchEvent(new CustomEvent("pick", { bubbles: true }));
     }
     function unfold(body) { body.hidden = false; slide(body, true); }
     // Folds body (under head, inside box) so head stays where the reader looks (foldScroll): mark() turns the head at once, shut() says at the
@@ -746,13 +761,15 @@
       }
       return b2;
     }
-    function reveal(k) { // open an item on the page — and the section and blocks it is drawn in — bring it into view; the bar names it
+    function reveal(k) { // open an item on the page — and the section and blocks it is drawn in — bring it to the top of the view and make it the focus
       var host = ctx.host(), b = ["", "w:", "r:"].map(function (p) { return host.querySelector('.blk[data-k="' + sel(p + k) + '"]'); }).filter(Boolean)[0]; // the plan's row first, else the open items' or resolved one's
       if (!b) return;
       var sec = b.closest(".dsec"); if (sec) setFold(sec, false);
       for (var g = b.parentNode.closest(".blk"); g; g = g.parentNode.closest(".blk")) setOpen(g, true);
-      setOpen(b, true, true);
-      b.scrollIntoView({ block: "start", behavior: smooth() }); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash");
+      setOpen(b, true);
+      b.scrollIntoView({ block: "start" }); // at once: the focus is an item in view, and a smooth scroll would start it out of view
+      b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash");
+      b.dispatchEvent(new CustomEvent("pick", { bubbles: true }));
     }
     return { block: block, setOpen: setOpen, fold: fold, unfold: unfold, trim: trim, dsec: dsec, setFold: setFold, taskRow: taskRow, projectHead: projectHead, focusBlock: focusBlock, planSec: planSec, reveal: reveal };
   }
@@ -763,7 +780,7 @@
     refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled,
     el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, plain: plain, notionText: notionText, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, foldDetails: foldDetails,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
-    problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState, focusChain: focusChain, foldScroll: foldScroll,
+    problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState, focusStep: focusStep, focusChain: focusChain, foldScroll: foldScroll,
     timeline: timeline, typeTag: typeTag, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };
 })();

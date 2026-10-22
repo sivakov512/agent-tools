@@ -210,6 +210,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .blk.open > .acc-h .t { font-weight: 600; }
 .blk.open > .acc-h .chev { transform: rotate(90deg); }
 .blk.ms.open > .acc-h { background: var(--sunken); }
+.blk.open.focus > .acc-h, .blk.ms.open.focus > .acc-h { background: var(--accent-soft); } /* the item the top bar names and acts on */
 .blk-b { padding: 4px 16px 26px 36px; } /* a problem's or task's body, at its header's text */
 .blk-b > * + * { margin-top: 12px; }
 .blk.ms > .blk-b { padding: 0; }
