@@ -10,9 +10,9 @@ Started by SKILL.md → **Finding things** (a `schema` below the skill's, a 0.x 
 
 SKILL.md (**Finding things**) starts it, or `references/setup.md` §3 on a tracker that has rows.
 
-The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **7**. A tracker below it is brought up before the request, as SKILL.md → **Finding things** says; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose `references/setup.md` §3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again: a column is added only where the data source's schema, fetched first, lacks it — Notion refuses a second column of the same name, and the one already there (a column the user added or restored, or an interrupted run's) may hold values that must stay. Each step ends by writing its own number in the config toggle (`schema: 2` after 1 → 2, `schema: 3` after 2 → 3, …) as its last write: the number then says exactly which steps are done, so after a step that failed the next conversation resumes at that step, and a step is never taken as done before it is. The numbers are for failures, never a place to stop: steps run in order, all of them before the request is answered (a schema-1 tracker gets 1 → 2, 2 → 3, 3 → 4, 4 → 5, 5 → 6, then 6 → 7, in one go); only a step that fails stops it. If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
+The config's `schema` is the structure the tracker was built with; no `schema` line is schema 1 (the tracker as release 1.0.0 built it). This skill works with schema **8**. A tracker below it is brought up before the request, as SKILL.md → **Finding things** says; one short line says what was done, then the request is answered. An unfinished setup (a database ID missing from the config) is finished by setup instead, whose `references/setup.md` §3 decides whether this update runs. Each step checks before it writes, so an interrupted update is simply run again: a column is added only where the data source's schema, fetched first, lacks it — Notion refuses a second column of the same name, and the one already there (a column the user added or restored, or an interrupted run's) may hold values that must stay. Each step ends by writing its own number in the config toggle (`schema: 2` after 1 → 2, `schema: 3` after 2 → 3, …) as its last write: the number then says exactly which steps are done, so after a step that failed the next conversation resumes at that step, and a step is never taken as done before it is. The numbers are for failures, never a place to stop: steps run in order, all of them before the request is answered (a schema-1 tracker gets 1 → 2, 2 → 3, 3 → 4, 4 → 5, 5 → 6, 6 → 7, then 7 → 8, in one go); only a step that fails stops it. If a step fails, stop the update, say in one line what failed, and handle the request without what the update adds — rows without `Order` (views and the dashboard fall back to `Dates`), no client dashboards, pages written as they are laid out; the next conversation tries again.
 
-**Columns older trackers lack.** The definitions of the plain columns older trackers miss — `Origin`, `Chat` and `Claude project`, which only pre-release 1.0 trackers lack, `Order`, which schema 1 lacks, `Client dashboard`, which schema 2 lacks, `Ref`, which schema 4 lacks, and `Code session` and `Code folder`, which schema 5 lacks. Setup (`references/setup.md` §2) adds every missing one at once. The Tracker update adds them step by step: each step adds only its own columns (one call per data source, statements joined by `;`) and writes its number before the next step's columns go in — never one call for columns of several steps, never one number for several steps, since the number is what tells a later conversation which steps are done after one failed half-way:
+**Columns older trackers lack.** The definitions of the plain columns older trackers miss — `Origin`, `Chat` and `Claude project`, which only pre-release 1.0 trackers lack, `Order`, which schema 1 lacks, `Client dashboard`, which schema 2 lacks, `Ref`, which schema 4 lacks, `Code session` and `Code folder`, which schema 5 lacks, and `Views`, which schema 7 lacks. Setup (`references/setup.md` §2) adds every missing one at once. The Tracker update adds them step by step: each step adds only its own columns (one call per data source, statements joined by `;`) and writes its number before the next step's columns go in — never one call for columns of several steps, never one number for several steps, since the number is what tells a later conversation which steps are done after one failed half-way:
 
 ```sql
 -- on <projects>
@@ -37,6 +37,9 @@ ADD COLUMN "Code session" URL COMMENT 'Its Claude Code session on the Mac, opene
 
 -- on <projects>
 ADD COLUMN "Code folder" RICH_TEXT COMMENT 'The folder on the Mac its Code sessions open in (an absolute path); set by its first Code session or on request'
+
+-- on <projects>
+ADD COLUMN "Views" RICH_TEXT COMMENT 'Links to its page views, read by Claude instead of the page: Tasks <url>; Schedule <url>; Problems <url>; set by Claude'
 ```
 
 A tracker that already has rows and lacks `Order`, `Client dashboard` or `Ref` is brought up by the schema steps below, which also number the rows.
@@ -88,7 +91,16 @@ The closing line names what is new for the user: a Code session on the Mac for a
 
 The closing line names what is new for the user, both halves of it: every ID has three letters now (`TK-17` is `TSK-17`, the number stays), and the old IDs still work in a chat — the user has the old ones in notes and messages, and without this half would take them for broken; and, when a prefix other than `PRJ` / `MLS` / `TSK` / `PRB` was taken, which and why.
 
-A future step goes here as **7 → 8**, and the number above moves with it.
+**7 → 8: stored view links.** Reading a view took a fetch of its database or of the project page and its block, about 10k characters each, only to learn an id that never changes, and what closed in a period meant walking every project. The step adds the root `Done` views and stores every view link the skill reads (SKILL.md → **Reading a view**).
+1. Projects gets `Views` (`ADD COLUMN` as in **Columns older trackers lack**, skipped where it exists).
+2. Fetch the Milestones and Tasks databases; each one without a view named `Done` gets it (`notion-create-view` with `database_id` and `data_source_id`, configured as `references/setup.md` §4 lists it). Fetch the Problems database: `Recently resolved` gets its month (`notion-update-view`, `CLEAR FILTER; FILTER "Status" = "Resolved"; FILTER "Resolved on" >= "one_month_ago"`; the sort stays).
+3. Every project in `Active` and `Closed` whose `Views` is empty: fetch its page, then the block of each of its `Tasks`, `Schedule` and `Problems` tabs; write `Views` as `Tasks <url>; Schedule <url>; Problems <url>` (`update_properties`), each the view named like its tab (`references/new-project.md` → **Project page**). A tab the page lacks is left out of the value; that project's view is then found by fetching, as before. Nothing else is written to the rows.
+4. Write `projects_views`, `milestones_views`, `tasks_views` and `problems_views` in the config toggle (each line replaced, or added before `schema`), as `references/setup.md` §3 shows, with the view ids the database fetches of step 2 and of Projects listed.
+5. Write `schema: 8` in the config toggle, as above — last.
+
+The closing line names what is new for the user: Done views of milestones and tasks in Notion, `Recently resolved` keeping only the past month by itself, and that `Views` is best set to *Always hide* on a project page (`references/setup.md` §8 — the API cannot).
+
+A future step goes here as **8 → 9**, and the number above moves with it.
 
 ## Old shapes
 
@@ -162,7 +174,7 @@ Tell the user what moved (counts per project), what stayed behind, the new page,
 
 ## Output
 
-A tracker at schema 7, each step's number written as that step's last write, said in one line before the request is answered; for a 0.x tracker, the new tracker and the message of **5. Retire the old tracker**.
+A tracker at schema 8, each step's number written as that step's last write, said in one line before the request is answered; for a 0.x tracker, the new tracker and the message of **5. Retire the old tracker**.
 
 ## Off limits
 

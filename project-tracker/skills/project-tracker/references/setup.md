@@ -40,6 +40,7 @@ CREATE TABLE ("Name" TITLE, "Client" RICH_TEXT,
   "Client dashboard" URL COMMENT 'The client dashboard that shows it; set by Claude',
   "Code session" URL COMMENT 'Its Claude Code session on the Mac, opened from the dashboard; set by Claude',
   "Code folder" RICH_TEXT COMMENT 'The folder on the Mac its Code sessions open in (an absolute path); set by its first Code session or on request',
+  "Views" RICH_TEXT COMMENT 'Links to its page views, read by Claude instead of the page: Tasks <url>; Schedule <url>; Problems <url>; set by Claude',
   "Ref" UNIQUE_ID PREFIX 'PRJ' COMMENT 'Its ID, to name it in a chat (PRJ-2); numbered by Notion')
 
 -- Milestones
@@ -117,7 +118,7 @@ Project, milestone and task pages then open at full width, and a milestone page 
 
 ## 3. Config
 
-The config toggle gets the four data source IDs, the `Ref` prefixes in use (projects, milestones, tasks, problems, in that order) and the structure's version, `schema` (`references/upgrade.md` → **Tracker update** says what it means), as its lines:
+The config toggle gets the four data source IDs, the `Ref` prefixes in use (projects, milestones, tasks, problems, in that order), the links of the root views the skill reads (on each line its database's views by name, each followed by its URL in backticks as SKILL.md → **Reading a view** writes it, separated by `; `) and the structure's version, `schema` (`references/upgrade.md` → **Tracker update** says what it means), as its lines:
 
 ```
 <toggle color="gray_bg">
@@ -133,11 +134,19 @@ problems: `<problems>`
 
 ref_prefixes: PRJ, MLS, TSK, PRB
 
-schema: 7
+projects_views: Active `<url>`; Closed `<url>`
+
+milestones_views: Next up `<url>`; Done `<url>`
+
+tasks_views: All `<url>`; Waiting on `<url>`; Done `<url>`
+
+problems_views: Open `<url>`; Recently resolved `<url>`
+
+schema: 8
 </toggle>
 ```
 
-Add the missing lines with `update_content` — `old_str` the toggle's last line and its closing tag exactly as fetched (for an empty toggle, its title line), `new_str` the same with the lines added, each a paragraph of its own (SKILL.md → **Page text**). Never a second toggle. `schema: 7` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run `references/upgrade.md` → **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
+Add the missing lines with `update_content` — `old_str` the toggle's last line and its closing tag exactly as fetched (for an empty toggle, its title line), `new_str` the same with the lines added, each a paragraph of its own (SKILL.md → **Page text**). The `_views` lines go in once §4 has made the views, before `schema`. Never a second toggle. `schema: 8` goes in only on a tracker with no rows yet (Projects' `Active` and `Closed` views, as far as they exist, list nothing — every other row belongs to a project): a new tracker, or an interrupted setup that never got a project. If rows exist and the line is missing or lower, run `references/upgrade.md` → **Tracker update**, which writes it last. A root page found by the user's link that has no config at all gets the toggle inserted at the start (`insert_content`, `position: {"type": "start"}`).
 
 ## 4. Views on the databases
 
@@ -148,14 +157,18 @@ Projects    Active             (default view)  FILTER "Status" IN ("Active", "Pa
             Closed             table           FILTER "Status" IN ("Done", "Removed"); SORT BY "Target end" DESC; SHOW "Name", "Ref", "Client", "Origin", "Status", "Target end", "Source"
 Milestones  Next up            (default view)  FILTER "Status" IN ("Planned", "In progress", "Paused"); GROUP BY "Project"; SORT BY "Order" ASC, "Dates" ASC; SHOW "Name", "Ref", "Status", "Dates", "Late, days"
             Timeline           timeline        FILTER "Status" IN ("Planned", "In progress", "Paused"); TIMELINE BY "Dates"; GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Ref", "Status"
+            Done               table           FILTER "Status" = "Done"; SORT BY "Finished" DESC; SHOW "Name", "Ref", "Project", "Dates", "Finished", "Late, days"
 Tasks       All                (default view)  FILTER "Status" IN ("Planned", "In progress", "Waiting"); GROUP BY "Project"; SORT BY "Dates" ASC, "Order" ASC; SHOW "Name", "Ref", "Milestone", "Status", "Dates", "Waiting on", "Late, days"
             Waiting on         table           FILTER "Status" = "Waiting"; GROUP BY "Waiting on"; SORT BY "Dates" ASC; SHOW "Name", "Ref", "Project", "Milestone", "Dates"
             Timeline           timeline        FILTER "Status" IN ("Planned", "In progress", "Waiting"); TIMELINE BY "Dates"; GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Ref", "Status"
+            Done               table           FILTER "Status" = "Done"; SORT BY "Finished" DESC; SHOW "Name", "Ref", "Project", "Milestone", "Dates", "Finished", "Late, days"
 Problems    Open               (default view)  FILTER "Status" IN ("Open", "Waiting"); GROUP BY "Type"; SORT BY "Opened" ASC; SHOW "Name", "Ref", "Project", "Status", "Waiting on", "Opened"
-            Recently resolved  table           FILTER "Status" = "Resolved"; SORT BY "Resolved on" DESC; SHOW "Name", "Ref", "Project", "Type", "Resolved on", "Summary"
+            Recently resolved  table           FILTER "Status" = "Resolved"; FILTER "Resolved on" >= "one_month_ago"; SORT BY "Resolved on" DESC; SHOW "Name", "Ref", "Project", "Type", "Resolved on", "Summary"
 ```
 
-Tasks `All` sorts by `Dates` first: `Order` restarts per milestone, so across a project it only breaks ties. The view DSL takes only fixed dates, so `Recently resolved` gets its "past month" window by hand (checklist below); until then it lists every resolved problem, newest first.
+Tasks `All` sorts by `Dates` first: `Order` restarts per milestone, so across a project it only breaks ties. The `Done` views hold every finished row, newest first, so a question about what closed reads them and stops at its period instead of walking every project. `one_month_ago` is a date relative to the day the view is read, so `Recently resolved` keeps the past month by itself.
+
+Then the config's `_views` lines (§3), once the views exist: each URL from the database's id and the view's id, as the create call returned it or the database fetch lists it.
 
 ## 5. Tabs
 
@@ -188,7 +201,7 @@ Problems
 
 ## 6. Verify
 
-Fetch the root page: the config toggle with its four IDs first, then one `<tabs>` block with four tabs — Projects, Milestones, Tasks, Problems — each holding exactly one inline database, no `icon=` on tabs, nothing after it. Notion sometimes puts a rewritten block above the toggle; if the order is wrong, one `update_content` over both blocks puts them back. Fetch each database: the columns, views and page layouts above exist with those names.
+Fetch the root page: the config toggle with its four IDs first, then one `<tabs>` block with four tabs — Projects, Milestones, Tasks, Problems — each holding exactly one inline database, no `icon=` on tabs, nothing after it. Notion sometimes puts a rewritten block above the toggle; if the order is wrong, one `update_content` over both blocks puts them back. Fetch each database: the columns, views and page layouts above exist with those names, and the config's `_views` lines name each view's URL.
 
 ## 7. Dashboard
 
@@ -198,9 +211,8 @@ Unless the config already has a `dashboard` line: publish the dashboard as `refe
 
 What was created or added (or that everything was already in place), the dashboard (its link, or where the file is), and the page's name — the user can rename or move it freely, it is found by the config toggle, which stays collapsed; open it only to fix the IDs. Then the things the API cannot do, as a short checklist to click through once:
 
-- **Recently resolved**: Problems tab → `Recently resolved` → Filter → `Resolved on` → *is within* → *Past month*, so the view stays short.
 - **Full width** on the tracker page itself (••• → Full width) — without it Notion folds each tab's second view (`Closed`, `Timeline`, `Recently resolved`) into a dropdown. Project, milestone and task pages are already full width.
-- After the first project exists — **hide properties**, once for the whole database (the API cannot set property visibility): on any project page, click `Milestones`, `Tasks`, `Milestones late`, `Tasks late` → *Always hide*, and `Chat`, `Code session`, `Claude project`, `Code folder`, `Client dashboard` → *Hide when empty*; on any milestone page, `Project status`, `Open late` and `Order` → *Always hide*, `Chat`, `Code session` → *Hide when empty*; on any task page, `Project status`, `Milestone status`, `Open late` and `Order` → *Always hide*, `Chat`, `Code session` → *Hide when empty*; on any problem page, `Chat`, `Code session` → *Hide when empty*. The helpers exist only to compute lateness, and `Order` shows in the sorting; `Chat`, `Code session`, `Claude project` and `Code folder` are set later, from the dashboard and on request. (`references/new-project.md` repeats this, and the timeline zoom, when it creates the first project.)
+- After the first project exists — **hide properties**, once for the whole database (the API cannot set property visibility): on any project page, click `Milestones`, `Tasks`, `Milestones late`, `Tasks late`, `Views` → *Always hide*, and `Chat`, `Code session`, `Claude project`, `Code folder`, `Client dashboard` → *Hide when empty*; on any milestone page, `Project status`, `Open late` and `Order` → *Always hide*, `Chat`, `Code session` → *Hide when empty*; on any task page, `Project status`, `Milestone status`, `Open late` and `Order` → *Always hide*, `Chat`, `Code session` → *Hide when empty*; on any problem page, `Chat`, `Code session` → *Hide when empty*. The helpers exist only to compute lateness, `Views` only for the skill's reads, and `Order` shows in the sorting; `Chat`, `Code session`, `Claude project` and `Code folder` are set later, from the dashboard and on request. (`references/new-project.md` repeats this, and the timeline zoom, when it creates the first project.)
 
 Next step: a new project.
 
