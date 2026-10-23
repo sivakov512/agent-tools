@@ -3,4 +3,4 @@ type: 'regex'
 flags: 'i'
 match: 'contains'
 ---
-\?\s*$
+\?[^\n]*(?:\n[^\n]+)*\s*$
