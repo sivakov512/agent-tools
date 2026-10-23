@@ -20,7 +20,7 @@ new Function("window", "document", "navigator", src)(w, { addEventListener() {},
 const PT = w.PT;
 console.log(JSON.stringify(JSON.parse(process.argv[2]).map(c => {
   const p = { url: "https://app.notion.com/p/p0", name: "P", status: "Active" }, d = PT.buildPlan(p, c.ms, c.tasks);
-  return PT.standing(d.ms, d.tasks, c.blockers.map(n => ({ kind: "problem", type: "Blocker", status: "Open", name: n, url: "b-" + n }))).map(l => [l.label, l.item.name, l.subs.map(k => k.name)]);
+  return PT.standing(d.ms, d.tasks, c.blockers.map(n => ({ kind: "problem", type: "Blocker", status: "Open", name: n, url: "b-" + n }))).map(l => [l.label, l.item.name, l.subs.map(k => k.name)].concat(l.label === "Behind" && l.cls !== "crit" ? ["not red"] : []));
 })));
 """
 
@@ -57,6 +57,12 @@ CASES = [  # (what, milestones, tasks, blockers, [label, item, its tasks] per li
      [["Late", "Spec", []], ["Blocked", "Cell", []], ["Now", "Build", []]]),
     ("no milestones: tasks take their place", [], [tk("Copy", "In progress", -3, 4), tk("Photos", "Planned", -9, -1, order=2), tk("Site", "Planned", 5, 9, order=3)], [],
      [["Late", "Photos", []], ["Now", "Copy", []], ["Next", "Site", []]]),
+    ("every milestone done, a task outside any in progress and one waiting: each on a line of its own, never nothing", [ms("Spec", "Done", -20, -10, 1)],
+     [tk("Invoice", "In progress", -2, 5, order=1), tk("Approval", "Waiting", None, None, order=2)], [], [["Now", "Invoice", []], ["Waiting", "Approval", []]]),
+    ("every milestone done, a planned task outside any: it is next", [ms("Spec", "Done", -20, -10, 1)], [tk("Handover", "Planned", 3, 6)], [],
+     [["Next", "Handover", []]]),
+    ("a milestone not started holding a late task: Behind, first, the late task under it", [A, C], [tk("Board", "In progress", -5, 5, A), tk("Quote", "Planned", -6, -2, C)], [],
+     [["Behind", "Ship", ["Quote"]], ["Now", "Build", ["Board"]]]),
 ]
 
 
