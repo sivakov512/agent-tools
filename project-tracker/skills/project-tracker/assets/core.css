@@ -191,12 +191,13 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 /* Rows are split by hairlines; a milestone's tasks keep the full width. An item's header is one grid, the same folded, opened and stuck: a
    quiet meta line — its ID, its dates, its buttons in words (Chat, Code, Notion, ⋯) and the chevron, all on that one line — then its name, a
    size larger, then its line. The buttons always have their place: folded they show only under the pointer, opened they stay; nothing in the
-   row moves or grows. An opened item is one soft rounded panel, header and text together, ending where the panel ends; an opened task inside
-   an opened milestone is a darker strip on the milestone's panel, never a panel in a panel. */
+   row moves or grows. Every opened item, at any level, is drawn the same way: its header in the active fill (the darker tint), its text a
+   region one shade off what is round it — a milestone's or an open item's the light panel on the page, a task opened inside an opened
+   milestone the page's own surface inside the milestone's panel — so where each starts, ends and its milestone goes on is plain. */
 .blk { border-bottom: 1px solid var(--border); }
 .mtw > .blk:last-child { border-bottom: 0; } /* the milestone's own end follows */
 .blk.open { background: var(--surface-2); border-radius: 12px; border-bottom-color: transparent; }
-.blk .blk.open { background: none; border-radius: 0; border-bottom: 1px solid var(--border-2); }
+.blk .blk.open { background: var(--surface); border-radius: 0; border-bottom: 1px solid var(--border-2); }
 .blk.open .mtl, .blk.open .blk { border-color: var(--border-2); }
 .acc-h { display: grid; grid-template-columns: 8px auto minmax(0, 1fr) auto 14px; grid-template-areas: ". ref r acts chev" "dot t t t ." ". s s s ."; column-gap: 12px; row-gap: 2px; align-items: center; width: 100%; text-align: left; padding: 10px 14px 12px 16px; cursor: pointer; }
 .acc-h:hover { background: var(--surface-2); }
@@ -229,8 +230,8 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .acts .ext { white-space: nowrap; }
 /* One header stuck at a time: an opened item's sticks while it is read and goes with its end; inside an opened milestone, an opened task's
    takes the place while the task is read, the two pushing each other, never overlapping (stick()). */
-.blk.open > .blk-h { position: sticky; top: 0; z-index: 3; background: var(--surface-2); border-radius: 12px 12px 0 0; }
-.blk .blk.open > .blk-h { z-index: 4; background: var(--sunken); border-radius: 0; } /* an inner header and its parent's hand over by pushing (stickPlan), the inner one drawn above at the seam */
+.blk.open > .blk-h { position: sticky; top: 0; z-index: 3; background: var(--sunken); border-radius: 12px 12px 0 0; box-shadow: 0 1px 0 var(--border-2); } /* the active fill and a line under it, the same at every level */
+.blk .blk.open > .blk-h { z-index: 4; border-radius: 0; } /* an inner header and its parent's hand over by pushing (stickPlan), the inner one drawn above at the seam */
 .blk-h.under { visibility: hidden; }
 .blk-b { padding: 4px 16px 26px 36px; } /* a problem's or task's body, at its header's text */
 .blk-b > * + * { margin-top: 12px; }
