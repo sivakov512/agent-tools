@@ -136,11 +136,11 @@ ref_prefixes: PRJ, MLS, TSK, PRB
 
 projects_views: Active `<url>`; Closed `<url>`
 
-milestones_views: Next up `<url>`; Done `<url>`
+milestones_views: Next up `<url>`; Done `<url>`; By ID `<url>`
 
-tasks_views: All `<url>`; Waiting on `<url>`; Done `<url>`
+tasks_views: All `<url>`; Waiting on `<url>`; Done `<url>`; By ID `<url>`
 
-problems_views: Open `<url>`; Recently resolved `<url>`
+problems_views: Open `<url>`; Recently resolved `<url>`; By ID `<url>`
 
 schema: 8
 </toggle>
@@ -158,15 +158,18 @@ Projects    Active             (default view)  FILTER "Status" IN ("Active", "Pa
 Milestones  Next up            (default view)  FILTER "Status" IN ("Planned", "In progress", "Paused"); GROUP BY "Project"; SORT BY "Order" ASC, "Dates" ASC; SHOW "Name", "Ref", "Status", "Dates", "Late, days"
             Timeline           timeline        FILTER "Status" IN ("Planned", "In progress", "Paused"); TIMELINE BY "Dates"; GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Ref", "Status"
             Done               table           FILTER "Status" = "Done"; SORT BY "Finished" DESC; SHOW "Name", "Ref", "Project", "Dates", "Finished", "Late, days"
+            By ID              table           SORT BY "Ref" DESC; SHOW "Name", "Ref", "Project", "Status"
 Tasks       All                (default view)  FILTER "Status" IN ("Planned", "In progress", "Waiting"); GROUP BY "Project"; SORT BY "Dates" ASC, "Order" ASC; SHOW "Name", "Ref", "Milestone", "Status", "Dates", "Waiting on", "Late, days"
             Waiting on         table           FILTER "Status" = "Waiting"; GROUP BY "Waiting on"; SORT BY "Dates" ASC; SHOW "Name", "Ref", "Project", "Milestone", "Dates"
             Timeline           timeline        FILTER "Status" IN ("Planned", "In progress", "Waiting"); TIMELINE BY "Dates"; GROUP BY "Project"; SORT BY "Dates" ASC; SHOW "Name", "Ref", "Status"
             Done               table           FILTER "Status" = "Done"; SORT BY "Finished" DESC; SHOW "Name", "Ref", "Project", "Milestone", "Dates", "Finished", "Late, days"
+            By ID              table           SORT BY "Ref" DESC; SHOW "Name", "Ref", "Project", "Milestone", "Status"
 Problems    Open               (default view)  FILTER "Status" IN ("Open", "Waiting"); GROUP BY "Type"; SORT BY "Opened" ASC; SHOW "Name", "Ref", "Project", "Status", "Waiting on", "Opened"
             Recently resolved  table           FILTER "Status" = "Resolved"; FILTER "Resolved on" >= "one_month_ago"; SORT BY "Resolved on" DESC; SHOW "Name", "Ref", "Project", "Type", "Resolved on", "Summary"
+            By ID              table           SORT BY "Ref" DESC; SHOW "Name", "Ref", "Project", "Type", "Status"
 ```
 
-Tasks `All` sorts by `Dates` first: `Order` restarts per milestone, so across a project it only breaks ties. The `Done` views hold every finished row, newest first, so a question about what closed reads them and stops at its period instead of walking every project. `one_month_ago` is a date relative to the day the view is read, so `Recently resolved` keeps the past month by itself.
+Tasks `All` sorts by `Dates` first: `Order` restarts per milestone, so across a project it only breaks ties. The `Done` views hold every finished row, newest first, so a question about what closed reads them and stops at its period instead of walking every project. `one_month_ago` is a date relative to the day the view is read, so `Recently resolved` keeps the past month by itself. `By ID` has no filter: an ID the user writes may name any row, a problem resolved long ago or a dropped task, and Notion gives no other way to a row by its `Ref` — a fetch takes only page ids, search does not index it, and a view cannot be filtered per question. Sorted highest first, it tells how far down a number lies, so the read stays a few pages (SKILL.md → **Finding things**).
 
 Then the config's `_views` lines (§3), once the views exist: each URL from the database's id and the view's id, as the create call returned it or the database fetch lists it.
 

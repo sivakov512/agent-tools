@@ -30,9 +30,9 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 	dashboard_version: 99.0.0
 	ref_prefixes: PRJ, MLS, TSK, PRB
 	projects_views: Active `https://app.notion.com/p/40000000000040008000000000000001?v=50000000000040008000000000000001`; Closed `https://app.notion.com/p/40000000000040008000000000000001?v=50000000000040008000000000000009`
-	milestones_views: Next up `https://app.notion.com/p/40000000000040008000000000000002?v=50000000000040008000000000000002`; Done `https://app.notion.com/p/40000000000040008000000000000002?v=5000000000004000800000000000000a`
-	tasks_views: All `https://app.notion.com/p/40000000000040008000000000000004?v=50000000000040008000000000000008`; Waiting on `https://app.notion.com/p/40000000000040008000000000000004?v=50000000000040008000000000000006`; Done `https://app.notion.com/p/40000000000040008000000000000004?v=5000000000004000800000000000000b`
-	problems_views: Open `https://app.notion.com/p/40000000000040008000000000000003?v=50000000000040008000000000000004`; Recently resolved `https://app.notion.com/p/40000000000040008000000000000003?v=50000000000040008000000000000005`
+	milestones_views: Next up `https://app.notion.com/p/40000000000040008000000000000002?v=50000000000040008000000000000002`; Done `https://app.notion.com/p/40000000000040008000000000000002?v=5000000000004000800000000000000a`; By ID `https://app.notion.com/p/40000000000040008000000000000002?v=5000000000004000800000000000000c`
+	tasks_views: All `https://app.notion.com/p/40000000000040008000000000000004?v=50000000000040008000000000000008`; Waiting on `https://app.notion.com/p/40000000000040008000000000000004?v=50000000000040008000000000000006`; Done `https://app.notion.com/p/40000000000040008000000000000004?v=5000000000004000800000000000000b`; By ID `https://app.notion.com/p/40000000000040008000000000000004?v=5000000000004000800000000000000d`
+	problems_views: Open `https://app.notion.com/p/40000000000040008000000000000003?v=50000000000040008000000000000004`; Recently resolved `https://app.notion.com/p/40000000000040008000000000000003?v=50000000000040008000000000000005`; By ID `https://app.notion.com/p/40000000000040008000000000000003?v=5000000000004000800000000000000e`
 	schema: 8
 </details>
 <tabs>
@@ -60,9 +60,9 @@ Root page **Client work** (the user named the tracker that at setup), id `100000
 Fetching a database URL lists its data source with the schema below and its views as `<view url="view://<id>">{"name":…,"type":…,…}</view>`:
 
 - Projects database `40000000…0001` — data source `20000000…0001`; views `50000000-0000-4000-8000-000000000001` "Active" (Status in Active, Paused) and `50000000-…-000000000009` "Closed" (Status in Done, Removed; Target end newest first).
-- Milestones database `40000000…0002` — data source `20000000…0002`; views `50000000-…-000000000002` "Next up" (Status in Planned, In progress, Paused; grouped by Project) and `50000000-…-000000000003` "Timeline" (same filter, timeline by Dates) and `50000000-…-00000000000a` "Done" (Status = Done; Finished newest first).
-- Tasks database `40000000…0004` — data source `20000000…0004`; views `50000000-…-000000000008` "All" (the default view: Status in Planned, In progress, Waiting; grouped by Project), `50000000-…-000000000006` "Waiting on" (Status = Waiting; grouped by Waiting on) `50000000-…-000000000007` "Timeline" (Status in Planned, In progress, Waiting; timeline by Dates) and `50000000-…-00000000000b` "Done" (Status = Done; Finished newest first).
-- Problems database `40000000…0003` — data source `20000000…0003`; views `50000000-…-000000000004` "Open" (Status in Open, Waiting; grouped by Type) and `50000000-…-000000000005` "Recently resolved" (Status = Resolved and Resolved on within the past month, newest first).
+- Milestones database `40000000…0002` — data source `20000000…0002`; views `50000000-…-000000000002` "Next up" (Status in Planned, In progress, Paused; grouped by Project) and `50000000-…-000000000003` "Timeline" (same filter, timeline by Dates) and `50000000-…-00000000000a` "Done" (Status = Done; Finished newest first) and `50000000-…-00000000000c` "By ID" (no filter; Ref highest first).
+- Tasks database `40000000…0004` — data source `20000000…0004`; views `50000000-…-000000000008` "All" (the default view: Status in Planned, In progress, Waiting; grouped by Project), `50000000-…-000000000006` "Waiting on" (Status = Waiting; grouped by Waiting on) `50000000-…-000000000007` "Timeline" (Status in Planned, In progress, Waiting; timeline by Dates) and `50000000-…-00000000000b` "Done" (Status = Done; Finished newest first) and `50000000-…-00000000000d` "By ID" (no filter; Ref highest first).
+- Problems database `40000000…0003` — data source `20000000…0003`; views `50000000-…-000000000004` "Open" (Status in Open, Waiting; grouped by Type) and `50000000-…-000000000005` "Recently resolved" (Status = Resolved and Resolved on within the past month, newest first) and `50000000-…-00000000000e` "By ID" (no filter; Ref highest first).
 
 A view is queried with `data: {mode: "view", view_url: "https://app.notion.com/p/<database or block id without dashes>?v=<view id without dashes>"}` and returns `{"results":[{…row properties…, "url":"https://app.notion.com/p/<row id>"}],"has_more":false}` with dates as `date:<Prop>:start` / `date:<Prop>:end`, relations as JSON arrays of page URLs, `Late, days`, `Open late` and the rollups as opaque formula references.
 
@@ -167,6 +167,7 @@ Linked-view blocks `60000000…0021` Plan, `…0022` Tasks (views `70000000…00
   - Problems "Open" (…0004): 0204 only.
   - Problems "Recently resolved" (…0005): 0206 only.
   - Milestones "Done" (…000a): 0301 only. Tasks "Done" (…000b): 0101 only.
+  - Milestones "By ID" (…000c), Tasks "By ID" (…000d), Problems "By ID" (…000e): every row of the database, whatever its status, highest `Ref` first (Ref as the bare number); 40 rows a page, `has_more` false while the database has fewer.
   - Energy meter "Plan" (7000…0011) and "Schedule" (…0013): milestones 0110, 0111. "Tasks" (…0012) and "Timeline" (…0015): tasks 0101–0106, 0201, 0202, 0203, 0205. "Problems" (…0014): 0204.
   - Brightbrush "Plan" (…0021) and "Schedule" (…0023): 0301–0303. "Tasks" (…0022) and "Timeline" (…0025): 0401. "Problems" (…0024): no rows.
   After writes, later queries reflect them.

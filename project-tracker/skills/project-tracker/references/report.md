@@ -31,7 +31,7 @@ Each has one meaning in every answer. Nothing Paused, or under something Paused,
 Each view is read as SKILL.md → **Reading a view** says.
 
 - **One project:** its `Schedule`, `Tasks` and `Problems` views (the first two hold its Done rows too), and the root `Recently resolved` for its problems resolved in the period.
-- **Across projects:** the root views only — Projects `Active`; Milestones `Next up` and `Done`; Tasks `All`, `Waiting on` and `Done`; Problems `Open` and `Recently resolved` — never each project's views, since the root views hold every row.
+- **Across projects:** the root views only — Projects `Active`; Milestones `Next up` and `Done`; Tasks `All`, `Waiting on` and `Done`; Problems `Open` and `Recently resolved` — never each project's views, since these hold every open row and what closed.
 - **Pages** only for what no view holds: the history line that dates a task's wait, a pause's reason.
 
 `Recently resolved` holds the past month: for a period that starts earlier, the answer says that problems resolved before then are not counted.
