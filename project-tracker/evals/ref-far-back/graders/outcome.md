@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'last_message'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 The user wrote "TSK-7 is done — Marko set the CI runner up." In this tracker TSK-7 is the Energy meter task "CI runner set up", Waiting on Marko; the Tasks database holds 301 tasks, most of them Done tasks of a closed project.
 

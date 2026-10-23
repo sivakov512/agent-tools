@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'mock_calls'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 The user and Marko have to settle the Zigbee-or-Thread decision together, so part of the next move is the user's: `Waiting on` stays empty and Marko is named in the text instead.
 

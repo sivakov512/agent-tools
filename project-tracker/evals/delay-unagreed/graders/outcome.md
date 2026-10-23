@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'last_message'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 - Says the dates were not moved (the commitment to Northwind stays as it is).
 - Says or implies that the Sleep modes task will show as late once its date (Nov 6) passes, or offers to move the dates when the user says.

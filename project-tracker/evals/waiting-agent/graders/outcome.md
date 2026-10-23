@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'mock_calls'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 An agent working on a task is a party like any other: while Claude writes the driver, nothing on the task is left for the user, so it shows as waiting on others.
 

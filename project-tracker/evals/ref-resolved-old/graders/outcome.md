@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'last_message'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 The user wrote only "PRB-3 came back — it wasn't fixed. Correct that." In this tracker PRB-3 is the Energy meter blocker "Watchdog resets on the dev board", resolved on Aug 20, seven weeks ago — too old for the Recently resolved view, which holds the past month. It is not PRB-2, the Zigbee binding error resolved on Oct 2.
 

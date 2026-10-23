@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'last_message'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 TSK-4 Power measured, module fixed is a task (Nov 6 → Nov 13) of the milestone MLS-1 Firmware on the dev board (Sep 15 → Nov 13). The user set TSK-4's end to Nov 20, past the milestone's end.
 

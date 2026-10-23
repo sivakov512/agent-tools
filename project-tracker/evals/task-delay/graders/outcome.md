@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'last_message'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 "Board designed, first boards ordered" is a task (Nov 13 → Dec 4) of the milestone Hardware (Nov 13 → Jan 8, 2027); the next task, First prototype working on the custom board, runs Dec 4 → Jan 8.
 
