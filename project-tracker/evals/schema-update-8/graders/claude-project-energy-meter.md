@@ -1,0 +1,7 @@
+---
+type: 'tool_used'
+tool: 'mcp__notion__notion-update-page'
+input_match: '^(?=[\s\S]*30000000-?0000-?4000-?8000-?000000000010)(?=[\s\S]*"Claude project"\s*:\s*"https://claude\.ai/project/0f0e0d0c-0b0a-4908-8706-050403020100")'
+min: 1
+arm: 'both'
+---

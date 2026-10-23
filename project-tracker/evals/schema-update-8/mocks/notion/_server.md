@@ -72,7 +72,7 @@ Schemas:
 
 ## Projects
 
-**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Ref PRJ-1; Client Northwind; Origin Direct; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Target end 2027-01-08; Summary "Firmware on the dev board in progress, due Nov 13; real CT readings over Zigbee due Oct 9."
+**Energy meter** — row id `30000000-0000-4000-8000-000000000010`; Ref PRJ-1; Client Northwind; Origin Direct; Status Active; Repository https://git.example.com/hw/energy-meter; Source empty; Claude project "Meter work — 0f0e0d0c-0b0a-4908-8706-050403020100"; Target end 2027-01-08; Summary "Firmware on the dev board in progress, due Nov 13; real CT readings over Zigbee due Oct 9."
 
 Its page (fetch of the row id) contains:
 
@@ -132,7 +132,7 @@ Problems of Energy meter:
 - `3000…0204` (Ref PRB-1) Holiday shutdown window — Risk — Open — Waiting on empty — Milestone 0111 — Task 0105 — Summary "+3 weeks if the second board run misses it" — Opened 2026-09-22
 - `3000…0206` (Ref PRB-2) Zigbee binding error — Blocker — Resolved — Milestone 0110 — Task 0102 — Opened 2026-09-22 — Resolved on 2026-10-02 — Summary "Fixed with a custom converter."
 
-**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Ref PRJ-2; Client Brightbrush Ltd; Origin Upwork; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Summary "Layout in progress, due Oct 20; firmware starts Oct 20, once the spec is approved." Same page layout, with this callout and nothing below `</tabs>`:
+**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Ref PRJ-2; Client Brightbrush Ltd; Origin Upwork; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Claude project "https://claude.ai/project/1a2b3c4d-5e6f-4a0b-8c1d-2e3f40516273"; Target end 2026-11-10; Summary "Layout in progress, due Oct 20; firmware starts Oct 20, once the spec is approved." Same page layout, with this callout and nothing below `</tabs>`:
 
 ```
 <callout icon="🔵" color="blue_bg">
