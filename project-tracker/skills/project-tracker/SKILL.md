@@ -284,7 +284,7 @@ A note goes where **Every record goes where it belongs** puts it, under `## Note
 
 ## The dashboard offer
 
-In a conversation with the user (never a scheduled or unattended run), once per conversation and after answering what was asked: when the config has no `dashboard` line, or its `dashboard_version` is not an `x.y.z` of at least N — N being the version on the first line of `assets/dashboard.html` (read only that line) — and `dashboard_skip` is not N, end with one short line offering it, as `references/dashboard.md` → **The offer** words it.
+In a conversation with the user (never a scheduled or unattended run), once per conversation and after answering what was asked: when the config has no `dashboard` line, or its `dashboard_version` is not an `x.y.z` of at least N — N being the version on the first line of `assets/dashboard.html` (read only that line) — and `dashboard_skip` is not N, end with one short line offering it, as `references/dashboard.md` → **The offer** words it. No offer before that line is read and compared: the config's value alone never shows the dashboard is out of date.
 
 ## Other scenarios — read the file first
 
