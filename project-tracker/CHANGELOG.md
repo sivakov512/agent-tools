@@ -1,5 +1,63 @@
 # Changelog
 
+## [1.17.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.16.0...project-tracker-v1.17.0) (2026-10-23)
+
+
+### Features
+
+* **project-tracker:** answer tracker questions by one goal ([2731890](https://github.com/sivakov512/agent-tools/commit/2731890d40ecbc391811c0cb5a671220dc783bd8))
+* **project-tracker:** card and Where it stands share one block ([f8c5699](https://github.com/sivakov512/agent-tools/commit/f8c56996346b8a0d75be6cf2c58e09b4b465eed2))
+* **project-tracker:** drop item buttons and boxes from the project page ([9d15dd4](https://github.com/sivakov512/agent-tools/commit/9d15dd4eb2625a6ecfe7944e824b8aab383b148b))
+* **project-tracker:** focus the drawer bar by reading line and click ([6250ffa](https://github.com/sivakov512/agent-tools/commit/6250ffa5f5d17a2b354c915ac5cb2fd5b3a5f06a))
+* **project-tracker:** give drawer items a meta-line header and a panel ([77fb70c](https://github.com/sivakov512/agent-tools/commit/77fb70cd106605ed489fa862d8b8009b196e62f6))
+* **project-tracker:** item buttons in sticky headers, bar names project ([e58a5d1](https://github.com/sivakov512/agent-tools/commit/e58a5d11c286be58b4ecd3655235e00431e3edac))
+* **project-tracker:** keep an opened milestone's header in view ([d3e240e](https://github.com/sivakov512/agent-tools/commit/d3e240e15ac54123f6ff3100b267976535acc3e3))
+* **project-tracker:** name the deepest opened item in the drawer bar ([c43f579](https://github.com/sivakov512/agent-tools/commit/c43f579fe45b120aa5413ec300871bfd453106e0))
+* **project-tracker:** name the item being read in the drawer bar ([8c9115f](https://github.com/sivakov512/agent-tools/commit/8c9115fa536fc8f73cf2950a3a07fca55029f7a1))
+* **project-tracker:** name waits older than a week ([a443198](https://github.com/sivakov512/agent-tools/commit/a443198a808de4765d4783bf0d1dae5238409c30))
+* **project-tracker:** project head as an item header, dues by owner ([a89fd71](https://github.com/sivakov512/agent-tools/commit/a89fd716099e4e4909f05e24c9be704382fe2f64))
+* **project-tracker:** project head shows only the project's own state ([58ec11c](https://github.com/sivakov512/agent-tools/commit/58ec11cea916699cfc9c647d1e7928abee4d796b))
+* **project-tracker:** say a late item as whose it is, like a due ([2f3128d](https://github.com/sivakov512/agent-tools/commit/2f3128d590a78bbc8c5c431a867eaacb220bd5af))
+* **project-tracker:** stick one item header at a time, the innermost ([e320188](https://github.com/sivakov512/agent-tools/commit/e3201881020a11a2d5b3948eb35edf0da21d77db))
+* **project-tracker:** store Claude project as its link, never its name ([0622b79](https://github.com/sivakov512/agent-tools/commit/0622b794103e678fa24ae55d233e479a935d1c2f))
+* **project-tracker:** store view links and add Done views ([e175a41](https://github.com/sivakov512/agent-tools/commit/e175a419f155cf94b01dd41c26f9ad96c8b93117))
+
+
+### Bug Fixes
+
+* **project-tracker:** About the project folds only its text ([f8fd4e8](https://github.com/sivakov512/agent-tools/commit/f8fd4e80e67c56801a0d14ef1c42cb5fabcefd6e))
+* **project-tracker:** centre the About row in the project head ([9199348](https://github.com/sivakov512/agent-tools/commit/9199348de55f04fa08827fb716d03a9efa2b7ebf))
+* **project-tracker:** count a Planned item past its start as starting ([7313723](https://github.com/sivakov512/agent-tools/commit/7313723180b76958eb32a9b7aa258d9c856e2168))
+* **project-tracker:** draw every opened item the same way at any level ([6fe6ba3](https://github.com/sivakov512/agent-tools/commit/6fe6ba357d70f822b8e32331dee20621bf3e0235))
+* **project-tracker:** find any row by its ID in a bounded By ID view ([e060b23](https://github.com/sivakov512/agent-tools/commit/e060b23977b5e6924f7dd32c78170b170612b551))
+* **project-tracker:** fold About the project by default, drop Show more ([8e4a53d](https://github.com/sivakov512/agent-tools/commit/8e4a53d8c074dffe1ea6cf9388904a9bc9d36f8f))
+* **project-tracker:** hand stuck item headers over by pushing ([d3d4d27](https://github.com/sivakov512/agent-tools/commit/d3d4d27f75f1c32413042648e9663570c2e20aa5))
+* **project-tracker:** keep a milestone in view when folded from header ([ead44f3](https://github.com/sivakov512/agent-tools/commit/ead44f3ff3c83be340e23ce965b512bbe4366316))
+* **project-tracker:** keep a report's 'nothing recorded' to the sources ([c13636d](https://github.com/sivakov512/agent-tools/commit/c13636d3c52d95c680aee0c6ed0a6993dcb3c787))
+* **project-tracker:** keep an item's header row the same when it opens ([e077035](https://github.com/sivakov512/agent-tools/commit/e077035fa3e194adeaf0a00af27fbe434ea4cd7e))
+* **project-tracker:** keep the project head's line to one line ([d110f98](https://github.com/sivakov512/agent-tools/commit/d110f9853960932367b1d8f8ea6d8f0fe4ded6e6))
+* **project-tracker:** loose work, red edge, Behind, early end on cards ([f5dec5c](https://github.com/sivakov512/agent-tools/commit/f5dec5c5138a5fa4ba94fbd7a8915141716c76fc))
+* **project-tracker:** make the read before a change a checklist ([777b7bc](https://github.com/sivakov512/agent-tools/commit/777b7bc1a4dedfa09200ab58cc31dd899f97f2d9))
+* **project-tracker:** mark the focused item without the focus box class ([036943e](https://github.com/sivakov512/agent-tools/commit/036943e5741fd119e33a788056707d2dc13ac211))
+* **project-tracker:** name client dashboards in the skill description ([356a7a1](https://github.com/sivakov512/agent-tools/commit/356a7a1be7e1d7fdfcac012b4a81e5efd6f147ee))
+* **project-tracker:** name the item the reader is in, as drawn ([8a86dc6](https://github.com/sivakov512/agent-tools/commit/8a86dc649f8745ec47f42e7bf9a422df577e13f3))
+* **project-tracker:** never ask about page rewrites in Tracker update ([a9eff36](https://github.com/sivakov512/agent-tools/commit/a9eff367586525015f86415fd8d377c098112d8c))
+* **project-tracker:** offer a dashboard update only after reading N ([6d6fa59](https://github.com/sivakov512/agent-tools/commit/6d6fa59b3ab48bb676e59fa9f574ad0f14571f00))
+* **project-tracker:** one Claude control per item, shown only when open ([be7e154](https://github.com/sivakov512/agent-tools/commit/be7e15405bf78c3e2c2b94f770f44d12e81c37f0))
+* **project-tracker:** put About the project back in the head, folded ([56dcf2b](https://github.com/sivakov512/agent-tools/commit/56dcf2bf04b52e79250d1d528543378ef1585932))
+* **project-tracker:** read Code folder whole when Notion links a part ([d1ad746](https://github.com/sivakov512/agent-tools/commit/d1ad7467b7cb19b43be254249894ce0fedcc264a))
+* **project-tracker:** read waiting items' pages before naming long waits ([20b8af8](https://github.com/sivakov512/agent-tools/commit/20b8af805a252ae6b673d6891e40abb12cd01f0b))
+* **project-tracker:** remove leftover status callouts in 7→8 update ([a60f44c](https://github.com/sivakov512/agent-tools/commit/a60f44cb02f7e35ed900f4406f315cfb876845d8))
+* **project-tracker:** restore go-ahead and today rules cut by the trim ([faeb2de](https://github.com/sivakov512/agent-tools/commit/faeb2de57aabf7f0823a28e3cbcb757d8baee5a8))
+* **project-tracker:** restore rules and reasons the SKILL.md trim cut ([b052539](https://github.com/sivakov512/agent-tools/commit/b052539f92011b5aa0be7cb06c577aeb17af8680))
+* **project-tracker:** show multi-line page tags and a whole Code folder ([9b773bd](https://github.com/sivakov512/agent-tools/commit/9b773bd8e3b9f56575f6a3b3d3c273ed348b5e1f))
+* **project-tracker:** write view links as inline code to keep the view ([311681b](https://github.com/sivakov512/agent-tools/commit/311681b6b9b06a16e221bc2a2b78bbf6b2871086))
+
+
+### Reverts
+
+* **project-tracker:** drop the long-wait nudge ([3eef3e6](https://github.com/sivakov512/agent-tools/commit/3eef3e6ab8a0e2fe4644c59ee4d3d6de984bae74))
+
 ## [1.16.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.15.6...project-tracker-v1.16.0) (2026-10-22)
 
 
