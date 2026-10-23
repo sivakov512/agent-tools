@@ -404,7 +404,7 @@
     ps.forEach(function (p) { host.appendChild(card(p, onYou[p.key] || 0)); });
   }
   function card(p, on) { // on: how many lines of Your move are its
-    var st = stateOfProject(p), c = btn("pc" + (st.cls === "crit" ? " bad" : ""), null, function () { openProject(p); }), d = S.plan[p.key];
+    var st = stateOfProject(p), c = btn("pc" + (st.trouble ? " bad" : ""), null, function () { openProject(p); }), d = S.plan[p.key];
     var top = el("div", "pc-top"), nm = el("div", "mid");
     nm.appendChild(PT.titled("pc-name", p, p.name)); nm.appendChild(el("div", "pc-who", PT.whoOf(p)));
     top.appendChild(nm); if (st.text) top.appendChild(el("span", "pill " + st.cls, st.text)); c.appendChild(top);

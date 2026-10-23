@@ -230,26 +230,31 @@
     return open.filter(function (k) { return k.late > 0; })[0] || open.filter(function (k) { return k.status === "In progress"; })[0]
       || open.filter(function (k) { return k.status === "Waiting"; })[0] || open.filter(function (k) { return k.start != null && k.start <= t; })[0] || open[0] || null;
   }
-  // The milestone (or, without milestones, the loose task) that matters most right now, or null: a planned one past its end, else one
-  // under way (late first, then not paused), else the next planned one
+  // The milestone that matters most right now, else (none open, or no milestones) the task outside any milestone, or null: a planned one
+  // past its end, else one under way (late first, then not paused), else the next planned one. Open work is never "all done".
   function focusItem(msList, taskList) {
-    var t = todayNum(), base = msList.length ? sortItems(msList) : taskList.filter(function (k) { return !k.ms; });
+    var t = todayNum();
     function late(m) { return m.late > 0; }
-    var now = base.filter(function (m) { return m.status === "In progress" || m.status === "Paused" || m.status === "Waiting"; });
-    return base.filter(function (m) { return m.status === "Planned" && late(m); })[0]
-      || now.filter(late)[0] || now.filter(function (m) { return !m.paused; })[0] || now[0]
-      || base.filter(function (m) { return m.status === "Planned" && !late(m) && (m.start == null || m.start >= t || !now.length); })[0] || null;
+    function head(base) {
+      var now = base.filter(function (m) { return m.status === "In progress" || m.status === "Paused" || m.status === "Waiting"; });
+      return base.filter(function (m) { return m.status === "Planned" && late(m); })[0]
+        || now.filter(late)[0] || now.filter(function (m) { return !m.paused; })[0] || now[0]
+        || base.filter(function (m) { return m.status === "Planned" && !late(m) && (m.start == null || m.start >= t || !now.length); })[0] || null;
+    }
+    return head(sortItems(msList)) || head(taskList.filter(function (k) { return !k.ms; }));
   }
   // Where a project stands, one set of rules for its card and its page: every milestone that is late, under way, paused or holds a late task
-  // (with its late tasks, then its current one), a late task outside any milestone, every blocker, then what comes next. Without milestones
-  // its tasks take their place. Lines with something late come first, then blockers, then the rest in the plan's order; next is last.
+  // (with its late tasks, then its current one), a task outside any milestone that is late or under way, every blocker, then what comes
+  // next — the next milestone, else the next task outside any. Without milestones its tasks take their place. A milestone not late itself
+  // but holding a late task is `Behind` when it has not started, so the label says what is wrong there. Lines with something late come
+  // first, then blockers, then the rest in the plan's order; next is last.
   // A line: { kind: "late" | "blocked" | "now" | "next", label, cls, item, subs: [tasks] }.
   function standing(msList, taskList, blockers) {
     var byTasks = !msList.length, late = [], now = [], shown = {};
     function put(x, subs) {
       var bad = x.late > 0 || subs.some(function (k) { return k.late > 0; });
-      var label = x.late > 0 ? "Late" : x.paused ? "Paused" : x.status === "Waiting" ? "Waiting" : x.status === "Planned" ? "Planned" : "Now";
-      (bad ? late : now).push({ kind: bad ? "late" : "now", label: label, cls: x.late > 0 ? "crit" : "", item: x, subs: subs }); shown[x.url] = 1;
+      var label = x.late > 0 ? "Late" : x.paused ? "Paused" : x.status === "Waiting" ? "Waiting" : x.status === "Planned" ? "Behind" : "Now"; // planned: only with a late task
+      (bad ? late : now).push({ kind: bad ? "late" : "now", label: label, cls: x.late > 0 || label === "Behind" ? "crit" : "", item: x, subs: subs }); shown[x.url] = 1;
     }
     if (byTasks) sortItems(taskList).forEach(function (k) { if (isOpen(k) && (k.late > 0 || k.status !== "Planned")) put(k, []); });
     else {
@@ -259,10 +264,11 @@
         if (!(m.late > 0) && !lt.length && m.status === "Planned") return; // not started, nothing late in it: the next one at most
         put(m, cur && lt.indexOf(cur) < 0 ? lt.concat([cur]) : lt);
       });
-      sortItems(taskList.filter(function (k) { return !k.ms && isOpen(k) && k.late > 0; })).forEach(function (k) { put(k, []); }); // late outside any milestone
+      sortItems(taskList.filter(function (k) { return !k.ms && isOpen(k) && (k.late > 0 || k.status !== "Planned"); })).forEach(function (k) { put(k, []); }); // outside any milestone
     }
+    function nextOf(list) { return sortItems(list).filter(function (x) { return x.status === "Planned" && !(x.late > 0) && !shown[x.url] && !x.paused; })[0]; }
     var lines = late.concat((blockers || []).map(function (i) { return { kind: "blocked", label: "Blocked", cls: "crit", item: i, subs: [] }; }), now);
-    var next = sortItems(byTasks ? taskList : msList).filter(function (x) { return x.status === "Planned" && !(x.late > 0) && !shown[x.url] && !x.paused; })[0];
+    var next = byTasks ? nextOf(taskList) : nextOf(msList) || nextOf(taskList.filter(function (k) { return !k.ms; }));
     if (next) lines.push({ kind: "next", label: "Next", cls: "", item: next, subs: [] });
     return lines;
   }
@@ -339,17 +345,18 @@
     if (m.status === "In progress" || m.status === "Waiting" || m.start <= t) return ["due " + soon(m.end) + (left === 0 ? "" : " · " + days(left) + " left"), left <= 7 ? "warn" : ""];
     return ["starts " + soon(m.start) + " · due " + fmt(m.end), ""];
   }
-  // a project's state, said the same way everywhere: d is its plan ({ms, tasks}), {err} when it failed to load, or nothing yet
+  // A project's state, said the same way everywhere: d is its plan ({ms, tasks}), {err} when it failed to load, or nothing yet. trouble: the
+  // project itself is in trouble (blocked, late, behind schedule) — its card's red edge; a plan that did not load is not that.
   function projectState(p, d, blockers, problemsUnknown) {
     if (d && d.err) return { text: "Not loaded", cls: "crit", dot: "crit" };
     if (!d) return { text: "", cls: "", dot: "" };
     if (p.status === "Paused") return { text: "Paused", cls: "", dot: "paused" };
     var items = d.ms.concat(d.tasks), t = todayNum(), going = !items.length || items.some(isOpen);
-    if (blockers) return { text: "Blocked", cls: "crit", dot: "crit" };
+    if (blockers) return { text: "Blocked", cls: "crit", dot: "crit", trouble: true };
     // only the project's own: late and due against its `Target end`; an item inside late makes it behind schedule, an item due soon
     // says nothing here — its own line does
-    if (p.target != null && p.target < t && going) return { text: days(t - p.target) + " late", cls: "crit", dot: "crit" };
-    if (items.some(function (x) { return isOpen(x) && x.late > 0; })) return { text: "Behind schedule", cls: "crit", dot: "crit" };
+    if (p.target != null && p.target < t && going) return { text: days(t - p.target) + " late", cls: "crit", dot: "crit", trouble: true };
+    if (items.some(function (x) { return isOpen(x) && x.late > 0; })) return { text: "Behind schedule", cls: "crit", dot: "crit", trouble: true };
     if (p.target != null && p.target - t <= 7 && going) return { text: p.target === t ? "Due today" : "Due in " + days(p.target - t), cls: "warn", dot: "warn" };
     if (!focusItem(d.ms, d.tasks)) return { text: items.length ? "All done" : "No plan yet", cls: "", dot: "good" };
     if (!items.some(function (x) { return isOpen(x) && x.end != null; })) return { text: "No dates", cls: "", dot: "ring" };
@@ -801,10 +808,12 @@
     if (extra) extra(pair);
     return dl.childNodes.length ? dl : null;
   }
-  function projectDates(p, plan) { // the plan's earliest start to the project's own end
+  // The plan's earliest start to the project's own end: { text, bad } — bad: its Target end is before that start, said as it is, in red
+  function projectDates(p, plan) {
     var starts = plan.map(function (x) { return x.start; }).filter(function (x) { return x != null; }), s0 = starts.length ? Math.min.apply(null, starts) : null;
-    if (s0 == null) return p.target != null ? "until " + fmt(p.target) : "no dates";
-    return p.target != null && p.target >= s0 ? range(s0, p.target) : "from " + fmt(s0);
+    if (s0 == null) return { text: p.target != null ? "until " + fmt(p.target) : "no dates" };
+    if (p.target == null) return { text: "from " + fmt(s0) };
+    return p.target >= s0 ? { text: range(s0, p.target) } : { text: fmt(s0) + " – " + fmt(p.target), bad: true };
   }
   // the project's own time, nothing from inside it (Where it stands says that): left, due, late or no end date; paused or all done instead
   function projectLine(p, st) {
@@ -952,7 +961,8 @@
     function projectHead(host, p, st, plan, extra) {
       var hd = el("header", "dr-head"), mt = el("div", "dr-meta"), acts = ctx.itemActions(p), rt = refTag(p);
       if (rt) mt.appendChild(rt);
-      mt.appendChild(span(projectDates(p, plan), "r"));
+      var pd = projectDates(p, plan), ds = mt.appendChild(span(pd.text, "r" + (pd.bad ? " crit" : "")));
+      if (pd.bad) ds.title = "Its Target end is before the first start in its plan";
       if (acts) { acts.classList.add("acts"); mt.appendChild(acts); }
       hd.appendChild(mt);
       hd.appendChild(el("h1", "", p.name)); hd.appendChild(projectLine(p, st));
@@ -1013,7 +1023,7 @@
     refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled, whoOf: whoOf,
     problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusItem: focusItem,
     standing: standing, standRows: standRows, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState,
-    planPhrase: planPhrase, doneCount: doneCount, stickPlan: stickPlan, foldScroll: foldScroll,
+    planPhrase: planPhrase, projectDates: projectDates, doneCount: doneCount, stickPlan: stickPlan, foldScroll: foldScroll,
     timeline: timeline, typeTag: typeTag, groupTitle: groupTitle, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };
 })();
