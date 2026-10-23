@@ -766,7 +766,7 @@
   var KIND = { project: "project", ms: "milestone", task: "task", problem: "problem" };
   function chatSid(u) { var m = /session_([A-Za-z0-9]+)/.exec(String(u || "")); return m ? m[1] : null; }
   function codeSid(u) { var m = /\blocal_([A-Za-z0-9-]{1,64})/.exec(String(u || "")); return m ? m[1] : null; } // `Code session` holds the session's own link, claude://claude.ai/epitaxy/local_<id>
-  function claudeProject(v) { // the Projects field `Claude project`: "<name> — <project id>"; only the id is read, since the name is the one it had when set
+  function claudeProject(v) { // the Projects field `Claude project`: its link, https://claude.ai/project/<id> (an older tracker's `<name> — <id>` too); only the id is read
     var m = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i.exec(String(v || ""));
     return m ? { id: m[1].toLowerCase() } : null;
   }
@@ -892,7 +892,16 @@
   var PG = PT.page({ ui: S, host: function () { return $("drBody"); }, msBody: msBody, taskBody: taskBody, itemActions: itemActions });
   var dsec = PG.dsec, setFold = PG.setFold, reveal = PG.reveal;
   // the project page, block by block; ctx carries what several blocks share
-  function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p), c.info.parts.desc ? renderMd(c.info.parts.desc, {}) : null); }
+  function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p)); }
+  function drAbout(body, p, c) { // what the project is, its page's description: a section of its own after where it stands, a few lines until Show more
+    if (!c.info.parts.desc) return;
+    var b = dsec(body, "about", "About the project"), md = renderMd(c.info.parts.desc, {}), k = "about:" + p.key;
+    md.classList.add("pad", "clamp"); b.appendChild(md);
+    var more = btn("more-t", null, function () { if (S.open[k]) delete S.open[k]; else S.open[k] = 1; paint(); });
+    function paint() { md.classList.toggle("whole", !!S.open[k]); more.textContent = S.open[k] ? "Show less" : "Show more"; more.setAttribute("aria-expanded", String(!!S.open[k])); }
+    b.appendChild(more); paint();
+    if (!b.hidden && !S.open[k] && md.scrollHeight <= md.clientHeight + 2) { md.classList.remove("clamp"); more.remove(); } // it fits: whole, no button
+  }
   function drStatus(body, c) {
     var info = c.info;
     if (info.notes.length) { var q = el("div", "dr-note"), nh = el("div", "nh"); nh.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></svg>'; nh.appendChild(span("Status")); q.appendChild(nh); info.notes.forEach(function (x) { q.appendChild(el("div", "", x)); }); body.appendChild(q); }
@@ -971,7 +980,7 @@
         waitTasks: (tk0 || []).filter(function (k) { return k.status === "Waiting" && !k.paused; }) };
       drHead(host, p, c);
       var body = el("div", "dr-in"); host.appendChild(body);
-      drStatus(body, c); drFocus(body, p, c); drNumbers(body, p, c); drItems(body, p, c); drResolved(body, p); drPlan(body, p, c); drNotes(body, p, c);
+      drStatus(body, c); drFocus(body, p, c); drNumbers(body, p, c); drAbout(body, p, c); drItems(body, p, c); drResolved(body, p); drPlan(body, p, c); drNotes(body, p, c);
     });
     paintNav(); PG.stick();
   }
