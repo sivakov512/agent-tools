@@ -633,11 +633,11 @@
     var starts = plan.map(function (x) { return x.start; }).filter(function (x) { return x != null; }), s0 = starts.length ? Math.min.apply(null, starts) : null;
     return s0 != null ? (p.target != null && p.target >= s0 ? range(s0, p.target) : "from " + fmt(s0)) : p.target != null ? "until " + fmt(p.target) : "no dates";
   }
-  function projectLine(p, st, go) { // its state, what in it is due when that is not the project's own end, then the project's own time: left, past or no end date
-    var s = el("div", "dr-st"), t = todayNum(), add = function (n) { if (s.childNodes.length) s.appendChild(document.createTextNode(" · ")); s.appendChild(n); };
+  function projectLine(p, st, go) { // one line: its state, the late or due item inside by name (cut short, whole in its tooltip), then the project's own time: left, past or no end date
+    var s = el("div", "dr-st"), t = todayNum(), add = function (n) { if (s.childNodes.length) s.appendChild(span("·", "sep")); s.appendChild(n); };
     if (st.text) {
-      var w = span(st.text, st.cls); add(w);
-      if (st.item) { w.appendChild(document.createTextNode(": ")); w.appendChild(go(st.item)); if (st.more) w.appendChild(span(" and " + st.more + " more", "muted")); } // what is due, by name
+      add(span(st.text + (st.item ? ":" : ""), st.cls));
+      if (st.item) { var g = go(st.item); g.classList.add(st.cls); g.title += ": " + st.item.name; s.appendChild(g); if (st.more) s.appendChild(span("and " + st.more + " more", "muted more")); }
     }
     var open = p.status !== "Paused" && st.text !== "All done";
     if (open && !st.own) add(p.target == null ? span("no end date", "muted") : p.target >= t ? span(p.target === t ? "ends today" : days(p.target - t) + " left") : span(days(t - p.target) + " past its end", "crit"));
