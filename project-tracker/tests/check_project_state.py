@@ -18,11 +18,13 @@ RUN = """
 const src = require("fs").readFileSync(process.argv[1], "utf8"), w = {};
 new Function("window", "document", "navigator", src)(w, { addEventListener() {}, documentElement: {} }, { userAgent: "" });
 const PT = w.PT;
-console.log(JSON.stringify(JSON.parse(process.argv[2]).map(c => {
-  const p = { url: "https://app.notion.com/p/p0", name: "P", status: "Active", target: PT.dnum(c.target) };
-  const s = PT.projectState(p, PT.buildPlan(p, c.ms, c.tasks), 0, false);
-  return s.text;
-})));
+const c = JSON.parse(process.argv[2]);
+function plan(x) { const p = { url: "https://app.notion.com/p/p0", name: "P", status: "Active", target: PT.dnum(x.target) }; return [p, PT.buildPlan(p, x.ms, x.tasks)]; }
+console.log(JSON.stringify({
+  state: c.state.map(x => { const [p, d] = plan(x); return PT.projectState(p, d, 0, false).text; }),
+  trouble: c.trouble.map(x => { const [p, d] = plan(x); const s = PT.projectState(p, x.err ? { err: { code: "timeout" } } : d, x.blockers, false); return [s.text, !!s.trouble]; }),
+  dates: c.dates.map(x => { const [p, d] = plan(x); const r = PT.projectDates(p, d.ms.length ? d.ms : d.tasks); return [r.text, !!r.bad]; })
+}));
 """
 
 
@@ -53,18 +55,49 @@ CASES = [  # (what, target end in days from today or None, milestones, tasks, th
     ("ended 4 d ago with work still open: the project's own lateness", -4, [], [tk("Copy", "In progress", -9, -3)], "4 d late"),
     ("ended 4 d ago, all done: done, not late", -4, [], [tk("Copy", "Done", -9, -5)], "All done"),
     ("no end date, nothing late or dated: no dates", None, [], [tk("Copy", "Planned", None, None)], "No dates"),
+    ("every milestone done, a task outside any still in progress: open work, never all done", None, [ms("Spec", "Done", -20, -10)],
+     [tk("Invoice", "In progress", -2, 5)], "On track"),
+    ("every milestone done, a task outside any waiting with no dates: open work", None, [ms("Spec", "Done", -20, -10)],
+     [tk("Invoice", "Waiting", None, None)], "No dates"),
+    ("every milestone and task done: all done", None, [ms("Spec", "Done", -20, -10)], [tk("Invoice", "Done", -9, -8)], "All done"),
+]
+TROUBLE = [  # (what, target, milestones, tasks, blockers, plan failed to load, [state, a red edge on its card])
+    ("blocked: trouble", 30, [M], [], 1, False, ["Blocked", True]),
+    ("behind schedule: trouble", 30, [ms("Spec", "In progress", -20, -2)], [], 0, False, ["Behind schedule", True]),
+    ("past its own end: trouble", -4, [], [tk("Copy", "In progress", -9, 3)], 0, False, ["4 d late", True]),
+    ("its plan did not load: red, but a failed read, not trouble in the project", 30, [M], [], 0, True, ["Not loaded", False]),
+    ("due soon: no edge", 3, [M], [], 0, False, ["Due in 3 d", False]),
+]
+DATES = [  # (what, target, milestones, tasks, [the head's dates, said as wrong])
+    ("the plan's first start to its end (50 days: two months, both dates whole)", 30, [ms("Spec", "In progress", -20, 5)], [], ["%s – %s", False]),
+    ("no end: from its start", None, [ms("Spec", "In progress", -20, 5)], [], ["from %s", False]),
+    ("an end before the plan starts: both, marked, never hidden", -30, [ms("Spec", "In progress", -20, 5)], [], ["%s – %s", True]),
 ]
 
 
+def fmt(n):  # a date as the page writes it: Oct 5, with the year when it is not this one
+    x = date.today() + timedelta(days=n)
+    return x.strftime("%b ") + str(x.day) + ("" if x.year == date.today().year else ", " + str(x.year))
+
+
 def main():
-    cases = [{"target": d(t), "ms": m, "tasks": k} for _, t, m, k, _ in CASES]
+    cases = {"state": [{"target": d(t), "ms": m, "tasks": k} for _, t, m, k, _ in CASES],
+             "trouble": [{"target": d(t), "ms": m, "tasks": k, "blockers": b, "err": e} for _, t, m, k, b, e, _ in TROUBLE],
+             "dates": [{"target": d(t), "ms": m, "tasks": k} for _, t, m, k, _ in DATES]}
     out = json.loads(subprocess.run(["node", "-e", RUN, str(CORE), json.dumps(cases)], capture_output=True, text=True, check=True).stdout)
-    bad = [f"{what}: got {o}, expected {want}" for (what, _, _, _, want), o in zip(CASES, out) if o != want]
+    bad = [f"{what}: got {o}, expected {want}" for (what, _, _, _, want), o in zip(CASES, out["state"]) if o != want]
+    bad += [f"{what}: got {o}, expected {want}" for (what, *_, want), o in zip(TROUBLE, out["trouble"]) if o != want]
+    for (what, t, m, _, want), o in zip(DATES, out["dates"]):
+        start = min(x["date:Dates:start"] for x in m)
+        n = (date.fromisoformat(start) - date.today()).days
+        text = want[0] % ((fmt(n), fmt(t)) if want[0].count("%s") == 2 else (fmt(n),))
+        if o != [text, want[1]]:
+            bad.append(f"{what}: got {o}, expected {[text, want[1]]}")
     for b in bad:
         print("projectState:", b)
     if bad:
         sys.exit(1)
-    print(f"projectState: {len(CASES)} cases ok")
+    print(f"projectState: {len(CASES) + len(TROUBLE) + len(DATES)} cases ok")
 
 
 if __name__ == "__main__":
