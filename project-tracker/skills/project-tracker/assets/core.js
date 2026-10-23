@@ -701,21 +701,20 @@
     }
     function padOf(sc) { return parseFloat(sc.style.paddingBottom) || 0; }
     function trim() { var sc = ctx.host(), p = padOf(sc); if (p && sc.scrollTop + sc.clientHeight <= sc.scrollHeight - p) sc.style.paddingBottom = ""; }
-    function dsec(host, ico, title, n, right, fixed) { // a big section of the page; its header folds it, open by default — unless fixed: a section that folds its own way (About the project)
-      var s = el("section", "dsec" + (fixed ? " fixed" : ui.col[ico] ? " folded" : "")); s.dataset.sec = ico;
-      var hh = el("div", "dsec-h"); hh.innerHTML = DICO[ico]; hh.appendChild(el("h3", "", title));
+    function dsec(host, ico, title, n, right, shut) { // a big section of the page; its header folds it, open by default — shut: folded until the reader opens it (About the project)
+      var off = ico in ui.col ? !!ui.col[ico] : !!shut;
+      var s = el("section", "dsec" + (off ? " folded" : "")); s.dataset.sec = ico;
+      var hh = el("div", "dsec-h"); hh.setAttribute("role", "button"); hh.tabIndex = 0; hh.setAttribute("aria-expanded", String(!off)); hh.innerHTML = DICO[ico]; hh.appendChild(el("h3", "", title)); // not a <button>: Expand all may sit in it
       if (n != null) hh.appendChild(el("span", "cnt", String(n))); if (right) { right.classList.add("r"); hh.appendChild(right); }
-      var b = el("div", "dsec-b");
-      if (fixed) { s.appendChild(hh); s.appendChild(b); host.appendChild(s); return b; }
-      hh.setAttribute("role", "button"); hh.tabIndex = 0; hh.setAttribute("aria-expanded", String(!ui.col[ico])); // not a <button>: Expand all may sit in it
-      hh.insertAdjacentHTML("beforeend", CHEV); b.hidden = !!ui.col[ico];
+      hh.insertAdjacentHTML("beforeend", CHEV);
+      var b = el("div", "dsec-b"); b.hidden = off;
       hh.addEventListener("click", function (e) { if (e.target.closest(".gall")) return; setFold(s, !s.classList.contains("folded")); });
       hh.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target === hh) { e.preventDefault(); setFold(s, !s.classList.contains("folded")); } });
       s.appendChild(hh); s.appendChild(b); host.appendChild(s); return b;
     }
     function setFold(s, shut) {
       if (s.classList.contains("folded") === shut) return;
-      var hh = s.firstChild, b = s.lastChild; if (shut) ui.col[s.dataset.sec] = 1; else delete ui.col[s.dataset.sec];
+      var hh = s.firstChild, b = s.lastChild; ui.col[s.dataset.sec] = shut ? 1 : 0; // kept either way: a section folded by default stays open once opened
       var mark = function () { s.classList.toggle("folded", shut); hh.setAttribute("aria-expanded", String(!shut)); };
       if (shut) fold(hh, s, b, mark, function () { return s.classList.contains("folded"); }); else { mark(); unfold(b); }
       s.dispatchEvent(new CustomEvent("fold", { bubbles: true, detail: { open: !shut } }));

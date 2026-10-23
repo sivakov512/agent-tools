@@ -893,15 +893,11 @@
   var dsec = PG.dsec, setFold = PG.setFold, reveal = PG.reveal;
   // the project page, block by block; ctx carries what several blocks share
   function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p)); }
-  function drAbout(body, p, c) { // what the project is, its page's description: a section of its own after where it stands, a few lines until Show more
+  function drAbout(body, p, c) { // what the project is, its page's description: a section of its own after where it stands, folded until opened
     if (!c.info.parts.desc) return;
-    var b = dsec(body, "about", "About the project", null, null, true), md = renderMd(c.info.parts.desc, {}), k = "about:" + p.key;
-    md.classList.add("pad", "clamp"); b.appendChild(md);
-    var more = btn("more-t", null, function () { if (S.open[k]) delete S.open[k]; else S.open[k] = 1; paint(); });
-    function paint() { md.classList.toggle("whole", !!S.open[k]); more.textContent = S.open[k] ? "Show less" : "Show more"; more.setAttribute("aria-expanded", String(!!S.open[k])); }
-    b.appendChild(more); paint();
-    if (!S.open[k] && md.scrollHeight <= md.clientHeight + 2) { md.classList.remove("clamp"); more.remove(); } // it fits: whole, no button
+    var md = renderMd(c.info.parts.desc, {}); md.classList.add("pad"); dsec(body, "about", "About the project", null, null, true).appendChild(md);
   }
+
   function drStatus(body, c) {
     var info = c.info;
     if (info.notes.length) { var q = el("div", "dr-note"), nh = el("div", "nh"); nh.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></svg>'; nh.appendChild(span("Status")); q.appendChild(nh); info.notes.forEach(function (x) { q.appendChild(el("div", "", x)); }); body.appendChild(q); }
