@@ -245,15 +245,10 @@
     if (p.status === "Paused") return { text: "Paused", cls: "", dot: "paused" };
     var items = d.ms.concat(d.tasks), t = todayNum(), f = focusOf(d.ms, d.tasks), going = !items.length || items.some(isOpen);
     if (blockers) return { text: "Blocked", cls: "crit", dot: "crit" };
-    // late and due soon are said as whose they are: the project's own against its `Target end`, else the item inside, by kind — a task's date is not the project's
-    var kind = function (x) { return x.kind === "ms" ? "Milestone" : "Task"; };
-    if (p.target != null && p.target < t && going) return { text: days(t - p.target) + " late", cls: "crit", dot: "crit", own: true };
-    var late = items.filter(function (x) { return isOpen(x) && x.late > 0; }).sort(function (a, b) { return b.late - a.late; }); // the worst first, as worstLate
-    if (late.length) return { text: kind(late[0]) + " " + days(late[0].late) + " late", cls: "crit", dot: "crit", item: late[0], more: late.length - 1 };
-    var due = items.filter(function (x) { return isOpen(x) && !x.paused && x.end != null && x.end - t <= 7; }).sort(function (a, b) { return a.end - b.end; }); // as the due-soon list
-    var own = p.target != null && p.target - t <= 7 && going ? p.target - t : null;
-    if (own != null && (!due.length || own <= due[0].end - t)) return { text: own === 0 ? "Due today" : "Due in " + days(own), cls: "warn", dot: "warn", own: true };
-    if (due.length) { var n = due[0].end - t; return { text: kind(due[0]) + " due " + (n === 0 ? "today" : "in " + days(n)), cls: "warn", dot: "warn", item: due[0], more: due.length - 1 }; }
+    // only the project's own: late and due against its `Target end`; an item inside late makes it behind schedule, an item due soon says nothing here — its own line does
+    if (p.target != null && p.target < t && going) return { text: days(t - p.target) + " late", cls: "crit", dot: "crit" };
+    if (items.some(function (x) { return isOpen(x) && x.late > 0; })) return { text: "Behind schedule", cls: "crit", dot: "crit" };
+    if (p.target != null && p.target - t <= 7 && going) return { text: p.target === t ? "Due today" : "Due in " + days(p.target - t), cls: "warn", dot: "warn" };
     if (!f.head) return { text: items.length ? "All done" : "No plan yet", cls: "", dot: "good" };
     if (!items.some(function (x) { return isOpen(x) && x.end != null; })) return { text: "No dates", cls: "", dot: "ring" };
     if (problemsUnknown) return { text: "Problems unknown", cls: "", dot: "ring" }; // blockers may be there, unread
@@ -633,20 +628,16 @@
     var starts = plan.map(function (x) { return x.start; }).filter(function (x) { return x != null; }), s0 = starts.length ? Math.min.apply(null, starts) : null;
     return s0 != null ? (p.target != null && p.target >= s0 ? range(s0, p.target) : "from " + fmt(s0)) : p.target != null ? "until " + fmt(p.target) : "no dates";
   }
-  function projectLine(p, st, go) { // one line: its state, the late or due item inside by name (cut short, whole in its tooltip), then the project's own time: left, past or no end date
-    var s = el("div", "dr-st"), t = todayNum(), add = function (n) { if (s.childNodes.length) s.appendChild(span("·", "sep")); s.appendChild(n); };
-    if (st.text) {
-      add(span(st.text + (st.item ? ":" : ""), st.cls));
-      if (st.item) { var g = go(st.item); g.classList.add(st.cls); g.title += ": " + st.item.name; s.appendChild(g); if (st.more) s.appendChild(span("and " + st.more + " more", "muted more")); }
-    }
-    var open = p.status !== "Paused" && st.text !== "All done";
-    if (open && !st.own) add(p.target == null ? span("no end date", "muted") : p.target >= t ? span(p.target === t ? "ends today" : days(p.target - t) + " left") : span(days(t - p.target) + " past its end", "crit"));
-    return s.childNodes.length ? s : null;
+  function projectLine(p, st) { // the project's own time, nothing from inside it (Where it stands says that): left, due, late or no end date; paused or all done instead
+    var t = todayNum(), x = p.status === "Paused" ? ["Paused", ""] : st.text === "All done" ? ["All done", "good"]
+      : p.target == null ? ["no end date", "muted"] : p.target < t ? [days(t - p.target) + " late", "crit"] : p.target === t ? ["Due today", "warn"] : [days(p.target - t) + " left", p.target - t <= 7 ? "warn" : ""];
+    var s = el("div", "dr-st"); s.appendChild(span(x[0], x[1])); return s;
   }
   var DICO = {
     items: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 5.5v3M8 10.5v.1"/></svg>',
     resolved: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M5.6 8.2 7.3 9.9 10.5 6.4"/></svg>',
     plan: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h6M5 8h8.5M3.5 12h5"/></svg>',
+    about: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3.5h10M3 6.5h10M3 9.5h10M3 12.5h6"/></svg>',
     notes: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h5.5L12 5v8.5H4z"/><path d="M6 8h4M6 10.5h4"/></svg>',
     private: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>',
     history: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.2l2 1.3"/></svg>'
@@ -750,12 +741,10 @@
       }
       return w;
     }
-    function projectHead(host, p, st, plan, extra, desc) { // as an item's header: a meta line (ID, dates, its buttons), the name, its line; then what the project is (its description) and its facts
+    function projectHead(host, p, st, plan, extra) { // as an item's header: a meta line (ID, dates, its buttons), the name, its own time; then its facts (its description comes after where it stands)
       var hd = el("header", "dr-head"), mt = el("div", "dr-meta"), acts = ctx.itemActions(p), rt = refTag(p);
       if (rt) mt.appendChild(rt); mt.appendChild(span(projectDates(p, plan), "r")); if (acts) { acts.classList.add("acts"); mt.appendChild(acts); } hd.appendChild(mt);
-      hd.appendChild(el("h1", "", p.name));
-      var ln = projectLine(p, st, function (x) { var b = btn("ilink", x.name, function () { reveal(key(x.url)); }); b.title = "Go to the " + (x.kind === "ms" ? "milestone" : "task"); return b; }); if (ln) hd.appendChild(ln);
-      if (desc) { desc.classList.add("dr-lede"); hd.appendChild(desc); }
+      hd.appendChild(el("h1", "", p.name)); hd.appendChild(projectLine(p, st));
       var sum = projectSummary(p, extra); if (sum) hd.appendChild(sum);
       host.appendChild(hd); return hd;
     }

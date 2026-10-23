@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""A project's state says a due date or lateness as whose it is (assets/core.js → projectState).
+"""A project's state is the project's own (assets/core.js → projectState), on its card and wherever it is said.
 
-`Due in 5 d` and `3 d late` are the project's own, so they come only from the project's `Target end`. A milestone or task inside it is
-said as that item — `Task due in 2 d`, `Milestone due today`, `Task 3 d late` — and the state carries the item, so the project page can
-name it; on a project with no end date nothing reads as the project's own. For a due the nearest wins, on the same day the project's
-end; for lateness the project's own first, else the worst item.
+`Due in 5 d` and `3 d late` come only from the project's own `Target end`. An item inside never speaks as the project: one late makes
+the project `Behind schedule`, without naming it; one due soon changes nothing — the card's and the page's own lines say it. On a project
+with no end date nothing reads as a deadline of its own.
 
 Run from anywhere: python3 project-tracker/tests/check_project_state.py
 """
@@ -22,7 +21,7 @@ const PT = w.PT;
 console.log(JSON.stringify(JSON.parse(process.argv[2]).map(c => {
   const p = { url: "https://app.notion.com/p/p0", name: "P", status: "Active", target: PT.dnum(c.target) };
   const s = PT.projectState(p, PT.buildPlan(p, c.ms, c.tasks), 0, false);
-  return [s.text, s.item ? s.item.name : null, s.more || 0];
+  return s.text;
 })));
 """
 
@@ -41,22 +40,19 @@ def tk(name, status, start, end, m=None):
 
 
 M = ms("Build", "In progress", -10, 5)
-CASES = [  # (what, target end in days from today or None, milestones, tasks, [state text, the item it names, how many more are due])
-    ("no end date, a task due in 2 d: said as the task's, never the project's", None, [], [tk("Copy", "Planned", -1, 2)], ["Task due in 2 d", "Copy", 0]),
-    ("no end date, a task due today", None, [], [tk("Copy", "In progress", -3, 0)], ["Task due today", "Copy", 0]),
-    ("no end date, two tasks due this week: the nearest, and one more", None, [], [tk("Photos", "Waiting", -5, 6), tk("Copy", "Planned", -1, 2)], ["Task due in 2 d", "Copy", 1]),
-    ("ends in 30 d, a milestone due in 5 d: the milestone's", 30, [M], [], ["Milestone due in 5 d", "Build", 0]),
-    ("ends in 3 d, a task due in 2 d: the task's, it comes first", 3, [], [tk("Copy", "Planned", -1, 2)], ["Task due in 2 d", "Copy", 0]),
-    ("ends in 2 d with its last task: the project's own due", 2, [], [tk("Copy", "Planned", -1, 2)], ["Due in 2 d", None, 0]),
-    ("ends in 4 d, no item ends within the week: the project's own due", 4, [], [tk("Copy", "Planned", -1, 12)], ["Due in 4 d", None, 0]),
-    ("ends today, no plan yet: the project's own due", 0, [], [], ["Due today", None, 0]),
-    ("ends in 4 d, all done: done, not due", 4, [], [tk("Copy", "Done", -10, -1)], ["All done", None, 0]),
-    ("ends in 20 d, nothing due within the week: on track", 20, [], [tk("Copy", "In progress", -3, 12)], ["On track", None, 0]),
-    ("no end date, a task 3 d late: said as the task's, never the project's", None, [], [tk("Copy", "In progress", -9, -3)], ["Task 3 d late", "Copy", 0]),
-    ("ends in 30 d, a milestone 2 d late and a task 5 d late: the worst, and one more", 30, [ms("Spec", "In progress", -20, -2)],
-     [tk("Copy", "In progress", -9, -5)], ["Task 5 d late", "Copy", 1]),
-    ("ended 4 d ago with work still open: the project's own lateness", -4, [], [tk("Copy", "In progress", -9, -3)], ["4 d late", None, 0]),
-    ("ended 4 d ago, all done: done, not late", -4, [], [tk("Copy", "Done", -9, -5)], ["All done", None, 0]),
+CASES = [  # (what, target end in days from today or None, milestones, tasks, the state)
+    ("no end date, a task due in 2 d: not the project's due", None, [], [tk("Copy", "Planned", -1, 2)], "On track"),
+    ("ends in 30 d, a milestone due in 5 d: not the project's due", 30, [M], [], "On track"),
+    ("ends in 3 d, a task due in 2 d: the project's own due", 3, [], [tk("Copy", "Planned", -1, 2)], "Due in 3 d"),
+    ("ends in 4 d, nothing inside due within the week: the project's own due", 4, [], [tk("Copy", "Planned", -1, 12)], "Due in 4 d"),
+    ("ends today, no plan yet: the project's own due", 0, [], [], "Due today"),
+    ("ends in 4 d, all done: done, not due", 4, [], [tk("Copy", "Done", -10, -1)], "All done"),
+    ("ends in 20 d, nothing late: on track", 20, [], [tk("Copy", "In progress", -3, 12)], "On track"),
+    ("no end date, a task 3 d late: behind schedule, never the project's own lateness", None, [], [tk("Copy", "In progress", -9, -3)], "Behind schedule"),
+    ("ends in 30 d, a milestone late: behind schedule", 30, [ms("Spec", "In progress", -20, -2)], [tk("Copy", "In progress", -9, 5)], "Behind schedule"),
+    ("ended 4 d ago with work still open: the project's own lateness", -4, [], [tk("Copy", "In progress", -9, -3)], "4 d late"),
+    ("ended 4 d ago, all done: done, not late", -4, [], [tk("Copy", "Done", -9, -5)], "All done"),
+    ("no end date, nothing late or dated: no dates", None, [], [tk("Copy", "Planned", None, None)], "No dates"),
 ]
 
 

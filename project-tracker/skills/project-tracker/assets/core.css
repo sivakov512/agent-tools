@@ -144,15 +144,9 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .dr-meta .r { white-space: nowrap; }
 .dr-meta > .acts { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .dr-head h1 { margin: 6px 0 0; font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: -.015em; text-wrap: balance; overflow-wrap: anywhere; }
-/* its line, always one line: only the named item gives way, cut short (whole in its tooltip), so the project's own time stays in view */
-.dr-st { display: flex; align-items: baseline; gap: .35em; margin-top: 5px; font-size: 14px; line-height: 1.45; color: var(--text-2); white-space: nowrap; overflow: hidden; }
-.dr-st > * { flex: none; }
+.dr-st { margin-top: 5px; font-size: 14px; line-height: 1.45; color: var(--text-2); } /* the project's own time: left, due, late or no end date */
 .dr-st .crit, .dr-st .warn, .dr-st .good { font-weight: 500; }
-.dr-st > .ilink { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-.dr-st > .ilink.crit { color: var(--critical); } .dr-st > .ilink.warn { color: var(--warn); }
-.dr-st > .sep { color: var(--text-mute); }
-.dr-lede { margin: 14px 0 0; font-size: 15.5px; line-height: 1.55; color: var(--text-2); max-width: 64ch; }
-/* the project's facts, under its description, apart from it by a line: whose it is and where its things live */
+/* the project's facts, under its name and time, apart by a line: whose it is and where its things live */
 .dr-sum { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--border); }
 .dr-sum > div { min-width: 0; max-width: 100%; }
 .dr-sum dt { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); line-height: 1.6; } /* the label style of Pulse's drawer facts */
@@ -190,6 +184,10 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .dsec-h .cnt + .chev, .dsec-h h3 + .chev { margin-left: auto; }
 .dsec-b { margin-top: 10px; border-top: 1px solid var(--border); } /* no box: its rows sit on the page under a hairline; the gap under the head belongs to the body, so it folds with it */
 .dsec-b > .empty, .dsec-b > .md.pad { padding: 14px 16px; }
+/* About the project: its description, a few lines and a fade until Show more */
+.dsec-b > .md.clamp:not(.whole) { max-height: calc(4 * 1.6em + 14px); overflow: hidden; -webkit-mask-image: linear-gradient(#000 65%, transparent); mask-image: linear-gradient(#000 65%, transparent); }
+.more-t { margin: 0 16px 4px; padding: 2px 0; border: 0; background: none; font: inherit; font-size: 13.5px; font-weight: 500; color: var(--accent); cursor: pointer; }
+.more-t:hover { text-decoration: underline; }
 .dsec-b > .err { margin: 10px 12px; }
 .priv-s .dsec-b { background: var(--sunken); } /* the project's Private notes: the quieter tint */
 .grp-t { display: flex; align-items: baseline; gap: 8px; padding: 7px 16px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
@@ -532,12 +530,10 @@ h1 .ref { vertical-align: 4px; }
   .acc-h .acts .lbl, .acc-h .acts .arr, .dr-meta .acts .lbl, .dr-meta .acts .arr { display: none; } /* a phone: the buttons are marks on the meta line */
   .acc-h .acts .chat > a > .cico, .dr-meta .acts .chat > a > .cico { margin-right: 0; }
   .acc-h .ib, .dr-meta .ib { padding: 0 4px; }
-  .dr-st > .more { display: none; } /* a phone: the name keeps what room there is */
 }
 .tl-b.open, .tl-chip.open, .tl-seg.open { -webkit-mask-image: linear-gradient(to right, #000 70%, transparent); mask-image: linear-gradient(to right, #000 70%, transparent); } /* an edge that is no date fades: a start with no agreed end, drawn for a set span, fades where the end would be */
 .tl-b.box.ph { -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); } /* and a milestone with no dates at all, placed for a month from today, fades at both */
 .x-lede { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--text); max-width: 68ch; } /* a problem's summary, first in its details */
-.dr-head .md.dr-lede { font-size: 15px; color: var(--text-2); }
 .fsum { margin: 0; padding: 13px 16px; font-size: 14.5px; line-height: 1.55; color: var(--text-2); } /* the project's summary: where it stands, in a sentence */
 .fsum + .fr { border-top: 1px solid var(--border); }
 .md li.todo { list-style: none; position: relative; margin-left: -18px; padding-left: 18px; }
