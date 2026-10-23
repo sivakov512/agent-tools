@@ -246,8 +246,11 @@
     var items = d.ms.concat(d.tasks), worst = worstLate(items), t = todayNum(), f = focusOf(d.ms, d.tasks);
     if (blockers) return { text: "Blocked", cls: "crit", dot: "crit" };
     if (worst) return { text: days(worst) + " late", cls: "crit", dot: "crit" };
-    var near = items.filter(function (x) { return isOpen(x) && !x.paused && x.end != null; }).reduce(function (a, x) { return Math.min(a, x.end - t); }, 1e9); // as the due-soon list
-    if (near <= 7) return { text: near === 0 ? "Due today" : "Due in " + days(near), cls: "warn", dot: "warn" };
+    // due soon, as the due-soon list: the project's own end, else what inside it ends first, said as that item — a task's end is not the project's
+    var due = items.filter(function (x) { return isOpen(x) && !x.paused && x.end != null && x.end - t <= 7; }).sort(function (a, b) { return a.end - b.end; });
+    var own = p.target != null && p.target >= t && p.target - t <= 7 && (!items.length || items.some(isOpen)) ? p.target - t : null;
+    if (own != null && (!due.length || own <= due[0].end - t)) return { text: own === 0 ? "Due today" : "Due in " + days(own), cls: "warn", dot: "warn", own: true };
+    if (due.length) { var n = due[0].end - t; return { text: (due[0].kind === "ms" ? "Milestone" : "Task") + " due " + (n === 0 ? "today" : "in " + days(n)), cls: "warn", dot: "warn", item: due[0], more: due.length - 1 }; }
     if (!f.head) return { text: items.length ? "All done" : "No plan yet", cls: "", dot: "good" };
     if (!items.some(function (x) { return isOpen(x) && x.end != null; })) return { text: "No dates", cls: "", dot: "ring" };
     if (problemsUnknown) return { text: "Problems unknown", cls: "", dot: "ring" }; // blockers may be there, unread
@@ -614,15 +617,28 @@
     var inMs = null; if (k.ms && !inPlan) { inMs = span("in "); inMs.appendChild(go ? go(k.ms, k.ms.name) : document.createTextNode(k.ms.name)); }
     meta(x, [inMs]);
   }
-  // the project at a glance, under its summary: when it ends and when it started, then what extra(pair) adds
-  function projectSummary(p, plan, extra) {
+  // the project's facts, under its description: whose it is, then what extra(pair) adds (where its work lives)
+  function projectSummary(p, extra) {
     var dl = el("dl", "dr-sum");
     function pair(k, v, none) { var d = el("div"); d.appendChild(el("dt", "", k)); var dd = el("dd", none ? "none" : ""); if (typeof v === "string") dd.textContent = v; else dd.appendChild(v); d.appendChild(dd); dl.appendChild(d); return d; }
-    var starts = plan.map(function (x) { return x.start; }).filter(function (x) { return x != null; }), t = todayNum();
-    if (p.target != null) { var e = span(fmt(p.target, true)); if (p.target >= t) e.appendChild(span(" · in " + plural(p.target - t, "day"), "w")); pair("Ends", e); } else pair("Ends", "not set", true);
-    if (starts.length) { var s0 = Math.min.apply(null, starts); pair(s0 > t ? "Starts" : "Started", fmt(s0, true)); }
+    var o = p.origin && (!p.client || p.client.toLowerCase() !== p.origin.toLowerCase()) ? span(" · " + p.origin, "w") : null; // its origin after it, once when they are the same
+    if (p.client || o) { var c = span(p.client || "none"); if (o) c.appendChild(o); pair("Client", c, !p.client); }
     if (extra) extra(pair);
-    return dl;
+    return dl.childNodes.length ? dl : null;
+  }
+  function projectDates(p, plan) { // the plan's earliest start to the project's own end
+    var starts = plan.map(function (x) { return x.start; }).filter(function (x) { return x != null; }), s0 = starts.length ? Math.min.apply(null, starts) : null;
+    return s0 != null ? (p.target != null && p.target >= s0 ? range(s0, p.target) : "from " + fmt(s0)) : p.target != null ? "until " + fmt(p.target) : "no dates";
+  }
+  function projectLine(p, st, go) { // its state, what in it is due when that is not the project's own end, then the project's own time: left, past or no end date
+    var s = el("div", "dr-st"), t = todayNum(), add = function (n) { if (s.childNodes.length) s.appendChild(document.createTextNode(" · ")); s.appendChild(n); };
+    if (st.text) {
+      var w = span(st.text, st.cls); add(w);
+      if (st.item) { w.appendChild(document.createTextNode(": ")); w.appendChild(go(st.item)); if (st.more) w.appendChild(span(" and " + st.more + " more", "muted")); } // what is due, by name
+    }
+    var open = p.status !== "Paused" && st.text !== "All done";
+    if (open && !st.own) add(p.target == null ? span("no end date", "muted") : p.target >= t ? span(p.target === t ? "ends today" : days(p.target - t) + " left") : span(days(t - p.target) + " past its end", "crit"));
+    return s.childNodes.length ? s : null;
   }
   var DICO = {
     items: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 5.5v3M8 10.5v.1"/></svg>',
@@ -634,7 +650,7 @@
   };
 
   // The project page's pieces. ctx: ui (open: items and sub-pages opened or closed, col: sections folded — kept across repaints),
-  // host() (the box the page scrolls in), msBody(x, m) and taskBody(x, k) (what an opened milestone or task shows), actions(item) (an
+  // host() (the box the page scrolls in), msBody(x, m) and taskBody(x, k) (what an opened milestone or task shows), itemActions(item) (an
   // item's own buttons, or nothing on a client's page). Every item that opens in place — a milestone, a task, a problem — is one kind of
   // block: .blk, its header strip (.blk-h: the .acc-h that opens and folds it, and once open its buttons), its body (.blk-b), the item in
   // ._item, its key on the page in data-k. An opened item's header sticks while its item is read, one at a time (stick).
@@ -731,12 +747,13 @@
       }
       return w;
     }
-    function projectHead(host, p, st, plan, extra, desc) { // who and the project's own buttons, the name with its state, what the project is (its description), the project at a glance
-      var hd = el("header", "dr-head"), who = el("div", "dr-who"), acts = ctx.actions(p);
-      who.appendChild(span(whoOf(p))); if (acts) { acts.classList.add("acts"); who.appendChild(acts); } hd.appendChild(who);
-      var h = el("div", "dr-h1"), h1 = el("h1", "", p.name), rt = refTag(p); if (rt) h1.appendChild(rt); h.appendChild(h1); if (st.text) h.appendChild(el("span", "pill " + st.cls, st.text)); hd.appendChild(h);
+    function projectHead(host, p, st, plan, extra, desc) { // as an item's header: a meta line (ID, dates, its buttons), the name, its line; then what the project is (its description) and its facts
+      var hd = el("header", "dr-head"), mt = el("div", "dr-meta"), acts = ctx.itemActions(p), rt = refTag(p);
+      if (rt) mt.appendChild(rt); mt.appendChild(span(projectDates(p, plan), "r")); if (acts) { acts.classList.add("acts"); mt.appendChild(acts); } hd.appendChild(mt);
+      hd.appendChild(el("h1", "", p.name));
+      var ln = projectLine(p, st, function (x) { var b = btn("ilink", x.name, function () { reveal(key(x.url)); }); b.title = "Go to the " + (x.kind === "ms" ? "milestone" : "task"); return b; }); if (ln) hd.appendChild(ln);
       if (desc) { desc.classList.add("dr-lede"); hd.appendChild(desc); }
-      hd.appendChild(projectSummary(p, plan, extra));
+      var sum = projectSummary(p, extra); if (sum) hd.appendChild(sum);
       host.appendChild(hd); return hd;
     }
     function focusBlock(f, blockers, summary) { // where it stands: the summary, then the milestone under way with its current task, what is late, what is paused, the next milestone, blockers

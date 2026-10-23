@@ -137,14 +137,20 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .skel { height: 12px; border-radius: 4px; background: var(--sunken); }
 .skel + .skel { margin-top: 8px; }
 
-.dr-head { padding: 26px 36px 24px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
-.dr-who { font-size: 13.5px; color: var(--text-mute); }
-.dr-h1 { display: flex; align-items: flex-start; gap: 12px; margin: 4px 0 0; }
-.dr-h1 h1 { margin: 0; font-size: 26px; line-height: 1.2; font-weight: 600; letter-spacing: -.015em; text-wrap: balance; }
-.dr-h1 .pill { margin-top: 6px; }
-.dr-lede { margin: 12px 0 0; font-size: 15.5px; line-height: 1.55; color: var(--text-2); max-width: 64ch; }
-/* the project at a glance, under the summary: when it ends and where its things live */
-.dr-sum { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 16px 0 0; }
+.dr-head { padding: 22px 36px 24px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+/* the project's head reads as an item's header: a quiet meta line (ID, dates, its Claude control and Notion), the name, its line */
+.dr-meta { display: flex; align-items: center; gap: 12px; min-height: 24px; font-size: 12px; color: var(--text-mute); }
+.dr-meta .ref { margin: 0; padding: 0; background: none; font-size: 11.5px; }
+.dr-meta .r { white-space: nowrap; }
+.dr-meta > .acts { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.dr-head h1 { margin: 6px 0 0; font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: -.015em; text-wrap: balance; overflow-wrap: anywhere; }
+.dr-st { margin-top: 5px; font-size: 14px; line-height: 1.45; color: var(--text-2); }
+.dr-st .crit, .dr-st .warn, .dr-st .good { font-weight: 500; }
+.dr-st .ilink { font-weight: 500; }
+.dr-st > span + span { white-space: nowrap; } /* the project's own time never breaks */
+.dr-lede { margin: 14px 0 0; font-size: 15.5px; line-height: 1.55; color: var(--text-2); max-width: 64ch; }
+/* the project's facts, under its description, apart from it by a line: whose it is and where its things live */
+.dr-sum { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--border); }
 .dr-sum > div { min-width: 0; max-width: 100%; }
 .dr-sum dt { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); line-height: 1.6; } /* the label style of Pulse's drawer facts */
 .dr-sum dd { margin: 0; font-size: 14px; line-height: 1.55; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 32ch; }
@@ -222,11 +228,11 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .ib .ico { stroke: currentColor; fill: none; stroke-width: 1.5; }
 .ib .ico circle { fill: currentColor; stroke: none; }
 .acts .chat-m { left: auto; right: 0; } /* the buttons sit at the right: the menu opens leftwards, inside the page */
-.acc-h .chat { font-size: 12.5px; } /* the item's Claude, the project's control made to fit the meta line */
-.acc-h .chat > a, .acc-h .chat > .more { height: 24px; padding-top: 0; padding-bottom: 0; }
-.acc-h .chat > a { padding-left: 8px; }
-.acc-h .chat.split > a.cpart { min-width: 26px; padding: 0 7px; }
-.acc-h .chat .cico { width: 14px; height: 14px; }
+.acc-h .chat, .dr-meta .chat { font-size: 12.5px; } /* the Claude control made to fit a meta line: an item's header, the project's head */
+.acc-h .chat > a, .acc-h .chat > .more, .dr-meta .chat > a, .dr-meta .chat > .more { height: 24px; padding-top: 0; padding-bottom: 0; }
+.acc-h .chat > a, .dr-meta .chat > a { padding-left: 8px; }
+.acc-h .chat.split > a.cpart, .dr-meta .chat.split > a.cpart { min-width: 26px; padding: 0 7px; }
+.acc-h .chat .cico, .dr-meta .chat .cico { width: 14px; height: 14px; }
 .acts .ext { white-space: nowrap; }
 /* One header stuck at a time: an opened item's sticks while it is read and goes with its end; inside an opened milestone, an opened task's
    takes the place while the task is read, the two pushing each other, never overlapping (stick()). */
@@ -257,7 +263,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
   .main > section + section { margin-top: 0; }
   .dr-head { padding: 18px 18px 16px; }
   .dr-in { padding: 4px 18px 48px; }
-  .dr-h1 h1 { font-size: 20px; }
+  .dr-head h1 { font-size: 20px; }
   .stats { gap: 8px; }
   .stat { padding: 10px 11px; }
   .stat .v { font-size: 15px; white-space: normal; }
@@ -520,9 +526,9 @@ h1 .ref { vertical-align: 4px; }
 .pline .ilink { font-size: 14px; color: var(--text); }
 @media (max-width: 600px) { /* a phone: the bar on one line; an item's buttons as marks, so its name keeps the room */
   .dr-bar { gap: 4px; padding-left: 16px; }
-  .acc-h .acts .lbl, .acc-h .acts .arr { display: none; } /* a phone: the buttons are marks on the meta line */
-  .acc-h .acts .chat > a > .cico { margin-right: 0; }
-  .acc-h .ib { padding: 0 4px; }
+  .acc-h .acts .lbl, .acc-h .acts .arr, .dr-meta .acts .lbl, .dr-meta .acts .arr { display: none; } /* a phone: the buttons are marks on the meta line */
+  .acc-h .acts .chat > a > .cico, .dr-meta .acts .chat > a > .cico { margin-right: 0; }
+  .acc-h .ib, .dr-meta .ib { padding: 0 4px; }
 }
 .tl-b.open, .tl-chip.open, .tl-seg.open { -webkit-mask-image: linear-gradient(to right, #000 70%, transparent); mask-image: linear-gradient(to right, #000 70%, transparent); } /* an edge that is no date fades: a start with no agreed end, drawn for a set span, fades where the end would be */
 .tl-b.box.ph { -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); } /* and a milestone with no dates at all, placed for a month from today, fades at both */
@@ -599,7 +605,4 @@ h1 .ref { vertical-align: 4px; }
 .nc-gray { color: var(--text-mute); } .nc-brown, .nc-orange, .nc-yellow { color: var(--warn); } .nc-green { color: var(--good); } .nc-blue, .nc-purple, .nc-pink { color: var(--accent); } .nc-red { color: var(--critical); }
 .nc-gray-bg, .nc-brown-bg { background: var(--sunken); } .nc-orange-bg, .nc-yellow-bg { background: var(--warn-soft); } .nc-green-bg { background: var(--good-soft); } .nc-blue-bg, .nc-purple-bg, .nc-pink-bg { background: var(--accent-soft); } .nc-red-bg { background: var(--critical-soft); }
 
-/* the project's own buttons, beside who it is for at the top of its page */
-.dr-who { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
-.dr-who > .acts { display: flex; align-items: center; gap: 14px; font-size: 13.5px; }
 .dr-sum .long dd { white-space: normal; overflow-wrap: anywhere; max-width: 48ch; } /* a folder path wraps, never cut */

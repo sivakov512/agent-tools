@@ -766,9 +766,9 @@
   var KIND = { project: "project", ms: "milestone", task: "task", problem: "problem" };
   function chatSid(u) { var m = /session_([A-Za-z0-9]+)/.exec(String(u || "")); return m ? m[1] : null; }
   function codeSid(u) { var m = /\blocal_([A-Za-z0-9-]{1,64})/.exec(String(u || "")); return m ? m[1] : null; } // `Code session` holds the session's own link, claude://claude.ai/epitaxy/local_<id>
-  function claudeProject(v) { // the Projects field `Claude project`: "<name> — <project id>"
+  function claudeProject(v) { // the Projects field `Claude project`: "<name> — <project id>"; only the id is read, since the name is the one it had when set
     var m = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i.exec(String(v || ""));
-    return m ? { id: m[1].toLowerCase(), name: clean(String(v).replace(m[0], "").replace(/[\s—–·:-]+$/, "")) || "Claude project" } : null;
+    return m ? { id: m[1].toLowerCase() } : null;
   }
   function newChatUrl(q, cp) { // the web takes the tracker project's claude.ai project; the app's own link has no way to name one
     return MOBILE ? "https://claude.ai/new?mode=cowork&surface=cowork" + (cp ? "&project=" + cp.id : "") + "&q=" + encodeURIComponent(q) : "claude://cowork/new?q=" + encodeURIComponent(q);
@@ -868,20 +868,15 @@
     PT.meta(x, [onWhom(i), where, i.opened != null ? "opened " + fmt(i.opened) + (i.status !== "Resolved" && a != null ? ", " + days(a) + " ago" : "") : "", i.resolvedOn != null ? "resolved " + fmt(i.resolvedOn) : ""]);
     pageBody(x, i.url, { split: true });
   }
-  function projectLinks(p) { // what the user's project page adds to the project at a glance: Claude project, repository, Code folder, source — each always there or said to be missing
+  function projectLinks(p) { // what the user's project page adds to the project's facts: where it came from, its repository, Claude project and Code folder (last: a path takes room) — the last two always there or said to be missing
     return function (pair) {
-      if (p.cproj) { var cpl = link("https://claude.ai/project/" + p.cproj.id, p.cproj.name + " ↗", "ext"); cpl.title = "The claude.ai project this project's chats open in (on the phone and the web)"; pair("Claude project", cpl); }
-      else pair("Claude project", "none", true).title = "Its chats open outside claude.ai projects. To set one, tell Claude in a chat: \u201copen its chats in <project link>\u201d";
+      if (p.source) pair(p.origin === "Upwork" ? "Upwork" : "Source", link(p.source, (p.origin === "Upwork" ? "contract" : "link") + " ↗", "ext"));
       if (p.repo) { var rp = link(p.repo, String(p.repo).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "").split("/").slice(-2).join("/") + " ↗", "ext"); rp.title = p.repo; pair("Repository", rp); }
+      if (p.cproj) { var cpl = link("https://claude.ai/project/" + p.cproj.id, "open ↗", "ext"); cpl.title = "The claude.ai project this project's chats open in (on the phone and the web)"; pair("Claude project", cpl); } // no name: a rename in claude.ai never reaches the tracker, and nothing here can read the current one
+      else pair("Claude project", "none", true).title = "Its chats open outside claude.ai projects. To set one, tell Claude in a chat: \u201copen its chats in <project link>\u201d";
       if (p.cfolder) { var cf = pair("Code folder", homePath(p.cfolder)); cf.classList.add("long"); cf.title = p.cfolder + " — new Code sessions of this project open here"; } // a path wraps, never cut
       else pair("Code folder", "not set — the first Code session fills it", true).title = "Its first Code session writes its repository's folder here; or tell Claude in a chat: \u201cits code is in <folder>\u201d";
-      if (p.source) pair(p.origin === "Upwork" ? "Upwork" : "Source", link(p.source, (p.origin === "Upwork" ? "contract" : "link") + " ↗", "ext"));
     };
-  }
-  function actions(x) { // the project's own buttons, in its head: Claude (</>, ▾) and Notion; none on a client's page
-    if (SNAP) return null;
-    var a = el("span"); a.appendChild(chatBtn(x, x.kind)); var n = link(x.url, "Notion ↗", "ext"); n.title = "Opens this " + KIND[x.kind] + " in Notion"; n.addEventListener("click", function (e) { e.stopPropagation(); }); a.appendChild(n);
-    return a;
   }
   var GLYPH = { out: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 8 8M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3"/></svg>' };
   function ib(href, html, word, title) { // one of an item's buttons: its mark and its word (a phone shows the mark alone)
@@ -889,12 +884,12 @@
     if (href) { a.href = href; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", function (e) { e.stopPropagation(); }); } else a.type = "button";
     return a;
   }
-  function itemActions(x) { // an item's own buttons, in its header: its Claude — one control: the chat, </> its Code session (not on a phone), ▾ a new chat or session — then Notion
+  function itemActions(x) { // an item's own buttons, in its header, the project's in its head: its Claude — one control: the chat, </> its Code session (not on a phone), ▾ a new chat or session — then Notion
     if (SNAP) return null;
     var w = el("span"); w.appendChild(chatBtn(x, x.kind)); w.appendChild(ib(x.url, GLYPH.out, "Notion", "Opens this " + KIND[x.kind] + " in Notion"));
     return w;
   }
-  var PG = PT.page({ ui: S, host: function () { return $("drBody"); }, msBody: msBody, taskBody: taskBody, actions: actions, itemActions: itemActions });
+  var PG = PT.page({ ui: S, host: function () { return $("drBody"); }, msBody: msBody, taskBody: taskBody, itemActions: itemActions });
   var dsec = PG.dsec, setFold = PG.setFold, reveal = PG.reveal;
   // the project page, block by block; ctx carries what several blocks share
   function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p), c.info.parts.desc ? renderMd(c.info.parts.desc, {}) : null); }
