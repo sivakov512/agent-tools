@@ -221,7 +221,7 @@ Tool names are the Notion MCP tools (`notion-fetch`, `notion-query-data-sources`
 
 After any write that contains markup, fetch the page and check: tags that show up as text (`&lt;callout`), blocks out of order, or an `icon=` that Notion added → fix with `update_content`. Pages, databases and tabs carry no icons.
 
-**No status callout** on a project page: where it stands is computed live, and a text summary would go stale. A page that still opens with one: `references/upgrade.md` → **Old shapes**.
+**No status callout** on a project page: where it stands is computed live, and a text summary would go stale.
 
 ## Every change: read, write, check, report
 

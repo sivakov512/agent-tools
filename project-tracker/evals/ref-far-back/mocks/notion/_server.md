@@ -81,11 +81,6 @@ Schemas:
 Its page (fetch of the row id) contains:
 
 ```
-<callout icon="🔵" color="blue_bg">
-	**Now:** Firmware on the dev board — due Nov 13 → Real readings from the CT sensor over Zigbee, due Oct 9
-	**Waiting on:** CI runner set up (Marko) · RFQ reviewed (Northwind) · Invoice received from Acme (Acme)
-	**Open:** 1 risk
-</callout>
 <tabs>
 	<tab>
 		Plan
@@ -138,14 +133,7 @@ Problems of Energy meter:
 
 **Weather station** — row id `30000000-0000-4000-8000-000000000030`; Ref PRJ-3; Client Gale Instruments; Origin Direct; Status Done; Target end 2026-06-30; in Projects "Closed" only. It has no milestones, problems or page body worth reading. Its tasks are TSK-12 to TSK-300, 289 rows, every one Done, named `Station task 12` … `Station task 300`, finished one a day backwards from 2026-08-31 (TSK-300 on 2026-08-31, TSK-299 on 2026-08-30, …), row ids `30000000-0000-4000-8000-0000000a0012` … `…0a0300` (the number in the last digits); their pages are empty.
 
-**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Ref PRJ-2; Client Brightbrush Ltd; Origin Upwork; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Views "Tasks `https://app.notion.com/p/60000000000040008000000000000022?v=70000000000040008000000000000022`; Schedule `https://app.notion.com/p/60000000000040008000000000000023?v=70000000000040008000000000000023`; Problems `https://app.notion.com/p/60000000000040008000000000000024?v=70000000000040008000000000000024`"; Summary "Layout in progress, due Oct 20; firmware starts Oct 20, once the spec is approved." Same page layout, with this callout and nothing below `</tabs>`:
-
-```
-<callout icon="🔵" color="blue_bg">
-	**Now:** Layout — due Oct 20
-	**Waiting on:** Firmware spec approved by Brightbrush Ltd (Brightbrush Ltd)
-</callout>
-```
+**Brightbrush** — row id `30000000-0000-4000-8000-000000000020`; Ref PRJ-2; Client Brightbrush Ltd; Origin Upwork; Status Active; Source https://www.upwork.com/ab/f/contracts/555001; Target end 2026-11-10; Views "Tasks `https://app.notion.com/p/60000000000040008000000000000022?v=70000000000040008000000000000022`; Schedule `https://app.notion.com/p/60000000000040008000000000000023?v=70000000000040008000000000000023`; Problems `https://app.notion.com/p/60000000000040008000000000000024?v=70000000000040008000000000000024`"; Summary "Layout in progress, due Oct 20; firmware starts Oct 20, once the spec is approved." Same page layout, with nothing below `</tabs>`.
 
 Linked-view blocks `60000000…0021` Plan, `…0022` Tasks (views `70000000…0022` "Tasks" table, then `…0025` "Timeline"), `…0023` Schedule, `…0024` Problems; views `70000000…0021/22/23/24`, same kinds as for Energy meter.
 - Milestone `3000…0301` (Ref MLS-3) Schematic — Done — 2026-09-01 → 2026-09-18 — Finished 2026-09-18. Body: `Contract milestone 1. Done when the schematic PDF is delivered.`
