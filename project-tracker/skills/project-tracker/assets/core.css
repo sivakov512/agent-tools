@@ -174,7 +174,6 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .dsec { margin-top: 32px; }
 .dsec-h { display: flex; align-items: center; gap: 9px; width: 100%; padding: 4px 4px 4px 0; border: 0; background: none; text-align: left; cursor: pointer; color: var(--text-2); border-radius: 8px; }
 .dsec-h:hover h3 { color: var(--accent); }
-.dsec.fixed > .dsec-h { cursor: default; } .dsec.fixed > .dsec-h:hover h3 { color: var(--text); } /* a section that does not fold: its text has its own Show more */
 .dsec-h > .chev { margin-left: 8px; transform: rotate(90deg); transition: transform .15s; }
 .dsec.folded .dsec-h > .chev { transform: none; }
 .dsec-h .ico { width: 17px; height: 17px; }
@@ -185,10 +184,6 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .dsec-h .cnt + .chev, .dsec-h h3 + .chev { margin-left: auto; }
 .dsec-b { margin-top: 10px; border-top: 1px solid var(--border); } /* no box: its rows sit on the page under a hairline; the gap under the head belongs to the body, so it folds with it */
 .dsec-b > .empty, .dsec-b > .md.pad { padding: 14px 16px; }
-/* About the project: its description, a few lines and a fade until Show more */
-.dsec-b > .md.clamp:not(.whole) { max-height: calc(4 * 1.6em + 14px); overflow: hidden; -webkit-mask-image: linear-gradient(#000 65%, transparent); mask-image: linear-gradient(#000 65%, transparent); }
-.more-t { margin: 0 16px 4px; padding: 2px 0; border: 0; background: none; font: inherit; font-size: 13.5px; font-weight: 500; color: var(--accent); cursor: pointer; }
-.more-t:hover { text-decoration: underline; }
 .dsec-b > .err { margin: 10px 12px; }
 .priv-s .dsec-b { background: var(--sunken); } /* the project's Private notes: the quieter tint */
 .grp-t { display: flex; align-items: baseline; gap: 8px; padding: 7px 16px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
