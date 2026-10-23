@@ -243,14 +243,17 @@
     if (d && d.err) return { text: "Not loaded", cls: "crit", dot: "crit" };
     if (!d) return { text: "", cls: "", dot: "" };
     if (p.status === "Paused") return { text: "Paused", cls: "", dot: "paused" };
-    var items = d.ms.concat(d.tasks), worst = worstLate(items), t = todayNum(), f = focusOf(d.ms, d.tasks);
+    var items = d.ms.concat(d.tasks), t = todayNum(), f = focusOf(d.ms, d.tasks), going = !items.length || items.some(isOpen);
     if (blockers) return { text: "Blocked", cls: "crit", dot: "crit" };
-    if (worst) return { text: days(worst) + " late", cls: "crit", dot: "crit" };
-    // due soon, as the due-soon list: the project's own end, else what inside it ends first, said as that item — a task's end is not the project's
-    var due = items.filter(function (x) { return isOpen(x) && !x.paused && x.end != null && x.end - t <= 7; }).sort(function (a, b) { return a.end - b.end; });
-    var own = p.target != null && p.target >= t && p.target - t <= 7 && (!items.length || items.some(isOpen)) ? p.target - t : null;
+    // late and due soon are said as whose they are: the project's own against its `Target end`, else the item inside, by kind — a task's date is not the project's
+    var kind = function (x) { return x.kind === "ms" ? "Milestone" : "Task"; };
+    if (p.target != null && p.target < t && going) return { text: days(t - p.target) + " late", cls: "crit", dot: "crit", own: true };
+    var late = items.filter(function (x) { return isOpen(x) && x.late > 0; }).sort(function (a, b) { return b.late - a.late; }); // the worst first, as worstLate
+    if (late.length) return { text: kind(late[0]) + " " + days(late[0].late) + " late", cls: "crit", dot: "crit", item: late[0], more: late.length - 1 };
+    var due = items.filter(function (x) { return isOpen(x) && !x.paused && x.end != null && x.end - t <= 7; }).sort(function (a, b) { return a.end - b.end; }); // as the due-soon list
+    var own = p.target != null && p.target - t <= 7 && going ? p.target - t : null;
     if (own != null && (!due.length || own <= due[0].end - t)) return { text: own === 0 ? "Due today" : "Due in " + days(own), cls: "warn", dot: "warn", own: true };
-    if (due.length) { var n = due[0].end - t; return { text: (due[0].kind === "ms" ? "Milestone" : "Task") + " due " + (n === 0 ? "today" : "in " + days(n)), cls: "warn", dot: "warn", item: due[0], more: due.length - 1 }; }
+    if (due.length) { var n = due[0].end - t; return { text: kind(due[0]) + " due " + (n === 0 ? "today" : "in " + days(n)), cls: "warn", dot: "warn", item: due[0], more: due.length - 1 }; }
     if (!f.head) return { text: items.length ? "All done" : "No plan yet", cls: "", dot: "good" };
     if (!items.some(function (x) { return isOpen(x) && x.end != null; })) return { text: "No dates", cls: "", dot: "ring" };
     if (problemsUnknown) return { text: "Problems unknown", cls: "", dot: "ring" }; // blockers may be there, unread

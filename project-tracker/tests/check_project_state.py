@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""A project's state says a due date as whose it is (assets/core.js → projectState).
+"""A project's state says a due date or lateness as whose it is (assets/core.js → projectState).
 
-`Due in 5 d` is the project's own deadline, so it comes only from the project's `Target end`. A milestone or task inside it that ends
-first is said as that item — `Task due in 2 d`, `Milestone due today` — and the state carries the item, so the project page can name it;
-on a project with no end date it never reads as the project's own due. The nearest wins; on the same day the project's end does.
+`Due in 5 d` and `3 d late` are the project's own, so they come only from the project's `Target end`. A milestone or task inside it is
+said as that item — `Task due in 2 d`, `Milestone due today`, `Task 3 d late` — and the state carries the item, so the project page can
+name it; on a project with no end date nothing reads as the project's own. For a due the nearest wins, on the same day the project's
+end; for lateness the project's own first, else the worst item.
 
 Run from anywhere: python3 project-tracker/tests/check_project_state.py
 """
@@ -51,6 +52,11 @@ CASES = [  # (what, target end in days from today or None, milestones, tasks, [s
     ("ends today, no plan yet: the project's own due", 0, [], [], ["Due today", None, 0]),
     ("ends in 4 d, all done: done, not due", 4, [], [tk("Copy", "Done", -10, -1)], ["All done", None, 0]),
     ("ends in 20 d, nothing due within the week: on track", 20, [], [tk("Copy", "In progress", -3, 12)], ["On track", None, 0]),
+    ("no end date, a task 3 d late: said as the task's, never the project's", None, [], [tk("Copy", "In progress", -9, -3)], ["Task 3 d late", "Copy", 0]),
+    ("ends in 30 d, a milestone 2 d late and a task 5 d late: the worst, and one more", 30, [ms("Spec", "In progress", -20, -2)],
+     [tk("Copy", "In progress", -9, -5)], ["Task 5 d late", "Copy", 1]),
+    ("ended 4 d ago with work still open: the project's own lateness", -4, [], [tk("Copy", "In progress", -9, -3)], ["4 d late", None, 0]),
+    ("ended 4 d ago, all done: done, not late", -4, [], [tk("Copy", "Done", -9, -5)], ["All done", None, 0]),
 ]
 
 
