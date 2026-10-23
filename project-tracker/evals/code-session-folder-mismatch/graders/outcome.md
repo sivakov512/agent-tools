@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'last_message'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 This is a Claude Code session started from the dashboard for the task "Sleep modes and sampling with the processor asleep" of the project Energy meter, whose repository is https://git.example.com/hw/energy-meter. The session was opened in a folder whose git remote is another repository (github.com/dana/agent-tools).
 

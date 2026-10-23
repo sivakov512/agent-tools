@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'last_message'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 The next two weeks run from today, Oct 9, to about Oct 23. In that window the tracker has exactly two open items whose end falls in it: the task Real readings from the CT sensor over Zigbee (Energy meter, due Oct 9, today) and the milestone Layout (Brightbrush, due Oct 20).
 

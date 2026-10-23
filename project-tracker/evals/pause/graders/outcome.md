@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'mock_calls'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 - The milestone "Firmware on the dev board" (id ending 0110) was set to Paused, with a history line recording the previous status and the reason (waiting on Northwind for the gateway firmware).
 - The wait on Northwind for the gateway firmware is recorded as a new Blocker problem with `Waiting on` = Northwind, linked to the milestone (no existing Waiting task is about the gateway firmware; RFQ reviewed is a different handover).

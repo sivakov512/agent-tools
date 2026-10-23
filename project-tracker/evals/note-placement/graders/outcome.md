@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'trace'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 - The expense was written as one note under a short bold title (`**<subject>** — …`; an expense is dated material, so a date in the title is expected but not required) under `## Notes` on the milestone Firmware on the dev board (`…0110`, MLS-1), not on the task the chat was opened from (Real readings, `…0102`, TSK-2). The note keeps the facts that matter — 5 CT sensor modules, $42.50, Mouser invoice 7731, paid back by Northwind — and leaves out the courier back-and-forth.
 - The final reply says the note went to the milestone MLS-1 rather than the task, with a short reason (the stage's expenses are kept there), and does not ask for permission first.

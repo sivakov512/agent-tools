@@ -2,7 +2,7 @@
 type: 'llm'
 focus: 'mock_calls'
 ---
-This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date is not wrong for that alone.
+This conversation takes place on Friday, 9 October 2026: judge every "today", "late" and "due" against that date, not your own. The machine running it may show a later date; a reply that counts a day or two from that later date, or remarks that the environment shows another date, is not wrong for that alone; such a remark is not a fact about the tracker.
 
 - One task was created in the Tasks data source (`…0004`) for ordering the J-Link debugger: Project Energy meter, Milestone Firmware on the dev board (the In-progress milestone, id ending 0110), Status Planned, no `Dates`, no `Waiting on`.
 - Its first history line (in the page content, or inserted right after) is dated Oct 9 and says it was added.
