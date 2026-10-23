@@ -196,6 +196,51 @@
     var head = overdue[0] || now.filter(function (m) { return m.late > 0; })[0] || now.filter(function (m) { return !m.paused; })[0] || now[0] || next;
     return { now: now, overdue: overdue, next: next, head: head, task: head && head.kind === "ms" ? currentTask(head.tasks) : null, byTasks: !ms.length };
   }
+  // Where a project stands, one set of rules for its card and its page: every milestone that is late, under way, paused or holds a late task
+  // (with its late tasks, then its current one), a late task outside any milestone, every blocker, then what comes next. Without milestones
+  // its tasks take their place. Lines with something late come first, then blockers, then the rest in the plan's order; next is last.
+  // A line: { kind: "late" | "blocked" | "now" | "next", label, cls, item, subs: [tasks] }.
+  function standing(msList, taskList, blockers) {
+    var byTasks = !msList.length, late = [], now = [], shown = {};
+    function put(x, subs) {
+      var bad = x.late > 0 || subs.some(function (k) { return k.late > 0; });
+      var label = x.late > 0 ? "Late" : x.paused ? "Paused" : x.status === "Waiting" ? "Waiting" : x.status === "Planned" ? "Planned" : "Now";
+      (bad ? late : now).push({ kind: bad ? "late" : "now", label: label, cls: x.late > 0 ? "crit" : "", item: x, subs: subs }); shown[x.url] = 1;
+    }
+    if (byTasks) sortItems(taskList).forEach(function (k) { if (isOpen(k) && (k.late > 0 || k.status !== "Planned")) put(k, []); });
+    else {
+      sortItems(msList).forEach(function (m) {
+        if (!isOpen(m) && m.status !== "Paused") return;
+        var lt = sortItems(m.tasks.filter(function (k) { return isOpen(k) && k.late > 0; })), cur = m.paused ? null : currentTask(m.tasks);
+        if (!(m.late > 0) && !lt.length && m.status === "Planned") return; // not started, nothing late in it: the next one at most
+        put(m, cur && lt.indexOf(cur) < 0 ? lt.concat([cur]) : lt);
+      });
+      sortItems(taskList.filter(function (k) { return !k.ms && isOpen(k) && k.late > 0; })).forEach(function (k) { put(k, []); }); // late outside any milestone
+    }
+    var lines = late.concat((blockers || []).map(function (i) { return { kind: "blocked", label: "Blocked", cls: "crit", item: i, subs: [] }; }), now);
+    var next = sortItems(byTasks ? taskList : msList).filter(function (x) { return x.status === "Planned" && !(x.late > 0) && !shown[x.url] && !x.paused; })[0];
+    if (next) lines.push({ kind: "next", label: "Next", cls: "", item: next, subs: [] });
+    return lines;
+  }
+  // standing's lines drawn the same on the card and the page: a label, the item, its timing (a blocker: on whom); under a milestone its late
+  // tasks, each marked, then its current one. o.name(x): the item's name as a node; o.max, o.subs: how many lines and tasks a card shows,
+  // the rest counted on one line ("+2 more, 1 late"); o.next: show next even when something else is shown (the page).
+  function standRows(lines, o) {
+    var box = el("div", "stand"), list = o.next ? lines : lines.filter(function (l) { return l.kind !== "next"; });
+    if (!list.length && !o.next) list = lines; // nothing under way: what comes next is the line
+    var shown = o.max ? list.slice(0, o.max) : list, rest = list.slice(shown.length);
+    shown.forEach(function (ln) {
+      var r = el("div", "st-row " + ln.kind), w = ln.kind === "blocked" ? [onWhom(ln.item), "crit"] : whenOf(ln.item, o.long);
+      r.appendChild(el("span", "lab" + (ln.cls ? " " + ln.cls : ""), ln.label)); r.appendChild(o.name(ln.item, "t"));
+      if (w[0]) r.appendChild(el("span", "w " + (w[1] || ""), (ln.kind === "next" ? (ln.item.kind === "ms" ? "next milestone · " : "next task · ") : "") + w[0]));
+      var subs = o.subs ? ln.subs.slice(0, o.subs) : ln.subs, hid = ln.subs.slice(subs.length).filter(function (k) { return k.late > 0; }).length;
+      subs.forEach(function (k) { var sb = el("div", "st-sub" + (k.late > 0 ? " bad" : "")), kw = whenOf(k); sb.appendChild(o.name(k, "n")); sb.appendChild(el("span", "w " + (kw[1] || ""), kw[0])); r.appendChild(sb); });
+      if (hid) r.appendChild(el("div", "st-sub bad more", "+ " + plural(hid, "more late task")));
+      box.appendChild(r);
+    });
+    if (rest.length) { var bad = rest.filter(function (l) { return l.kind === "late" || l.kind === "blocked"; }).length; box.appendChild(el("div", "st-more" + (bad ? " crit" : ""), "+ " + rest.length + " more" + (bad ? ", " + bad + " late or blocked" : ""))); }
+    return box;
+  }
   // Why and since when an item is paused: its newest history line `- **Oct 6** — Paused (was In progress): <reason>` (SKILL.md → Pause)
   function pauseOf(hist) {
     var last = null;
@@ -749,18 +794,10 @@
       var sum = projectSummary(p, extra); if (sum) hd.appendChild(sum);
       host.appendChild(hd); return hd;
     }
-    function focusBlock(f, blockers, summary) { // where it stands: the summary, then the milestone under way with its current task, what is late, what is paused, the next milestone, blockers
+    function focusBlock(lines, summary) { // where it stands: the summary, then the card's lines (standing) in full, next included; a name goes to its item
       var fc = el("div", "focus");
       if (summary) fc.appendChild(el("p", "fsum", summary));
-      var line = function (label, cls, name, when, wcls, k) { var r = el("div", "fr"); r.appendChild(el("span", "fl " + cls, label)); var c = el("div"); c.appendChild(btn("go", name, function () { reveal(k); })); if (when) c.appendChild(el("div", "w " + (wcls || ""), when)); r.appendChild(c); fc.appendChild(r); return c; };
-      f.overdue.forEach(function (m) { line("Overdue", "crit", m.name, whenOf(m)[0], "crit", key(m.url)); });
-      f.now.forEach(function (m) {
-        var w = whenOf(m, true), c = line(m.paused ? "Paused" : m.status === "Waiting" ? "Waiting" : "Now", m.paused ? "" : m.late > 0 ? "crit" : "now", m.name, w[0], w[1], key(m.url));
-        var ct = m.kind === "ms" && !m.paused ? currentTask(m.tasks) : null;
-        if (ct) { var tw = whenOf(ct), sub = el("div", "ct"); sub.appendChild(span("Current task: ", "muted")); sub.appendChild(btn("go2", ct.name, function () { reveal(key(ct.url)); })); sub.appendChild(el("div", "w " + (tw[1] || ""), tw[0])); c.appendChild(sub); }
-      });
-      if (f.next) line("Next", "", f.next.name, (f.byTasks ? "next task · " : "next milestone · ") + whenOf(f.next)[0], "", key(f.next.url));
-      blockers.forEach(function (i) { line("Blocked", "crit", i.name, onWhom(i), "crit", key(i.url)); });
+      if (lines.length) fc.appendChild(standRows(lines, { next: true, long: true, name: function (x, cls) { var b = btn("go " + cls, x.name, function () { reveal(key(x.url)); }); b.title = "Go to it"; return b; } }));
       return fc.childNodes.length ? fc : null;
     }
     function planSec(body, ms0, tk0, head, o) { // the plan: milestones with their tasks under them; tasks without a milestone at the end. o: err (why it didn't load), empty (the text with no plan)
@@ -799,7 +836,7 @@
     refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled,
     el: el, clear: clear, link: link, btn: btn, span: span, nodash: nodash, cleanUrl: cleanUrl, unesc: unesc, plain: plain, notionText: notionText, clean: clean, key: key, plural: plural, smooth: smooth, sel: sel, keep: keep, slide: slide, foldDetails: foldDetails,
     dnum: dnum, todayNum: todayNum, fmt: fmt, soon: soon, range: range, days: days, hhmm: hhmm,
-    problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState, stickPlan: stickPlan, foldScroll: foldScroll,
+    problemOf: problemOf, buildPlan: buildPlan, standing: standing, standRows: standRows, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusOf: focusOf, whenOf: whenOf, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState, stickPlan: stickPlan, foldScroll: foldScroll,
     timeline: timeline, typeTag: typeTag, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };
 })();

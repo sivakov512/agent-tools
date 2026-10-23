@@ -336,23 +336,17 @@
   var onYouCache = {}; // filled once per paint by renderCards
   function onYouOf(p) { return onYouCache[p.key] || 0; }
   function card(p) {
-    var c = btn("pc", null, function () { openProject(p); }), st = stateOfProject(p), f = focusOf(p), d = S.plan[p.key];
+    var st = stateOfProject(p), c = btn("pc" + (st.cls === "crit" ? " bad" : ""), null, function () { openProject(p); }), d = S.plan[p.key];
     var top = el("div", "pc-top"), nm = el("div", "mid");
     nm.appendChild(PT.titled("pc-name", p, p.name)); nm.appendChild(el("div", "pc-who", PT.whoOf(p)));
     top.appendChild(nm); if (st.text) top.appendChild(el("span", "pill " + st.cls, st.text)); c.appendChild(top);
     var ms0 = msList(p) || [], tk0 = taskList(p) || [], strip = ms0.length ? ms0 : tk0;
     if (d && d.stale) c.appendChild(el("div", "warn", "Not updated: " + errText(d.stale))); // shown as it was before
     if (d && d.err) c.appendChild(el("div", "crit", "Its plan didn't load. " + errText(d.err)));
-    else if (f.head) {
-      var now = el("div", "pc-now"), w = whenOf(f.head);
-      var label = f.head === f.next ? "Next" : f.head.late > 0 && f.head.status === "Planned" ? "Overdue" : f.head.paused ? "Paused" : f.head.status === "Waiting" ? "Waiting" : "Now";
-      now.appendChild(el("span", "lab" + (label === "Overdue" ? " crit" : ""), label)); now.appendChild(el("span", "t", f.head.name));
-      now.appendChild(el("span", "w " + (w[1] || ""), w[0]));
-      if (f.task) { var sb = el("span", "pc-task"), tw = whenOf(f.task); sb.appendChild(span(f.task.name)); sb.appendChild(el("span", "w " + (tw[1] || ""), tw[0])); now.appendChild(sb); }
-      c.appendChild(now);
-      var blk = blockersOf(p)[0];
-      if (blk) { var b2 = el("div", "pc-now"); b2.appendChild(el("span", "lab crit", "Blocked")); b2.appendChild(el("span", "t", blk.name)); b2.appendChild(el("span", "w crit", onWhom(blk))); c.appendChild(b2); }
-    } else if (d) c.appendChild(el("div", "muted", strip.length ? "Everything is done." : "No plan yet."));
+    else if (d) { // where it stands: the page's own lines, fewer — what is late or blocked first, then what is under way
+      var lines = PT.standing(ms0, tk0, blockersOf(p));
+      c.appendChild(lines.length ? PT.standRows(lines, { max: 3, subs: 2, name: function (x, cls) { return span(x.name, cls); } }) : el("div", "muted", strip.length ? "Everything is done." : "No plan yet."));
+    }
     var foot = el("div", "pc-foot");
     if (strip.length) { var pr = el("div", "mstrip"); sortItems(strip).forEach(function (m) { pr.appendChild(el("i", m.state === "plan" ? "" : m.state)); }); foot.appendChild(pr); }
     var capn = el("div", "pc-cap"), done = strip.filter(function (m) { return m.status === "Done"; }).length;
@@ -902,8 +896,8 @@
     var info = c.info;
     if (info.notes.length) { var q = el("div", "dr-note"), nh = el("div", "nh"); nh.innerHTML = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/></svg>'; nh.appendChild(span("Status")); q.appendChild(nh); info.notes.forEach(function (x) { q.appendChild(el("div", "", x)); }); body.appendChild(q); }
   }
-  function drFocus(body, p, c) { // where it stands: the milestone under way with its current task, what is late, what is paused, the next milestone, blockers
-    var fc = c.ms0 ? PG.focusBlock(c.f, blockersOf(p), p.summary) : PG.focusBlock({ overdue: [], now: [], next: null }, [], p.summary); if (fc) body.appendChild(fc);
+  function drFocus(body, p, c) { // where it stands: the card's lines in full, and next
+    var fc = PG.focusBlock(c.ms0 ? PT.standing(c.ms0, c.tk0 || [], blockersOf(p)) : [], p.summary); if (fc) body.appendChild(fc);
   }
   function drNumbers(body, p, c) { // three tiles, each opening its section
     var ms0 = c.ms0, tk0 = c.tk0, info = c.info, openProbs = c.openProbs, waitTasks = c.waitTasks;
