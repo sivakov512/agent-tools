@@ -701,12 +701,14 @@
     }
     function padOf(sc) { return parseFloat(sc.style.paddingBottom) || 0; }
     function trim() { var sc = ctx.host(), p = padOf(sc); if (p && sc.scrollTop + sc.clientHeight <= sc.scrollHeight - p) sc.style.paddingBottom = ""; }
-    function dsec(host, ico, title, n, right) { // a big section of the page; its header folds it, open by default
-      var s = el("section", "dsec" + (ui.col[ico] ? " folded" : "")); s.dataset.sec = ico;
-      var hh = el("div", "dsec-h"); hh.setAttribute("role", "button"); hh.tabIndex = 0; hh.setAttribute("aria-expanded", String(!ui.col[ico])); hh.innerHTML = DICO[ico]; hh.appendChild(el("h3", "", title)); // not a <button>: Expand all may sit in it
+    function dsec(host, ico, title, n, right, fixed) { // a big section of the page; its header folds it, open by default — unless fixed: a section that folds its own way (About the project)
+      var s = el("section", "dsec" + (fixed ? " fixed" : ui.col[ico] ? " folded" : "")); s.dataset.sec = ico;
+      var hh = el("div", "dsec-h"); hh.innerHTML = DICO[ico]; hh.appendChild(el("h3", "", title));
       if (n != null) hh.appendChild(el("span", "cnt", String(n))); if (right) { right.classList.add("r"); hh.appendChild(right); }
-      hh.insertAdjacentHTML("beforeend", CHEV);
-      var b = el("div", "dsec-b"); b.hidden = !!ui.col[ico];
+      var b = el("div", "dsec-b");
+      if (fixed) { s.appendChild(hh); s.appendChild(b); host.appendChild(s); return b; }
+      hh.setAttribute("role", "button"); hh.tabIndex = 0; hh.setAttribute("aria-expanded", String(!ui.col[ico])); // not a <button>: Expand all may sit in it
+      hh.insertAdjacentHTML("beforeend", CHEV); b.hidden = !!ui.col[ico];
       hh.addEventListener("click", function (e) { if (e.target.closest(".gall")) return; setFold(s, !s.classList.contains("folded")); });
       hh.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target === hh) { e.preventDefault(); setFold(s, !s.classList.contains("folded")); } });
       s.appendChild(hh); s.appendChild(b); host.appendChild(s); return b;

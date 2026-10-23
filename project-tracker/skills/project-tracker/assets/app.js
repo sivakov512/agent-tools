@@ -895,12 +895,12 @@
   function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p)); }
   function drAbout(body, p, c) { // what the project is, its page's description: a section of its own after where it stands, a few lines until Show more
     if (!c.info.parts.desc) return;
-    var b = dsec(body, "about", "About the project"), md = renderMd(c.info.parts.desc, {}), k = "about:" + p.key;
+    var b = dsec(body, "about", "About the project", null, null, true), md = renderMd(c.info.parts.desc, {}), k = "about:" + p.key;
     md.classList.add("pad", "clamp"); b.appendChild(md);
     var more = btn("more-t", null, function () { if (S.open[k]) delete S.open[k]; else S.open[k] = 1; paint(); });
     function paint() { md.classList.toggle("whole", !!S.open[k]); more.textContent = S.open[k] ? "Show less" : "Show more"; more.setAttribute("aria-expanded", String(!!S.open[k])); }
     b.appendChild(more); paint();
-    if (!b.hidden && !S.open[k] && md.scrollHeight <= md.clientHeight + 2) { md.classList.remove("clamp"); more.remove(); } // it fits: whole, no button
+    if (!S.open[k] && md.scrollHeight <= md.clientHeight + 2) { md.classList.remove("clamp"); more.remove(); } // it fits: whole, no button
   }
   function drStatus(body, c) {
     var info = c.info;
