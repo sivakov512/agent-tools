@@ -1,0 +1,7 @@
+---
+type: 'tool_used'
+tool: 'mcp__notion__notion-update-page'
+input_match: '000000000201[\s\S]*"Status"\s*:\s*"Done"|"Status"\s*:\s*"Done"[\s\S]*000000000201'
+min: 1
+arm: 'both'
+---
