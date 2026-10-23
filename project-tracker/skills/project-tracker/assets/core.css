@@ -184,6 +184,11 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .dsec-h .cnt + .chev, .dsec-h h3 + .chev { margin-left: auto; }
 .dsec-b { margin-top: 10px; border-top: 1px solid var(--border); } /* no box: its rows sit on the page under a hairline; the gap under the head belongs to the body, so it folds with it */
 .dsec-b > .empty, .dsec-b > .md.pad { padding: 14px 16px; }
+/* About the project, the head's last part: under its facts, apart by the same line, a size quieter than the page's sections */
+.dr-head > .dsec { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
+.dr-head > .dsec .dsec-h h3 { font-size: 15px; }
+.dr-head > .dsec .dsec-h .ico { width: 15px; height: 15px; }
+.dr-head > .dsec .dsec-b > .md.pad { padding: 8px 0 2px; color: var(--text-2); font-size: 15px; }
 .dsec-b > .err { margin: 10px 12px; }
 .priv-s .dsec-b { background: var(--sunken); } /* the project's Private notes: the quieter tint */
 .grp-t { display: flex; align-items: baseline; gap: 8px; padding: 7px 16px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
