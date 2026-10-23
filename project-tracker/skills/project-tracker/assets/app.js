@@ -892,8 +892,8 @@
   var PG = PT.page({ ui: S, host: function () { return $("drBody"); }, msBody: msBody, taskBody: taskBody, itemActions: itemActions });
   var dsec = PG.dsec, setFold = PG.setFold, reveal = PG.reveal;
   // the project page, block by block; ctx carries what several blocks share
-  function drHead(host, p, c) { PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p)); }
-  function drAbout(body, p, c) { // what the project is, its page's description: a section of its own after where it stands, folded until opened
+  function drHead(host, p, c) { drAbout(PG.projectHead(host, p, c.st, c.ms0 && c.ms0.length ? c.ms0 : c.tk0 || [], SNAP ? null : projectLinks(p)), p, c); }
+  function drAbout(body, p, c) { // what the project is, its page's description: the head's last part, under its facts, folded until opened
     if (!c.info.parts.desc) return;
     var md = renderMd(c.info.parts.desc, {}); md.classList.add("pad"); dsec(body, "about", "About the project", null, null, true).appendChild(md);
   }
@@ -976,7 +976,7 @@
         waitTasks: (tk0 || []).filter(function (k) { return k.status === "Waiting" && !k.paused; }) };
       drHead(host, p, c);
       var body = el("div", "dr-in"); host.appendChild(body);
-      drStatus(body, c); drFocus(body, p, c); drNumbers(body, p, c); drAbout(body, p, c); drItems(body, p, c); drResolved(body, p); drPlan(body, p, c); drNotes(body, p, c);
+      drStatus(body, c); drFocus(body, p, c); drNumbers(body, p, c); drItems(body, p, c); drResolved(body, p); drPlan(body, p, c); drNotes(body, p, c);
     });
     paintNav(); PG.stick();
   }

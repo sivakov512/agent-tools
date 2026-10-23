@@ -742,7 +742,7 @@
       }
       return w;
     }
-    function projectHead(host, p, st, plan, extra) { // as an item's header: a meta line (ID, dates, its buttons), the name, its own time; then its facts (its description comes after where it stands)
+    function projectHead(host, p, st, plan, extra) { // as an item's header: a meta line (ID, dates, its buttons), the name, its own time; then its facts (and, from the page, its description folded under them)
       var hd = el("header", "dr-head"), mt = el("div", "dr-meta"), acts = ctx.itemActions(p), rt = refTag(p);
       if (rt) mt.appendChild(rt); mt.appendChild(span(projectDates(p, plan), "r")); if (acts) { acts.classList.add("acts"); mt.appendChild(acts); } hd.appendChild(mt);
       hd.appendChild(el("h1", "", p.name)); hd.appendChild(projectLine(p, st));
