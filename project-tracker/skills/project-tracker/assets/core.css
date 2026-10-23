@@ -185,7 +185,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .dsec-b { margin-top: 10px; border-top: 1px solid var(--border); } /* no box: its rows sit on the page under a hairline; the gap under the head belongs to the body, so it folds with it */
 .dsec-b > .empty, .dsec-b > .md.pad { padding: 14px 16px; }
 /* About the project, the head's last part: under its facts, apart by the same line, a size quieter than the page's sections */
-.dr-head > .dsec { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
+.dr-head > .dsec { margin: 14px 0 -10px; padding-top: 14px; border-top: 1px solid var(--border); } /* its row centred between the line and the head's bottom edge: 14 + 4 above, 4 + (24 - 10) below */
 .dr-head > .dsec .dsec-h h3 { font-size: 15px; }
 .dr-head > .dsec .dsec-h .ico { width: 15px; height: 15px; }
 .dr-head > .dsec .dsec-b > .md.pad { padding: 8px 0 2px; color: var(--text-2); font-size: 15px; }
@@ -264,6 +264,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
   .main, .side { display: contents; }
   .main > section + section { margin-top: 0; }
   .dr-head { padding: 18px 18px 16px; }
+  .dr-head > .dsec { margin-bottom: -2px; } /* 4 + (16 - 2) below, as above */
   .dr-in { padding: 4px 18px 48px; }
   .dr-head h1 { font-size: 20px; }
   .stats { gap: 8px; }
