@@ -1,5 +1,7 @@
 /* Project Tracker: the look both pages share — dashboard.html (the user's) and client.html (a client's). The same family as Upwork Pulse:
-   system type, teal accent, green-grey neutrals, 10px cards, header pills, the timeline, a project page of folding sections. */
+   system type, teal accent, green-grey neutrals, 10px cards, header pills, the timeline, a project page of folding sections.
+   In the order of the page: the tokens, the base, the header, the overview (cards, panels, timeline), the project page (its head, items,
+   Claude control, page text), then narrower screens. */
 :root {
   --bg: #f5f6f5; --surface: #ffffff; --surface-2: #f0f2f1; --sunken: #e9ecea;
   --border: #e3e6e4; --border-2: #cdd2d0;
@@ -57,7 +59,6 @@ a { color: inherit; }
 .ref { display: inline-block; margin-left: 7px; padding: 1px 5px; border-radius: 4px; background: var(--sunken); color: var(--text-mute); font: 400 11px/1.5 var(--mono); letter-spacing: 0; vertical-align: 1px; white-space: nowrap; cursor: copy; } /* an item's ID, to name it in a chat; a click copies it */
 .ref:hover { color: var(--text-2); }
 .ref.copied::after { content: " ✓"; color: var(--good); }
-h1 .ref { vertical-align: 4px; }
 .ilink { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-2); text-underline-offset: 2px; } /* another item of the tracker: opens it on this page */
 .ilink:hover { color: var(--accent); text-decoration-color: currentColor; }
 
@@ -162,14 +163,13 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 #moveList > .empty, #waitList > .empty, #riskList > .empty, #sideList > .empty, #doneList > .empty { padding-left: 25px; } /* where the lines' text starts */
 .gh { display: flex; align-items: baseline; gap: 8px; padding: 7px 16px 7px 25px; background: var(--surface-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
 .gh:first-child { border-top: 0; } /* group heads start where their lines' text does (10px padding, 3px mark, 12px gap) */
-.gh .n { text-transform: none; letter-spacing: 0; }
-.gh .n { font-weight: 400; color: var(--text-mute); }
+.gh .n { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--text-mute); }
 .gh.crit { color: var(--critical); } .gh.warn { color: var(--warn); }
-.gh.gf { width: 100%; border-left: 0; border-right: 0; text-align: left; cursor: pointer; font-family: inherit; } /* a panel group's head folds it */
+.gh.gf { width: 100%; border-left: 0; border-right: 0; border-bottom: 0; text-align: left; cursor: pointer; font-family: inherit; } /* a panel group's head folds it */
 .gh.gf:hover { color: var(--text); } .gh.gf.crit:hover, .gh.gf.warn:hover { filter: brightness(1.15); }
 .gh.gf .chev { margin-left: auto; align-self: center; transition: transform .15s; }
 .gh.gf.open .chev { transform: rotate(90deg); }
-.gh.gf { border-bottom: 0; } .gb { border-top: 1px solid var(--border); } /* a group's lines fold under its head */
+.gb { border-top: 1px solid var(--border); } /* a group's lines fold under its head */
 .it { display: grid; grid-template-columns: 3px minmax(0, 1fr) auto; column-gap: 12px; width: 100%; border: 0; background: none; text-align: left; padding: 11px 16px 11px 10px; cursor: pointer; }
 .it + .it { border-top: 1px solid var(--border); }
 .it:hover { background: var(--surface-2); }
@@ -314,10 +314,9 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 /* ---------- the project page, sliding in from the right ---------- */
 .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .2s; }
 .scrim.on { opacity: 1; pointer-events: auto; }
-.drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(680px, 100vw); background: var(--surface); box-shadow: var(--shadow-drawer); display: flex; flex-direction: column; transform: translateX(104%); transition: transform .24s cubic-bezier(.2, .7, .2, 1); visibility: hidden; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(680px, 100vw); background: var(--surface); box-shadow: var(--shadow-drawer); display: flex; flex-direction: column; transform: translateX(104%); transition: transform .24s cubic-bezier(.2, .7, .2, 1), width .2s ease-out; visibility: hidden; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 .drawer.on { transform: none; visibility: visible; }
 .drawer.wide { width: min(1440px, 100vw); } /* widened: as wide as the page, never wider than the window */
-.drawer { transition: transform .24s cubic-bezier(.2, .7, .2, 1), width .2s ease-out; }
 #drWide .w2, .drawer.wide #drWide .w1 { display: none; } .drawer.wide #drWide .w2 { display: block; }
 @media (max-width: 720px) { #drWide { display: none; } }
 @media (prefers-reduced-motion: reduce) { .drawer, .scrim, .chev { transition: none; } }
@@ -391,9 +390,9 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 
 /* ---------- the project page's items: a milestone, task or problem that opens in place (.blk), and the parts of its page ---------- */
 /* Rows are split by hairlines; a milestone's tasks keep the full width. An item's header is one grid, the same folded, opened and stuck: a
-   quiet meta line — its ID, its dates, its buttons in words (Chat, Code, Notion, ⋯) and the chevron, all on that one line — then its name, a
-   size larger, then its line. The buttons always have their place: folded they show only under the pointer, opened they stay; nothing in the
-   row moves or grows. Every opened item, at any level, is drawn the same way: its header in the active fill (the darker tint), its text a
+   quiet meta line — its ID, its dates, its Claude control and Notion, and the chevron, all on that one line — then its name, a size
+   larger, then its line. The buttons always have their place, unseen while it is folded and shown once it is opened; nothing in the row
+   moves or grows. Every opened item, at any level, is drawn the same way: its header in the active fill (the darker tint), its text a
    region one shade off what is round it — a milestone's or an open item's the light panel on the page, a task opened inside an opened
    milestone the page's own surface inside the milestone's panel — so where each starts, ends and its milestone goes on is plain. */
 .blk { border-bottom: 1px solid var(--border); }
@@ -419,17 +418,14 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 .blk.tsk > .blk-h .t { font-size: 14.5px; font-weight: 400; }
 .blk.open > .blk-h > .chev { transform: rotate(90deg); }
 .ib { display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 22px; min-width: 22px; padding: 0 6px; border: 0; border-radius: 6px; background: none; color: var(--accent); font: inherit; font-size: 12.5px; font-weight: 500; white-space: nowrap; text-decoration: none; cursor: pointer; }
-.ib:hover, .ib[aria-expanded="true"] { background: var(--accent-soft); }
-.ib .cico, .ib .ico { width: 14px; height: 14px; margin: 0; flex: none; }
-.ib .ico { stroke: currentColor; fill: none; stroke-width: 1.5; }
-.ib .ico circle { fill: currentColor; stroke: none; }
+.ib:hover { background: var(--accent-soft); }
+.ib .ico { width: 14px; height: 14px; margin: 0; flex: none; stroke: currentColor; fill: none; stroke-width: 1.5; }
 .acts .chat-m { left: auto; right: 0; } /* the buttons sit at the right: the menu opens leftwards, inside the page */
 .acc-h .chat, .dr-meta .chat { font-size: 12.5px; } /* the Claude control made to fit a meta line: an item's header, the project's head */
 .acc-h .chat > a, .acc-h .chat > .more, .dr-meta .chat > a, .dr-meta .chat > .more { height: 24px; padding-top: 0; padding-bottom: 0; }
 .acc-h .chat > a, .dr-meta .chat > a { padding-left: 8px; }
 .acc-h .chat.split > a.cpart, .dr-meta .chat.split > a.cpart { min-width: 26px; padding: 0 7px; }
 .acc-h .chat .cico, .dr-meta .chat .cico { width: 14px; height: 14px; }
-.acts .ext { white-space: nowrap; }
 /* One header stuck at a time: an opened item's sticks while it is read and goes with its end; inside an opened milestone, an opened task's
    takes the place while the task is read, the two pushing each other, never overlapping (stick()). */
 .blk.open > .blk-h { position: sticky; top: 0; z-index: 3; background: var(--sunken); border-radius: 12px 12px 0 0; box-shadow: 0 1px 0 var(--border-2); } /* the active fill and a line under it, the same at every level */
@@ -449,7 +445,6 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 .xh { font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--text-mute); } /* a part's label, like the list group labels */
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; font-size: 13.5px; }
 .md.after-xh { margin-top: 6px; }
-.pline { margin-top: 0; }
 .parts > .part + .part { margin-top: 18px; } /* a page's parts: Description, Notes, Private notes, History */
 .priv-b { padding: 11px 14px 12px; border-radius: 8px; background: var(--sunken); } /* Private notes: a quieter tint, never on a client's page */
 .xh.priv-h { display: flex; align-items: center; gap: 5px; }
