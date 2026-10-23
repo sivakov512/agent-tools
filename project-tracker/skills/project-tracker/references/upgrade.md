@@ -18,7 +18,7 @@ The config's `schema` is the structure the tracker was built with; no `schema` l
 -- on <projects>
 ADD COLUMN "Origin" SELECT('Upwork':green, 'Direct':blue, 'Personal':gray) COMMENT 'Where the work comes from; add options freely';
 ADD COLUMN "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude';
-ADD COLUMN "Claude project" RICH_TEXT COMMENT 'The claude.ai project its dashboard chats open in: <name> — <project id>; empty = none'
+ADD COLUMN "Claude project" RICH_TEXT COMMENT 'The claude.ai project its dashboard chats open in: its link, https://claude.ai/project/<id>; empty = none'
 
 -- on <milestones>, <tasks>, <problems>, each
 ADD COLUMN "Chat" URL COMMENT 'Its Claude chat, opened from the dashboard; set by Claude'
@@ -91,12 +91,13 @@ The closing line names what is new for the user: a Code session on the Mac for a
 
 The closing line names what is new for the user, both halves of it: every ID has three letters now (`TK-17` is `TSK-17`, the number stays), and the old IDs still work in a chat — the user has the old ones in notes and messages, and without this half would take them for broken; and, when a prefix other than `PRJ` / `MLS` / `TSK` / `PRB` was taken, which and why.
 
-**7 → 8: stored view links.** Reading a view took a fetch of its database or of the project page and its block, about 10k characters each, only to learn an id that never changes, and what closed in a period meant walking every project. The step adds the root `Done` views and stores every view link the skill reads (SKILL.md → **Reading a view**).
+**7 → 8: stored view links.** Reading a view took a fetch of its database or of the project page and its block, about 10k characters each, only to learn an id that never changes, and what closed in a period meant walking every project. The step adds the root `Done` views and stores every view link the skill reads (SKILL.md → **Reading a view**), and leaves `Claude project` holding the project's link alone, since a stored name went stale (`references/chats.md` → **Claude project**).
 1. Projects gets `Views` (`ADD COLUMN` as in **Columns older trackers lack**, skipped where it exists).
 2. Fetch the Milestones and Tasks databases; each one without a view named `Done` gets it (`notion-create-view` with `database_id` and `data_source_id`, configured as `references/setup.md` §4 lists it). Fetch the Problems database: `Recently resolved` gets its month (`notion-update-view`, `CLEAR FILTER; FILTER "Status" = "Resolved"; FILTER "Resolved on" >= "one_month_ago"`; the sort stays).
-3. Every project in `Active` and `Closed` whose `Views` holds no view link (`?v=`): fetch its page, then the block of each of its `Tasks`, `Schedule` and `Problems` tabs; write `Views` as ``Tasks `<url>`; Schedule `<url>`; Problems `<url>` `` (`update_properties`), each URL in inline code (SKILL.md → **A text value may come back as a link**), each the view named like its tab (`references/new-project.md` → **Project page**). A tab the page lacks is left out of the value; that project's view is then found by fetching, as before. Nothing else is written to the rows.
-4. Write `projects_views`, `milestones_views`, `tasks_views` and `problems_views` in the config toggle (each line replaced, or added before `schema`), as `references/setup.md` §3 shows, with the view ids the database fetches of step 2 and of Projects listed.
-5. Write `schema: 8` in the config toggle, as above — last.
+3. Every project in `Active` and `Closed` whose `Views` holds no view link (`?v=`): fetch its page, then the block of each of its `Tasks`, `Schedule` and `Problems` tabs; write `Views` as ``Tasks `<url>`; Schedule `<url>`; Problems `<url>` `` (`update_properties`), each URL in inline code (SKILL.md → **A text value may come back as a link**), each the view named like its tab (`references/new-project.md` → **Project page**). A tab the page lacks is left out of the value; that project's view is then found by fetching, as before. Nothing else is written to the rows but `Claude project` (step 4), in the same `update_properties` when both change.
+4. Every project in `Active` and `Closed` whose `Claude project` holds a claude.ai project id in any other form than its link (`<name> — <id>`, the id alone): write `https://claude.ai/project/<id>` with that id (`update_properties`). An empty value, one without an id and one that already is the link stay as they are.
+5. Write `projects_views`, `milestones_views`, `tasks_views` and `problems_views` in the config toggle (each line replaced, or added before `schema`), as `references/setup.md` §3 shows, with the view ids the database fetches of step 2 and of Projects listed.
+6. Write `schema: 8` in the config toggle, as above — last.
 
 The closing line names what is new for the user: Done views of milestones and tasks in Notion, `Recently resolved` keeping only the past month by itself, and that `Views` is best set to *Always hide* on a project page (`references/setup.md` §8 — the API cannot).
 

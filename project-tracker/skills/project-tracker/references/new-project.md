@@ -51,7 +51,7 @@ First check `Active` for a project of this name. If one exists, an earlier attem
 
 Otherwise, in this order — the page comes before the rows, so an interrupted attempt can always be resumed through the project's own views:
 
-1. The Projects row: `Status` Active, `Target end` = the end of the last milestone, empty if that one has no dates yet (without milestones: the end the source gives for the work, else empty — ongoing work has no end), `Source` = the source's URL if it is a shared web document, else empty; `Repository` only if the user gave one; `Claude project` as confirmed (`<name> — <project id>`), empty for none or when not asked.
+1. The Projects row: `Status` Active, `Target end` = the end of the last milestone, empty if that one has no dates yet (without milestones: the end the source gives for the work, else empty — ongoing work has no end), `Source` = the source's URL if it is a shared web document, else empty; `Repository` only if the user gave one; `Claude project` as confirmed (its link, `https://claude.ai/project/<id>`), empty for none or when not asked.
 2. The project page's views and tabs, then the row's `Views` (below).
 3. Milestones (new rows, `Project` = the row) with their `Dates` and `Order` 1, 2, … in the source's order.
 4. Tasks (`Project` = the row, `Milestone` = its milestone, `Order` 1, 2, … within their milestone in the source's order).
