@@ -50,6 +50,7 @@ What is checked:
 - `due-two-weeks` — "What's due in the next two weeks?", a question none of the defaults names: across both projects, from the root views only (no project's own views), the agent lists exactly the two items ending Oct 9 – Oct 23 (TSK-2 today, MLS-4 Layout Oct 20) — Layout falls outside the default "through Sunday", so the case shows the question's own period was used.
 - `code-folder-linked` — Energy meter's `Code folder` comes back as Notion stores a path written as plain text, its domain-like part a Markdown link (`/Users/me/Development/[example.dev/hw/energy\_meter](http://…)`): asked where its Code sessions open, the agent names `/Users/me/Development/example.dev/hw/energy_meter`, with no link or escape left, and writes nothing.
 - `reorder` — "Hardware comes before Firmware — swap them": `Order` is renumbered without a preview, the dates stay, and the reply offers to move them because they now contradict the order.
+- `new-text-create` — the plan's first section runs October 19 to November 20, ten days after the source date: the Firmware milestone and its first task, Battery life, start Oct 19, not on the source date, and nothing is created In progress, since its work has not begun (`references/new-project.md` §2–§3).
 
 Layout (tabs, views) is checked structurally here but a mock cannot render Notion; after changing the page markup, also run the skill once against a scratch page in a real workspace and look at it.
 
