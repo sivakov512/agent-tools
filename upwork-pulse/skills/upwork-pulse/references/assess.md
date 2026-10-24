@@ -93,7 +93,7 @@ To the hourly run, nothing else:
 model <the model you run on>
 pages: <job pages opened, drafts' included>
 ## Take
-<each Take card's block for the report, exactly as references/hourly.md §7 shows it (` · invited` on an invitation's card), numbered from 1, with the Advice line when drafts ran>
+<each Take card's block, as *The card block* below shows it (` · invited` on an invitation's card), numbered from 1, with the Advice line when drafts ran>
 ## Maybe
 <each Maybe card's block, the same way, numbered on>   ← an empty section is left out, its heading too
 rejected: <n>[ (<g> of them gone)]
@@ -104,5 +104,33 @@ problems: <where: stage 2 | cards | run row | drafts> — <what failed, what is 
 ```
 
 The two headings tell the hourly run which cards are Takes, which its push depends on (`references/hourly.md` §7). A run that could not start — the schema check or the rules of §1 — returns that one line alone: `pipeline updating` or `rules unreadable`.
+
+**The card block** — one per card, built from the card as you wrote it, so that the report says what the card says; the hourly run pastes it as it is (`references/hourly.md` §7), and "details N" shows a card the same way. What the template spells out is English, as written (SKILL.md → *Language*); the card's own text — the What's needed paragraph, the Complexity sentence, the risks and questions, the Estimate lines, `Advice why` — is quoted from the card, in `language`, and the title, duration and country as Upwork gives them:
+
+```
+### 1. #<short id> <title as posted>[ · invited]   ← ` · invited` when the card's Flags have it
+
+**<client's price>** · <Duration> · <Connects> connects · [Upwork →](<link>) · [Notion →](<card url>)
+
+Client: <Country> · verified · <Hires> hires · $<Spent> spent · rating <Rating>
+Competition: <Proposals> proposals · <Invites> invited · <Interviewing> interviewing · bids $<Bid low>–<Bid high>
+
+<the What's needed paragraph, no heading>
+
+Complexity **<low|medium|high>** — <the Complexity sentence>
+
+Risks:
+- …
+
+To clarify:
+- …
+
+Estimate **<My hours> h** · ask **<My $>**
+- <each line of the Estimate column, as written>
+
+Advice **<apply|skip>** — <Advice why> · proposal ready   ← only when drafts ran
+```
+
+`<client's price>` is made from the columns: `$<Budget> fixed`, `$<Rate min>–<Rate max>/hr`, or `rate not stated`; money is written as money (`$8,400`). In the Client and Competition lines leave out a part whose column is empty or zero, and "verified" when it is not. `<short id>` is the last six digits of `Job ID`, as on the dashboard. A horizontal rule (`---`) between cards; `Client:` and `Competition:` labels not bold. No notes on a value: the client's price is exactly as built here — `rate not stated`, nothing in brackets.
 
 Off limits here: the watermark (`PROCESSED_UNTIL`), the report and the push — the hourly run's; `confirm_preview` and every other write to Upwork.

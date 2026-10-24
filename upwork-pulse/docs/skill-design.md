@@ -16,6 +16,7 @@ These hold in every mode, whatever the rules pages say. The eval suite (`evals/R
 8. **The structure follows the plugin by itself.** An older `schema` is updated in place, safely re-runnable, nothing dropped before its values are checked in their new place; an older dashboard is republished to the same link by a conversation — the one the page asks the user to start with `/upwork-pulse:upwork-pulse update`, or any other that finds it older first. Cases: `update-pipeline`, `update-to-4`, `update-to-6`, `hourly-auto-update`, `chat-auto-update`, `hourly-update-stopped`.
 9. **A write that errors stops the work**: re-fetch, report, no retries with other escaping. No case yet.
 10. **Jobs are judged on Opus.** The hourly run filters by title and snippet alone, against the rules' "reject on sight" items, and hands every survivor to the Opus subagent whenever it has the Agent tool, without opening a job page or writing a card itself (*Decisions* → *Two models*). Cases: `hourly-handoff`, `hourly-take`.
+11. **The user reads each job as Opus wrote it.** The hourly report carries the assessment's card blocks as they were returned — in `language`, never translated, reworded, rebuilt from the card or extended by the run — inside a frame that is English and the same every run; the push is its one line, nothing around it (*Decisions* → report frames). Cases: `hourly-russian`.
 
 ## Decisions
 
@@ -46,6 +47,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **Chat summaries and parks are shared across devices** (the artifact's `db`), so a phone and a laptop show the same chat as parked or waiting.
 - **In a group chat or a direct message, the user's turn is what the thread asks of them**: a message from another freelancer or a file shared for information is not their move.
 - **The user's language for everything written to them; proposals in the posting's language**; the structure stays English, since the modes and the dashboard find things by those names.
+- **Report frames in English, the jobs in `language`.** What a report or push template spells out — headers, counts, the card labels (Client, Competition, Complexity, Risks, To clarify, Estimate, Advice), the Log's labels, the push line's words — is English, as written, every run; what fills it for the user is in `language`, and the hourly report's card blocks are the assessment's, pasted as returned, never translated, reworded or extended by the run. The user reads Take pushes on the phone and could not read them fast when the Sonnet run retold Opus's Russian cards in English from the template (once adding a field Opus never returned) and pushed prose; labels that flipped language from run to run did not help either. English labels are fine; the reviews must stay in the original.
 
 ## Where things live
 
@@ -53,7 +55,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 |---|---|
 | `SKILL.md` | trigger; words; the config keys; pages and databases with their columns; card status, `Locked`, *Which model*; the rules that protect the user; finding the root and a job; questions and quirks; *Chat project* (every conversation may have to set it, so it stays where every session reads it); the modes table; *Pipeline update* (who starts it); automatic mode (silence, now, report, Log, push); Notion call shapes, view page size; the Upwork calls several modes make (the job page) |
 | `references/hourly.md` | the hourly run: queue and watermark, search, stage 1, chunks and the hand-off, the overdue proposals sync, catch-up, auto skip, version check, the report and its push |
-| `references/assess.md` | stage 2, job pages and their pacing (`JOB_PAGES_PAUSE`, `DEFERRED`), the card's columns and body, the run row, the return to the hourly run |
+| `references/assess.md` | stage 2, job pages and their pacing (`JOB_PAGES_PAUSE`, `DEFERRED`), the card's columns and body, the run row, the return to the hourly run with its card blocks (the block "details N" shows too) |
 | `references/drafts.md` | advice, the proposal preview call (`create`, `accept_invitation`; a chat uses it too), the proposal row's columns and body, the drafts task's report |
 | `references/chat.md` | everything in a conversation: fresh data first, the two kinds of card made in chat, a look at a posting, "details N", a job's chat from the dashboard, statuses, the proposal package and sending, connects, rules said in chat |
 | `references/sync.md` | sent proposals into Proposals, the sync watermark, its line in a run's Log |
