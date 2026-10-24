@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.17.0...project-tracker-v1.17.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* **project-tracker:** keep a new project's starts after today Planned ([0d525eb](https://github.com/sivakov512/agent-tools/commit/0d525eb2ec3743a8c7e82d33dcbeedab3c02ca98))
+
 ## [1.17.0](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.16.0...project-tracker-v1.17.0) (2026-10-23)
 
 
