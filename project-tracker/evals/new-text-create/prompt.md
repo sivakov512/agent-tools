@@ -23,7 +23,7 @@ I've asked Acme for a quote on the enclosures.
 
 PLAN — SOIL SENSOR
 
-FIRMWARE ON THE DEV KIT — until November 20
+FIRMWARE ON THE DEV KIT — October 19 to November 20
 - Battery life measured on the dev kit — November 6
 - Sleep current under 10 µA — November 20
 
