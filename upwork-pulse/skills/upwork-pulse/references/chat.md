@@ -22,7 +22,7 @@ No card and the verdict is Take or Maybe → offer to create an assessed card; d
 
 ## "details N" — after a run report
 
-"details 3" or "details #584350" → that card in full, in the format of one card of the hourly report (`references/hourly.md` §7, without its number), from the card's properties and body. Which card a number means: SKILL.md → *Finding things*.
+"details 3" or "details #584350" → that card in full, in the format of one card of the hourly report (`references/assess.md` §7 → *The card block*, without its number), from the card's properties and body. Which card a number means: SKILL.md → *Finding things*.
 
 ## A job's chat — opened from the dashboard
 

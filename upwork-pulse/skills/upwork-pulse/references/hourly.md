@@ -76,42 +76,21 @@ In this order, after the cards, the rows and the watermark (§2) are written, so
 
 ## 7. The report
 
-Every run ends with a report in the task's chat: what was found, then what the run did. The card blocks come from the assessments' returns as they are: all Takes, then all Maybes, oldest chunk first, renumbered from 1 across both sections; the Log's counts are summed over the chunks, and `Deferred` is the line as Run state holds it at the end. The **push** is the "respond fast" signal and goes only when the run has **news**: a card from this run that is still New and is a Take, or comes from an invitation (its title line ends with ` · invited`). Maybe cards, Apply advice on a Maybe, auto skips, updates and problems are in the report and never earn a push on their own.
+Every run ends with a report in the task's chat: what was found, then what the run did. The Log's counts are summed over the chunks, and `Deferred` is the line as Run state holds it at the end. The **push** is the "respond fast" signal and goes only when the run has **news**: a card from this run that is still New and is a Take, or comes from an invitation (its title line ends with ` · invited`). Maybe cards, Apply advice on a Maybe, auto skips, updates and problems are in the report and never earn a push on their own.
 
-Format, in `language` (labels translated, structure kept), only these blocks, nothing before or after:
+**The cards are the assessment's own text.** Each assessment returns its Takes and Maybes as finished blocks (`references/assess.md` §7), written on Opus from the full posting, in `language`. The report carries them as returned, character for character: all Takes, then all Maybes, oldest chunk first, the one edit being the number after `###`, renumbered from 1 across both sections. Never translate a block, reword or shorten it, rebuild it from the card's columns, or add a line or a value the return lacks, even one a view you read shows: the user reads a Take here on the phone, in the language they chose, and a block retold by this run is a second, weaker account of a posting this run never opened. When this run assessed a chunk itself (§5 step 4), the blocks are the ones it wrote by that same section.
+
+Format, only these blocks, nothing before or after; what the template spells out stays as written, in English, every run (SKILL.md → *Language*):
 
 ```
 # Run HH:MM · window HH:MM–HH:MM
 Checked N · take M · maybe K · connects L
 
 ## Take
-### 1. #<short id> <title as posted>[ · invited]   ← ` · invited` when the card's Flags have it
-
-**<client's price>** · <Duration> · <Connects> connects · [Upwork →](<link>) · [Notion →](<card url>)
-
-Client: <Country> · verified · <Hires> hires · $<Spent> spent · rating <Rating>
-Competition: <Proposals> proposals · <Invites> invited · <Interviewing> interviewing · bids $<Bid low>–<Bid high>
-
-<the What's needed paragraph, no heading>
-
-Complexity **<low|medium|high>** — <the Complexity sentence>
-
-Risks:
-- …
-
-To clarify:
-- …
-
-Estimate **<My hours> h** · ask **<My $>**
-- <each line of the Estimate column, as written>
-
-Advice **<apply|skip>** — <Advice why> · proposal ready   ← only when drafts ran
-
----
-### 2. …
+<the Take blocks, as returned, renumbered from 1>
 
 ## Maybe
-…
+<the Maybe blocks, as returned, numbered on>
 
 ## Log
 - Models: found by <the model this run ran on>[, reviewed by <the reviewing model>]   ← always; `reviewed by` only when an assessment or a catch-up drafts subagent ran: its model line
@@ -125,12 +104,12 @@ Advice **<apply|skip>** — <Advice why> · proposal ready   ← only when draft
 - Problems: <one line per problem: where, what failed, what is left undone>   ← a held chunk is one too: `assessment — <rules unreadable | pipeline updating | the problem>; window HH:MM–HH:MM waits for the next run`, and `not processed` reads `budget — N postings, window HH:MM–HH:MM, next run takes them`
 ```
 
-`<client's price>` is made from the columns: `$<Budget> fixed`, `$<Rate min>–<Rate max>/hr`, or `rate not stated`; money is written as money (`$8,400`). In the Client and Competition lines leave out a part whose column is empty or zero, and "verified" when it is not. `<short id>` is the last six digits of `Job ID`, as on the dashboard, so the user can refer to an item by its number in this message or by its id. Numbering runs across both sections; an empty section is left out; a horizontal rule between cards; `Client:` and `Competition:` labels not bold. `connects L` in the header is the sum over the listed cards.
+Numbering runs across both sections, so the user can refer to an item by its number in this message or by its short id; an empty section is left out, its heading too; a horizontal rule between cards. `connects L` in the header is the sum of the connects the listed blocks show.
 
 **The Log** (SKILL.md → *Automatic mode*): `Models` and `Search` always (`Models`: the model IDs as each context states them, SKILL.md → *Which model*; the subagent's part from its model line); `Deferred` while postings wait to be opened (a refused job page is not a `Problems` line: it is Upwork pacing, handled); `Invitations` only when there are pending ones; `Sync` only when the sync ran (§6); `Drafts` only when drafts ran — the assessments' `drafts:` lines and the catch-up's per-card lines summed into one line in the `drafts:` format of `references/assess.md` §7 (`not new` and `not advised` included); `Auto skip` only when it skipped something; `Update` only when `skill_version` changed; `Problems` only when a call failed or was blocked. No Agent tool is not a problem: the assessment then ran in this session, which the `Models` line shows.
 
-Forbidden in the report: narration outside the Log ("Now I'll…", "All writes are done"), notes on a value (the client's price is exactly as built above — `rate not stated`, nothing in brackets), extra sections, draft proposal text, questions.
+Forbidden in the report: narration outside the Log ("Now I'll…", "All writes are done"), notes on a value, extra sections, draft proposal text, questions.
 
-**Push line**, in `language`, plain text: `Upwork: [<M> take][, <K> maybe][, <I> invited] · #<short id> <title> · <client's price>` (a part that would be zero is left out) for the first news card (the client's price as above), with ` +<n>` after the title when there are more news cards; cut the title so the line stays within the push's length (SKILL.md → *Automatic mode*).
+**Push line**, written as it stands (SKILL.md → *Language*), plain text: `Upwork: [<M> take][, <K> maybe][, <I> invited] · #<short id> <title> · <client's price>` (a part that would be zero is left out) for the first news card, its title and client's price as its block shows them, with ` +<n>` after the title when there are more news cards; cut the title so the line stays within the push's length (SKILL.md → *Automatic mode*). The push carries this line and nothing else.
 
 Off limits here: `confirm_preview` and every other write to Upwork; `PROPOSALS_SYNCED_UNTIL` and the proposals sync, except when it is due (§6); a card's `Status`, except auto skip and the sync; the rules pages.

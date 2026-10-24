@@ -14,7 +14,7 @@ No question left open → no push; the report is the header (`# Questions this w
 
 Otherwise fetch **Search rules** and **Proposal guide** (a recommendation names the item it would refine) and read the cards of the questions you will show: `jobs_all`, newest `Found` first, until each shown question's newest jobs (up to three) are found, or `Found` reaches the oldest shown question's `First seen`. What the user did with those jobs — applied, skipped and why, left New — is the best evidence of the rule they already follow.
 
-The report's goal: the user decides the questions that matter in a minute, by number, without opening Notion. What it must hold, in `language`:
+The report's goal: the user decides the questions that matter in a minute, by number, without opening Notion. What it must hold, written for the user in `language`, the header and the Log as written (SKILL.md → *Language*):
 
 - **The header**: `# Questions this week · N`, N the questions still open.
 - **The few that matter, first** — five at most, ordered by `Seen`, the highest first, and among equal counts the newest `First seen` first: a case that keeps coming back costs the user most. Each one numbered, written for the user: what they decide, in plain words, about the job that raised it (its title and short id, and how many jobs like it came up). A row written like a rules page is said plainly here; its text in Notion stays.
@@ -33,7 +33,7 @@ The report's goal: the user decides the questions that matter in a minute, by nu
 
 `Questions` is always there; `Problems` only when a call failed or was blocked (SKILL.md → *Automatic mode*). No description of your work outside the Log.
 
-**Push line**, in `language`, plain text: `Upwork: <N> open questions for the weekly review`. Last steps: with questions open, load `PushNotification` and push the line; then the final reply — the report alone, its first characters `# Questions`. None → no push, the report all the same.
+**Push line**, written as it stands (SKILL.md → *Language*), plain text: `Upwork: <N> open questions for the weekly review`. Last steps: with questions open, load `PushNotification` and push the line; then the final reply — the report alone, its first characters `# Questions`. None → no push, the report all the same.
 
 ## 3. After the user answers
 
