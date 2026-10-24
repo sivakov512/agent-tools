@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.21.0...upwork-pulse-v0.21.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** keep report labels English and card text as returned ([3408a3d](https://github.com/sivakov512/agent-tools/commit/3408a3dccc5fd52b0e97a6429e8f4b52d39a707b))
+
 ## [0.21.0](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.20.2...upwork-pulse-v0.21.0) (2026-10-21)
 
 
