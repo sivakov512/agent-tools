@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.3](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.17.2...project-tracker-v1.17.3) (2026-10-25)
+
+
+### Bug Fixes
+
+* **project-tracker:** keep a month for open milestones without dates ([6f8be9f](https://github.com/sivakov512/agent-tools/commit/6f8be9f700ed89be3584099aa58f81782b21bfe9))
+
 ## [1.17.2](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.17.1...project-tracker-v1.17.2) (2026-10-25)
 
 
