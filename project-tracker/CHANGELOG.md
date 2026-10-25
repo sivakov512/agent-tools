@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.2](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.17.1...project-tracker-v1.17.2) (2026-10-25)
+
+
+### Bug Fixes
+
+* **project-tracker:** draw milestone cards over their tasks and finishes ([1dcd1c2](https://github.com/sivakov512/agent-tools/commit/1dcd1c2cae89151227285e0cbcdb7afc4478fde1))
+
 ## [1.17.1](https://github.com/sivakov512/agent-tools/compare/project-tracker-v1.17.0...project-tracker-v1.17.1) (2026-10-24)
 
 
