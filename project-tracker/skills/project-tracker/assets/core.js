@@ -489,15 +489,18 @@
     if (!s.length) return null;
     return { start: Math.min.apply(null, s), end: Math.max.apply(null, e), own: own, open: !!own && fades(m) };
   }
-  // Where each open milestone without dates is drawn: in the plan's order, after the milestone before it ends (a dated one, or the placeholder
-  // before it) — today at the earliest, so one following the milestone in progress starts when that one ends. ph: the days a placeholder spans.
+  // Where each open milestone without dates is drawn: a placeholder of ph days in the plan's order, after the milestone before it ends (a
+  // dated one, or the placeholder before it) — today at the earliest, so one following the milestone in progress starts when that one ends —
+  // widened over its placed tasks, so a task done early never shrinks it to a sliver
   function placeholders(ms, t, ph) {
     var out = {}, at = t;
     sortItems(ms).forEach(function (m) {
       var sp = spanOf(m);
-      if (sp) { at = Math.max(at, sp.end + 1); return; }
-      if (!needsPlaceholder(m)) return;
-      out[key(m.url)] = { start: at, end: at + ph - 1, placeholder: true }; at += ph;
+      if (m.at == null && needsPlaceholder(m)) {
+        var s = sp ? Math.min(at, sp.start) : at, e = Math.max(at + ph - 1, sp ? sp.end : at);
+        out[key(m.url)] = { start: s, end: e, placeholder: true }; at = e + 1; return;
+      }
+      if (sp) at = Math.max(at, sp.end + 1);
     });
     return out;
   }
@@ -584,12 +587,13 @@
       var X = ax.X, LW = ax.LW, t = ax.t, d = ctx.plan(p) || {}, ms = d.ms || [], tasks = d.tasks || [];
       var PH = Math.max(TL.ph, Math.ceil((TL.chipMin + 11) / ax.px)); // an undated milestone's placeholder: a month, never narrower than one task chip
       // placed tasks drawn as bars of their own: those without a milestone (one with a milestone sits inside its card, which covers it)
-      var spans = {}; ms.forEach(function (m) { spans[key(m.url)] = spanOf(m); });
-      var bars = tasks.filter(function (k) { return k.at != null && !(k.ms && spans[key(k.ms.url)]); })
+      var places = placeholders(ms, t, PH), cards = {}; // each milestone's card: its placeholder, else its span, else none
+      ms.forEach(function (m) { cards[key(m.url)] = places[key(m.url)] || spanOf(m); });
+      var bars = tasks.filter(function (k) { return k.at != null && !(k.ms && cards[key(k.ms.url)]); })
         .map(function (k) { return { m: k, start: k.at, end: dEnd(k) }; });
-      var drawn = function (m) { return spans[key(m.url)] || needsPlaceholder(m); }; // a milestone that gets a card
+      var drawn = function (m) { return !!cards[key(m.url)]; }; // a milestone that gets a card
       var hasTasks = ms.some(function (m) { // a card with tasks to show: undated ones, or dated ones within its span
-        var sp = spans[key(m.url)];
+        var sp = cards[key(m.url)];
         return drawn(m) && (m.tasks || []).some(function (k) { return k.at == null || sp && kidsIn(m, sp).indexOf(k) >= 0; });
       }), open = !!ctx.opened[p.key] && hasTasks;
       function lateTail(n, m, from) { // the days past its end, in red, inside its bar: from its end date to today, or to when it was done; from: the day the bar starts
@@ -694,9 +698,8 @@
       if (!ms.length) { // tasks only: the dated ones are the row; a task without dates is not drawn
         var nl = pack(bars); bars.forEach(function (g) { bar(g, TL.pad + g.lane * TL.flat); }); h = Math.max(nl, 1) * TL.flat + 16;
       } else if (!open) { // one card per milestone, its tasks as a strip
-        var BH = hasTasks ? TL.box : TL.head, HL = BH + TL.gap, places = placeholders(ms, t, PH);
-        var items = ms.map(function (m) { var sp = spans[key(m.url)]; return sp ? { m: m, start: sp.start, end: sp.end, sp: sp } : null; }).filter(Boolean); // dated cards
-        ms.forEach(function (m) { var sp = places[key(m.url)]; if (sp) items.push({ m: m, start: sp.start, end: sp.end, sp: sp }); });
+        var BH = hasTasks ? TL.box : TL.head, HL = BH + TL.gap;
+        var items = ms.map(function (m) { var sp = cards[key(m.url)]; return sp ? { m: m, start: sp.start, end: sp.end, sp: sp } : null; }).filter(Boolean);
         var n = pack(items);
         items.forEach(function (g) {
           var top = TL.pad + g.lane * HL, mid = top + (BH - TL.head) / 2;
@@ -706,12 +709,11 @@
         var nl0 = pack(bars); bars.forEach(function (g) { bar(g, TL.pad + n * HL + g.lane * TL.lane, "task"); });
         h = Math.max(n, 1) * HL + TL.pad + nl0 * TL.lane;
       } else { // opened up: each milestone on its own line, its name also in the left column (on a phone, on its card only)
-        var y = ax.top ? TL.pad : ax.two ? 54 : 36, places2 = placeholders(ms, t, PH);
+        var y = ax.top ? TL.pad : ax.two ? 54 : 36;
         sortItems(ms).forEach(function (m) {
-          var sp = spans[key(m.url)];
-          if (!sp && !needsPlaceholder(m)) return;
+          var sp = cards[key(m.url)];
+          if (!sp) return;
           glab(m.name, y, function () { ctx.open(p, key(m.url)); });
-          if (!sp) sp = places2[key(m.url)];
           var lanes = chipLines(m, sp);
           var bh = TL.head + lanes * TL.lane + (lanes ? 4 : 0), b = box(m, sp, y, bh); chips(b, m);
           y += bh + TL.gap;
@@ -1054,7 +1056,7 @@
     refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled, whoOf: whoOf,
     problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusItem: focusItem,
     standing: standing, standRows: standRows, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState,
-    planPhrase: planPhrase, dEnd: dEnd, lateFrom: lateFrom, fades: fades, tlTint: tlTint, spanOf: spanOf, projectDates: projectDates, doneCount: doneCount, stickPlan: stickPlan, foldScroll: foldScroll,
+    planPhrase: planPhrase, dEnd: dEnd, lateFrom: lateFrom, fades: fades, tlTint: tlTint, spanOf: spanOf, placeholders: placeholders, projectDates: projectDates, doneCount: doneCount, stickPlan: stickPlan, foldScroll: foldScroll,
     timeline: timeline, typeTag: typeTag, groupTitle: groupTitle, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };
 })();
