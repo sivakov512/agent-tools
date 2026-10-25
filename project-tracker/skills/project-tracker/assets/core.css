@@ -135,7 +135,7 @@ footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--border
 .tile-strip { margin-top: 8px; }
 .mstrip { display: flex; gap: 2px; height: 4px; } /* a project's milestones (or tasks) as a row of marks */
 .mstrip i { flex: 1; border-radius: 2px; background: var(--bar); }
-.mstrip i.done, .mstrip i.doneLate { background: var(--good); opacity: .6; } .mstrip i.prog { background: var(--accent); } .mstrip i.late { background: var(--critical); }
+.mstrip i.done { background: var(--good); opacity: .6; } .mstrip i.prog { background: var(--accent); } .mstrip i.late { background: var(--critical); }
 .mstrip i.wait { background: var(--warn); } .mstrip i.paused { background: var(--paused); } .mstrip i.nodate { background: transparent; box-shadow: inset 0 0 0 1px var(--border-2); }
 .pc.bad { box-shadow: inset 3px 0 0 var(--critical); } /* a card whose project is late or blocked: marked on its edge, as Your move's lines */
 /* Where a project stands, the same rows on its card and its page (standing, standRows): a label, the item, its timing; under a milestone its
@@ -238,8 +238,7 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 .tl-b { position: absolute; height: 22px; border: 0; border-radius: 6px; padding: 0 8px; font-size: 12.5px; line-height: 22px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; background: var(--bar); color: var(--bar-ink); }
 .tl-b:hover { filter: brightness(.96); box-shadow: 0 0 0 2px var(--border-2); }
 .tl-b.prog { background: var(--accent); color: var(--on-accent); }
-.tl-b.late { background: var(--critical); color: var(--on-accent); }
-.tl-b.done, .tl-b.doneLate { background: var(--good-soft); color: var(--good); }
+.tl-b.done { background: var(--good-soft); color: var(--good); }
 .tl-b.paused { background: color-mix(in srgb, var(--bar) 55%, var(--surface)); color: var(--text-mute); }
 .tl-fail { position: absolute; top: 13px; font-size: 13px; color: var(--critical); white-space: nowrap; }
 /* ---------- timeline: the ▸ per project, task bars, milestone cards with their strips and chips ---------- */
@@ -255,8 +254,7 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 .tl-b.box { padding: 0; border-radius: 8px; color: var(--text-2); box-shadow: none; overflow: visible; --st: var(--text-2); --st-soft: color-mix(in srgb, var(--text) 11%, var(--surface));
   background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--st-soft) 90%, var(--surface)) 0 5px, color-mix(in srgb, var(--st-soft) 50%, var(--surface)) 5px 10px); }
 .tl-b.box.prog { --st: var(--accent); --st-soft: var(--accent-soft); }
-.tl-b.box.late { --st: var(--critical); --st-soft: var(--critical-soft); }
-.tl-b.box.done, .tl-b.box.doneLate { --st: var(--good); --st-soft: var(--good-soft); }
+.tl-b.box.done { --st: var(--good); --st-soft: color-mix(in srgb, var(--good) 30%, var(--surface)); } /* stronger than the soft tint: a finished stage stays in sight, not a shadow */
 .tl-b.box.paused { --st: var(--text-mute); --st-soft: color-mix(in srgb, var(--text) 7%, var(--surface)); }
 .tl-b.box .tl-bh { position: absolute; top: 0; left: 0; right: 0; height: 24px; display: flex; align-items: center; gap: 7px; padding: 0 9px; background: none; color: var(--st); font-weight: 600; }
 .tl-b.box .tl-bn { flex: 1; min-width: 0; line-height: 24px; }
@@ -271,12 +269,11 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 .tl-b.box.hov { box-shadow: var(--shadow-lift); } /* the lift wins over the plain hover */
 .tl-strip { position: absolute; left: 8px; right: 8px; bottom: 4px; height: 4px; }
 .tl-seg { position: absolute; height: 4px; border-radius: 2px; cursor: pointer; background: var(--border-2); }
-.tl-seg.prog { background: var(--accent); } .tl-seg.late { background: var(--critical); } .tl-seg.wait { background: var(--warn); } .tl-seg.done, .tl-seg.doneLate { background: var(--good); } .tl-seg.paused { background: var(--paused); }
-.tl-seg.prog, .tl-seg.late, .tl-seg.wait { z-index: 1; } /* the work under way stays on top where tiny segments touch */
+.tl-seg.prog { background: var(--accent); } .tl-seg.late { background: var(--critical); } .tl-seg.wait { background: var(--warn); } .tl-seg.done { background: var(--good); } .tl-seg.paused { background: var(--paused); }
 .tl-seg:hover { box-shadow: 0 0 0 2px var(--surface); }
 .tl-chip { position: absolute; height: 18px; line-height: 18px; padding: 0 7px; border-radius: 5px; font-size: 11.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; background: color-mix(in srgb, var(--text) 16%, var(--surface)); color: var(--text); }
-.tl-chip.prog { background: var(--accent); color: var(--on-accent); } .tl-chip.late { background: var(--critical); color: var(--on-accent); }
-.tl-chip.wait { background: var(--warn-soft); color: var(--warn); } .tl-chip.done, .tl-chip.doneLate { background: color-mix(in srgb, var(--good) 26%, var(--surface)); color: var(--good); }
+.tl-chip.prog { background: var(--accent); color: var(--on-accent); }
+.tl-chip.wait { background: var(--warn-soft); color: var(--warn); } .tl-chip.done { background: color-mix(in srgb, var(--good) 42%, var(--surface)); color: var(--text); } /* strong enough to read over a done card's stripes */
 .tl-chip.paused { color: var(--text-2); }
 .tl-chip:hover { filter: brightness(1.12); }
 .tl-b, .tl-chip { transition: width .12s ease-out, left .12s ease-out; }
@@ -288,7 +285,7 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 .tl-label .tl-glab { position: absolute; left: 44px; right: 12px; border: 0; background: none; padding: 0; text-align: left; font-size: 12.5px; font-weight: 400; line-height: 22px; color: var(--text-mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
 .tl-label .tl-glab:hover { color: var(--accent); }
 .tl-b.wait { background: var(--warn-soft); color: var(--warn); }
-.tl-b.open, .tl-chip.open, .tl-seg.open { -webkit-mask-image: linear-gradient(to right, #000 70%, transparent); mask-image: linear-gradient(to right, #000 70%, transparent); } /* an edge that is no date fades: a start with no agreed end, drawn for a set span, fades where the end would be */
+.tl-b.open, .tl-chip.open { -webkit-mask-image: linear-gradient(to right, #000 70%, transparent); mask-image: linear-gradient(to right, #000 70%, transparent); } /* an edge that is no date fades: a start with no agreed end, drawn for a set span, fades where the end would be */
 .tl-b.box.ph { -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent); } /* and a milestone with no dates at all, placed for a month from today, fades at both */
 /* a project's name in the left column takes up to two lines; on a phone it is a line of its own above the project's bars, which get the whole width */
 .tl-label .nm { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
@@ -299,17 +296,24 @@ details.panel.shut > summary .chev { transform: none; } /* folding: the chevron 
 .tl-area { position: relative; }
 /* a task's name that does not fit in its chip, written after it on a faint plaque joined to it, which starts with a short leader — one thing with the chip,
    yet the plaque's lighter fill and the leader keep it from reading as more of its dates.
-   The text is plain grey, the chip carries the state; only late and waiting keep their colour, done goes quiet */
+   The text is plain grey, the chip carries the state; only waiting keeps its colour, done stays readable over a done card */
 .tl-chip.tailed { border-radius: 5px 0 0 5px; }
 .tl-cout { position: absolute; height: 18px; line-height: 18px; padding: 0 7px 0 15px; border-radius: 0 5px 5px 0; font-size: 11.5px; font-weight: 500; white-space: nowrap; cursor: pointer; color: var(--text-2);
   background: color-mix(in srgb, var(--text) 5%, transparent); }
 .tl-cout::before { content: ""; position: absolute; left: 5px; top: 9px; width: 6px; height: 1px; background: currentColor; opacity: .5; }
 .tl-cout.prog { background: color-mix(in srgb, var(--accent) 14%, transparent); }
-.tl-cout.late { color: var(--critical); background: color-mix(in srgb, var(--critical) 16%, transparent); }
 .tl-cout.wait { color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
-.tl-cout.done, .tl-cout.doneLate { color: var(--text-mute); background: color-mix(in srgb, var(--good) 7%, transparent); }
+.tl-cout.done { color: var(--text-2); background: color-mix(in srgb, var(--good) 18%, var(--surface)); }
 .tl-cout.paused { color: var(--text-mute); }
 .tl-chip.lit, .tl-cout.lit { filter: brightness(1.15); }
+/* a late item's days past its end date: red inside its bar, card, segment or chip, under its name — the rest keeps its own state's colour */
+.tl-late { position: absolute; top: 0; bottom: 0; right: 0; background: var(--critical); pointer-events: none; }
+.tl-b .tl-bn, .tl-chip .tl-cn { position: relative; z-index: 1; }
+.tl-b.box .tl-late { border-radius: 0 8px 8px 0; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--critical-soft) 90%, var(--surface)) 0 5px, color-mix(in srgb, var(--critical-soft) 50%, var(--surface)) 5px 10px); }
+.tl-b.box .tl-bh, .tl-b.box .tl-strip { z-index: 1; }
+/* a card's part beyond its own dates, there only to cover its tasks: the same card, paler */
+.tl-ext { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--surface) 55%, transparent); pointer-events: none; }
+.tl-ext.l { border-radius: 8px 0 0 8px; } .tl-ext.r { border-radius: 0 8px 8px 0; }
 
 /* ---------- the project page, sliding in from the right ---------- */
 .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .2s; }

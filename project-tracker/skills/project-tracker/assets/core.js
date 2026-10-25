@@ -149,22 +149,23 @@
     if (pausedUp) return null;
     return t > it.end ? t - it.end : 0;
   }
-  function stateOfItem(it, pausedUp) {
-    if (it.status === "Done") return it.late > 0 ? "doneLate" : "done";
+  function stateOfItem(it, pausedUp) { // a Done item is done, late or not: it is finished, not burning (its late days show on the timeline)
+    if (it.status === "Done") return "done";
     if (pausedUp) return "paused";
     if (it.late > 0) return "late";
     if (it.status === "Waiting") return "wait"; // waiting or under way shows so, dated or not
     if (it.status === "In progress") return "prog";
     return it.start == null ? "nodate" : "plan";
   }
-  // A Schedule or Tasks row → a milestone or task. A date with no end is a start whose end is not agreed (openEnd): never late, drawn on
-  // the timeline for a set span. It is paused with its project, a task also with its milestone.
+  // A Schedule or Tasks row → a milestone or task. A date with no end is a start whose end is not agreed (openEnd): never late; open, it is
+  // drawn on the timeline for a set span, done, up to its finish. It is paused with its project, a task also with its milestone.
   function itemOf(kind, row, project, own) {
     var x = { kind: kind, url: cleanUrl(row.url), name: clean(row.Name) || "Untitled", status: row.Status || "", project: project,
       start: dnum(row["date:Dates:start"]), end: dnum(row["date:Dates:end"]), finished: dnum(row["date:Finished:start"]),
       chat: row.Chat || "", code: row["Code session"] || "", order: num(row.Order), ref: refOf(kind, row.Ref) };
     for (var k in own) x[k] = own[k];
     x.openEnd = x.start != null && x.end == null;
+    x.at = x.start != null ? x.start : x.status === "Done" ? x.finished : null; // where it sits on the timeline: its planned start, else, done, the day it was finished
     var paused = project.status === "Paused" || (kind === "ms" ? x.status === "Paused" : !!x.ms && x.ms.status === "Paused");
     x.late = lateOf(x, paused); x.state = stateOfItem(x, paused); x.paused = paused && x.status !== "Done";
     return x;
@@ -336,7 +337,7 @@
   }
   function timing(m, long) {
     var t = todayNum();
-    if (m.status === "Done") return [doneText(m), m.late > 0 ? "crit" : ""];
+    if (m.status === "Done") return [doneText(m), ""];
     if (m.paused) return [m.kind === "task" && m.ms && m.ms.status === "Paused" ? "its milestone is paused" : pauseText(m.pause, long), ""];
     if (m.start == null) return [m.kind === "task" ? "no dates" : "no dates yet", ""];
     if (m.late > 0) return [days(m.late) + " late · was due " + fmt(m.end), "crit"];
@@ -365,7 +366,7 @@
   }
   function planPhrase(m) {
     var t = todayNum();
-    if (m.status === "Done") return [doneText(m, true), m.late > 0 ? "crit" : "good"];
+    if (m.status === "Done") return [doneText(m, true), "good"];
     if (m.paused) return ["paused", ""];
     if (m.start == null) return [m.kind === "task" ? (m.status === "In progress" ? "in progress" : "no dates") : "no dates yet", m.status === "In progress" ? "acc" : ""];
     if (m.late > 0) return [days(m.late) + " late", "crit"];
@@ -376,12 +377,12 @@
     }
     return ["starts in " + days(m.start - t), ""];
   }
-  var DOT = { done: "good", doneLate: "good", late: "crit", prog: "cur", wait: "warn", paused: "paused", nodate: "ring" }; // an item's state → its dot
+  var DOT = { done: "good", late: "crit", prog: "cur", wait: "warn", paused: "paused", nodate: "ring" }; // an item's state → its dot
   function itemDot(m) { return DOT[m.state] || ""; }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
   function tipOf(x) { // the hover tip: state and dates (the name is on the bar already)
     var d = x.start == null ? (x.kind === "ms" ? "no dates yet" : "no dates") : range(x.start, x.end), ph = planPhrase(x)[0];
-    if (x.status === "Done") return cap(ph) + " · " + d;
+    if (x.status === "Done") return x.start == null ? cap(ph) : cap(ph) + " · " + d;
     if (x.paused) return (x.kind === "task" && x.ms && x.ms.status === "Paused" ? "Paused with its milestone" : "Paused " + pauseText(x.pause)) + " · " + d;
     var who = onWhom(x), st = x.status === "Waiting" && x.waiting ? cap(who) : [x.status || "Planned", who].filter(Boolean).join(" · "); // "Waiting on Gilad", "In progress · on you"
     return st + " · " + d + (x.late > 0 ? " · " + days(x.late) + " late" : x.start != null && !/^(no dates|in progress)/.test(ph) ? " · " + ph : "");
@@ -423,7 +424,7 @@
   // ---------- the timeline ----------
   var CHEV = '<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
   // sizes on the timeline, in px
-  var TL = { pad: 8, head: 24, box: 34, seg: 6, gap: 8, lane: 21, flat: 30, row: 46, row2: 58, nameH: 30, nameIn: 74, minBox: 8, narrowBox: 60, keepName: 64, chipMin: 64,
+  var TL = { pad: 8, head: 24, box: 34, gap: 8, lane: 21, flat: 30, row: 46, row2: 58, nameH: 30, nameIn: 74, minBox: 8, narrowBox: 60, keepName: 64, chipMin: 64, segMin: 6,
     ph: 30 }; // ph: days an undated milestone's placeholder card spans
   function pack(bars) { var lanes = []; bars.forEach(function (g) { var i = 0; while (lanes[i] != null && lanes[i] >= g.start) i++; lanes[i] = g.end; g.lane = i; }); return lanes.length; }
   var measurer = null;
@@ -431,7 +432,10 @@
     if (!measurer) { measurer = document.createElement("canvas").getContext("2d"); measurer.fam = getComputedStyle(document.body).fontFamily; }
     measurer.font = font + " " + measurer.fam; return Math.ceil(measurer.measureText(s).width);
   }
-  function tint(x) { return x.state === "plan" || x.state === "nodate" ? "" : x.state; } // a card's, segment's or chip's state class: none when planned
+  function tint(x) { return x.state === "plan" || x.state === "nodate" ? "" : x.state; } // an item's state class: none when planned
+  // On the timeline a late item keeps its own state's colour, and only the days past its end are red (lateTail)
+  function tlTint(x) { return x.state !== "late" ? tint(x) : x.status === "In progress" ? "prog" : x.status === "Waiting" ? "wait" : ""; }
+  function fades(x) { return x.openEnd && x.status !== "Done"; } // a start with no end, still open: drawn for the set span, fading where the end would be
   function needsPlaceholder(m) { return OPEN_MS[m.status] || m.status === "Paused"; } // a Done or Dropped milestone without dates is not drawn
   function grow(e) { // under the cursor a bar or chip widens to show its whole name, above its neighbours
     var b = e.currentTarget, inner = b.classList.contains("tl-chip") ? b : b.querySelector(".tl-bn") || b;
@@ -468,12 +472,22 @@
     window.addEventListener("pointerup", function () { drag = null; host.classList.remove("dragging"); });
     host.addEventListener("click", function (e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
   }
-  function dEnd(x) { return x.openEnd ? x.start + TL.ph - 1 : x.end; } // where a bar ends on the timeline: an open end runs for the set span
-  function spanOf(m) { // where a milestone sits on the axis: its dates, else the span of its dated tasks, else nowhere
-    if (m.start != null) return { start: m.start, end: dEnd(m), open: m.openEnd };
-    var d = (m.tasks || []).filter(function (k) { return k.start != null; });
-    if (!d.length) return null;
-    return { start: Math.min.apply(null, d.map(function (k) { return k.start; })), end: Math.max.apply(null, d.map(dEnd)), nodate: true };
+  // Where a bar ends on the timeline: a done item at its finish (before its end date when early, after it when late); an open one at its
+  // end date, or today once past it; a start with no end, still open, after the set span
+  function dEnd(x) {
+    if (x.status === "Done" && x.finished != null) return Math.max(x.finished, x.at);
+    if (x.end == null) return x.at + TL.ph - 1;
+    return x.late > 0 ? Math.max(x.end, todayNum()) : x.end;
+  }
+  function lateFrom(x) { return x.late > 0 && x.end != null ? x.end + 1 : null; } // the first day past its end, from which its bar is red
+  // Where a milestone's card sits: over its own bar and every task's, so no task falls outside it (own: its own part, when it has dates
+  // or is done); nowhere when neither it nor any task is placed
+  function spanOf(m) {
+    var d = (m.tasks || []).filter(function (k) { return k.at != null; }), s = d.map(function (k) { return k.at; }), e = d.map(dEnd);
+    var own = m.at != null ? { start: m.at, end: dEnd(m) } : null;
+    if (own) { s.push(own.start); e.push(own.end); }
+    if (!s.length) return null;
+    return { start: Math.min.apply(null, s), end: Math.max.apply(null, e), own: own, open: !!own && fades(m) };
   }
   // Where each open milestone without dates is drawn: in the plan's order, after the milestone before it ends (a dated one, or the placeholder
   // before it) — today at the earliest, so one following the milestone in progress starts when that one ends. ph: the days a placeholder spans.
@@ -483,14 +497,14 @@
       var sp = spanOf(m);
       if (sp) { at = Math.max(at, sp.end + 1); return; }
       if (!needsPlaceholder(m)) return;
-      out[key(m.url)] = { start: at, end: at + ph - 1, nodate: true, placeholder: true }; at += ph;
+      out[key(m.url)] = { start: at, end: at + ph - 1, placeholder: true }; at += ph;
     });
     return out;
   }
-  function kidsIn(m, sp) { return (m.tasks || []).filter(function (k) { return k.start != null && dEnd(k) >= sp.start && k.start <= sp.end; }); }
-  function datedIn(m, sp) { return kidsIn(m, sp).map(function (k) { return { m: k, start: Math.max(k.start, sp.start), end: Math.min(dEnd(k), sp.end) }; }); } // clipped to the card
+  function kidsIn(m, sp) { return (m.tasks || []).filter(function (k) { return k.at != null && dEnd(k) >= sp.start && k.at <= sp.end; }); }
+  function datedIn(m, sp) { return kidsIn(m, sp).map(function (k) { return { m: k, start: Math.max(k.at, sp.start), end: Math.min(dEnd(k), sp.end) }; }); } // clipped to the card
   // Tasks without dates are normal — only the milestone is promised — so they sit in the card after the dated ones
-  function undatedOf(m) { return (m.tasks || []).filter(function (k) { return k.start == null; }); }
+  function undatedOf(m) { return (m.tasks || []).filter(function (k) { return k.at == null; }); }
 
   // The timeline of a page. ctx: the elements (host: the scrolling box; seg, today, info: the range buttons, Today and the legend's place),
   // range() and setRange(r), projects() in the order drawn, plan(p) ({ms, tasks} or nothing yet), err(p) (its plan failed to load),
@@ -507,12 +521,17 @@
       var ib = btn("icon-btn", null), pop = el("div", "pop"); ib.innerHTML = ICO.info;
       ib.setAttribute("aria-label", "What the colours mean"); ib.setAttribute("aria-expanded", "false"); pop.hidden = true;
       var lg = el("div", "lg");
-      [["tl-b box prog", "Milestone in progress"], ["tl-b box", "Milestone planned"], ["tl-b box late", "Past its end date"], ["tl-b box done", "Done"],
-       ["tl-b box paused", "Paused (❚❚), never counted as late"], ["tl-b box nodate", "No dates yet (?): drawn from today"], ["tl-chip wait", "A task waiting on someone"]
-      ].forEach(function (x) { var sw = el("span", "sw"); sw.appendChild(el("span", x[0])); lg.appendChild(sw); lg.appendChild(span(x[1])); });
+      [["tl-b box prog", "Milestone in progress"], ["tl-b box", "Milestone planned"], ["tl-b box prog", "Late: the days past its end date, to today or to when it was done", true],
+       ["tl-b box done", "Done"], ["tl-b box paused", "Paused (❚❚), never counted as late"], ["tl-b box nodate", "No dates yet (?): drawn from today"],
+       ["tl-chip wait", "A task waiting on someone"]
+      ].forEach(function (x) {
+        var sw = el("span", "sw"), b = el("span", x[0]); if (x[2]) { var t = el("span", "tl-late"); t.style.left = "45%"; b.appendChild(t); }
+        sw.appendChild(b); lg.appendChild(sw); lg.appendChild(span(x[1]));
+      });
       pop.appendChild(lg);
       pop.appendChild(el("div", "", "A milestone is a striped card over its dates in its state's colour: ◆ and its name, its tasks below — a line when closed, " +
-        "named chips when ▸ opens the project. A grey card with ? has no dates yet: it is drawn over its tasks, or else after the milestone before it in the " +
+        "named chips when ▸ opens the project. A done one ends where it was finished; a start with no end date runs a month and fades. " +
+        "Days past an end date are red: to today while it is open, to its finish once done. A grey card with ? has no dates yet: it is drawn over its tasks, or else after the milestone before it in the " +
         "plan — from today at the earliest. Drag or scroll sideways to move in time. Click anything to read the details."));
       ib.addEventListener("click", function (e) { e.stopPropagation(); pop.hidden = !pop.hidden; ib.setAttribute("aria-expanded", String(!pop.hidden)); });
       ctx.info.appendChild(ib); ctx.info.appendChild(pop);
@@ -564,54 +583,66 @@
     function drawRow(r, lab, p, ax) {
       var X = ax.X, LW = ax.LW, t = ax.t, d = ctx.plan(p) || {}, ms = d.ms || [], tasks = d.tasks || [];
       var PH = Math.max(TL.ph, Math.ceil((TL.chipMin + 11) / ax.px)); // an undated milestone's placeholder: a month, never narrower than one task chip
-      // dated tasks drawn as bars of their own: those without a milestone, and those wholly outside their milestone's span
+      // placed tasks drawn as bars of their own: those without a milestone (one with a milestone sits inside its card, which covers it)
       var spans = {}; ms.forEach(function (m) { spans[key(m.url)] = spanOf(m); });
-      var bars = tasks.filter(function (k) {
-        if (k.start == null) return false;
-        var sp = k.ms ? spans[key(k.ms.url)] : null;
-        return !sp || dEnd(k) < sp.start || k.start > sp.end;
-      }).map(function (k) { return { m: k, start: k.start, end: dEnd(k) }; });
+      var bars = tasks.filter(function (k) { return k.at != null && !(k.ms && spans[key(k.ms.url)]); })
+        .map(function (k) { return { m: k, start: k.at, end: dEnd(k) }; });
       var drawn = function (m) { return spans[key(m.url)] || needsPlaceholder(m); }; // a milestone that gets a card
       var hasTasks = ms.some(function (m) { // a card with tasks to show: undated ones, or dated ones within its span
         var sp = spans[key(m.url)];
-        return drawn(m) && (m.tasks || []).some(function (k) { return k.start == null || sp && kidsIn(m, sp).indexOf(k) >= 0; });
+        return drawn(m) && (m.tasks || []).some(function (k) { return k.at == null || sp && kidsIn(m, sp).indexOf(k) >= 0; });
       }), open = !!ctx.opened[p.key] && hasTasks;
+      function lateTail(n, m, from) { // the days past its end, in red, inside its bar: from its end date to today, or to when it was done; from: the day the bar starts
+        var lf = lateFrom(m); if (lf == null) return;
+        var t = el("span", "tl-late"); t.style.left = Math.max(X(lf) - X(from), 0) + "px"; n.appendChild(t);
+      }
       function bar(g, top, cls) {
         var m = g.m, x0 = X(g.start), x1 = X(g.end + 1);
-        var b = btn("tl-b " + (cls || "") + " " + (m.state === "plan" ? "" : m.state) + (m.openEnd ? " open" : ""), null, function () { ctx.open(p, key(m.url)); });
-        b.appendChild(el("span", "tl-bn", m.name)); b.title = tipOf(m);
+        var b = btn("tl-b " + (cls || "") + " " + tlTint(m) + (fades(m) ? " open" : ""), null, function () { ctx.open(p, key(m.url)); });
+        b.appendChild(el("span", "tl-bn", m.name)); b.title = tipOf(m); lateTail(b, m, g.start);
         b.style.left = (LW + x0) + "px"; b.style.width = Math.max(x1 - x0 - 3, 6) + "px"; b.style.top = top + "px";
         r.appendChild(hoverable(b, true)); return b;
       }
       function box(m, sp, top, hgt) { // a milestone as a card: its state's stripes, ◆ and its name, its tasks inside
-        var x0 = X(sp.start), x1 = X(sp.end + 1), undated = m.start == null;
-        var cls = "tl-b box" + (undated ? " nodate" : "") + (sp.placeholder ? " ph" : "") + (m.openEnd ? " open" : "") + (tint(m) ? " " + tint(m) : "");
+        var x0 = X(sp.start), x1 = X(sp.end + 1), undated = m.start == null && m.status !== "Done"; // a done one sits at its finish without a plan
+        var cls = "tl-b box" + (undated ? " nodate" : "") + (sp.placeholder ? " ph" : "") + (fades(m) ? " open" : "") + (tlTint(m) ? " " + tlTint(m) : "");
         var b = btn(cls, null, function () { ctx.open(p, key(m.url)); });
         var hd = el("span", "tl-bh"); hd.appendChild(el("span", "tl-ms")); hd.appendChild(el("span", "tl-bn", m.name));
         if (undated) { var q = el("span", "tl-q", "?"); q.title = "No dates yet"; hd.appendChild(q); }
-        b.appendChild(hd);
+        lateTail(b, m, sp.start); b.appendChild(hd);
+        if (sp.own) [[sp.start, sp.own.start - 1, "l"], [sp.own.end + 1, sp.end, "r"]].forEach(function (x) { // beyond its own dates, over its tasks: paler
+          if (x[1] < x[0]) return;
+          var e = el("span", "tl-ext " + x[2]); e.style.left = (X(x[0]) - x0) + "px"; e.style.width = (X(x[1] + 1) - X(x[0])) + "px"; b.appendChild(e);
+        });
         b.style.left = (LW + x0) + "px"; b.style.width = Math.max(x1 - x0 - 3, TL.minBox) + "px"; b.style.top = top + "px"; b.style.height = hgt + "px";
         if (x1 - x0 < TL.narrowBox) b.classList.add("narrow"); // too small for ◆, name and ?: the ? stays, the rest shows under the cursor
         b.title = tipOf(m);
         r.appendChild(hoverable(b, true)); return { bar: b, x0: x0, sp: sp };
       }
-      function stripLanes(m, sp) { var dd = datedIn(m, sp), n = pack(dd); return n + (undatedOf(m).length ? 1 : 0); }
-      function strip(b, m) { // closed: the milestone's tasks as segmented lines inside its card — dated ones by date (overlaps on lines above), undated ones sharing a line evenly
-        var dated = datedIn(m, b.sp), und = undatedOf(m); if (!dated.length && !und.length) return false;
-        var nd = pack(dated), lines = nd + (und.length ? 1 : 0), tr = el("span", "tl-strip"); tr.style.height = (lines * TL.seg - 2) + "px";
-        function seg(k, bottom) {
-          var sg = el("span", "tl-seg " + tint(k) + (k.openEnd ? " open" : "")); sg.style.bottom = bottom + "px";
-          sg.title = k.name + " — " + tipOf(k); /* a segment shows no name, so its tip does */
-          sg.addEventListener("click", function (e) { e.stopPropagation(); ctx.open(p, key(k.url)); });
+      // Closed: the milestone's tasks as one line inside its card, in plan order — a share each where the card has room (TL.segMin px a task),
+      // else one share per state, as wide as its count; either way the card's height never grows with its tasks. A late open task is red.
+      var STATES = [["done", "done"], ["late", "late"], ["prog", "in progress"], ["wait", "waiting"], ["paused", "paused"], ["", "planned"]];
+      function stripState(k) { return k.state === "plan" || k.state === "nodate" ? "" : k.state; }
+      function strip(b, m) {
+        var ks = sortItems(kidsIn(m, b.sp).concat(undatedOf(m))); if (!ks.length) return false;
+        var w = Math.max(X(b.sp.end + 1) - X(b.sp.start) - 3, TL.minBox), inset = Math.min(TL.pad, Math.floor(w / 4)), tr = el("span", "tl-strip");
+        tr.style.left = tr.style.right = inset + "px";
+        function share(cls, from, n, of) {
+          var sg = el("span", "tl-seg " + cls); sg.style.left = (from / of * 100) + "%"; sg.style.width = "calc(" + (n / of * 100) + "% - 2px)";
           tr.appendChild(sg); return sg;
         }
-        dated.forEach(function (g) {
-          var x0 = X(g.start) - b.x0, x1 = X(g.end + 1) - b.x0, sg = seg(g.m, (lines - 1 - g.lane) * TL.seg);
-          sg.style.left = Math.max(x0 - TL.pad, 0) + "px"; sg.style.width = Math.max(x1 - x0 - 3, 3) + "px";
+        if ((w - 2 * inset) / ks.length >= TL.segMin) ks.forEach(function (k, i) {
+          var sg = share(stripState(k), i, 1, ks.length); sg.title = k.name + " — " + tipOf(k); /* a share shows no name, so its tip does */
+          sg.addEventListener("click", function (e) { e.stopPropagation(); ctx.open(p, key(k.url)); });
         });
-        und.forEach(function (k, i) { // shares: they follow the card when it widens
-          var sg = seg(k, 0); sg.style.left = (i / und.length * 100) + "%"; sg.style.width = "calc(" + (100 / und.length) + "% - 3px)";
-        });
+        else {
+          var at = 0, said = [];
+          STATES.forEach(function (st) {
+            var n = ks.filter(function (k) { return stripState(k) === st[0]; }).length; if (!n) return;
+            share(st[0], at, n, ks.length); at += n; said.push(n + " " + st[1]);
+          });
+          tr.title = plural(ks.length, "task") + " · " + said.join(", "); // a click opens the milestone, where each task is listed
+        }
         b.bar.appendChild(tr); return true;
       }
       // A dated chip spans its dates. A name that does not fit in it is written after it instead, on a faint plaque joined to it that starts with a short leader —
@@ -619,7 +650,7 @@
       // Lines are packed by what is drawn, name included, so no name is cut or runs into another chip.
       function chipPlan(m, sp) {
         var items = datedIn(m, sp).map(function (g) {
-          var l = Math.max(X(g.start) - X(sp.start) + 3, 4), w = Math.max(X(g.end + 1) - X(g.start) - 7, 8), tw = textW(g.m.name, "500 11.5px"), it = { m: g.m, l: l, w: w, tw: tw };
+          var l = Math.max(X(g.start) - X(sp.start) + 3, 4), w = Math.max(X(g.end + 1) - X(g.start) - 7, 8), tw = textW(g.m.name, "500 11.5px"), it = { m: g.m, from: g.start, l: l, w: w, tw: tw };
           it.out = tw + 14 > w; it.start = l; it.end = it.out ? l + w + 15 + tw + 7 + 10 : l + w + 4; // a written name keeps clear of the next chip, so it is not read as that chip's
           return it;
         }).sort(function (a, b) { return a.start - b.start; });
@@ -640,15 +671,16 @@
       function chips(b, m) { // opened up: the milestone's tasks as named chips inside its card (reachable by mouse; the card itself takes focus)
         function go(k) { return function (e) { e.stopPropagation(); ctx.open(p, key(k.url)); }; }
         function chip(k, top, name) {
-          var c = el("span", "tl-chip " + tint(k) + (k.openEnd ? " open" : ""), name ? k.name : null); c.style.top = top + "px";
+          var c = el("span", "tl-chip " + tlTint(k) + (fades(k) ? " open" : "")); c.style.top = top + "px";
+          if (name) c.appendChild(el("span", "tl-cn", k.name)); // its own span, so the red of its late days stays under it
           c.title = tipOf(k); c.addEventListener("click", go(k));
           b.bar.appendChild(hoverable(c)); return c;
         }
         var plan = chipPlan(m, b.sp), nd = plan.n;
         plan.items.forEach(function (g) {
-          var top = TL.head + g.lane * TL.lane, c = chip(g.m, top, !g.out); c.style.left = g.l + "px"; c.style.width = g.w + "px";
+          var top = TL.head + g.lane * TL.lane, c = chip(g.m, top, !g.out); c.style.left = g.l + "px"; c.style.width = g.w + "px"; lateTail(c, g.m, g.from);
           if (!g.out) return;
-          c.classList.add("tailed"); var o = el("span", "tl-cout " + tint(g.m), g.m.name); o.style.top = top + "px"; o.style.left = (g.l + g.w) + "px";
+          c.classList.add("tailed"); var o = el("span", "tl-cout " + tlTint(g.m), g.m.name); o.style.top = top + "px"; o.style.left = (g.l + g.w) + "px";
           o.title = c.title; o.addEventListener("click", go(g.m)); b.bar.appendChild(o);
           [c, o].forEach(function (n) { // one thing under the cursor
             n.addEventListener("mouseenter", function () { c.classList.add("lit"); o.classList.add("lit"); });
@@ -662,8 +694,7 @@
       if (!ms.length) { // tasks only: the dated ones are the row; a task without dates is not drawn
         var nl = pack(bars); bars.forEach(function (g) { bar(g, TL.pad + g.lane * TL.flat); }); h = Math.max(nl, 1) * TL.flat + 16;
       } else if (!open) { // one card per milestone, its tasks as a strip
-        var segLanes = Math.max.apply(null, [1].concat(ms.filter(drawn).map(function (m) { return stripLanes(m, spans[key(m.url)] || { start: 0, end: PH - 1 }); })));
-        var BH = hasTasks ? TL.box + (segLanes - 1) * TL.seg : TL.head, HL = BH + TL.gap, places = placeholders(ms, t, PH);
+        var BH = hasTasks ? TL.box : TL.head, HL = BH + TL.gap, places = placeholders(ms, t, PH);
         var items = ms.map(function (m) { var sp = spans[key(m.url)]; return sp ? { m: m, start: sp.start, end: sp.end, sp: sp } : null; }).filter(Boolean); // dated cards
         ms.forEach(function (m) { var sp = places[key(m.url)]; if (sp) items.push({ m: m, start: sp.start, end: sp.end, sp: sp }); });
         var n = pack(items);
@@ -701,7 +732,7 @@
         var d = ctx.plan(p); if (!d) return;
         var pl = placeholders(d.ms || [], t, TL.ph);
         Object.keys(pl).forEach(function (k) { b = Math.max(b, pl[k].end + 14); });
-        d.ms.concat(d.tasks).forEach(function (m) { if (m.start != null) { a = Math.min(a, m.start - 7); b = Math.max(b, dEnd(m) + 14); } });
+        d.ms.concat(d.tasks).forEach(function (m) { if (m.at != null) { a = Math.min(a, m.at - 7); b = Math.max(b, dEnd(m) + 14); } });
       });
       // a phone has no left column: each project's name is a line of its own above its bars, and the bars get the whole width
       var narrow = window.innerWidth <= 640, LW = narrow ? 0 : 220, vw = host.clientWidth || 700;
@@ -1023,7 +1054,7 @@
     refOf: refOf, setRefPrefixes: setRefPrefixes, refTag: refTag, titled: titled, whoOf: whoOf,
     problemOf: problemOf, buildPlan: buildPlan, isOpen: isOpen, ageOf: ageOf, ageCls: ageCls, sortItems: sortItems, worstLate: worstLate, focusItem: focusItem,
     standing: standing, standRows: standRows, onWhom: onWhom, setSides: setSides, pauseOf: pauseOf, pauseText: pauseText, projectState: projectState,
-    planPhrase: planPhrase, projectDates: projectDates, doneCount: doneCount, stickPlan: stickPlan, foldScroll: foldScroll,
+    planPhrase: planPhrase, dEnd: dEnd, lateFrom: lateFrom, fades: fades, tlTint: tlTint, spanOf: spanOf, projectDates: projectDates, doneCount: doneCount, stickPlan: stickPlan, foldScroll: foldScroll,
     timeline: timeline, typeTag: typeTag, groupTitle: groupTitle, problemLines: problemLines, meta: meta, msFacts: msFacts, taskFacts: taskFacts, page: page
   };
 })();
