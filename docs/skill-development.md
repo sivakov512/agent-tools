@@ -7,7 +7,7 @@ How every plugin in this marketplace is built, changed, checked and released —
 The next agent sees the repository, never the conversation that shaped it. So:
 
 1. **Before a change**, read this file and the plugin's `docs/skill-design.md`, and know which of its criteria and decisions the change touches.
-2. **What the user decides about a skill's behaviour** goes into the plugin's `docs/skill-design.md` (*What the skill must do* or *Decisions*), in the same change as the skill and its eval cases. What is decided about how all skills are built goes here.
+2. **What the user decides about a skill's behaviour** goes into the plugin's `docs/skill-design.md` (*What the skill must do* or *Decisions*), in the same change as the skill and the eval cases it gets (§7.2). What is decided about how all skills are built goes here.
 3. **A request that contradicts a written decision** is not carried out silently: name the decision and its reason, and ask whether it changes. If it does, rewrite the decision in place; if not, leave the skill as it is.
 4. **The user decides behaviour** — what the skill does and what they see. The architecture — files, structure, checks — follows this file; explain it to the user in plain words, not in file names.
 5. **This file wins.** A plugin departs from it only in its design doc's *Exceptions*, each with its reason. A contradiction found between the two is fixed in the same change, or reported.
@@ -25,7 +25,7 @@ The next agent sees the repository, never the conversation that shaped it. So:
 | `docs/skill-design.md` | the design doc (below) |
 | `docs/dashboard-design.md` | the spec of each page in `assets/`, if any |
 | `tests/` | offline tests only this plugin needs; `scripts/check.py` runs them |
-| `evals/` | the `claude plugin eval` suite and its `README.md` |
+| `evals/` | the `claude plugin eval` suite (§7.2) and its `README.md` |
 | `CHANGELOG.md` | written by the release |
 
 No top-level `bin/`: claude.ai skips a plugin that has one, since Claude Code would put it on PATH unseen by an admin. Executables go in `libexec/` and run from hooks, commands or MCP servers.
@@ -34,13 +34,13 @@ No top-level `bin/`: claude.ai skips a plugin that has one, since Claude Code wo
 
 **The design doc**, `docs/skill-design.md`, has these sections:
 
-1. *What the skill must do* — numbered, testable guarantees, each covered by an eval case. Breaking one is a bug, not a trade-off.
+1. *What the skill must do* — numbered, testable guarantees, each covered by an eval case where §7.2 calls for one. Breaking one is a bug, not a trade-off.
 2. *Decisions* — choices the user made or confirmed that a later change could undo, one entry each: what was chosen and why, in a sentence or two.
 3. *Where things live* — a table of every file in `skills/<skill>/` and what it owns.
 4. *Exceptions* — where the plugin departs from this file, and why.
 5. *Checking a change* — only what this plugin checks beyond §7.
 
-**A new plugin** starts as a copy of `templates/plugin/` and is registered in `.claude-plugin/marketplace.json`, the table in the root `README.md`, and `packages` in both `.release-please/config.json` and `.release-please/manifest.json` (as the existing entries, starting at `0.0.0`, with `"initial-version": "0.1.0"` in its config entry — without it the first release is 1.0.0). Its design doc is written and agreed with the user before its `SKILL.md`: the scenarios first, then the eval cases, then the skill.
+**A new plugin** starts as a copy of `templates/plugin/` and is registered in `.claude-plugin/marketplace.json`, the table in the root `README.md`, and `packages` in both `.release-please/config.json` and `.release-please/manifest.json` (as the existing entries, starting at `0.0.0`, with `"initial-version": "0.1.0"` in its config entry — without it the first release is 1.0.0). Its design doc is written and agreed with the user before its `SKILL.md`: the scenarios first, then the eval cases §7.2 calls for, then the skill.
 
 ## 3. Instructions
 
@@ -103,7 +103,12 @@ Each page in `assets/` has its spec in `docs/dashboard-design.md`, updated in th
 ## 7. Checking a change
 
 1. **Static checks**: `python3 scripts/check.py <plugin>` passes. It checks the skill's frontmatter and size, links, that its pages carry no Cyrillic (§3.11), the plugin's registration, graders, and the pages' scripts, then runs the plugin's own `tests/`. CI runs it for every plugin on each push and pull request.
-2. **Behaviour has an eval case.** A new or changed behaviour gets its case first — failing before the change, passing after. Run the cases the change touches on this commit; a case that fails is run again, and if it fails again, on the previous commit too: a case that fails on both is not this change's, one that fails only after it is. Run them on the model that does that work in use (the plugin's `evals/README.md` names it), with `--judge-model sonnet`; a suite that grants Bash runs through `scripts/eval.sh` (`alter-ego/evals/README.md`). A full suite costs real money (the README says how much): run it when the change touches rules every mode uses, and say so.
+2. **Eval cases by criteria, not by default.** Two kinds of skill need different suites. A *procedural* skill acts on outside systems or for the user: it writes (Notion, files, git), sends, publishes, spends money or decides on the user's behalf — `project-tracker`, `upwork-pulse`, `alter-ego`. A *guidance* skill holds rules, style or reference material the agent applies while it works — a set of modelling rules for a CAD tool. A skill that does both is procedural.
+   - **A guidance skill needs, by default, only a trigger check**: cases that it loads on the requests it is for, phrased with and without the words a user might leave out, and stays silent on an unrelated one. Their graders check only the load (`tool_used` on the Skill tool); each run stops right after it (`max_turns: 2`), on a cheap model, with no mock services. Whether its rules are followed shows in real use, where the user sees the result; a skill that silently stops loading is the failure real use misses.
+   - **A behaviour case is added when the behaviour meets all of these**: a failure is easy to miss in real use; it has a cost (a write, a send, money, lost data); the case is cheap next to that value; its result does not depend on how faithfully a mock imitates the real service. A procedural skill's guarantees meet them as a rule, so each has its case; a guidance skill's rules seldom do.
+   - **A plugin with no behaviour cases** records that decision and its reason in its design doc's *Decisions*, so a later change does not read it as a breach of this file; so does a procedural skill that leaves a guarantee without a case because it fails these criteria.
+
+   **A new or changed behaviour that meets them gets its case first** — failing before the change, passing after; a change to the description or the skill's name runs the trigger cases, where the plugin has them. Run the cases the change touches on this commit; a case that fails is run again, and if it fails again, on the previous commit too: a case that fails on both is not this change's, one that fails only after it is. Run them on the model that does that work in use (the plugin's `evals/README.md` names it; trigger cases on a cheap one), with `--judge-model sonnet` where a case has an LLM judge; a suite that grants Bash runs through `scripts/eval.sh` (`alter-ego/evals/README.md`). A full suite costs real money (the README says how much): run it when the change touches rules every mode uses, and say so.
 3. **Mechanical checks are regex graders** on the tool calls (`tool_used`); **judgement** — what a reply says, where a record goes — is a scenario with an LLM judge.
 4. **A failing case is diagnosed, never re-run until green.** The agent, the mocks and the judge are all models, so a case that failed is run three times: 3 of 3 is a pass, anything less is a failing case, whatever an earlier run showed. Read its traces and name the cause: a judge that wavers is replaced by regex graders where the check is mechanical, or given the context it lacks; an agent that wavers means a rule in the skill is ambiguous, and that rule is fixed (§3.7). Each fix comes from a named cause and is checked once, three runs; if it does not hold, the diagnosis was wrong — look again, never try another wording of the same line. A case still failing after one diagnosis and fix is written into the design doc as a known gap with its cause; it blocks a release only when it covers a guarantee of *What the skill must do* and the change made it worse — a failure the previous commit had too, and that the change did not worsen, is recorded and fixed in a change of its own.
 5. **Keep the suite honest.** A case passes exactly when the skill behaves right: one that fails on a correct reply (a stale grader, a judge reading its rubric too strictly) is fixed in the change that finds it, not listed as unstable; "known unstable" in a plugin's evals README is only for model noise that re-runs clear. A grader with no frontmatter is skipped without a word (`scripts/check.py` catches it). Regex graders match the tool input as JSON text, where quotes are escaped. A "must not" grader passes trivially when the agent lacks the tool — grant what the case needs.
