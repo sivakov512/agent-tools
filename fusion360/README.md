@@ -29,4 +29,4 @@ The agent saves the document only when you ask: every save is a new cloud versio
 ## Limits
 
 - It does not choose materials, print settings or tolerances for a specific printer; the fit gap is one parameter for you to tune.
-- Fusion's API changes between releases: the skill looks classes up in the API documentation before using them, but a call it has not used before may still need a retry.
+- Fusion's API changes between releases: a call the agent has not used before may need a retry.

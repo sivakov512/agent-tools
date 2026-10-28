@@ -7,7 +7,7 @@ description: Rules and style for building and editing parametric models in Autod
 
 Build and edit the model so that someone opening it later understands from its parameters, components and history how each part is made, and changing one dimension moves everything that depends on it. A model that only looks right — numbers worked out by hand, "Sketch1", a corrective cut on top — breaks on the first change. Names in the model are English.
 
-Before the first script in a session, read `references/fusion-api.md`: the API calls that carry out these rules, the checks as code, the API's pitfalls and export.
+Before the first script in a session, read `references/fusion-pitfalls.md`: how Fusion behaves where its MCP and API documentation do not say.
 
 **Words.** A *part* is one piece the model makes (a box, a lid, a bracket). A *mating part* is something the model is built around but does not make: a part from outside the design, such as another document or a supplier's model. An *element* is a reusable feature group that may appear in several parts (a mount, a hinge, a snap hook). A *step* is one entry of the timeline (a sketch or a feature). The *datum* is the one origin every position is measured from.
 
