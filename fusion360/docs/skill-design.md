@@ -13,7 +13,7 @@ Each has an eval case (`evals/README.md`) or a *not checked* decision under *Dec
 3. **Each part is its own component; parts from outside the design are linked and placed**, and the model is built around them.
 4. **Sketches are fully constrained by the constraints they need.**
 5. **A change edits the step that made the thing**, never a corrective step on top.
-6. **Internal corners are filleted; printed parts print and fit**: a shared fit gap, local gaps where a mechanism needs them, bed and lead-in chamfers, hole chamfers, print orientation.
+6. **Internal corners are filleted; printed parts print and fit**: a shared fit gap, local gaps where a mechanism needs them, print-bed and lead-in chamfers, hole chamfers, print orientation.
 7. **Every change is checked**: health, rebuild over key parameters, interference and gaps, moving parts over their travel, keyed assembly.
 8. **Changes beyond the request are proposed, not made**, and whatever a check moves is restored.
 9. **The document is saved only when the user asks**, since every save is a cloud version.
