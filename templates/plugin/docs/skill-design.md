@@ -4,7 +4,7 @@ How the `my-skill` skill is put together and the criteria every change is checke
 
 ## What the skill must do
 
-These hold in every mode. The eval suite (`evals/README.md`) checks each; a change that breaks one is a bug, not a trade-off.
+These hold in every mode. Each has an eval case (`evals/README.md`) where `docs/skill-development.md` §7.2 calls for one; a change that breaks one is a bug, not a trade-off.
 
 1. **<Guarantee.>** <What it means in practice, and why.>
 
@@ -13,6 +13,7 @@ These hold in every mode. The eval suite (`evals/README.md`) checks each; a chan
 Choices the user made or confirmed. A request that goes against one is raised with the user before anything changes.
 
 - **<What was chosen.>** <Why, in a sentence or two.>
+- **<Which eval cases the suite has.>** <Procedural or guidance skill (`docs/skill-development.md` §7.2); with no behaviour cases, or a guarantee without one, why.>
 
 ## Where things live
 
