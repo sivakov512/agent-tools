@@ -30,4 +30,3 @@ The agent saves the document only when you ask: every save is a new cloud versio
 
 - It does not choose materials, print settings or tolerances for a specific printer; the fit gap is one parameter for you to tune.
 - Fusion's API changes between releases: the skill looks classes up in the API documentation before using them, but a call it has not used before may still need a retry.
-- A Fusion archive of a design with a linked component cannot be opened offline, and the API cannot write .f3z; the skill exports a copy without the linked part, or STEP.

@@ -31,7 +31,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **Edit history instead of adding steps.** Reordering the timeline, or deleting and recreating a feature in place, is preferred over a corrective feature at the end.
 - **A shared fit gap where fits are alike, a local clearance where a mechanism differs.** Fits of the same kind are tuned in one place; a hinge or a latch that needs its own clearance gets its own parameter rather than bending the shared one.
 - **Saving only when asked.** Every save makes a new cloud version; this is about Fusion, not one user's taste.
-- **API notes and rendering load on demand.** The rules are in `SKILL.md`; the API calls, pitfalls, rendering and export live in `references/fusion-api.md`, read before the first script.
+- **API notes load on demand.** The rules are in `SKILL.md`; the API calls, pitfalls and export live in `references/fusion-api.md`, read before the first script.
 - **Behaviour cases: none.** The user decided per behaviour, below: rule compliance shows in real use on real Fusion, and a mock can only imagine the results.
 - **1, parameters and formulas: not checked.** A hardcoded or hand-computed size shows in the parameter table and breaks on the first change; it shows in the model the user opens on real Fusion, and a case could only grade scripts against a mock that imagines Fusion's answers (`docs/skill-development.md` §7.2, criteria 1 and 4).
 - **2, naming: not checked.** Names are what the user reads in the browser and timeline; it shows in the model the user opens on real Fusion, and a case could only grade scripts against a mock that imagines Fusion's answers (`docs/skill-development.md` §7.2, criteria 1 and 4).
@@ -49,7 +49,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 | File | Owns |
 |---|---|
 | `SKILL.md` | trigger; words; the rules for structure, parameters, sketches, history, finish, printed parts, checks and saving; the pointer to the API reference |
-| `references/fusion-api.md` | carrying the rules out through the MCP or API scripts: reading the design, the API calls for each rule, the checks as code, the API pitfalls, rendering and export, how to save |
+| `references/fusion-api.md` | carrying the rules out through the MCP or API scripts: reading the design, units, the API calls for each rule, the checks as code, the API pitfalls, export for printing, how to save |
 
 ## Exceptions
 
