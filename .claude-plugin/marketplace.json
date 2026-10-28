@@ -22,7 +22,7 @@
     {
       "name": "fusion360",
       "source": "./fusion360",
-      "description": "Parametric models in Autodesk Fusion 360 built as a careful person would: named parameters and formulas, a component per part, constrained named sketches, a readable history, FDM-ready fits, checks after every change."
+      "description": "Parametric models in Autodesk Fusion 360 built as a careful person would: named parameters and formulas, a component per part, constrained named sketches, a readable history, FDM-ready fits, checks that fit each change."
     }
   ]
 }
