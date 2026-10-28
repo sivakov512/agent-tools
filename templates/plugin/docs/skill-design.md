@@ -13,7 +13,7 @@ These hold in every mode. Each has an eval case (`evals/README.md`) where `docs/
 Choices the user made or confirmed. A request that goes against one is raised with the user before anything changes.
 
 - **<What was chosen.>** <Why, in a sentence or two.>
-- **<Which eval cases the suite has.>** <Procedural or guidance skill (`docs/skill-development.md` §7.2); with no behaviour cases, or a guarantee without one, why.>
+- **<Which eval cases the suite has.>** <Trigger cases, plus the behaviours that meet the criteria of `docs/skill-development.md` §7.2; each guarantee or behaviour left without a case, and why.>
 
 ## Where things live
 
