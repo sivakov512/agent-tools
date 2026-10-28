@@ -16,7 +16,7 @@ A finding names its kind and where it is, never what matched, so the CI log of a
 not repeat the leak, and never the term.
 
 Run from the repository root:
-  python3 scripts/check_privacy.py                        # this branch: origin/master..HEAD
+  python3 scripts/check_privacy.py                        # this branch: origin/main..HEAD
   python3 scripts/check_privacy.py --range BASE..HEAD     # commit messages in the range, lines it adds
   python3 scripts/check_privacy.py --diff x.diff --text "PR body" body.txt
   python3 scripts/check_privacy.py --self-test            # the patterns catch the bad forms, pass the fakes,
@@ -245,7 +245,7 @@ def main():
     if args.diff:
         diff = sys.stdin.read() if args.diff == "-" else open(args.diff, encoding="utf-8").read()
     elif args.range or not texts:
-        commits, diff = from_range(args.range or "origin/master..HEAD")
+        commits, diff = from_range(args.range or "origin/main..HEAD")
         texts += commits
 
     terms = private_terms(os.environ.get("PRIVATE_TERMS"))
