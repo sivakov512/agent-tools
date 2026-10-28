@@ -1,6 +1,6 @@
 # Evals
 
-`claude plugin eval` suite for the `my-plugin` plugin. Which cases it has follows `docs/skill-development.md` §7.2: trigger cases always, behaviour cases only where that section's criteria call for them (`docs/skill-design.md` records the decision either way). Every outside service a behaviour case touches is replaced by a mock server, so nothing touches a real account. Delete what this plugin does not use.
+`claude plugin eval` suite for the `my-plugin` plugin. Which cases it has follows `docs/skill-development.md` §7.2: trigger cases always, a behaviour case only for a behaviour that meets that section's criteria (`docs/skill-design.md` → *Decisions* names what is left without one, and why). Every outside service a behaviour case touches is replaced by a mock server, so nothing touches a real account. Delete what this plugin does not use.
 
 Trigger cases only, run from `my-plugin/`:
 
