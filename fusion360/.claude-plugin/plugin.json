@@ -1,6 +1,6 @@
 {
   "name": "fusion360",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Parametric models in Autodesk Fusion 360 the way a careful person builds them: every size a named parameter, derived sizes as formulas, a component per part, constrained and named sketches, a readable history, FDM-ready fits, and the checks that fit each change.",
   "author": {
     "name": "Nikita Sivakov"
