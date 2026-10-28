@@ -4,7 +4,7 @@ How the `my-skill` skill is put together and the criteria every change is checke
 
 ## What the skill must do
 
-These hold in every mode. Each has an eval case (`evals/README.md`) where `docs/skill-development.md` §7.2 calls for one; a change that breaks one is a bug, not a trade-off.
+These hold in every mode. Each has an eval case (`evals/README.md`) or a *not checked* decision under *Decisions* (`docs/skill-development.md` §7.2); a change that breaks one is a bug, not a trade-off.
 
 1. **<Guarantee.>** <What it means in practice, and why.>
 
@@ -13,7 +13,7 @@ These hold in every mode. Each has an eval case (`evals/README.md`) where `docs/
 Choices the user made or confirmed. A request that goes against one is raised with the user before anything changes.
 
 - **<What was chosen.>** <Why, in a sentence or two.>
-- **<Which eval cases the suite has.>** <Trigger cases, plus the behaviours that meet the criteria of `docs/skill-development.md` §7.2; each guarantee or behaviour left without a case, and why.>
+- **<A behaviour: checked, or not checked.>** <Why, by the criteria of `docs/skill-development.md` §7.2.>
 
 ## Where things live
 
