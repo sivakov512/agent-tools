@@ -18,6 +18,11 @@
       "name": "alter-ego",
       "source": "./alter-ego",
       "description": "Per-repository git and GitHub identity: clean mode as you with no AI marks, or a GitHub bot account for commits, pushes and PRs, its token kept in the macOS Keychain or a Linux secret store."
+    },
+    {
+      "name": "fusion360",
+      "source": "./fusion360",
+      "description": "Parametric models in Autodesk Fusion 360 built as a careful person would: named parameters and formulas, a component per part, constrained named sketches, a readable history, FDM-ready fits, checks after every change."
     }
   ]
 }
