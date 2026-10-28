@@ -31,7 +31,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **Edit history instead of adding steps.** Reordering the timeline, or deleting and recreating a feature in place, is preferred over a corrective feature at the end.
 - **A shared fit gap where fits are alike, a local gap where a mechanism differs.** Fits of the same kind are tuned in one place; a hinge or a latch that needs its own gap gets its own parameter rather than bending the shared one.
 - **Saving only when asked.** Every save makes a new cloud version; this is about Fusion, not one user's taste.
-- **API notes load on demand.** The rules are in `SKILL.md`; the API calls, pitfalls and export live in `references/fusion-api.md`, read before the first script.
+- **Only what the MCP does not say.** The Fusion MCP's tool descriptions and its API documentation query already explain how to run scripts and call the API, so the skill holds no call examples or signatures. `references/fusion-pitfalls.md`, read before the first script, keeps only behaviour neither of them tells and an agent gets wrong, each as the behaviour and what to do, without code.
 - **Behaviour cases: none.** The user decided per behaviour, below: a broken rule shows in the model the user opens on real Fusion, so real use catches it, while a mock can only imagine Fusion's answers.
 - **1, parameters and formulas: not checked.** A hardcoded or hand-computed size shows in the parameter table the user opens, and breaks on the first change of an input (`docs/skill-development.md` §7.2, criterion 1: the failure is in what the user looks at).
 - **2, naming: not checked.** Names are what the user reads in the browser, the timeline and the parameter table (`docs/skill-development.md` §7.2, criterion 1: the failure is in what the user looks at).
@@ -49,7 +49,7 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 | File | Owns |
 |---|---|
 | `SKILL.md` | trigger; words; the rules for structure, parameters, sketches, history, finish, printed parts, checks and saving; the pointer to the API reference |
-| `references/fusion-api.md` | carrying the rules out through the MCP or API scripts: reading the design, units, the API calls for each rule, the checks as code, the API pitfalls, export for printing, how to save |
+| `references/fusion-pitfalls.md` | Fusion behaviour the MCP and the API documentation do not tell: values and units, sketches, features and history, placement, scripts and checks |
 
 ## Exceptions
 
@@ -61,4 +61,4 @@ Where this plugin departs from `docs/skill-development.md`, and why.
 
 ## Checking a change
 
-Beyond `docs/skill-development.md` §7: a change to `references/fusion-api.md` that names a new API call is tried once on a real Fusion design through the Fusion MCP.
+Beyond `docs/skill-development.md` §7: a behaviour added to `references/fusion-pitfalls.md` is one seen on a real Fusion design, and is checked once there; anything the MCP's descriptions or the API documentation already say is left out.
