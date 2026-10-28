@@ -1,13 +1,13 @@
 ---
 name: fusion360
-description: Rules and style for building and editing parametric models in Autodesk Fusion 360 (Fusion), through its MCP server or Fusion API scripts - every dimension a named user parameter, derived sizes as formulas, a component per part, fully constrained named sketches, a history that reads top to bottom, printable parts, and checks after every change. Use whenever the work is on a Fusion design - modelling, changing or fixing a part, case, box, lid, bracket, mount or holder; adding or renaming user parameters, components, sketches or features; checking fit, clearance or interference between parts; preparing a part for 3D printing; or rendering or exporting it. Trigger even without the word Fusion when the conversation is about a Fusion model, for example "make the walls of this part 0.5 mm thicker", "the lid is too tight", "add a slot for the strap".
+description: Rules and style for building and editing parametric models in Autodesk Fusion 360 (Fusion), through its MCP server or Fusion API scripts - every dimension a named user parameter, derived sizes as formulas, a component per part, fully constrained named sketches, a history that reads top to bottom, printable parts, and checks after every change. Use whenever the work is on a Fusion design - modelling, changing or fixing a part, case, box, lid, bracket, mount or holder; adding or renaming user parameters, components, sketches or features; checking fit, clearance or interference between parts; preparing a part for 3D printing; or exporting it for printing. Trigger even without the word Fusion when the conversation is about a Fusion model, for example "make the walls of this part 0.5 mm thicker", "the lid is too tight", "add a slot for the strap".
 ---
 
 # Fusion 360
 
 Build and edit the model so that someone opening it later understands from its parameters, components and history how each part is made, and changing one dimension moves everything that depends on it. A model that only looks right — numbers worked out by hand, "Sketch1", a corrective cut on top — breaks on the first change. Names in the model are English.
 
-Before the first script in a session, read `references/fusion-api.md`: the API calls that carry out these rules, the checks as code, the API's pitfalls, rendering and export.
+Before the first script in a session, read `references/fusion-api.md`: the API calls that carry out these rules, the checks as code, the API's pitfalls and export.
 
 **Words.** A *part* is one piece the model makes (a box, a lid, a bracket). A *mating part* is something the model is built around but does not make: a part from outside the design, such as another document or a supplier's model. An *element* is a reusable feature group that may appear in several parts (a mount, a hinge, a snap hook). A *step* is one entry of the timeline (a sketch or a feature). The *datum* is the one origin every position is measured from.
 
