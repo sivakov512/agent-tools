@@ -17,13 +17,13 @@ Each has an eval case (`evals/README.md`) or a *not checked* decision under *Dec
 7. **Every change is checked**: health, rebuild over key parameters, interference and gaps, moving parts over their travel, keyed assembly.
 8. **Changes beyond the request are proposed, not made**, and whatever a check moves is restored.
 9. **The document is saved only when the user asks**, since every save is a cloud version.
-10. **It loads for Fusion modelling work, with or without the word Fusion, and not for unrelated work.** — `trigger-named`, `trigger-unnamed`, `unrelated`.
+10. **It loads for Fusion modelling work, with or without the word Fusion, and not for unrelated work or other CAD tools.** — `trigger-named`, `trigger-unnamed`, `unrelated`, `other-cad-tool`.
 
 ## Decisions
 
 Choices the user made or confirmed. A request that goes against one is raised with the user before anything changes.
 
-- **Fusion 360 only, named after it.** The skill is for modelling in Fusion, so it is called `fusion360`; other CAD tools are out of scope.
+- **Fusion 360 only, named after it.** The skill is for modelling in Fusion, so it is called `fusion360`; other CAD tools are out of scope, and the description says so, since a modelling request in OpenSCAD or FreeCAD reads much like one in Fusion.
 - **Rules and style for any part, nothing personal.** The repository is public: the skill names no user, no domain (electronics, boards), no tracker and no specific part; examples are generic (a box, a lid, a bracket) and parts it does not make are "mating parts" or "parts from outside the design".
 - **Rules keep their short reasons.** A reason lets the model apply a rule to a case the list does not name; only duplication is cut.
 - **Prefixes as a scheme.** `common__` for what several parts share, `<part>__` for one part, `<element>__` for a reusable element, kept even when several parts use it; a part's prefix is its component name in lower snake case; the double underscore separates the scope from the name, which itself uses single underscores. The skill gives the scheme, not concrete names.
