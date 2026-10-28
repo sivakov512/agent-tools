@@ -13,8 +13,8 @@ Each has an eval case (`evals/README.md`) or a *not checked* decision under *Dec
 3. **Each part is its own component; parts from outside the design are linked and placed**, and the model is built around them.
 4. **Sketches are fully constrained by the constraints they need.**
 5. **A change edits the step that made the thing**, never a corrective step on top.
-6. **Internal corners are filleted; printed parts print and fit**: a shared fit gap, local clearances where a mechanism needs them, bed and lead-in chamfers, hole chamfers, print orientation.
-7. **Every change is checked**: health, rebuild over key parameters, interference and clearance, moving parts over their travel, keyed assembly.
+6. **Internal corners are filleted; printed parts print and fit**: a shared fit gap, local gaps where a mechanism needs them, bed and lead-in chamfers, hole chamfers, print orientation.
+7. **Every change is checked**: health, rebuild over key parameters, interference and gaps, moving parts over their travel, keyed assembly.
 8. **Changes beyond the request are proposed, not made**, and whatever a check moves is restored.
 9. **The document is saved only when the user asks**, since every save is a cloud version.
 10. **It loads for Fusion modelling work, with or without the word Fusion, and not for unrelated work.** — `trigger-named`, `trigger-unnamed`, `unrelated`.
@@ -26,10 +26,10 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **Fusion 360 only, named after it.** The skill is for modelling in Fusion, so it is called `fusion360`; other CAD tools are out of scope.
 - **Rules and style for any part, nothing personal.** The repository is public: the skill names no user, no domain (electronics, boards), no tracker and no specific part; examples are generic (a box, a lid, a bracket) and parts it does not make are "mating parts" or "parts from outside the design".
 - **Rules keep their short reasons.** A reason lets the model apply a rule to a case the list does not name; only duplication is cut.
-- **Prefixes as a scheme.** `common__` for what several parts share, `<part>__` for one part, `<element>__` for a reusable element; the double underscore separates the scope from the name, which itself uses single underscores. The skill gives the scheme, not concrete names.
-- **One vocabulary for sizes.** width is X, depth is Y, height is Z; thickness, dia, radius, gap, pitch, count; positions end in `_x`, `_y`, `_z` and are measured from one datum.
+- **Prefixes as a scheme.** `common__` for what several parts share, `<part>__` for one part, `<element>__` for a reusable element, kept even when several parts use it; a part's prefix is its component name in lower snake case; the double underscore separates the scope from the name, which itself uses single underscores. The skill gives the scheme, not concrete names.
+- **One vocabulary for sizes.** width is X, depth is Y, height is Z; thickness, dia, radius, gap, pitch, count; positions end in `_x`, `_y`, `_z` and are measured from one datum. `dia` is the one accepted abbreviation, and "gap" is used for every clearance.
 - **Edit history instead of adding steps.** Reordering the timeline, or deleting and recreating a feature in place, is preferred over a corrective feature at the end.
-- **A shared fit gap where fits are alike, a local clearance where a mechanism differs.** Fits of the same kind are tuned in one place; a hinge or a latch that needs its own clearance gets its own parameter rather than bending the shared one.
+- **A shared fit gap where fits are alike, a local gap where a mechanism differs.** Fits of the same kind are tuned in one place; a hinge or a latch that needs its own gap gets its own parameter rather than bending the shared one.
 - **Saving only when asked.** Every save makes a new cloud version; this is about Fusion, not one user's taste.
 - **API notes load on demand.** The rules are in `SKILL.md`; the API calls, pitfalls and export live in `references/fusion-api.md`, read before the first script.
 - **Behaviour cases: none.** The user decided per behaviour, below: rule compliance shows in real use on real Fusion, and a mock can only imagine the results.
