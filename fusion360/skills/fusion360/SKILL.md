@@ -39,16 +39,16 @@ Before the first script in a session, read `references/fusion-pitfalls.md`: how 
 
 ## 5. Finish
 
-- **Small fillets on internal corners**: a sharp inside corner concentrates stress. Not on edges that sit on the bed (those get chamfers, §6), and not where a mating part with square corners must fit.
+- **Small fillets on internal corners**: a sharp inside corner concentrates stress. Not on edges that sit on the print bed (those get chamfers, §6), and not where a mating part with square corners must fit.
 
 ## 6. Printed parts
 
 For parts that will be printed on an FDM printer:
 
 - **A shared fit-gap parameter** for fits of the same kind, so they are tuned for a printer in one place; **a local gap parameter** where a mechanism needs a different one.
-- **Chamfers on edges that lie on the bed** against elephant foot, and **lead-in chamfers** where parts slide or press together.
+- **Chamfers on edges that lie on the print bed** against elephant foot, and **lead-in chamfers** where parts slide or press together.
 - **Chamfers on outer hole edges**, so screws and pins find the hole.
-- **Print orientation** decided for each part: which face lies on the bed, overhangs past about 45°, bridges, walls thick enough to print.
+- **Print orientation** decided for each part: which face lies on the print bed, overhangs past about 45°, bridges, walls thick enough to print.
 
 ## 7. Checks after every change
 
