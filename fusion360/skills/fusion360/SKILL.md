@@ -1,6 +1,6 @@
 ---
 name: fusion360
-description: Rules and style for building and editing parametric models in Autodesk Fusion 360 (Fusion), through its MCP server or Fusion API scripts - every dimension a named user parameter, derived sizes as formulas, a component per part, fully constrained named sketches, a history that reads top to bottom, printable parts, and checks after every change. Use whenever the work is on a Fusion design - modelling, changing or fixing a part, case, box, lid, bracket, mount or holder; adding or renaming user parameters, components, sketches or features; checking fit, gaps or interference between parts; preparing a part for 3D printing; or exporting it for printing. Trigger even without the word Fusion when the conversation is about a Fusion model, for example "make the walls of this part 0.5 mm thicker", "the lid is too tight", "add a slot for the strap". Not for other CAD tools (OpenSCAD, FreeCAD, SolidWorks, Onshape).
+description: Rules and style for building and editing parametric models in Autodesk Fusion 360 (Fusion), through its MCP server or Fusion API scripts - every dimension a named user parameter, derived sizes as formulas, a component per part, fully constrained named sketches, a history that reads top to bottom, printable parts, and the checks each change calls for. Use whenever the work is on a Fusion design - modelling, changing or fixing a part, case, box, lid, bracket, mount or holder; adding or renaming user parameters, components, sketches or features; checking fit, gaps or interference between parts; preparing a part for 3D printing; or exporting it for printing. Trigger even without the word Fusion when the conversation is about a Fusion model, for example "make the walls of this part 0.5 mm thicker", "the lid is too tight", "add a slot for the strap". Not for other CAD tools (OpenSCAD, FreeCAD, SolidWorks, Onshape).
 ---
 
 # Fusion 360
@@ -50,15 +50,15 @@ For parts that will be printed on an FDM printer:
 - **Chamfers on outer hole edges**, so screws and pins find the hole.
 - **Print orientation** decided for each part: which face lies on the print bed, overhangs past about 45°, bridges, walls thick enough to print.
 
-## 7. Checks after every change
+## 7. Checks
 
-A change is done when these pass:
+A change is done when the checks it calls for pass. When it is unclear whether a check applies to a change, ask the user rather than skipping it or running it by default.
 
-1. **Health**: no feature in the timeline has an error or warning.
-2. **Rebuild**: change a few parameters that drive the overall shape, within values that make sense for the part, then restore them; the model rebuilds without errors and returns exactly to where it was. A break is reported, not redesigned.
-3. **Interference and gaps**: no part interferes with another or with a mating part; the gaps that matter are measured, not assumed.
-4. **Moving parts over their whole travel**: a lid, a latch, a slider, a button is checked for fit, engagement and removal at several positions along its path, not only where it was drawn.
-5. **Assembly**: parts cannot be put together the wrong way round; if they can, add a key.
+1. **After any change — health**: no feature in the timeline has an error or warning.
+2. **After any change — interference and gaps**: no part interferes with another or with a mating part; the gaps that matter are measured, not assumed.
+3. **When parameters, sketches or the structure changed — rebuild**: change a few parameters that drive the overall shape, within values that make sense for the part, then restore them; the model rebuilds without errors and returns exactly to where it was. A break is reported, not redesigned.
+4. **When the change touches a moving part or what it moves against — the whole travel**: a lid, a latch, a slider, a button is checked for fit, engagement and removal at several positions along its path, not only where it was drawn.
+5. **When mating features change — assembly**: parts cannot be put together the wrong way round; if they can, add a key.
 
 ## 8. Changes beyond the request
 
