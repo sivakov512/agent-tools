@@ -1,6 +1,6 @@
 # fusion360
 
-Makes an agent build and edit parametric models in Autodesk Fusion 360 the way a careful person would, so the model stays yours to change. Every size is a named parameter and every derived size a formula, each part is its own component built around the parts it mates with, sketches are fully constrained and named, the history reads top to bottom, and printed parts carry the fit gaps, chamfers and fillets an FDM printer needs. After every change the agent checks feature health, rebuilds over a range of key sizes, measures interference and gaps, and moves moving parts through their travel.
+Makes an agent build and edit parametric models in Autodesk Fusion 360 the way a careful person would, so the model stays yours to change. Every size is a named parameter and every derived size a formula, each part is its own component built around the parts it mates with, sketches are fully constrained and named, the history reads top to bottom, and printed parts carry the fit gaps, chamfers and fillets an FDM printer needs. After every change the agent checks feature health, interference and gaps; when the change calls for it, it also rebuilds over a range of key sizes, moves moving parts through their travel and checks that parts cannot be assembled the wrong way round, and it asks when that is unclear.
 
 The plugin and the skill inside it are both called `fusion360`.
 
