@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/sivakov512/agent-tools/compare/fusion360-v0.1.0...fusion360-v0.2.0) (2026-10-28)
+
+
+### Features
+
+* **fusion360:** sketch per element, bed fillets, rebuild checks fit ([4028bc6](https://github.com/sivakov512/agent-tools/commit/4028bc6759071660b993a91c8d82a77c10342453))
+
 ## 0.1.0 (2026-10-28)
 
 
