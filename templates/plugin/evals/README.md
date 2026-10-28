@@ -19,8 +19,8 @@ claude plugin eval . --model sonnet --judge-model sonnet --runs 1 --ablation non
 
 What is checked:
 
-- `trigger-named` — <a request the skill is for, naming the product or tool>: the skill loads.
-- `trigger-unnamed` — <a request the skill is for, without the name>: the skill loads.
+- `trigger-named` — <a request the skill is for, naming the product, tool or subject the description names>: the skill loads.
+- `trigger-unnamed` — <a request the skill is for, without it>: the skill loads.
 - `unrelated` — a question that has nothing to do with the skill: the skill does not load.
 - **Guards on every behaviour case** — <what no case may ever do>.
 
