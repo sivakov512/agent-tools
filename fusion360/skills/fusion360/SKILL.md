@@ -15,7 +15,7 @@ Before the first script in a session, read `references/fusion-pitfalls.md`: how 
 
 - **Each part is its own component**, its sketches and features inside that component, never in the root — so a part can be moved, hidden, exported and changed on its own.
 - **Parts from outside the design are inserted by link and placed**, not redrawn, and the model is built around them, so a change to one shows up as an interference instead of a silent misfit.
-- **No needless sketches.** A sketch exists because a feature uses it.
+- **No needless sketches.** A sketch exists because features use it, and it draws one logical element whole (§3).
 
 ## 2. Parameters
 
@@ -31,6 +31,8 @@ Before the first script in a session, read `references/fusion-pitfalls.md`: how 
 - **Short meaningful names**, one to three words; never Fusion's defaults.
 - **Fully constrained by the constraints it needs, and no redundant ones.** Geometry held only "as drawn" moves when anything near it changes. Trust `isFullyConstrained`, not the picture.
 - **Sketch dimensions reference parameters** (§2).
+- **One sketch per logical element**: an outline, or a pocket with all its slots and holes, is drawn in one sketch, and its regions feed every feature of that element, features of different depths included. A person then opens one sketch to see and edit the whole element; an element split into a sketch per feature is scattered over the timeline. A sketch lies in one plane, so a part of the element on another face gets its own sketch, named for the same element.
+- **A repeated element is drawn once**; its copies come from mirror, pattern or circular pattern features, not from redrawn sketches, so a change to it reaches every copy.
 
 ## 4. History
 
@@ -39,14 +41,15 @@ Before the first script in a session, read `references/fusion-pitfalls.md`: how 
 
 ## 5. Finish
 
-- **Small fillets on internal corners**: a sharp inside corner concentrates stress. Not on edges that sit on the print bed (those get chamfers, §6), and not where a mating part with square corners must fit.
+- **Small fillets on internal corners**: a sharp inside corner concentrates stress. Not where a mating part with square corners must fit.
 
 ## 6. Printed parts
 
 For parts that will be printed on an FDM printer:
 
 - **A shared fit-gap parameter** for fits of the same kind, so they are tuned for a printer in one place; **a local gap parameter** where a mechanism needs a different one.
-- **Chamfers on edges that lie on the print bed** against elephant foot, and **lead-in chamfers** where parts slide or press together.
+- **A fillet or a chamfer on edges at the print bed, chosen by look and function**: a rounded edge on the bed prints fine, and a chamfer against elephant foot is an option where an edge must stay clean, not a rule.
+- **Lead-in chamfers** where parts slide or press together.
 - **Chamfers on outer hole edges**, so screws and pins find the hole.
 - **Print orientation** decided for each part: which face lies on the print bed, overhangs past about 45°, bridges, walls thick enough to print.
 
@@ -56,7 +59,7 @@ A change is done when the checks it calls for pass. When it is unclear whether a
 
 1. **After any change — health**: no feature in the timeline has an error or warning.
 2. **After any change — interference and gaps**: no part interferes with another or with a mating part; the gaps that matter are measured, not assumed.
-3. **When parameters, sketches or the structure changed — rebuild**: change a few parameters that drive the overall shape, within values that make sense for the part, then restore them; the model rebuilds without errors and returns exactly to where it was. A break is reported, not redesigned.
+3. **When parameters, sketches or the structure changed — rebuild**: change a few parameters that drive the overall shape, within values that make sense for the part, then restore them. In each changed state the model rebuilds without errors, the parts still fit (no interference, and the gaps that matter hold), and placed or jointed parts follow the change; a placement that does not follow parameters, such as a position held only in a snapshot, counts as a break. Restored, the model returns exactly to where it was. A break is reported, not redesigned.
 4. **When the change touches a moving part or what it moves against — the whole travel**: a lid, a latch, a slider, a button is checked for fit, engagement and removal at several positions along its path, not only where it was drawn.
 5. **When mating features change — assembly**: parts cannot be put together the wrong way round; if they can, add a key.
 

@@ -24,7 +24,7 @@ How Fusion behaves where neither the MCP's tool descriptions nor the API documen
 - **A linked insert needs the file in the same project as the design.** Ask the user to move or copy it there.
 - **Inserting into a design that was never saved may fail.** Ask the user to save it; do not save it yourself (`SKILL.md` §9).
 - **An occurrence grounded to its parent does not move.** Clear the grounding before moving it.
-- **A moved occurrence reverts on the next compute in a parametric design.** Moving it leaves a pending transform; to keep the placement, capture a snapshot while one is pending. A move made only for a check is undone instead (`SKILL.md` §8).
+- **A moved occurrence reverts on the next compute in a parametric design.** Moving it leaves a pending transform; to keep the placement, capture a snapshot while one is pending. A snapshot holds a fixed position that does not follow parameters, so a part whose place depends on sizes is held by a joint instead (`SKILL.md` §7). A move made only for a check is undone instead (`SKILL.md` §8).
 
 ## 5. Scripts and checks
 
