@@ -11,7 +11,7 @@ Read the design with a read-only script and keep what it shows in mind:
 - the timeline: each item's name, type, health (`healthState`, `errorOrWarningMessage`) and the marker position;
 - each body's volume (`body.physicalProperties.volume`, in cm³), to see what a change did.
 
-A design started by someone else may break the rules: say what you found, and bring the parts you touch in line instead of adding more of the same.
+A design started by someone else may break the rules: say what you found, and bring only the parts the request touches in line (`SKILL.md` §8).
 
 Scripts through the MCP define `run(_context)` and never catch exceptions, so a failure comes back with its message. Mark an inspecting script `readOnly`. The API works in centimetres internally: give every value as an expression string with its unit (`'2 mm'`, `'lid__height'`), never a bare float, which Fusion reads as centimetres.
 
@@ -67,4 +67,4 @@ Run them in a read-only script after each change (`SKILL.md` §7):
 
 ## 9. Saving
 
-Save with the MCP's document `save` or `document.save`, only when asked (`SKILL.md` §8). Closing a document with unsaved changes needs a choice between saving and discarding.
+Save with the MCP's document `save` or `document.save`, only when asked (`SKILL.md` §9). Closing a document with unsaved changes needs a choice between saving and discarding.

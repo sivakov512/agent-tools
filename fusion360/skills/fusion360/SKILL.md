@@ -60,6 +60,11 @@ A change is done when these pass:
 4. **Moving parts over their whole travel**: a lid, a latch, a slider, a button is checked for fit, engagement and removal at several positions along its path, not only where it was drawn.
 5. **Assembly**: parts cannot be put together the wrong way round; if they can, add a key.
 
-## 8. Saving
+## 8. Changes beyond the request
+
+- **Propose them, do not make them**: restructuring or renaming parts of an existing design, deleting or renaming parameters, adding a key, moving or reorienting parts. The design is the user's; a change they did not ask for is one they have to find and undo.
+- **Restore what a check moves.** A travel check or a parameter sweep leaves the parts and parameters as they were.
+
+## 9. Saving
 
 Do not save the document unless the user asks: every save creates a new version in the cloud.

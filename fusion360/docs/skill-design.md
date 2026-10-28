@@ -15,8 +15,9 @@ Each has an eval case (`evals/README.md`) or a *not checked* decision under *Dec
 5. **A change edits the step that made the thing**, never a corrective step on top.
 6. **Internal corners are filleted; printed parts print and fit**: a shared fit gap, local clearances where a mechanism needs them, bed and lead-in chamfers, hole chamfers, print orientation.
 7. **Every change is checked**: health, rebuild over key parameters, interference and clearance, moving parts over their travel, keyed assembly.
-8. **The document is saved only when the user asks**, since every save is a cloud version.
-9. **It loads for Fusion modelling work, with or without the word Fusion, and not for unrelated work.** — `trigger-named`, `trigger-unnamed`, `unrelated`.
+8. **Changes beyond the request are proposed, not made**, and whatever a check moves is restored.
+9. **The document is saved only when the user asks**, since every save is a cloud version.
+10. **It loads for Fusion modelling work, with or without the word Fusion, and not for unrelated work.** — `trigger-named`, `trigger-unnamed`, `unrelated`.
 
 ## Decisions
 
@@ -39,8 +40,9 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 - **5, editing in place: not checked.** A corrective step shows at the end of the timeline; it shows in the model the user opens on real Fusion, and a case could only grade scripts against a mock that imagines Fusion's answers (`docs/skill-development.md` §7.2, criteria 1 and 4).
 - **6, fillets and printed-part features: not checked.** Missing fillets, chamfers or fit gaps show in the model and on the first print; it shows in the model the user opens on real Fusion, and a case could only grade scripts against a mock that imagines Fusion's answers (`docs/skill-development.md` §7.2, criteria 1 and 4).
 - **7, checks after each change: not checked.** A skipped check shows as a misfit the user sees in the model; it shows in the model the user opens on real Fusion, and a case could only grade scripts against a mock that imagines Fusion's answers (`docs/skill-development.md` §7.2, criteria 1 and 4).
-- **8, saving only when asked: not checked.** A save is visible in the document's version history and costs only an extra version the user can delete (`docs/skill-development.md` §7.2, criteria 1 and 2).
-- **9, loading for Fusion work: checked** by the trigger cases every skill has: a skill that silently stops loading is the one failure real use misses.
+- **8, changes beyond the request: not checked.** An unrequested change lands in the user's own open document, where the timeline shows it and undo reverts it (`docs/skill-development.md` §7.2, criterion 1).
+- **9, saving only when asked: not checked.** A save is visible in the document's version history and costs only an extra version the user can delete (`docs/skill-development.md` §7.2, criteria 1 and 2).
+- **10, loading for Fusion work: checked** by the trigger cases every skill has: a skill that silently stops loading is the one failure real use misses.
 
 ## Where things live
 
@@ -54,7 +56,8 @@ Choices the user made or confirmed. A request that goes against one is raised wi
 Where this plugin departs from `docs/skill-development.md`, and why.
 
 - **No config, no `schema`** (§4.6, §4.7). The skill keeps no structure of its own in an outside service; the Fusion document is the only data it works on.
-- **No reply rules** (§4.1–§4.4). The skill covers how to model, not how to talk to the user.
+- **No reply rules** (§4.1–§4.3). The skill covers how to model, not how to talk to the user; §4.4 applies through `SKILL.md` §8.
+- **A failed script does not stop the work** (§4.5). A failing Fusion script is a normal step in modelling: re-read the design and fix the script before running it again.
 
 ## Checking a change
 
