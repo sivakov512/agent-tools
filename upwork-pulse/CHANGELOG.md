@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.2](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.21.1...upwork-pulse-v0.21.2) (2026-11-10)
+
+
+### Bug Fixes
+
+* **upwork-pulse:** turn off each task's own finish notification ([a6ce62b](https://github.com/sivakov512/agent-tools/commit/a6ce62bbbc572082b5f5495cf78af10d8ee38c4b))
+
 ## [0.21.1](https://github.com/sivakov512/agent-tools/compare/upwork-pulse-v0.21.0...upwork-pulse-v0.21.1) (2026-10-24)
 
 
