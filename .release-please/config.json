@@ -4,27 +4,6 @@
   "bump-minor-pre-major": true,
   "separate-pull-requests": true,
   "packages": {
-    "project-tracker": {
-      "package-name": "project-tracker",
-      "component": "project-tracker",
-      "bump-minor-pre-major": false,
-      "changelog-path": "CHANGELOG.md",
-      "extra-files": [
-        {
-          "type": "json",
-          "path": ".claude-plugin/plugin.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "generic",
-          "path": "skills/project-tracker/assets/dashboard.html"
-        },
-        {
-          "type": "generic",
-          "path": "skills/project-tracker/assets/client.html"
-        }
-      ]
-    },
     "upwork-pulse": {
       "package-name": "upwork-pulse",
       "component": "upwork-pulse",
