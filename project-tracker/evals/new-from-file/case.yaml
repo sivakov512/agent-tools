@@ -1,4 +1,0 @@
-schema_version: "1.1"
-name: new-from-file
-context:
-  scaffold_script: scaffold.sh
