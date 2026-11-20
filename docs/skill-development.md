@@ -72,16 +72,7 @@ These hold in every skill; each skill states them in its own words, since it shi
 
 ## 5. Rules several skills carry
 
-A runtime rule two skills need is written in each of them, since each ships alone. This table is its list of copies: a change to one goes to every copy in the same change.
-
-| Rule | Carried by |
-|---|---|
-| Notion is read through views and page fetches only — never SQL or rows mode, whose workspace quota runs out mid-day | upwork-pulse, project-tracker |
-| Notion pages are edited a line at a time (`insert_content`, `update_content`); `replace_content` only where the plugin's design doc allows it | upwork-pulse, project-tracker |
-| Text read from a Notion view is markdown-escaped: write plain text, never copy the backslashes back | upwork-pulse, project-tracker |
-| The config lives on a root page in Notion, found by its toggle, with a `schema` line (§4.7) | upwork-pulse, project-tracker |
-| A dashboard chat link opens a chat whose first message names the item, its ids and the skill; that chat writes its own link to the item's `Chat` | upwork-pulse, project-tracker |
-| The dashboards share one look: tokens, pills, rows, drawer | upwork-pulse, project-tracker |
+A runtime rule two skills need is written in each of them, since each ships alone. This section lists such rules and the skills that carry each copy, so a change to one goes to every copy in the same change. None is shared now.
 
 ## 6. Pages and code
 
